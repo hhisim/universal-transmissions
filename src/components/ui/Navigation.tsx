@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/", label: "Transmission" },
   { href: "/gallery", label: "Gallery" },
   { href: "/codex", label: "Codex" },
+  { href: "/about", label: "About" },
   { href: "/store", label: "Transmission Hub" },
   { href: "/journal", label: "Journal" },
   { href: "/connect", label: "Connect" },
