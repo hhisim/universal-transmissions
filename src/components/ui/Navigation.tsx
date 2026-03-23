@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
   { href: "/codex", label: "Codex" },
   { href: "/about", label: "About" },
-  { href: "/store", label: "Transmission Hub" },
+  { href: "/sanctum", label: "Sanctum" },
   { href: "/journal", label: "Journal" },
   { href: "/connect", label: "Connect" },
 ];
@@ -25,9 +25,9 @@ export default function Navigation() {
     <header
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: "rgba(10, 10, 12, 0.85)",
+        background: "rgba(10, 9, 14, 0.85)",
         backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(0, 229, 255, 0.06)",
+        borderBottom: "1px solid rgba(217, 70, 239, 0.06)",
       }}
     >
       <nav className="container-ut flex items-center justify-between h-16">
@@ -35,7 +35,7 @@ export default function Navigation() {
         <Link href="/" className="flex flex-col items-start">
           <span
             className="font-display text-sm tracking-widest"
-            style={{ color: "var(--ut-cyan)" }}
+            style={{ color: "var(--ut-magenta)" }}
           >
             UT
           </span>
@@ -50,13 +50,15 @@ export default function Navigation() {
         {/* Desktop nav */}
         <ul className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => {
-            const active = pathname === link.href;
+            const active =
+              pathname === link.href ||
+              (link.href === "/sanctum" && pathname === "/store");
             return (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   className="nav-link group relative"
-                  style={{ color: active ? "var(--ut-cyan)" : undefined }}
+                  style={{ color: active ? "var(--ut-magenta)" : undefined }}
                 >
                   {active ? (
                     <ZalgoText text={link.label} intensity="subtle" />
@@ -74,15 +76,16 @@ export default function Navigation() {
           })}
 
           {/* Constellation links */}
-          <li className="border-l border-white/10 pl-6 flex items-center gap-4">
+          <li
+            className="border-l border-white/10 pl-6 flex items-center gap-4"
+          >
             <a
               href="https://vaultofarcana.com"
               target="_blank"
               rel="noopener noreferrer"
               className="nav-constellation"
             >
-              VoA
-              <ExternalLink size={9} />
+              Vault of Arcana ↗
             </a>
             <a
               href="https://hakanhisim.net"
@@ -90,8 +93,7 @@ export default function Navigation() {
               rel="noopener noreferrer"
               className="nav-constellation"
             >
-              HH
-              <ExternalLink size={9} />
+              Hakan Hisim ↗
             </a>
           </li>
         </ul>
@@ -114,27 +116,45 @@ export default function Navigation() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden overflow-hidden"
-            style={{ background: "rgba(10, 10, 12, 0.95)", borderBottom: "1px solid rgba(0,229,255,0.06)" }}
+            style={{
+              background: "rgba(10, 9, 14, 0.95)",
+              borderBottom: "1px solid rgba(217, 70, 239, 0.06)",
+            }}
           >
             <ul className="flex flex-col p-6 gap-4">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    onClick={() => setOpen(false)}
-                    className="nav-link block"
-                    style={{ color: pathname === link.href ? "var(--ut-cyan)" : undefined }}
-                  >
-                    <ZalgoText text={link.label} intensity="subtle" />
-                  </Link>
-                </li>
-              ))}
-              <li className="border-t border-white/10 pt-4 mt-2 flex gap-6">
-                <a href="https://vaultofarcana.com" target="_blank" rel="noopener noreferrer" className="nav-constellation">
-                  Vault of Arcana <ExternalLink size={9} />
+              {NAV_LINKS.map((link) => {
+                const active =
+                  pathname === link.href ||
+                  (link.href === "/sanctum" && pathname === "/store");
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className="nav-link block"
+                      style={{ color: active ? "var(--ut-magenta)" : undefined }}
+                    >
+                      <ZalgoText text={link.label} intensity="subtle" />
+                    </Link>
+                  </li>
+                );
+              })}
+              <li className="border-t border-white/10 pt-4 mt-2 flex flex-col gap-3">
+                <a
+                  href="https://vaultofarcana.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-constellation"
+                >
+                  Vault of Arcana ↗
                 </a>
-                <a href="https://hakanhisim.net" target="_blank" rel="noopener noreferrer" className="nav-constellation">
-                  Hakan Hisim <ExternalLink size={9} />
+                <a
+                  href="https://hakanhisim.net"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-constellation"
+                >
+                  Hakan Hisim ↗
                 </a>
               </li>
             </ul>
