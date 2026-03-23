@@ -1,0 +1,16 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "www.universal-transmissions.net" },
+      { protocol: "https", hostname: "vaultofarcana.com" },
+    ],
+  },
+  experimental: {
+    serverActions: { allowedOrigins: ["localhost:3000", "www.vaultofarcana.com"] },
+  },
+};
+
+export default nextConfig;

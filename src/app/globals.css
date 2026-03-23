@@ -1,0 +1,554 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   UT UNIVERSAL TRANSMISSIONS — GLOBAL DESIGN SYSTEM
+   ============================================================ */
+
+:root {
+  --ut-black: #0a0a0c;
+  --ut-black-warm: #0d0b10;
+  --ut-cyan: #00e5ff;
+  --ut-cyan-dim: #0097a7;
+  --ut-gold: #d4a847;
+  --ut-gold-bright: #f0c75e;
+  --ut-purple: #7c4dff;
+  --ut-purple-deep: #4a148c;
+  --ut-white: #e8e6f0;
+  --ut-white-dim: #9e9bab;
+  --ut-surface: #12111a;
+  --ut-surface-hover: #1a1825;
+  --codex1-bg: #0c0906;
+  --codex1-gold: #c9a227;
+  --codex1-cream: #f5e6c8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--ut-black);
+  color: var(--ut-white);
+  font-family: "Cormorant Garamond", serif;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ut-black);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ut-cyan-dim);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ut-cyan);
+}
+
+/* Selection */
+::selection {
+  background: rgba(0, 229, 255, 0.2);
+  color: var(--ut-white);
+}
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--ut-cyan);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+.font-display {
+  font-family: "Cinzel Decorative", serif;
+}
+.font-heading {
+  font-family: "Cinzel", serif;
+}
+.font-body {
+  font-family: "Cormorant Garamond", serif;
+}
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* Glow text */
+.glow-cyan {
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5), 0 0 30px rgba(0, 229, 255, 0.3);
+}
+.glow-gold {
+  text-shadow: 0 0 10px rgba(212, 168, 71, 0.5), 0 0 30px rgba(212, 168, 71, 0.3);
+}
+.glow-purple {
+  text-shadow: 0 0 10px rgba(124, 77, 255, 0.5), 0 0 30px rgba(124, 77, 255, 0.3);
+}
+
+/* ============================================================
+   ZALGO TEXT
+   ============================================================ */
+
+/*
+ * Zalgo character sets:
+ * up:    combining diacritical marks above (U+0300–U+036F)
+ * down:  combining diacritical marks below
+ * mid:   combining diacritical marks — extensions
+ */
+.zalgo-up {
+  position: relative;
+}
+.zalgo-up::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--ut-cyan);
+  opacity: 0.4;
+  transform: translateY(-2px);
+  pointer-events: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.zalgo-moderate {
+  position: relative;
+  display: inline-block;
+}
+
+.zalgo-heavy {
+  position: relative;
+  display: inline-block;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   SCAN LINES + NOISE OVERLAY
+   ============================================================ */
+
+.scan-lines {
+  position: relative;
+}
+.scan-lines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+.noise-overlay {
+  position: relative;
+}
+.noise-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.4;
+}
+
+/* ============================================================
+   SACRED GEOMETRY DIVIDERS
+   ============================================================ */
+
+.sacred-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.sacred-divider::before,
+.sacred-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--ut-gold) 30%,
+    var(--ut-cyan) 70%,
+    transparent
+  );
+}
+.sacred-divider-icon {
+  color: var(--ut-gold);
+  opacity: 0.7;
+}
+
+/* Flower of Life dot pattern */
+.flower-of-life {
+  background-image: radial-gradient(
+    circle,
+    rgba(212, 168, 71, 0.15) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
+}
+
+/* ============================================================
+   CARD + SURFACE STYLES
+   ============================================================ */
+
+.ut-card {
+  background: var(--ut-surface);
+  border: 1px solid rgba(0, 229, 255, 0.08);
+  border-radius: 2px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.ut-card:hover {
+  border-color: rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.05);
+}
+
+.ut-card-gold {
+  background: var(--ut-surface);
+  border: 1px solid rgba(212, 168, 71, 0.15);
+  border-radius: 2px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.ut-card-gold:hover {
+  border-color: rgba(212, 168, 71, 0.4);
+  box-shadow: 0 0 30px rgba(212, 168, 71, 0.08);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: transparent;
+  border: 1px solid var(--ut-cyan);
+  color: var(--ut-cyan);
+  font-family: "Cinzel", serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ut-cyan);
+  transform: translateX(-101%);
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+.btn-primary:hover {
+  color: var(--ut-black);
+}
+.btn-primary:hover::before {
+  transform: translateX(0);
+}
+
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: transparent;
+  border: 1px solid var(--ut-gold);
+  color: var(--ut-gold);
+  font-family: "Cinzel", serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-gold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ut-gold);
+  transform: translateX(-101%);
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+.btn-gold:hover {
+  color: var(--ut-black);
+}
+.btn-gold:hover::before {
+  transform: translateX(0);
+}
+
+/* ============================================================
+   GLOW BORDERS
+   ============================================================ */
+
+.glow-border-cyan {
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.1), inset 0 0 15px rgba(0, 229, 255, 0.03);
+}
+.glow-border-gold {
+  border: 1px solid rgba(212, 168, 71, 0.3);
+  box-shadow: 0 0 15px rgba(212, 168, 71, 0.1), inset 0 0 15px rgba(212, 168, 71, 0.03);
+}
+
+/* ============================================================
+   CODEX ZONES
+   ============================================================ */
+
+/* Warm zone — amber/gold/parchment */
+.codex-vol1-zone {
+  background-color: var(--codex1-bg);
+  color: var(--codex1-cream);
+}
+.codex-vol1-zone h1,
+.codex-vol1-zone h2,
+.codex-vol1-zone h3 {
+  color: var(--codex1-gold);
+  font-family: "Cinzel Decorative", serif;
+}
+.codex-vol1-zone .btn-gold {
+  border-color: var(--codex1-gold);
+  color: var(--codex1-gold);
+}
+.codex-vol1-zone .btn-gold::before {
+  background: var(--codex1-gold);
+}
+
+/* Cyan zone — cool/tecnological */
+.codex-vol2-zone {
+  background-color: var(--ut-black);
+  color: var(--ut-white);
+}
+.codex-vol2-zone h1,
+.codex-vol2-zone h2,
+.codex-vol2-zone h3 {
+  color: var(--ut-cyan);
+  font-family: "Cinzel Decorative", serif;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes scan-line-move {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.animate-shimmer-cyan {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 229, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.animate-shimmer-gold {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 168, 71, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   GLITCH EFFECT
+   ============================================================ */
+
+.glitch-text {
+  position: relative;
+}
+.glitch-text.active::before,
+.glitch-text.active::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.glitch-text.active::before {
+  color: var(--ut-cyan);
+  animation: glitch 0.2s ease-in-out;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+}
+.glitch-text.active::after {
+  color: var(--ut-purple);
+  animation: glitch 0.3s ease-in-out reverse;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-3px, 2px);
+  }
+  40% {
+    transform: translate(3px, -2px);
+  }
+  60% {
+    transform: translate(-2px, -1px);
+  }
+  80% {
+    transform: translate(2px, 1px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+
+.container-ut {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.section-pad {
+  padding: 6rem 0;
+}
+
+.text-gradient-cyan {
+  background: linear-gradient(135deg, var(--ut-cyan), var(--ut-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--ut-gold-bright), var(--ut-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+
+.nav-link {
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ut-white-dim);
+  transition: color 0.3s ease;
+  position: relative;
+}
+.nav-link:hover {
+  color: var(--ut-cyan);
+}
+
+.nav-constellation {
+  font-family: "Cinzel", serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ut-white-dim);
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.nav-constellation:hover {
+  opacity: 1;
+  color: var(--ut-gold);
+}
+
+/* ============================================================
+   PRODUCT / GALLERY CARDS
+   ============================================================ */
+
+.artwork-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.artwork-card img {
+  transition: transform 0.6s ease;
+}
+.artwork-card:hover img {
+  transform: scale(1.05);
+}
+.artwork-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 10, 12, 0.9) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 1.5rem;
+}
+.artwork-card:hover .artwork-card-overlay {
+  opacity: 1;
+}
