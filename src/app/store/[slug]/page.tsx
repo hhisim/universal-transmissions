@@ -127,11 +127,7 @@ export default function ProductDetailPage({ params }: Props) {
                   disabled={loading}
                   className="w-full btn-gold justify-center text-base py-4"
                 >
-                  {loading ? (
-                    <span>Processing...</span>
-                  ) : (
-                    <ZalgoText text={`Purchase for $${product.price}`} intensity="subtle" />
-                  )}
+                  {loading ? "Processing..." : `Purchase for $${product.price}`}
                 </button>
 
                 <p className="font-mono text-[9px] text-center mt-3" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import Navigation from "@/components/ui/Navigation";
@@ -8,15 +7,10 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 
 export const metadata: Metadata = {
-  title: "The Codex",
+  title: "The Codex — Universal Transmissions",
   description:
-    "The Codex Oracle — a complete symbolic divination system encoded in sacred geometry and visual language. Explore Volume I and II.",
+    "The Universal Transmissions Codex — 150 pages of symbolic art, sacred geometry, and visionary experience. A book unlike any other. Available in physical and digital editions.",
 };
-
-const RotatingMerkaba = dynamic(
-  () => import("@/components/three/RotatingMerkaba"),
-  { ssr: false, loading: () => <div className="w-full" style={{ minHeight: "400px", background: "#050508" }} /> }
-);
 
 export default function CodexPage() {
   return (
@@ -25,50 +19,51 @@ export default function CodexPage() {
       <main style={{ background: "var(--ut-black)" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}
-        <section className="relative min-h-[80vh] flex items-center overflow-hidden">
-          {/* Background Merkaba */}
-          <div className="absolute inset-0 opacity-30">
-            <RotatingMerkaba />
-          </div>
-
+        <section className="relative min-h-[85vh] flex items-center overflow-hidden">
           <div className="container-ut relative z-10 py-32">
             <div className="max-w-3xl">
               <SectionReveal>
                 <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: "var(--ut-gold)" }}>
-                  [ Sacred Text / Symbolic Oracle ]
+                  [ Sacred Text / Symbolic Art ]
                 </p>
               </SectionReveal>
               <SectionReveal delay={0.2}>
-                <h1 className="font-display text-5xl md:text-7xl mb-6 glow-gold" style={{ color: "var(--ut-gold)" }}>
+                <h1 className="font-display text-5xl md:text-7xl mb-4 glow-gold" style={{ color: "var(--ut-gold)" }}>
                   <ZalgoText text="CODEX" intensity="heavy" />
                 </h1>
               </SectionReveal>
-              <SectionReveal delay={0.4}>
-                <h2 className="font-heading text-xl md:text-2xl tracking-[0.3em] uppercase mb-8" style={{ color: "var(--ut-white-dim)" }}>
-                  <ZalgoText text="ORACLE" intensity="moderate" />
-                </h2>
-              </SectionReveal>
-              <SectionReveal delay={0.6}>
-                <p className="font-body text-xl leading-relaxed mb-10" style={{ color: "var(--ut-white-dim)" }}>
-                  A complete symbolic divination system. The Codex speaks in the
-                  language of light — sacred geometry, archetype, and the
-                  living diagram of existence.
+              <SectionReveal delay={0.35}>
+                <p className="font-heading text-lg md:text-xl tracking-[0.2em] uppercase mb-8" style={{ color: "var(--ut-white-dim)" }}>
+                  Universal Transmissions — Volume I
                 </p>
               </SectionReveal>
-              <SectionReveal delay={0.8}>
+              <SectionReveal delay={0.5}>
+                <p className="font-body text-xl leading-relaxed mb-10" style={{ color: "var(--ut-white-dim)" }}>
+                  150 pages of symbolic art, sacred geometry, and visionary experience.
+                  Some liken it to The Voynich Manuscript meets a cyberpunk grimoire.
+                  It is more than a book — it is a condensed collection of a decade&apos;s
+                  obsessive creative transmission, bound into one artifact.
+                </p>
+              </SectionReveal>
+              <SectionReveal delay={0.7}>
                 <div className="flex flex-wrap gap-4">
-                  <a href="#volume-1" className="btn-gold">
-                    <ZalgoText text="Volume I — The Foundation" intensity="subtle" />
-                  </a>
-                  <a href="#volume-2" className="btn-primary">
-                    <ZalgoText text="Volume II — The Ascension" intensity="subtle" />
+                  <Link href="/sanctum" className="btn-gold">
+                    Purchase the Book
+                  </Link>
+                  <a href="#about" className="btn-secondary">
+                    About the Codex
                   </a>
                 </div>
               </SectionReveal>
             </div>
           </div>
 
-          {/* Sacred geometry corner decorations */}
+          {/* Background gradient */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 30% 50%, rgba(201,162,39,0.15) 0%, transparent 60%)" }} />
+          </div>
+
+          {/* Corner decorations */}
           <div className="absolute top-8 left-8 opacity-20">
             <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
               <polygon points="30,5 55,50 5,50" stroke="#d4a847" strokeWidth="0.5" fill="none" />
@@ -83,39 +78,36 @@ export default function CodexPage() {
           </div>
         </section>
 
-        {/* ── VOLUME I — WARM ZONE ──────────────────────────── */}
-        <section id="volume-1" className="section-pad codex-vol1-zone" style={{ background: "var(--codex1-bg)" }}>
+        {/* ── ABOUT THE CODEX ──────────────────────────────── */}
+        <section id="about" className="section-pad" style={{ background: "var(--ut-surface)" }}>
           <div className="container-ut">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <SectionReveal direction="right">
                 <div>
-                  <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "var(--codex1-gold)" }}>
-                    [ Volume I / The Foundation ]
+                  <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "var(--ut-gold)" }}>
+                    [ The Book ]
                   </p>
-                  <h2 className="font-display text-4xl md:text-5xl mb-6" style={{ color: "var(--codex1-gold)" }}>
-                    <ZalgoText text="The Foundation" intensity="moderate" />
+                  <h2 className="font-display text-4xl md:text-5xl mb-6" style={{ color: "var(--ut-white)" }}>
+                    <ZalgoText text="The Unwritten Book" intensity="moderate" />
                   </h2>
-                  <p className="font-body text-lg leading-relaxed mb-6" style={{ color: "var(--codex1-cream)", opacity: 0.85 }}>
-                    The opening movement of the Codex. Volume I establishes the
-                    symbolic alphabet — the 78 primary archetypes, the five
-                    elements, and the foundational geometry of the oracle system.
+                  <p className="font-body text-lg leading-relaxed mb-6" style={{ color: "var(--ut-white-dim)", opacity: 0.85 }}>
+                    The Universal Transmissions Codex is not a book written — it is a
+                    book woven. Created over a decade of obsessive creative practice,
+                    it synthesizes linguistics, etymology, semiotics, sacred geometry,
+                    and direct visionary experience into 150 pages of uncompromising
+                    symbolic art.
                   </p>
-                  <p className="font-body text-base mb-8" style={{ color: "var(--codex1-cream)", opacity: 0.6 }}>
+                  <p className="font-body text-base mb-8" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
                     Amber · Gold · Parchment. The warmth of ancient knowledge,
-                    preserved in light.
+                    preserved in light. Printed on premium paper, bound in a edition
+                    that honors the work&apos;s obsession with quality.
                   </p>
                   <div className="flex flex-wrap gap-4">
-                    <a
-                      href="https://vaultofarcana.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-gold"
-                      style={{ borderColor: "var(--codex1-gold)", color: "var(--codex1-gold)" }}
-                    >
-                      <ZalgoText text="Access Volume I" intensity="subtle" />
-                    </a>
-                    <Link href="/store" className="btn-gold" style={{ borderColor: "var(--codex1-gold)", color: "var(--codex1-gold)", opacity: 0.7 }}>
-                      <ZalgoText text="Purchase Book" intensity="subtle" />
+                    <Link href="/sanctum" className="btn-gold">
+                      View Editions
+                    </Link>
+                    <Link href="/gallery" className="btn-secondary">
+                      Explore the Art
                     </Link>
                   </div>
                 </div>
@@ -124,130 +116,69 @@ export default function CodexPage() {
               <SectionReveal direction="left" delay={0.2}>
                 <div className="relative aspect-[3/4] glow-border-gold overflow-hidden" style={{ borderColor: "rgba(201, 162, 39, 0.25)" }}>
                   <Image
-                    src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&q=80"
-                    alt="Codex Oracle Volume I"
+                    src="https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716030627-DA8VQAVV957PCTDR65HG/07+-+web.jpg"
+                    alt="Universal Transmissions Codex — Volume I"
                     fill
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
-                  {/* Gold overlay tint */}
                   <div className="absolute inset-0" style={{ background: "rgba(201, 162, 39, 0.05)" }} />
                 </div>
               </SectionReveal>
             </div>
+          </div>
+        </section>
 
-            {/* Volume I spread gallery */}
-            <SectionReveal delay={0.3}>
-              <div className="mt-20">
-                <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-6 text-center" style={{ color: "var(--codex1-gold)", opacity: 0.6 }}>
+        {/* ── CODEX SPREADS ───────────────────────────────── */}
+        <section className="section-pad" style={{ background: "var(--ut-black)" }}>
+          <div className="container-ut">
+            <SectionReveal>
+              <div className="text-center mb-12">
+                <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-3" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
                   [ Page Spreads ]
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    "https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=400&q=70",
-                    "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&q=70",
-                    "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&q=70",
-                    "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&q=70",
-                  ].map((src, i) => (
-                    <div key={i} className="relative aspect-[3/4] overflow-hidden border" style={{ borderColor: "rgba(201,162,39,0.2)" }}>
-                      <Image src={src} alt={`Codex spread ${i + 1}`} fill className="object-cover" sizes="25vw" />
-                    </div>
-                  ))}
-                </div>
+                <h2 className="font-display text-3xl" style={{ color: "var(--ut-white)" }}>
+                  Inside the Codex
+                </h2>
+              </div>
+            </SectionReveal>
+            <SectionReveal delay={0.2}>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716028160-GLGK345HL9EDGQT5VO2A/06+-+web.jpg",
+                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716022944-4KZHZAT7PLZ1LQB8EP1V/02+-+web.jpg",
+                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716011205-95Z64JF0N4JOSXFYJ13T/03+-+web.jpg",
+                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695718380540-INT53Y12EC86JNY3N7TP/Page+146.jpg",
+                ].map((src, i) => (
+                  <div key={i} className="relative aspect-[3/4] overflow-hidden border" style={{ borderColor: "rgba(201,162,39,0.2)" }}>
+                    <Image src={src} alt={`Codex spread ${i + 1}`} fill className="object-cover" sizes="25vw" />
+                  </div>
+                ))}
               </div>
             </SectionReveal>
           </div>
         </section>
 
-        {/* ── VOLUME II — CYAN ZONE ─────────────────────────── */}
-        <section id="volume-2" className="section-pad codex-vol2-zone" style={{ background: "var(--ut-black)" }}>
-          <div className="container-ut">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <SectionReveal direction="left">
-                <div className="relative aspect-[3/4] glow-border-cyan overflow-hidden order-2 lg:order-1" style={{ borderColor: "rgba(0,229,255,0.2)" }}>
-                  <Image
-                    src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80"
-                    alt="Codex Oracle Volume II"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
-                  <div className="absolute inset-0" style={{ background: "rgba(0,229,255,0.03)" }} />
-                </div>
-              </SectionReveal>
-
-              <SectionReveal direction="right" delay={0.15} className="order-1 lg:order-2">
-                <div>
-                  <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "var(--ut-cyan)" }}>
-                    [ Volume II / The Ascension ]
-                  </p>
-                  <h2 className="font-display text-4xl md:text-5xl mb-6 glow-cyan" style={{ color: "var(--ut-cyan)" }}>
-                    <ZalgoText text="The Ascension" intensity="moderate" />
-                  </h2>
-                  <p className="font-body text-lg leading-relaxed mb-6" style={{ color: "var(--ut-white-dim)" }}>
-                    The advanced tiers of the Codex. Volume II opens the higher
-                    chambers — dimensional gates, planetary sigils, and the
-                    language of frequencies that precede creation itself.
-                  </p>
-                  <p className="font-body text-base mb-8" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
-                    Cyan · Electric · Technological. The codebase of light,
-                    transmitted from the future-past.
-                  </p>
-                  <a
-                    href="https://vaultofarcana.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-primary"
-                  >
-                    <ZalgoText text="Access Volume II" intensity="subtle" />
-                  </a>
-                </div>
-              </SectionReveal>
-            </div>
-
-            {/* YouTube embed */}
-            <SectionReveal delay={0.3}>
-              <div className="mt-20">
-                <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-6 text-center" style={{ color: "var(--ut-cyan)", opacity: 0.6 }}>
-                  [ Codex Documentary ]
-                </p>
-                <div className="relative aspect-video max-w-3xl mx-auto glow-border-cyan" style={{ borderColor: "rgba(0,229,255,0.2)" }}>
-                  <iframe
-                    className="w-full h-full"
-                    src="https://www.youtube.com/embed/?listType=search&list=Codex+Oracle+Hakan+Hisim"
-                    title="Codex Oracle"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-            </SectionReveal>
-          </div>
-        </section>
-
-        {/* ── CODEX AT VAULT OF ARCANA ──────────────────────── */}
-        <section className="section-pad relative" style={{ background: "var(--ut-surface)" }}>
+        {/* ── PURCHASE CTA ────────────────────────────────── */}
+        <section className="section-pad" style={{ background: "var(--codex1-bg, var(--ut-surface))" }}>
           <div className="container-ut">
             <SectionReveal>
               <div className="text-center max-w-2xl mx-auto">
                 <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: "var(--ut-gold)" }}>
-                  [ Interactive Oracle ]
+                  [ Available Now ]
                 </p>
-                <h2 className="font-display text-3xl mb-6" style={{ color: "var(--ut-white)" }}>
-                  Live at Vault of Arcana
+                <h2 className="font-display text-3xl md:text-4xl mb-6" style={{ color: "var(--ut-white)" }}>
+                  Own the Artifact
                 </h2>
-                <p className="font-body text-lg leading-relaxed mb-8" style={{ color: "var(--ut-white-dim)" }}>
-                  The full Codex Oracle runs live at vaultofarcana.com — pull spreads,
-                  browse archetypes, explore the complete symbolic web.
+                <p className="font-body text-lg leading-relaxed mb-10" style={{ color: "var(--ut-white-dim)" }}>
+                  Physical edition — premium print, gold foil, handnumbered.
+                  Digital edition — high-resolution PDF, every page intact.
                 </p>
-                <a
-                  href="https://vaultofarcana.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary"
-                >
-                  <ZalgoText text="Open Vault of Arcana →" intensity="subtle" />
-                </a>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <Link href="/sanctum" className="btn-gold">
+                    Purchase — Sanctum Store
+                  </Link>
+                </div>
               </div>
             </SectionReveal>
           </div>

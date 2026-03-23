@@ -92,10 +92,10 @@ export default function AboutPage() {
               <SectionReveal>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
                   {[
-                    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1612357755661-7YHJVR605210UHRZELOB/Vitr%C4%B1vian+Spirit+2021+-+Seeding+the+new+rennaisiance+FINAL+-+web3.jpg",
-                    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380341979-ZPYYME478YGA8350NBIE/216ed5edb0cf582a7dc6e55845c0615d.jpg",
-                    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485381886747-QPO5J5M7EYZL9M7CXE43/leomerkaba_6442216903_o.jpg",
-                    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380473298-BF5PXSEDD09DYGAM7SP7/occult-anatomy-big.jpg",
+                    "/artworks/vitruvian-spirit/main.jpg",
+                    "/artworks/merkaba/main.jpg",
+                    "/artworks/indras-net/main.jpg",
+                    "/artworks/tetra/main.jpg",
                   ].map((src, i) => (
                     <div
                       key={i}

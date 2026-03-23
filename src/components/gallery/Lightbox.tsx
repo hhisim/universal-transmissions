@@ -14,7 +14,8 @@ interface ImageThumbProps {
   alt: string;
 }
 
-export function Lightbox({ mainImage, title }: LightboxProps) {
+
+export default function Lightbox({ mainImage, title }: LightboxProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -58,7 +59,7 @@ export function Lightbox({ mainImage, title }: LightboxProps) {
   );
 }
 
-export function Lightbox.ImageThumb({ src, alt }: ImageThumbProps) {
+export function ImageThumb({ src, alt }: ImageThumbProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 

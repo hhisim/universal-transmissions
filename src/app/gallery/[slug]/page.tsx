@@ -7,7 +7,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks, getArtwork } from "@/data/artworks";
-import Lightbox from "@/components/gallery/Lightbox";
+import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
 
 interface Props {
   params: { slug: string };
@@ -85,7 +85,7 @@ export default function ArtworkDetailPage({ params }: Props) {
                         borderRadius: "2px",
                       }}
                     >
-                      <Lightbox.ImageThumb
+                      <ImageThumb
                         src={img}
                         alt={`${artwork.title} detail ${i + 1}`}
                       />

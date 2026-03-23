@@ -71,8 +71,8 @@ body {
   background-color: var(--ut-black);
   color: var(--ut-white);
   font-family: "Cormorant Garamond", serif;
-  font-size: 1.125rem;
-  line-height: 1.75;
+  font-size: 1.1875rem;
+  line-height: 1.8;
   overflow-x: hidden;
 }
 

@@ -132,7 +132,7 @@ export default function ConnectPage() {
                   disabled={status === "sending"}
                   className="w-full btn-primary justify-center text-base py-4"
                 >
-                  <ZalgoText text={status === "sending" ? "Transmitting..." : "Send Transmission"} intensity="subtle" />
+                  {status === "sending" ? "Transmitting..." : "Send Transmission"}
                 </button>
               </form>
             </SectionReveal>

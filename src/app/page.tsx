@@ -43,7 +43,7 @@ export default function HomePage() {
             </h1>
             <p
               className="font-body text-lg md:text-xl italic mb-10"
-              style={{ color: "var(--ut-white-dim)" }}
+              style={{ color: "var(--ut-gold)" }}
             >
               Language is a code — and it can be hacked
             </p>

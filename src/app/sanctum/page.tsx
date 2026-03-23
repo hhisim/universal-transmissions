@@ -67,7 +67,7 @@ export default function StorePage() {
                         )}
                       </div>
                       <Link href={`/store/${product.slug}`} className="btn-gold text-xs py-2 px-4">
-                        <ZalgoText text="View" intensity="subtle" />
+                        View
                       </Link>
                     </div>
                   </div>

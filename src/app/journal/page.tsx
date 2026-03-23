@@ -1,162 +1,228 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import { blogPosts, getAllTags } from "@/data/blog-posts";
 
-export const metadata: Metadata = {
-  title: "Journal",
-  description:
-    "Dispatches from the inner planes — writings on symbolism, sacred geometry, and the Codex Oracle by Hakan Hisim.",
-};
-
-const POSTS = [
-  {
-    slug: "codex-volume-ii-begins",
-    title: "Universal Transmissions Codex Volume II begins",
-    date: "2024-12-23",
-    excerpt:
-      "After a 6 month hiatus, I have taken a deep dive into the second volume of the Codex. During meditation and lucid dreams the structure and contents came to me — including a new Lemurian alphabet of 33 morphemes, the twilight dark theme exploring multi-dimensional navigation, Lucid realms, and Astral bio-mechanics.",
-    tags: ["codex", "volume-ii", "lemurian", "alphabet", "xenolinguistics"],
-  },
-  {
-    slug: "bio-energetic-vortexes-no7-spirit",
-    title: "Bio-Energetic Vortexes No.7 — Spirit (Crown Chakra)",
-    date: "2022-10-11",
-    excerpt:
-      "Yesterday that 7-year voyage ended, and the cycle was completed as I finished creating Bio-Energetic Vortexes No.7 — Spirit. The final seventh seal was particularly challenging because I experienced this gateway's full-blown epic power last year in 2021 — during a series of awakenings into states of Samadhi.",
-    tags: ["bio-energetic-vortexes", "chakra", "sahasrara", "kundalini", "samadhi", "spirit"],
-  },
-  {
-    slug: "vitruvian-spirit",
-    title: "Universal Transmissions XI — Vitruvian Spirit (Seeding the New Renaissance)",
-    date: "2021-01-21",
-    excerpt:
-      "A homage to the masters of antiquity who have inspired generations to create and innovate, it is a celebration of the human spirit and imagination. This piece is not about gender — it contains a message of balance, of the power of the divine feminine and masculine and of the balanced trinity within us all.",
-    tags: ["universal-transmissions", "vitruvian", "renaissance", "balance", "divine-feminine"],
-  },
-  {
-    slug: "codex-100",
-    title: "The Universal Transmissions Codex's first 100-page test print!",
-    date: "2022-10-13",
-    excerpt:
-      "I am very excited and inspired as I enter into the last half of completing the Codex. This test print turned out to be of exceptional quality and is an important milestone in the evolution of this project. The Codex, when complete, will be 300+ pages of esoteric oddity.",
-    tags: ["codex", "print", "milestone", "production"],
-  },
-  {
-    slug: "recursive-pantheism",
-    title: "Universal Transmissions VIII — Recursive Pantheism",
-    date: "2017-10-19",
-    excerpt:
-      "Finally finished number VIII — very much influenced and inspired by the works of Athanasius Kircher and Robert Fludd. An attempt to syncretise the relation between the macro and micro, the signs of the zodiac to chakra centers and their correlation to organs, cymatic patterns and frequencies.",
-    tags: ["universal-transmissions", "kircher", "fludd", "zodiac", "chakra", "cymatics"],
-  },
-  {
-    slug: "codex-kickstarter",
-    title: "The Universal Transmissions Codex Vol. 1 Kickstarter campaign is live within 72 hours!",
-    date: "2023-08-18",
-    excerpt:
-      "Finally, 'The Book' will be available to purchase at a discounted price for the duration of the Kickstarter campaign. On top of that, there will also be an additional early bird discount available for the first 3 days of the campaign!",
-    tags: ["codex", "kickstarter", "launch", "crowdfunding"],
-  },
-  {
-    slug: "codex-funded",
-    title: "Funded in 24 hours! Codex Vol.1 off to the printers!",
-    date: "2023-09-26",
-    excerpt:
-      "Thank you all so much. I want to remind every single one of you that this would not have happened without you! Once all the funds are collected (15 days) we will begin the printing and production process, which would take an additional 2-3 weeks.",
-    tags: ["codex", "kickstarter", "funded", "production"],
-  },
-  {
-    slug: "trivium-method",
-    title: "Trivium Method",
-    date: "2019-04-22",
-    excerpt:
-      "Finished another transmission, inspired by the Trivium and Quadrivium learning methods of antiquity, and blended with acquired wisdom imparted from hyperdimensional gnosis.",
-    tags: ["trivium", "quadrivium", "education", "antiquity", "sacred-geometry"],
-  },
-  {
-    slug: "twilight-transmissions-trinary",
-    title: "Twilight Transmissions: Trinary Transcendence",
-    date: "2020-08-31",
-    excerpt:
-      "On integration of transcendental practices in relation to Trinary consciousness. Utilizing archetypes of the trinity and Trimurti to aid in transcending Binary modes of awareness. Created during a hypomanic state.",
-    tags: ["twilight-transmissions", "trinary", "trinity", "consciousness", "transcendence"],
-  },
-  {
-    slug: "toroidal-tantra",
-    title: "Toroidal Tantra",
-    date: "2019-04-26",
-    excerpt:
-      "Just finished another transmission on the nature of true tantric self love and its effect on the energetic vortexes through Ida, Pingala and Sushumna's relation to the cosmic serpent. Bridges the Universal Transmissions and Bio-Energetic Vortexes series together.",
-    tags: ["toroidal-tantra", "tantra", "kundalini", "cosmic-serpent", "bio-energetic-vortexes"],
-  },
-];
+const POSTS_PER_PAGE = 10;
 
 export default function JournalPage() {
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const allTags = getAllTags();
+
+  const filteredPosts = useMemo(() => {
+    if (!activeTag) return blogPosts;
+    return blogPosts.filter((p) => p.tags.includes(activeTag));
+  }, [activeTag]);
+
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const paginatedPosts = filteredPosts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
+
+  function handleTagFilter(tag: string | null) {
+    setActiveTag(tag);
+    setPage(1);
+  }
+
   return (
     <>
       <Navigation />
       <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
-          {/* Header */}
+          {/* Hero Header */}
           <SectionReveal>
             <div className="text-center mb-16 pt-8">
               <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "var(--ut-cyan)" }}>
                 [ Dispatches from the Inner Planes ]
               </p>
-              <h1 className="font-display text-4xl md:text-6xl glow-cyan mb-4">
+              <h1 className="font-display text-5xl md:text-7xl glow-cyan mb-6">
                 <ZalgoText text="Journal" intensity="moderate" />
               </h1>
               <p className="font-body text-lg max-w-xl mx-auto" style={{ color: "var(--ut-white-dim)" }}>
-                Writings on sacred geometry, symbolism, cymatics, and the living oracle.
+                Writings on symbolism, sacred geometry, cymatics, and the living oracle — co-authored by Prime + Hakan.
               </p>
             </div>
           </SectionReveal>
 
-          {/* Posts */}
-          <div className="max-w-3xl mx-auto space-y-8">
-            {POSTS.map((post, i) => (
-              <SectionReveal key={post.slug} delay={i * 0.05}>
-                <Link
-                  href={`/journal/${post.slug}`}
-                  className="ut-card block p-8 group"
+          {/* Tag filter */}
+          <SectionReveal delay={0.1}>
+            <div className="flex flex-wrap gap-2 justify-center mb-12">
+              <button
+                onClick={() => handleTagFilter(null)}
+                className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-all"
+                style={{
+                  borderColor: !activeTag ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
+                  color: !activeTag ? "var(--ut-cyan)" : "var(--ut-white-dim)",
+                  background: !activeTag ? "rgba(0,229,255,0.06)" : "transparent",
+                  opacity: !activeTag ? 1 : 0.5,
+                }}
+              >
+                All
+              </button>
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => handleTagFilter(tag)}
+                  className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-all"
+                  style={{
+                    borderColor: activeTag === tag ? "var(--ut-magenta)" : "rgba(217,70,239,0.15)",
+                    color: activeTag === tag ? "var(--ut-magenta)" : "var(--ut-white-dim)",
+                    background: activeTag === tag ? "rgba(217,70,239,0.06)" : "transparent",
+                    opacity: activeTag === tag ? 1 : 0.5,
+                  }}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <p className="font-mono text-[9px] tracking-[0.3em] uppercase mb-2" style={{ color: "var(--ut-cyan)", opacity: 0.6 }}>
-                        {post.date}
-                      </p>
-                      <h2 className="font-heading text-lg tracking-wider group-hover:text-[var(--ut-cyan)] transition-colors" style={{ color: "var(--ut-white)" }}>
-                        <ZalgoText text={post.title} intensity="subtle" />
-                      </h2>
-                    </div>
-                    <span className="font-mono text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--ut-cyan)" }}>
-                      →
-                    </span>
-                  </div>
-                  <p className="font-body text-base leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.75 }}>
-                    {post.excerpt}
-                  </p>
-                  <div className="flex gap-2 mt-4 flex-wrap">
-                    {post.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 border"
-                        style={{ borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-white-dim)", opacity: 0.4 }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </Link>
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </SectionReveal>
+
+          {/* Post count */}
+          <SectionReveal delay={0.15}>
+            <p className="font-mono text-[9px] tracking-widest uppercase mb-8 text-center" style={{ color: "var(--ut-white-faint)" }}>
+              {filteredPosts.length} {filteredPosts.length === 1 ? "transmission" : "transmissions"}
+            </p>
+          </SectionReveal>
+
+          {/* Posts grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {paginatedPosts.map((post, i) => (
+              <SectionReveal key={post.slug} delay={i * 0.04}>
+                <PostCard post={post} />
               </SectionReveal>
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <SectionReveal delay={0.2}>
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-all disabled:opacity-30"
+                  style={{
+                    borderColor: "rgba(0,229,255,0.15)",
+                    color: "var(--ut-cyan)",
+                  }}
+                >
+                  ← Prev
+                </button>
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setPage(idx + 1)}
+                      className="font-mono text-[10px] w-8 h-8 flex items-center justify-center border transition-all"
+                      style={{
+                        borderColor: page === idx + 1 ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
+                        color: page === idx + 1 ? "var(--ut-cyan)" : "var(--ut-white-faint)",
+                        background: page === idx + 1 ? "rgba(0,229,255,0.06)" : "transparent",
+                      }}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-all disabled:opacity-30"
+                  style={{
+                    borderColor: "rgba(0,229,255,0.15)",
+                    color: "var(--ut-cyan)",
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            </SectionReveal>
+          )}
         </div>
       </main>
       <Footer />
     </>
+  );
+}
+
+// ─── Post Card ─────────────────────────────────────────────────────────────────
+
+function PostCard({ post }: { post: (typeof blogPosts)[0] }) {
+  const gradientMap: Record<string, string> = {
+    "from-fuchsia-900 via-violet-900 to-black": "from-fuchsia-900/60 via-violet-900/40 to-transparent",
+    "from-cyan-950 via-blue-950 to-black": "from-cyan-950/60 via-blue-950/40 to-transparent",
+    "from-slate-900 via-zinc-900 to-black": "from-slate-900/60 via-zinc-900/40 to-transparent",
+    "from-indigo-950 via-purple-950 to-black": "from-indigo-950/60 via-purple-950/40 to-transparent",
+    "from-amber-950 via-orange-950 to-black": "from-amber-950/60 via-orange-950/40 to-transparent",
+    "from-orange-900 via-red-900 to-black": "from-orange-900/60 via-red-900/40 to-transparent",
+    "from-emerald-950 via-teal-900 to-black": "from-emerald-950/60 via-teal-900/40 to-transparent",
+    "from-sky-950 via-indigo-950 to-black": "from-sky-950/60 via-indigo-950/40 to-transparent",
+    "from-yellow-900 via-amber-900 to-black": "from-yellow-900/60 via-amber-900/40 to-transparent",
+    "from-violet-950 via-purple-950 to-black": "from-violet-950/60 via-purple-950/40 to-transparent",
+    "from-red-950 via-rose-950 to-black": "from-red-950/60 via-rose-950/40 to-transparent",
+    "from-teal-950 via-cyan-950 to-black": "from-teal-950/60 via-cyan-950/40 to-transparent",
+    "from-zinc-800 via-neutral-900 to-black": "from-zinc-800/60 via-neutral-900/40 to-transparent",
+    "from-purple-950 via-fuchsia-900 to-black": "from-purple-950/60 via-fuchsia-900/40 to-transparent",
+    "from-red-950 via-orange-900 to-black": "from-red-950/60 via-orange-900/40 to-transparent",
+    "from-emerald-950 via-green-900 to-black": "from-emerald-950/60 via-green-900/40 to-transparent",
+  };
+
+  const cardGradient = gradientMap[post.hero_gradient] ?? "from-slate-900/60 via-zinc-900/40 to-transparent";
+
+  const dateLabel = new Date(post.publishedAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <Link href={`/journal/${post.slug}`} className="ut-card block overflow-hidden group" style={{ padding: 0 }}>
+      {/* Hero gradient band */}
+      <div className={`h-24 bg-gradient-to-br ${cardGradient} relative flex items-end p-4`}>
+        <div className="absolute inset-0 opacity-20" style={{
+          background: `linear-gradient(to bottom, transparent 60%, var(--ut-black))`,
+        }} />
+        <span className="font-mono text-[8px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
+          {post.readTime}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div className="p-5">
+        <p className="font-mono text-[8px] tracking-[0.25em] uppercase mb-2" style={{ color: "var(--ut-cyan)", opacity: 0.6 }}>
+          {dateLabel}
+        </p>
+        <h2
+          className="font-heading text-base tracking-wider mb-3 leading-snug"
+          style={{ color: "var(--ut-white)", transition: "color 0.3s" }}
+          dangerouslySetInnerHTML={{ __html: post.title }}
+        />
+        <p className="font-body text-sm leading-relaxed mb-4 line-clamp-3" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
+          {post.excerpt}
+        </p>
+        {/* Tags */}
+        <div className="flex gap-1.5 flex-wrap">
+          {post.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="font-mono text-[7px] tracking-widest uppercase px-1.5 py-0.5 border"
+              style={{ borderColor: "rgba(0,229,255,0.1)", color: "var(--ut-white-faint)", opacity: 0.5 }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+        {/* Arrow */}
+        <div className="mt-3 text-right">
+          <span className="font-mono text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--ut-cyan)" }}>
+            Read →
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }
