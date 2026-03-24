@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 
 // Drive folder from the original iframe embed
-const DRIVE_FOLDER_ID = "1eUgyNtZdFBykgUi8HWl1CIFLOPO79hxj";
+const DRIVE_FOLDER_ID = "1UIelmYFpfX9g2TcK-Ji7F35TpiY13fFt";
 const DRIVE_API_KEY = "AIzaSyCHYh-1nR1-k6c-ymz0rLFf6QaCTFxQUiw";
 
 interface DriveFile {
@@ -45,29 +45,34 @@ function StreamCard({ file, index }: { file: DriveFile; index: number }) {
 
   return (
     <div
-      className="group relative overflow-hidden rounded-sm"
+      className="group relative flex-shrink-0 w-[260px] md:w-[300px]"
       style={{
         background: "var(--ut-surface)",
-        border: "1px solid rgba(217, 70, 239, 0.08)",
-        transition: "all 0.4s ease",
+        border: "1px solid rgba(217,70,239,0.1)",
+        transition: "all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         animationDelay: `${index * 0.06}s`,
+        borderRadius: "2px",
+        overflow: "hidden",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(217, 70, 239, 0.3)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 30px rgba(217, 70, 239, 0.15), 0 0 60px rgba(34, 211, 238, 0.05)";
-        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "rgba(217,70,239,0.4)";
+        el.style.boxShadow = "0 0 40px rgba(217,70,239,0.2), 0 0 80px rgba(147,51,234,0.1), inset 0 0 30px rgba(217,70,239,0.05)";
+        el.style.transform = "translateY(-6px) scale(1.02)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(217, 70, 239, 0.08)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-        (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "rgba(217,70,239,0.1)";
+        el.style.boxShadow = "none";
+        el.style.transform = "translateY(0) scale(1)";
       }}
     >
-      {/* Glow accent top */}
+      {/* Spectrum glow top */}
       <div
         className="absolute top-0 left-0 right-0 h-px z-10"
         style={{
-          background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.4), rgba(147,51,234,0.6), rgba(99,102,241,0.6), rgba(34,211,238,0.4), transparent)",
+          background: "linear-gradient(90deg, transparent 0%, rgba(217,70,239,0.5) 20%, rgba(147,51,234,0.8) 40%, rgba(99,102,241,0.9) 50%, rgba(147,51,234,0.8) 60%, rgba(217,70,239,0.5) 80%, transparent 100%)",
+          boxShadow: "0 0 12px rgba(217,70,239,0.4)",
         }}
       />
 
@@ -96,31 +101,37 @@ function StreamCard({ file, index }: { file: DriveFile; index: number }) {
 
         {/* Loading shimmer */}
         {!loaded && !error && (
-          <div className="absolute inset-0 bg-gradient-to-br from-[rgba(217,70,239,0.05)] via-transparent to-[rgba(34,211,238,0.05)] animate-pulse" />
+          <div
+            className="absolute inset-0 animate-pulse"
+            style={{
+              background: "linear-gradient(135deg, rgba(217,70,239,0.08) 0%, transparent 50%, rgba(34,211,238,0.05) 100%)",
+            }}
+          />
         )}
 
         {/* Hover overlay */}
         <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center"
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center"
           style={{
-            background: "linear-gradient(135deg, rgba(217,70,239,0.12) 0%, rgba(34,211,238,0.08) 50%, rgba(147,51,234,0.12) 100%)",
+            background: "linear-gradient(135deg, rgba(217,70,239,0.15) 0%, rgba(147,51,234,0.1) 40%, rgba(99,102,241,0.1) 60%, rgba(34,211,238,0.15) 100%)",
           }}
         >
           <div className="text-center">
             <div
-              className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+              className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm"
               style={{
-                background: "rgba(217,70,239,0.15)",
-                border: "1px solid rgba(217,70,239,0.3)",
+                background: "rgba(217,70,239,0.12)",
+                border: "1px solid rgba(217,70,239,0.35)",
+                boxShadow: "0 0 20px rgba(217,70,239,0.2)",
               }}
             >
-              <svg className="w-5 h-5" style={{ color: "var(--ut-magenta)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6" style={{ color: "var(--ut-magenta)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </div>
             <p
-              className="font-mono text-[9px] tracking-[0.3em] uppercase"
+              className="font-mono text-[9px] tracking-[0.35em] uppercase"
               style={{ color: "var(--ut-magenta)" }}
             >
               View Full
@@ -130,20 +141,26 @@ function StreamCard({ file, index }: { file: DriveFile; index: number }) {
       </div>
 
       {/* Card info */}
-      <div className="p-3">
+      <div
+        className="p-3 relative"
+        style={{
+          background: "linear-gradient(180deg, rgba(5,5,7,0.8) 0%, rgba(5,5,7,0.95) 100%)",
+        }}
+      >
         <p
           className="font-mono text-[9px] tracking-[0.2em] uppercase truncate"
-          style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}
+          style={{ color: "rgba(255,255,255,0.5)" }}
         >
           {file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ")}
         </p>
       </div>
 
-      {/* Bottom glow */}
+      {/* Spectrum glow bottom */}
       <div
         className="absolute bottom-0 left-0 right-0 h-px z-10"
         style={{
-          background: "linear-gradient(90deg, transparent, rgba(34,211,238,0.3), rgba(99,102,241,0.5), rgba(147,51,234,0.3), transparent)",
+          background: "linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.5) 20%, rgba(99,102,241,0.9) 40%, rgba(147,51,234,0.8) 50%, rgba(99,102,241,0.9) 60%, rgba(34,211,238,0.5) 80%, transparent 100%)",
+          boxShadow: "0 0 12px rgba(34,211,238,0.3)",
         }}
       />
     </div>
@@ -173,44 +190,46 @@ function StreamScroller({ files }: { files: DriveFile[] }) {
 
   return (
     <div
-      className="relative overflow-hidden py-8"
+      className="relative py-10"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Fade edges */}
       <div
-        className="absolute top-0 bottom-0 left-0 z-10 pointer-events-none"
-        style={{ width: "80px", background: "linear-gradient(90deg, var(--ut-black), transparent)" }}
+        className="absolute top-0 bottom-0 left-0 z-20 pointer-events-none"
+        style={{
+          width: "100px",
+          background: "linear-gradient(90deg, var(--ut-black) 0%, transparent 100%)",
+        }}
       />
       <div
-        className="absolute top-0 bottom-0 right-0 z-10 pointer-events-none"
-        style={{ width: "80px", background: "linear-gradient(-90deg, var(--ut-black), transparent)" }}
+        className="absolute top-0 bottom-0 right-0 z-20 pointer-events-none"
+        style={{
+          width: "100px",
+          background: "linear-gradient(-90deg, var(--ut-black) 0%, transparent 100%)",
+        }}
       />
 
       {/* Scrolling track */}
       <div
         ref={containerRef}
-        className="flex gap-4 transition-transform duration-100"
+        className="flex gap-5"
         style={{ width: "max-content" }}
       >
         {looped.slice(start, start + visibleCount + 1).map((file, i) => (
-          <div
-            key={`${file.id}-${i}`}
-            className="flex-shrink-0 w-[280px] md:w-[320px]"
-          >
-            <StreamCard file={file} index={i} />
-          </div>
+          <StreamCard key={`${file.id}-${i}`} file={file} index={i} />
         ))}
       </div>
 
       {/* Pause indicator */}
       {isPaused && (
         <div
-          className="absolute top-3 right-3 font-mono text-[8px] tracking-[0.3em] uppercase px-2 py-1 rounded-sm"
+          className="absolute top-4 right-4 font-mono text-[8px] tracking-[0.35em] uppercase px-3 py-1.5 backdrop-blur-sm"
           style={{
-            background: "rgba(217,70,239,0.1)",
-            border: "1px solid rgba(217,70,239,0.2)",
+            background: "rgba(217,70,239,0.08)",
+            border: "1px solid rgba(217,70,239,0.25)",
             color: "var(--ut-magenta)",
+            borderRadius: "2px",
           }}
         >
           PAUSED
@@ -251,45 +270,61 @@ export default function TransmissionStream() {
         <div
           className="h-px mx-auto mb-6"
           style={{
-            maxWidth: "200px",
-            background: "linear-gradient(90deg, transparent 0%, rgba(217,70,239,0.6) 25%, rgba(147,51,234,0.8) 45%, rgba(99,102,241,0.8) 55%, rgba(34,211,238,0.6) 75%, transparent 100%)",
+            maxWidth: "240px",
+            background: "linear-gradient(90deg, transparent 0%, rgba(217,70,239,0.7) 20%, rgba(147,51,234,0.9) 40%, rgba(99,102,241,0.95) 50%, rgba(147,51,234,0.9) 60%, rgba(217,70,239,0.7) 80%, transparent 100%)",
+            boxShadow: "0 0 15px rgba(147,51,234,0.3)",
           }}
         />
+
         <p
           className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4"
           style={{ color: "var(--ut-cyan)" }}
         >
           [ Live Transmission Stream ]
         </p>
+
+        {/* Section title with UT gradient text */}
+        <h2
+          className="font-display text-3xl md:text-4xl mb-4 text-gradient-magenta"
+          style={{
+            textShadow: "0 0 40px rgba(217,70,239,0.3)",
+          }}
+        >
+          Transmission Stream
+        </h2>
+
         {/* Spectrum line bottom of header */}
         <div
           className="h-px mx-auto"
           style={{
-            maxWidth: "200px",
-            background: "linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.6) 25%, rgba(99,102,241,0.8) 45%, rgba(147,51,234,0.8) 55%, rgba(217,70,239,0.6) 75%, transparent 100%)",
+            maxWidth: "240px",
+            background: "linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.7) 20%, rgba(99,102,241,0.95) 40%, rgba(147,51,234,0.9) 50%, rgba(99,102,241,0.95) 60%, rgba(34,211,238,0.7) 80%, transparent 100%)",
+            boxShadow: "0 0 15px rgba(34,211,238,0.3)",
           }}
         />
 
         {/* View toggle */}
-        <div className="flex items-center justify-center gap-2 mt-4">
+        <div className="flex items-center justify-center gap-2 mt-6">
           <button
             onClick={() => setView("stream")}
-            className="font-mono text-[9px] tracking-[0.2em] uppercase px-3 py-1.5 rounded-sm transition-all"
+            className="font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 transition-all"
             style={{
               background: view === "stream" ? "rgba(217,70,239,0.1)" : "transparent",
-              border: `1px solid ${view === "stream" ? "rgba(217,70,239,0.4)" : "rgba(217,70,239,0.08)"}`,
-              color: view === "stream" ? "var(--ut-magenta)" : "var(--ut-white-dim)",
+              border: `1px solid ${view === "stream" ? "rgba(217,70,239,0.45)" : "rgba(217,70,239,0.08)"}`,
+              color: view === "stream" ? "var(--ut-magenta)" : "rgba(255,255,255,0.4)",
+              borderRadius: "2px",
             }}
           >
             Stream
           </button>
           <button
             onClick={() => setView("grid")}
-            className="font-mono text-[9px] tracking-[0.2em] uppercase px-3 py-1.5 rounded-sm transition-all"
+            className="font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 transition-all"
             style={{
               background: view === "grid" ? "rgba(34,211,238,0.1)" : "transparent",
-              border: `1px solid ${view === "grid" ? "rgba(34,211,238,0.4)" : "rgba(34,211,238,0.08)"}`,
-              color: view === "grid" ? "var(--ut-cyan)" : "var(--ut-white-dim)",
+              border: `1px solid ${view === "grid" ? "rgba(34,211,238,0.45)" : "rgba(34,211,238,0.08)"}`,
+              color: view === "grid" ? "var(--ut-cyan)" : "rgba(255,255,255,0.4)",
+              borderRadius: "2px",
             }}
           >
             Grid
@@ -300,7 +335,7 @@ export default function TransmissionStream() {
       {/* Loading state */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <div className="relative w-12 h-12">
+          <div className="relative w-14 h-14">
             <div
               className="absolute inset-0 rounded-full border"
               style={{ borderColor: "rgba(217,70,239,0.1)" }}
@@ -325,7 +360,7 @@ export default function TransmissionStream() {
           </div>
           <p
             className="font-mono text-[9px] tracking-[0.4em] uppercase animate-pulse"
-            style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}
+            style={{ color: "rgba(255,255,255,0.35)" }}
           >
             Receiving transmissions...
           </p>
@@ -351,11 +386,12 @@ export default function TransmissionStream() {
           </div>
           <button
             onClick={loadFiles}
-            className="font-mono text-[9px] tracking-[0.3em] uppercase px-4 py-2 rounded-sm transition-all hover:opacity-80"
+            className="font-mono text-[9px] tracking-[0.3em] uppercase px-4 py-2 transition-all hover:opacity-80"
             style={{
               background: "rgba(217,70,239,0.1)",
               border: "1px solid rgba(217,70,239,0.3)",
               color: "var(--ut-magenta)",
+              borderRadius: "2px",
             }}
           >
             Retry
@@ -382,13 +418,13 @@ export default function TransmissionStream() {
         <div className="text-center py-24">
           <p
             className="font-heading text-lg mb-2"
-            style={{ color: "var(--ut-white-dim)" }}
+            style={{ color: "rgba(255,255,255,0.6)" }}
           >
             No transmissions found
           </p>
           <p
             className="font-mono text-[10px] tracking-[0.2em]"
-            style={{ color: "var(--ut-white-dim)", opacity: 0.4 }}
+            style={{ color: "rgba(255,255,255,0.3)" }}
           >
             The stream is silent. Check back soon.
           </p>
