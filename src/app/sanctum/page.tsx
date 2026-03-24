@@ -19,14 +19,13 @@ export default function StorePage() {
           <SectionReveal>
             <div className="text-center mb-16 pt-8">
               <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "var(--ut-gold)" }}>
-                [ Transmission Hub ]
+                [ Sacred Objects & Physical Transmissions ]
               </p>
               <h1 className="font-display text-4xl md:text-6xl glow-gold mb-4">
-                <ZalgoText text="Store" intensity="moderate" />
+                <ZalgoText text="The Sanctum" intensity="moderate" />
               </h1>
               <p className="font-body text-lg max-w-xl mx-auto" style={{ color: "var(--ut-white-dim)" }}>
-                Sacred objects, prints, and transmissions available for transmission.
-                Secure checkout via Stripe or PayPal.
+                Physical manifestations of the Universal Transmissions project. Archival prints, the Codex, and limited edition artifacts — each hand-signed by the artist.
               </p>
             </div>
           </SectionReveal>
@@ -66,7 +65,7 @@ export default function StorePage() {
                           </p>
                         )}
                       </div>
-                      <Link href={`/store/${product.slug}`} className="btn-gold text-xs py-2 px-4">
+                      <Link href={`/sanctum/${product.slug}`} className="btn-gold text-xs py-2 px-4">
                         View
                       </Link>
                     </div>

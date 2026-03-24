@@ -1,40 +1,295 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
+
+interface LogoHeroProps {
+  className?: string;
+}
+
+// Zalgo combining characters + esoteric glyphs
+const GLYPHS = [
+  "\u0300", "\u0301", "\u0302", "\u0303", "\u0308", "\u030A",
+  "\u030B", "\u030C", "\u0311", "\u0312", "\u0313", "\u0314",
+  "\u0316", "\u0317", "\u0323", "\u0324", "\u0325", "\u0327",
+  "\u0330", "\u0331", "\u0334", "\u0335", "\u0336",
+  "᚛", "᚜", "⍟", "⎈", "◬", "⬡", "⏣", "⌬", "☿", "♃", "♄",
+  "⊹", "⊕", "⊗", "⦿", "⧫", "∞", "◎", "⟐", "⟡",
+  "△", "▽", "◇", "○", "□", "⬠", "⬡", "⬢",
+  "🜁", "🜂", "🜃", "🜄", "🜔", "🝆",
+];
+
+interface GlyphDrop {
+  x: number;
+  y: number;
+  speed: number;
+  char: string;
+  opacity: number;
+  size: number;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+  size: number;
+}
 
 export function LogoHero({ className = "" }: LogoHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const glyphCanvasRef = useRef<HTMLCanvasElement>(null);
   const [mouse, setMouse] = useState({ x: 0.5, y: 0.5 });
-  const [pulse, setPulse] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [rotation, setRotation] = useState(0);
   const timeRef = useRef<number>(0);
   const pulseTimeRef = useRef<number>(0);
   const [pulseAge, setPulseAge] = useState(0);
+  const pulseRef = useRef(false);
+  const particlesRef = useRef<Particle[]>([]);
+  const flashAlphaRef = useRef(0);
+  const glyphDropsRef = useRef<GlyphDrop[]>([]);
+  const isMobileRef = useRef(false);
+  const autoPulseTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Trigger starburst at canvas center
+  const triggerStarburst = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const s = { current: { pulseTime: timeRef.current } };
+    pulseTimeRef.current = timeRef.current;
+    pulseRef.current = true;
+
+    // 80 particles — 30% gold, 70% magenta/cyan
+    for (let i = 0; i < 80; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2 + Math.random() * 6;
+      const isGold = Math.random() > 0.7;
+      particlesRef.current.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        hue: isGold ? 45 : (280 + Math.random() * 80),
+        size: 1 + Math.random() * 4,
+      });
+    }
+
+    // Screen flash
+    flashAlphaRef.current = 0.25;
+  }, []);
+
+  // Init glyph drops
+  const initGlyphs = useCallback((canvas: HTMLCanvasElement) => {
+    const W = canvas.width;
+    const H = canvas.height;
+    const COLUMNS = Math.floor(W / 30);
+    glyphDropsRef.current = [];
+    for (let i = 0; i < COLUMNS; i++) {
+      glyphDropsRef.current.push({
+        x: (i / COLUMNS) * W + Math.random() * 15,
+        y: Math.random() * H,
+        speed: 0.3 + Math.random() * 0.7,
+        char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+        opacity: 0.015 + Math.random() * 0.025,
+        size: 10 + Math.random() * 6,
+      });
+    }
+  }, []);
+
+  // Canvas render loop
   useEffect(() => {
+    const canvas = canvasRef.current;
+    const glyphCanvas = glyphCanvasRef.current;
+    if (!canvas || !glyphCanvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const gCtx = glyphCanvas.getContext("2d")!;
+
     let rafId: number;
-    let lastPulseTime = 0;
+    let W = canvas.width;
+    let H = canvas.height;
+
+    function resize() {
+      if (!containerRef.current) return;
+      const w = containerRef.current.offsetWidth;
+      const h = containerRef.current.offsetHeight;
+      canvas.width = w;
+      canvas.height = h;
+      glyphCanvas.width = w;
+      glyphCanvas.height = h;
+      W = w;
+      H = h;
+      initGlyphs(glyphCanvas);
+    }
+    resize();
+    window.addEventListener("resize", resize);
 
     function tick() {
       timeRef.current += 0.016;
       setRotation(timeRef.current * 0.08);
 
-      // Update pulse age for ring animation
-      if (pulse) {
+      // Update pulse age
+      if (pulseRef.current) {
         const age = timeRef.current - pulseTimeRef.current;
         setPulseAge(age);
+        if (age > 2.5) {
+          pulseRef.current = false;
+          setPulseAge(0);
+        }
       } else {
         setPulseAge(0);
       }
 
+      W = canvas.width;
+      H = canvas.height;
+
+      // ── Clear canvas ──────────────────────────────────────────
+      ctx.clearRect(0, 0, W, H);
+
+      // ── Screen flash ──────────────────────────────────────────
+      if (flashAlphaRef.current > 0) {
+        ctx.save();
+        ctx.globalAlpha = flashAlphaRef.current;
+        ctx.fillStyle = "#d946ef";
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+        flashAlphaRef.current *= 0.92;
+        if (flashAlphaRef.current < 0.005) flashAlphaRef.current = 0;
+      }
+
+      // ── Pulse rings (3 layers: magenta, gold, cyan) ───────────
+      const cx = W / 2;
+      const cy = H / 2;
+      const logoSize = Math.min(W, H) * 0.29;
+
+      if (pulseRef.current && pulseAge > 0 && pulseAge < 3) {
+        const alpha = Math.max(0, 1 - pulseAge / 3);
+
+        // Ring 1 — magenta (fast)
+        const r1 = pulseAge * Math.min(W, H) * 0.4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r1, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(217, 70, 239, ${alpha * 0.5})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Ring 2 — gold (medium)
+        const r2 = pulseAge * Math.min(W, H) * 0.3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r2, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(212, 168, 71, ${alpha * 0.4})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Ring 3 — cyan (slow)
+        const r3 = pulseAge * Math.min(W, H) * 0.2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r3, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(34, 211, 238, ${alpha * 0.3})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Geometric flash — star tetrahedron at center (brief)
+        if (pulseAge < 0.5) {
+          const flashAlpha = (1 - pulseAge / 0.5) * 0.3;
+          const triSize = pulseAge * logoSize * 0.8;
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(timeRef.current * 0.5);
+          ctx.strokeStyle = `rgba(212, 168, 71, ${flashAlpha})`;
+          ctx.lineWidth = 1;
+          // Upward triangle
+          ctx.beginPath();
+          for (let i = 0; i < 3; i++) {
+            const a = (i * Math.PI * 2) / 3 - Math.PI / 2;
+            const method = i === 0 ? "moveTo" : "lineTo";
+            ctx[method](Math.cos(a) * triSize, Math.sin(a) * triSize);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          // Downward triangle
+          ctx.beginPath();
+          for (let i = 0; i < 3; i++) {
+            const a = (i * Math.PI * 2) / 3 + Math.PI / 2;
+            const method = i === 0 ? "moveTo" : "lineTo";
+            ctx[method](Math.cos(a) * triSize, Math.sin(a) * triSize);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // ── Particles with trails ─────────────────────────────────
+      particlesRef.current = particlesRef.current.filter((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.97;
+        p.vy *= 0.97;
+        p.life -= 0.008;
+        if (p.life <= 0) return false;
+
+        // Glow halo
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, (p.size * 3) * p.life, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 80%, 65%, ${p.life * 0.08})`;
+        ctx.fill();
+
+        // Core particle
+        const sz = p.size * p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 80%, 65%, ${p.life * 0.7})`;
+        ctx.fill();
+
+        return true;
+      });
+
       rafId = requestAnimationFrame(tick);
     }
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [pulse]);
 
+    // ── Glyph rain render loop (separate, slower) ────────────────
+    function tickGlyphs() {
+      if (!glyphCanvas) return;
+      const Wg = glyphCanvas.width;
+      const Hg = glyphCanvas.height;
+      gCtx.clearRect(0, 0, Wg, Hg);
+
+      for (const drop of glyphDropsRef.current) {
+        drop.y += drop.speed;
+        if (drop.y > Hg + 20) {
+          drop.y = -20;
+          drop.char = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+          drop.opacity = 0.015 + Math.random() * 0.025;
+        }
+        gCtx.save();
+        gCtx.globalAlpha = drop.opacity;
+        gCtx.fillStyle = "#d946ef";
+        gCtx.font = `${drop.size}px monospace`;
+        gCtx.fillText(drop.char, drop.x, drop.y);
+        gCtx.restore();
+      }
+    }
+
+    rafId = requestAnimationFrame(tick);
+    const glyphInterval = setInterval(tickGlyphs, 50);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearInterval(glyphInterval);
+      window.removeEventListener("resize", resize);
+    };
+  }, [initGlyphs]);
+
+  // Mouse/touch events
   useEffect(() => {
+    isMobileRef.current = /Mobi|Android/i.test(navigator.userAgent);
+
     function onMouseMove(e: MouseEvent) {
       const parent = containerRef.current;
       if (!parent) return;
@@ -45,49 +300,72 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       });
     }
     function onTouchMove(e: TouchEvent) {
-      e.preventDefault();
+      // Allow native scroll — do NOT preventDefault
       const t = e.touches[0];
       const parent = containerRef.current;
       if (!parent) return;
       const r = parent.getBoundingClientRect();
       setMouse({ x: (t.clientX - r.left) / r.width, y: (t.clientY - r.top) / r.height });
     }
-    function onClick() {
-      pulseTimeRef.current = timeRef.current;
-      setPulse(true);
-      setTimeout(() => setPulse(false), 2500);
+    function onClick(e: MouseEvent) {
+      // Only trigger if not a drag
+      triggerStarburst();
     }
+    function onTouchStart(e: TouchEvent) {
+      triggerStarburst();
+    }
+
     window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
     window.addEventListener("click", onClick);
-    window.addEventListener("touchstart", onClick);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+
+    // Auto-pulse on mobile every 8s
+    if (isMobileRef.current) {
+      autoPulseTimerRef.current = setInterval(() => {
+        triggerStarburst();
+      }, 8000);
+    }
+
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("click", onClick);
-      window.removeEventListener("touchstart", onClick);
+      window.removeEventListener("touchstart", onTouchStart);
+      if (autoPulseTimerRef.current) clearInterval(autoPulseTimerRef.current);
     };
-  }, []);
+  }, [triggerStarburst]);
 
-  // Normalised distance from centre 0–1
   const distX = (mouse.x - 0.5) * 2;
   const distY = (mouse.y - 0.5) * 2;
   const dist = Math.sqrt(distX * distX + distY * distY);
   const aberration = Math.min(2 + dist * 12, 20);
-  const rotDeg = (rotation * 180) / Math.PI;
-
-  // Pulse ring opacity/scale driven by pulseAge
+  const rotDeg = rotation * (180 / Math.PI);
   const pulseScale = 60 + pulseAge * 300;
   const pulseOpacity = Math.max(0, 0.6 - pulseAge * 0.22);
-  const showPulseRing = pulse && pulseAge > 0 && pulseAge < 2.5;
+  const showPulseRing = pulseRef.current && pulseAge > 0 && pulseAge < 2.5;
 
   return (
     <div
       ref={containerRef}
       className={`relative w-full overflow-hidden cursor-crosshair ${className}`}
-      style={{ height: "75vh", minHeight: 400, background: "#050507" }}
+      style={{ height: "100svh", minHeight: 400, background: "#0a090e" }}
     >
-      {/* SVG colour-matrix tint filters */}
+      {/* ── Glyph rain canvas (background layer) ── */}
+      <canvas
+        ref={glyphCanvasRef}
+        className="absolute inset-0 pointer-events-none"
+        style={{ zIndex: 0 }}
+      />
+
+      {/* ── Particle/flash canvas (top layer) ── */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 pointer-events-none"
+        style={{ zIndex: 10 }}
+      />
+
+      {/* ── SVG colour-matrix tint filters ── */}
       <svg width="0" height="0" style={{ position: "absolute", pointerEvents: "none" }}>
         <defs>
           <filter id="magentaTint" colorInterpolationFilters="sRGB">
@@ -101,19 +379,21 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         </defs>
       </svg>
 
-      {/* Ambient glow */}
+      {/* ── Ambient glow ── */}
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
         style={{
+          zIndex: 1,
           background: `radial-gradient(ellipse 60% 50% at 50% 50%, rgba(147,51,234,${0.05 + dist * 0.03}) 0%, transparent 70%)`,
         }}
       />
 
-      {/* Pulse ring — scales + fades */}
+      {/* ── Pulse ring (CSS fallback for the ring, canvas handles the rest) ── */}
       {showPulseRing && (
         <div
           className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
           style={{
+            zIndex: 11,
             width: pulseScale,
             height: pulseScale,
             transform: "translate(-50%, -50%)",
@@ -123,23 +403,21 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         />
       )}
 
-      {/* LOGO — 3-layer chromatic aberration stack, all rotating together */}
+      {/* ── LOGO — 3-layer chromatic aberration stack ── */}
       <div
         className="absolute flex items-center justify-center"
-        style={{ inset: 0 }}
+        style={{ inset: 0, zIndex: 5 }}
       >
-        {/* Shared rotation wrapper — all 3 layers rotate as one */}
         <div
           className="relative"
           style={{
             width: "58%",
             maxWidth: 540,
             aspectRatio: "1",
-            // Rotate the whole group
             transform: `rotate(${rotDeg}deg)`,
           }}
         >
-          {/* MAGENTA layer — offset opposite to cursor direction */}
+          {/* MAGENTA layer */}
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
@@ -157,7 +435,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             />
           </div>
 
-          {/* CYAN layer — offset toward cursor direction */}
+          {/* CYAN layer */}
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
@@ -174,47 +452,45 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             />
           </div>
 
-          {/* WHITE centre — no offset, rotates with the group */}
+          {/* WHITE centre */}
           <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.92 }}>
             <img src="/logo-white.svg" alt="" className="w-full h-full" />
           </div>
         </div>
       </div>
 
-      {/* 12 orbiting dots — rotate with logo via same rotDeg */}
+      {/* ── Orbiting dots ── */}
       <OrbitingDots rotation={rotDeg} />
 
-      {/* Scan line — travels down the screen */}
+      {/* ── Scan line ── */}
       <div
         className="absolute left-0 right-0 h-px pointer-events-none"
         style={{
+          zIndex: 6,
           background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.12), transparent)",
           top: `${((timeRef.current * 35) % 100)}%`,
         }}
       />
 
-      {/* CRT scanline texture */}
+      {/* ── CRT scanline texture ── */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
+          zIndex: 7,
           backgroundImage:
             "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 3px)",
         }}
       />
 
-      {/* Hint text */}
+      {/* ── Hint text ── */}
       <div
         className="absolute bottom-8 left-0 right-0 text-center font-mono tracking-[0.25em] pointer-events-none select-none"
-        style={{ fontSize: "9px", color: "rgba(217,70,239,0.2)" }}
+        style={{ zIndex: 12, fontSize: "9px", color: "rgba(217,70,239,0.2)" }}
       >
         INTERACT WITH THE TRANSMISSION
       </div>
     </div>
   );
-}
-
-interface LogoHeroProps {
-  className?: string;
 }
 
 function OrbitingDots({ rotation }: { rotation: number }) {
@@ -232,7 +508,6 @@ function OrbitingDots({ rotation }: { rotation: number }) {
           width: "58%",
           maxWidth: 540,
           aspectRatio: "1",
-          // Orbit dots also rotate with the logo
           transform: `rotate(${rotation}deg)`,
         }}
       >
@@ -254,7 +529,6 @@ function OrbitingDots({ rotation }: { rotation: number }) {
                 top: "50%",
                 marginLeft: -(size / 2),
                 marginTop: -(size / 2),
-                // Each dot orbits in its own CSS animation
                 transformOrigin: "0 0",
                 transform: `rotate(${baseAngle}deg) translateX(${orbitR})`,
                 opacity: 0.25 + (i % 3) * 0.05,
