@@ -17,13 +17,18 @@ interface DriveFile {
   };
 }
 
+// These work because the browser sends the correct referrer header to Google APIs
+const DRIVE_FOLDER_ID = "1UIelmYFpfX9g2TcK-Ji7F35TpiY13fFt";
+const DRIVE_API_KEY = "AIzaSyCHYh-1nR1-k6c-ymz0rLFf6QaCTFxQUiw";
+
 async function listDriveFiles(): Promise<DriveFile[]> {
-  // Use server-side API route to avoid referrer restrictions
-  const res = await fetch("/api/drive");
+  const fields = "files(id,name,mimeType,thumbnailLink,webContentLink,webViewLink,description,imageMediaMetadata)";
+  const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+trashed=false&fields=${encodeURIComponent(fields)}&key=${DRIVE_API_KEY}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Drive API error: ${res.status}`);
   const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data.files || [];
+  if (data.error) throw new Error(data.error?.message || data.error);
+  return (data.files || []).filter((f: DriveFile) => f.mimeType.startsWith("image/"));
 }
 
 function StreamCard({ file, index }: { file: DriveFile; index: number }) {
