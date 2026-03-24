@@ -73,8 +73,7 @@ export default function ArtworkDetailPage({ params }: Props) {
                   <span>Scroll →</span>
                 </div>
                 <div
-                  className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory"
-                  style={{ scrollbarWidth: "thin" }}
+                  className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory gallery-carousel"
                 >
                   {artwork.detailImages.map((img, i) => (
                     <div

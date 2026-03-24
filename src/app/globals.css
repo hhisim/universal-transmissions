@@ -77,32 +77,99 @@ body {
 }
 
 /* ============================================================
-   SCROLLBAR — UT spectrum
+/* ============================================================
+   GALLERY CAROUSEL — custom scrollbar
+   ============================================================ */
+.gallery-carousel {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3) !important;
+}
+.gallery-carousel::-webkit-scrollbar {
+  height: 5px !important;
+}
+.gallery-carousel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+.gallery-carousel::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    90deg,
+    var(--ut-purple) 0%,
+    var(--ut-magenta) 50%,
+    var(--ut-cyan) 100%
+  ) !important;
+  border-radius: 3px !important;
+}
+
+/* ============================================================
+   SCROLLBAR — UT spectrum (applied globally)
    ============================================================ */
 
+/* Global — all scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px !important;
+  height: 7px !important;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.25) !important;
 }
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(
     180deg,
     var(--ut-purple) 0%,
-    var(--ut-magenta) 50%,
+    var(--ut-magenta) 35%,
+    var(--ut-yellow) 65%,
     var(--ut-cyan) 100%
-  );
-  border-radius: 3px;
+  ) !important;
+  border-radius: 4px !important;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     180deg,
     var(--ut-magenta) 0%,
-    var(--ut-purple) 50%,
+    var(--ut-yellow) 50%,
     var(--ut-cyan) 100%
-  );
+  ) !important;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3);
+}
+
+/* Force overflow-x-auto elements to also use custom scrollbar */
+.overflow-x-auto,
+.overflow-x-auto > * {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3) !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-x-auto > *::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+.overflow-x-auto::-webkit-scrollbar-track,
+.overflow-x-auto > *::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.overflow-x-auto > *::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    var(--ut-purple) 0%,
+    var(--ut-magenta) 35%,
+    var(--ut-yellow) 65%,
+    var(--ut-cyan) 100%
+  ) !important;
+  border-radius: 4px !important;
+}
+
+/* Gallery carousel horizontal scroll */
+[overflow-x="auto"],
+[style*="overflow-x"] {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ============================================================
