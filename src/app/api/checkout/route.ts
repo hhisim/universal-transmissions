@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/store?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/store/${product.slug}?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/sanctum/${product.slug}?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/sanctum/${product.slug}?canceled=true`,
     });
 
     return NextResponse.json({ url: session.url });
