@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, Loader, ChevronDown, Mic, MicOff, Volume2, VolumeX, Globe } from "lucide-react";
+import Navigation from "@/components/ui/Navigation";
+import Footer from "@/components/ui/Footer";
 
+// ─── Config ────────────────────────────────────────────────────
 const API_URL = "http://204.168.154.237:8002";
 
 const LANGUAGES = [
@@ -11,57 +13,242 @@ const LANGUAGES = [
   { code: "ru", label: "RU" },
 ];
 
-const ORACLE_MODES = [
-  { id: "oracle", icon: "🔮", label: "Oracle" },
-  { id: "decipher", icon: "⚛", label: "Decipher" },
-  { id: "correspondence", icon: "🔗", label: "Correspond" },
-  { id: "etymology", icon: "📜", label: "Etymology" },
-  { id: "meditation", icon: "🧘", label: "Meditate" },
-  { id: "scholar", icon: "📖", label: "Scholar" },
-  { id: "seeker", icon: "🌱", label: "Seeker" },
-  { id: "quote", icon: "✦", label: "Quote" },
-  { id: "vision", icon: "👁", label: "Vision" },
+const MODES = [
+  { id: "oracle", label: "Oracle" },
+  { id: "decipher", label: "Decipher" },
+  { id: "correspondence", label: "Correspond" },
+  { id: "etymology", label: "Linguistic Mystic" },
+  { id: "meditation", label: "Meditate" },
 ];
 
-const STARTER_QUESTIONS = [
-  "What does NOMMO mean in the Dogon tradition?",
-  "Trace the correspondence of the Merkaba",
-  "Analyze the geometry of the Seed of Life",
-  "What is the energetic signature of ŠURPU?",
-  "Map all correspondences for the Sun",
+const QUICK_PROMPTS = [
+  "What is Page 6 about?",
+  "What is the meaning of Page 24?",
+  "What does the cube represent on Page 39?",
+  "Decode the word NOMMO letter by letter",
+  "What correspondences connect Pages 12 and 45?",
 ];
 
+const RIGHT_MENU = [
+  { q: "What is Page 6 about?", color: "gold" },
+  { q: "Decode the name ŠURPU", color: "magenta" },
+  { q: "Map correspondences for Page 12", color: "purple" },
+  { q: "What symbols repeat across the Codex?", color: "cyan" },
+  { q: "Guide me through a meditation on Page 33", color: "green" },
+];
+
+const ASK_ABOUT = [
+  "Any of the 150 Codex pages",
+  "Symbols & alphabets",
+  "Page names & meanings",
+  "Energetic meaning of words",
+  "Cross-references & correspondences",
+];
+
+// ─── Types ───────────────────────────────────────────────────────
 interface Message {
   role: "user" | "oracle";
   text: string;
 }
 
-function parseMarkdown(text: string): string {
+// ─── Markdown Parser ────────────────────────────────────────────
+function parseOracleText(text: string): string {
   let out = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  out = out.replace(/^### (.+)$/gm, '<h3 class="text-base font-display mt-4 mb-2" style="color:#c9a227">$1</h3>');
-  out = out.replace(/^## (.+)$/gm, '<h2 class="text-lg font-display mt-6 mb-3" style="color:#c9a227">$1</h2>');
-  out = out.replace(/^# (.+)$/gm, '<h1 class="text-xl font-display mt-6 mb-3" style="color:#c9a227">$1</h1>');
-  out = out.replace(/\*\*\*(.+?)\*\*\*/g, '<strong style="color:#d946ef">$1</strong>');
-  out = out.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#c9a227">$1</strong>');
-  out = out.replace(/\*(.+?)\*/g, '<em style="color:#a0a0b0">$1</em>');
-  out = out.replace(/```([\s\S]*?)```/g, '<pre class="my-3 p-3 rounded text-xs overflow-x-auto" style="background:rgba(20,20,30,0.9);border:1px solid rgba(217,70,239,0.2);color:#a0a0b0">$1</pre>');
-  out = out.replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded text-xs" style="background:rgba(201,162,39,0.1);color:#c9a227">$1</code>');
-  out = out.replace(/^- (.+)$/gm, '<li class="ml-4 list-disc list-inside text-sm my-1" style="color:#a0a0b0">$1</li>');
-  out = out.replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal list-inside text-sm my-1" style="color:#a0a0b0">$2</li>');
-  out = out.replace(/^---$/gm, '<hr class="my-4" style="border-color:rgba(217,70,239,0.2)" />');
-  out = out.replace(/^> (.+)$/gm, '<blockquote class="border-l-2 pl-4 my-2 italic" style="border-color:rgba(201,162,39,0.4);color:rgba(160,160,176,0.7)">$1</blockquote>');
-  out = out.split(/\n\n+/).map(p => {
-    if (p.match(/^<(h[1-3]|p|pre|ul|ol|li|blockquote|hr)/)) return p;
-    return `<p class="text-sm my-3 leading-relaxed" style="color:#a0a0b0">${p.replace(/\n/g, "<br/>")}</p>`;
+  // Section headers with alchemical symbols
+  out = out.replace(
+    /^🜂 (.+)$/gm,
+    '<span class="section-header">🜂 $1</span>'
+  );
+  out = out.replace(
+    /^⚛ (.+)$/gm,
+    '<span class="section-header">⚛ $1</span>'
+  );
+  out = out.replace(
+    /^📜 (.+)$/gm,
+    '<span class="section-header">📜 $1</span>'
+  );
+
+  // Bold
+  out = out.replace(/\*\*\*(.+?)\*\*\*/g, '<strong class="text-cyan-300">$1</strong>');
+  out = out.replace(/\*\*(.+?)\*\*/g, '<strong class="text-[#d4a847]">$1</strong>');
+
+  // Italic
+  out = out.replace(/\*(.+?)\*/g, '<em class="text-white/50">$1</em>');
+
+  // Code blocks
+  out = out.replace(
+    /```([\s\S]*?)```/g,
+    '<pre class="oracle-pre">$1</pre>'
+  );
+  out = out.replace(
+    /`([^`]+)`/g,
+    '<code class="oracle-code">$1</code>'
+  );
+
+  // Lists
+  out = out.replace(/^- (.+)$/gm, '<li class="oracle-li">$1</li>');
+  out = out.replace(/^(\d+)\. (.+)$/gm, '<li class="oracle-li-num">$2</li>');
+
+  // Dividers
+  out = out.replace(/^✧$/gm, '<span class="text-[#d4a847] mx-2">✧</span>');
+  out = out.replace(/^───$/gm, '<hr class="oracle-hr" />');
+
+  // Paragraphs
+  out = out.split(/\n\n+/).map((block) => {
+    if (
+      block.match(/^<(h[1-3]|p|pre|ul|ol|li|blockquote|hr|span)/)
+    )
+      return block;
+    return `<p class="oracle-p">${block.replace(/\n/g, "<br/>")}</p>`;
   }).join("\n");
 
   return out;
 }
 
+// ─── Oracle Scene (canvas animation) ────────────────────────────
+function OracleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let W = 0, H = 0;
+    let animId = 0;
+    let scanY = 0;
+
+    // Stars
+    const STARS: { x: number; y: number; size: number; base: number; phase: number; isGold: boolean }[] = [];
+    // Glyph drops
+    const GLYPHS_LIST = [
+      "\u0300", "\u0301", "\u0302", "\u0303", "\u0308", "\u030A",
+      "\u030B", "\u030C", "\u0311", "\u0312", "\u0313", "\u0314",
+      "\u0316", "\u0317", "\u0323", "\u0324", "\u0325", "\u0327",
+      "\u0330", "\u0331", "\u0334", "\u0335", "\u0336",
+      "᚛", "᚜", "⍟", "⎈", "◬", "⬡", "⏣", "⌬", "☿", "♃", "♄",
+      "⊹", "⊕", "⊗", "⦿", "⧫", "∞", "◎", "⟐", "⟡",
+      "△", "▽", "◇", "○", "□", "⬠", "⬡", "⬢",
+      "🜁", "🜂", "🜃", "🜄", "🜔", "🝆",
+    ];
+    const DROPS: { x: number; y: number; speed: number; char: string; opacity: number; size: number }[] = [];
+
+    function resize() {
+      W = canvas!.offsetWidth;
+      H = canvas!.offsetHeight;
+      canvas!.width = W;
+      canvas!.height = H;
+      // Init stars
+      STARS.length = 0;
+      for (let i = 0; i < 120; i++) {
+        STARS.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          size: 0.3 + Math.random() * 1.2,
+          base: 0.3 + Math.random() * 0.4,
+          phase: Math.random() * Math.PI * 2,
+          isGold: Math.random() > 0.85,
+        });
+      }
+      // Init glyph drops
+      DROPS.length = 0;
+      const cols = Math.floor(W / 35);
+      for (let i = 0; i < cols; i++) {
+        DROPS.push({
+          x: (i / cols) * W + Math.random() * 15,
+          y: Math.random() * H,
+          speed: 0.15 + Math.random() * 0.2,
+          char: GLYPHS_LIST[Math.floor(Math.random() * GLYPHS_LIST.length)],
+          opacity: 0.012 + Math.random() * 0.006,
+          size: 10 + Math.random() * 6,
+        });
+      }
+    }
+
+    function draw(ts: number) {
+      ctx!.fillStyle = "#0a090e";
+      ctx!.fillRect(0, 0, W, H);
+
+      // Nebula 1 — purple top-right
+      const n1 = ctx!.createRadialGradient(W * 0.78, H * 0.2, 0, W * 0.78, H * 0.2, W * 0.4);
+      n1.addColorStop(0, "rgba(147,51,234,0.025)");
+      n1.addColorStop(1, "transparent");
+      ctx!.fillStyle = n1;
+      ctx!.fillRect(0, 0, W, H);
+
+      // Nebula 2 — cyan bottom-left
+      const n2 = ctx!.createRadialGradient(W * 0.15, H * 0.85, 0, W * 0.15, H * 0.85, W * 0.3);
+      n2.addColorStop(0, "rgba(34,211,238,0.015)");
+      n2.addColorStop(1, "transparent");
+      ctx!.fillStyle = n2;
+      ctx!.fillRect(0, 0, W, H);
+
+      // CRT lines
+      ctx!.fillStyle = "rgba(0,0,0,0.012)";
+      for (let y = 0; y < H; y += 3) {
+        ctx!.fillRect(0, y, W, 1);
+      }
+
+      // Stars
+      for (const s of STARS) {
+        const bright = s.base + Math.sin(ts * 0.001 + s.phase) * 0.25;
+        ctx!.beginPath();
+        ctx!.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx!.fillStyle = s.isGold
+          ? `rgba(212,168,71,${bright})`
+          : `rgba(237,233,246,${bright})`;
+        ctx!.fill();
+      }
+
+      // Scan line
+      scanY = (scanY + 0.4) % H;
+      ctx!.fillStyle = "rgba(217,70,239,0.006)";
+      ctx!.fillRect(0, scanY, W, 2);
+
+      // Glyph rain (behind everything)
+      ctx!.font = `${14}px monospace`;
+      for (const drop of DROPS) {
+        drop.y += drop.speed;
+        if (drop.y > H + 20) {
+          drop.y = -20;
+          drop.char = GLYPHS_LIST[Math.floor(Math.random() * GLYPHS_LIST.length)];
+          drop.opacity = 0.012 + Math.random() * 0.006;
+        }
+        ctx!.save();
+        ctx!.globalAlpha = drop.opacity;
+        ctx!.fillStyle = "#d946ef";
+        ctx!.font = `${drop.size}px monospace`;
+        ctx!.fillText(drop.char, drop.x, drop.y);
+        ctx!.restore();
+      }
+
+      animId = requestAnimationFrame(draw);
+    }
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+    resize();
+    animId = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      ro.disconnect();
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ pointerEvents: "none", zIndex: 0 }}
+    />
+  );
+}
+
+// ─── Main Component ─────────────────────────────────────────────
 export default function OraclePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -70,43 +257,19 @@ export default function OraclePage() {
   const [language, setLanguage] = useState("en");
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [voiceGender, setVoiceGender] = useState<"female" | "male">("female");
-  const [showModeMenu, setShowModeMenu] = useState(false);
+  const [showLeftPanel, setShowLeftPanel] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<any>(null);
-  const isRecognizing = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = language === "tr" ? "tr-TR" : language === "ru" ? "ru-RU" : "en-US";
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-      isRecognizing.current = false;
-    };
-    recognition.onerror = () => { isRecognizing.current = false; };
-    recognition.onend = () => { isRecognizing.current = false; };
-    recognitionRef.current = recognition;
-  }, [language]);
-
   const speak = useCallback((text: string) => {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language === "tr" ? "tr-TR" : language === "ru" ? "ru-RU" : "en-US";
-    utterance.rate = 0.9;
+    utterance.lang = language === "ru" ? "ru-RU" : language === "tr" ? "tr-TR" : "en-US";
     utterance.pitch = voiceGender === "female" ? 1.1 : 0.9;
     window.speechSynthesis.speak(utterance);
   }, [voiceEnabled, voiceGender, language]);
@@ -118,7 +281,7 @@ export default function OraclePage() {
     setLoading(true);
 
     const userMsg: Message = { role: "user", text: userText };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
 
     try {
       const params = new URLSearchParams({
@@ -132,11 +295,11 @@ export default function OraclePage() {
       const data = await res.json();
       const oracleText = data.answer || data.response || "The Oracle is silent.";
       const oracleMsg: Message = { role: "oracle", text: oracleText };
-      setMessages(prev => [...prev, oracleMsg]);
+      setMessages((prev) => [...prev, oracleMsg]);
       speak(oracleText);
-    } catch (err) {
-      const errMsg: Message = { role: "oracle", text: "The Oracle is currently offline — the backend is not reachable from this network. The Oracle AI runs on a local server and needs a public URL (tunnel) to work on the live site. Please check the local server connection or try again when the tunnel is active." };
-      setMessages(prev => [...prev, errMsg]);
+    } catch {
+      const errMsg: Message = { role: "oracle", text: "The Oracle is currently unreachable. Please try again." };
+      setMessages((prev) => [...prev, errMsg]);
     } finally {
       setLoading(false);
     }
@@ -149,283 +312,396 @@ export default function OraclePage() {
     }
   };
 
-  const toggleVoice = () => {
-    setVoiceEnabled(prev => {
-      if (prev) window.speechSynthesis.cancel();
-      return !prev;
-    });
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const modeColor: Record<string, string> = {
+    oracle: "#d946ef",
+    decipher: "#22d3ee",
+    correspondence: "#9333ea",
+    etymology: "#d4a847",
+    meditation: "#22c55e",
   };
 
-  const toggleMic = () => {
-    if (!recognitionRef.current || isRecognizing.current) return;
-    isRecognizing.current = true;
-    recognitionRef.current.start();
+  const rightColor: Record<string, string> = {
+    gold: "#d4a847",
+    magenta: "#d946ef",
+    purple: "#9333ea",
+    cyan: "#22d3ee",
+    green: "#22c55e",
   };
-
-  const activeModeData = ORACLE_MODES.find(m => m.id === mode);
 
   return (
-    <div
-      className="fixed inset-0 flex flex-col"
-      style={{
-        background: "linear-gradient(135deg, #0a090e 0%, #12101a 50%, #0d0a14 100%)",
-        fontFamily: "var(--font-display, 'Cinzel', serif)",
-      }}
-    >
-      {/* Scan-line overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 z-30 opacity-[0.03]"
-        style={{
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)",
-        }}
-      />
+    <>
+      <Navigation />
+      <main className="relative min-h-screen" style={{ background: "#0a090e" }}>
+        <OracleCanvas />
 
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-4 md:px-6 py-3 border-b shrink-0 z-20"
-        style={{
-          borderColor: "rgba(217,70,239,0.2)",
-          background: "rgba(10,9,14,0.97)",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 flex items-center justify-center border shrink-0"
-            style={{ borderColor: "rgba(217,70,239,0.4)" }}
-          >
-            <span className="text-lg">📜</span>
-          </div>
-          <div>
-            <h1 className="font-display text-base md:text-lg truncate" style={{ color: "#c9a227", letterSpacing: "0.05em" }}>
-              Codex Oracle
-            </h1>
-            <p className="font-mono text-[8px] md:text-[9px] tracking-[0.2em] uppercase hidden sm:block" style={{ color: "rgba(217,70,239,0.5)" }}>
-              Universal Transmissions
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Language switcher */}
-          <div className="flex gap-1">
-            {LANGUAGES.map(lang => (
-              <button
-                key={lang.code}
-                onClick={() => setLanguage(lang.code)}
-                className="px-2 py-1 font-mono text-[10px] tracking-wider rounded transition-all"
-                style={{
-                  background: language === lang.code ? "rgba(217,70,239,0.15)" : "transparent",
-                  color: language === lang.code ? "#d946ef" : "rgba(160,160,176,0.5)",
-                  border: `1px solid ${language === lang.code ? "rgba(217,70,239,0.3)" : "rgba(217,70,239,0.1)"}`,
-                }}
-              >
-                {lang.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Voice gender */}
-          {voiceEnabled && (
-            <button
-              onClick={() => setVoiceGender(g => g === "female" ? "male" : "female")}
-              className="p-2 text-sm transition-all"
-              style={{ color: "rgba(160,160,176,0.6)" }}
-              title={`Voice: ${voiceGender}`}
-            >
-              {voiceGender === "female" ? "♀" : "♂"}
-            </button>
-          )}
-
-          {/* Voice toggle */}
-          <button
-            onClick={toggleVoice}
-            className="p-2 rounded-full transition-all"
-            style={{
-              background: voiceEnabled ? "rgba(34,211,238,0.1)" : "transparent",
-              color: voiceEnabled ? "#22d3ee" : "rgba(160,160,176,0.4)",
-              border: `1px solid ${voiceEnabled ? "rgba(34,211,238,0.3)" : "rgba(217,70,239,0.1)"}`,
-            }}
-            title={voiceEnabled ? "Voice on" : "Voice off"}
-          >
-            {voiceEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mode selector */}
-      <div
-        className="flex items-center gap-2 px-4 py-2 border-b overflow-x-auto shrink-0"
-        style={{ borderColor: "rgba(217,70,239,0.08)", background: "rgba(10,9,14,0.8)" }}
-      >
-        <div className="flex gap-1.5 whitespace-nowrap">
-          {ORACLE_MODES.map(m => (
-            <button
-              key={m.id}
-              onClick={() => setMode(m.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] tracking-wider transition-all"
-              style={{
-                background: mode === m.id ? "rgba(217,70,239,0.12)" : "transparent",
-                color: mode === m.id ? "#d946ef" : "rgba(160,160,176,0.45)",
-                border: `1px solid ${mode === m.id ? "rgba(217,70,239,0.35)" : "rgba(217,70,239,0.08)"}`,
-              }}
-            >
-              <span>{m.icon}</span>
-              <span className="hidden md:inline">{m.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Chat area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 py-6">
-          {messages.length === 0 && (
-            <div className="text-center mb-8 mt-12">
-              <div
-                className="w-20 h-20 mx-auto mb-6 flex items-center justify-center border"
-                style={{ borderColor: "rgba(217,70,239,0.3)", background: "rgba(20,20,30,0.5)" }}
-              >
-                <span className="text-4xl">🔮</span>
-              </div>
-              <h2 className="font-display text-2xl mb-3" style={{ color: "#c9a227", letterSpacing: "0.08em" }}>
-                The Codex Oracle
-              </h2>
-              <p className="text-sm mb-8" style={{ color: "rgba(160,160,176,0.5)" }}>
-                Ask a question. Receive perspective.
-              </p>
-              <div className="flex flex-col gap-2 max-w-sm mx-auto">
-                {STARTER_QUESTIONS.map((q, i) => (
+        <div className="relative z-10 pt-24 pb-20">
+          {/* Top bar */}
+          <div className="max-w-6xl mx-auto px-4 mb-0">
+            <div className="border-b" style={{ borderColor: "rgba(217,70,239,0.15)" }}>
+              <div className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  {/* Mobile menu toggle */}
                   <button
-                    key={i}
-                    onClick={() => sendMessage(q)}
-                    className="text-left px-4 py-3 text-sm border rounded transition-all hover:opacity-80"
-                    style={{
-                      borderColor: "rgba(217,70,239,0.2)",
-                      color: "rgba(160,160,176,0.7)",
-                      background: "rgba(217,70,239,0.03)",
-                    }}
+                    className="md:hidden p-2"
+                    style={{ color: "rgba(217,70,239,0.5)" }}
+                    onClick={() => setShowLeftPanel(!showLeftPanel)}
                   >
-                    {q}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
                   </button>
-                ))}
+                  <h1 className="font-display text-2xl tracking-[0.15em]" style={{ color: "#d946ef" }}>
+                    CODEX ORACLE
+                  </h1>
+                </div>
+                <span className="font-mono text-[9px] tracking-[0.3em] hidden md:block" style={{ color: "rgba(237,233,246,0.25)" }}>
+                  UNIVERSAL TRANSMISSIONS
+                </span>
+              </div>
+
+              {/* Subtitle + divider */}
+              <div className="text-center py-5">
+                <p className="font-display text-base tracking-[0.2em] mb-4" style={{
+                  background: "linear-gradient(135deg, #d946ef 0%, #d4a847 35%, #9333ea 65%, #22d3ee 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}>
+                  CODEX ORACLE
+                </p>
+                <p className="font-body text-sm mb-4" style={{ color: "rgba(237,233,246,0.4)" }}>
+                  Decipher the pages. Decode the names. Map the correspondences.
+                </p>
+                <div className="h-px mx-auto max-w-xs" style={{
+                  background: "linear-gradient(90deg, transparent 0%, rgba(217,70,239,0.5) 20%, rgba(212,168,71,0.7) 50%, rgba(147,51,234,0.5) 80%, transparent 100%)",
+                }} />
               </div>
             </div>
-          )}
+          </div>
 
-          {messages.map((msg, i) => (
-            <div key={i} className="mb-4">
-              {msg.role === "user" ? (
+          {/* Three-column layout */}
+          <div className="max-w-6xl mx-auto px-4 mt-0">
+            <div className="flex gap-0 min-h-[600px]">
+
+              {/* LEFT SIDEBAR — 220px */}
+              <aside
+                className={`
+                  w-[220px] flex-shrink-0 border-r p-4 flex flex-col gap-5
+                  ${showLeftPanel ? "block" : "hidden"} md:block
+                `}
+                style={{ borderColor: "rgba(217,70,239,0.08)", background: "rgba(17,15,26,0.4)" }}
+              >
+                {/* Language */}
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>LANGUAGE</div>
+                  <div className="flex gap-1">
+                    {LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => setLanguage(lang.code)}
+                        className="font-mono text-[10px] tracking-wider px-3 py-1.5 border transition-all"
+                        style={{
+                          borderColor: language === lang.code ? "rgba(217,70,239,0.5)" : "rgba(217,70,239,0.1)",
+                          background: language === lang.code ? "rgba(217,70,239,0.08)" : "transparent",
+                          color: language === lang.code ? "#d946ef" : "rgba(237,233,246,0.35)",
+                        }}
+                      >
+                        {lang.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Voice */}
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>VOICE</div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setVoiceEnabled(!voiceEnabled)}
+                      className="font-mono text-[10px] tracking-wider px-3 py-1.5 border transition-all"
+                      style={{
+                        borderColor: voiceEnabled ? "rgba(34,211,238,0.5)" : "rgba(217,70,239,0.1)",
+                        background: voiceEnabled ? "rgba(34,211,238,0.06)" : "transparent",
+                        color: voiceEnabled ? "#22d3ee" : "rgba(237,233,246,0.35)",
+                      }}
+                    >
+                      {voiceEnabled ? "ON" : "OFF"}
+                    </button>
+                    {voiceEnabled && (
+                      <button
+                        onClick={() => setVoiceGender(voiceGender === "female" ? "male" : "female")}
+                        className="font-mono text-[10px] tracking-wider px-3 py-1.5 border transition-all"
+                        style={{
+                          borderColor: "rgba(34,211,238,0.3)",
+                          color: "rgba(237,233,246,0.4)",
+                        }}
+                      >
+                        {voiceGender === "female" ? "♀" : "♂"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mode */}
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>MODE</div>
+                  <div className="flex flex-col gap-1">
+                    {MODES.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setMode(m.id)}
+                        className="font-mono text-[10px] tracking-wider px-3 py-2 border text-left transition-all"
+                        style={{
+                          borderColor: mode === m.id ? `${modeColor[m.id]}50` : "rgba(217,70,239,0.08)",
+                          background: mode === m.id ? `${modeColor[m.id]}0a` : "transparent",
+                          color: mode === m.id ? modeColor[m.id] : "rgba(237,233,246,0.35)",
+                        }}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ask About */}
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>ASK ABOUT</div>
+                  <div className="flex flex-col gap-1">
+                    {ASK_ABOUT.map((item) => (
+                      <div key={item} className="flex items-center gap-2 font-body text-[11px]" style={{ color: "rgba(237,233,246,0.3)" }}>
+                        <span style={{ color: "#d4a847" }}>✦</span>
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+
+              {/* CENTER — flex:1 */}
+              <div className="flex-1 flex flex-col min-w-0">
+
+                {/* Chat messages */}
                 <div
-                  className="px-4 py-3 rounded-r-lg"
+                  className="flex-1 overflow-y-auto p-4 space-y-4"
+                  style={{ maxHeight: "55vh", scrollbarWidth: "thin", scrollbarColor: "rgba(217,70,239,0.4) rgba(0,0,0,0.2)" }}
+                >
+                  {messages.length === 0 && (
+                    <div className="text-center py-12">
+                      <div className="font-display text-sm tracking-[0.2em] mb-3" style={{ color: "rgba(237,233,246,0.3)" }}>
+                        ✦ THE CODEX AWAITS ✦
+                      </div>
+                      <div className="font-body text-sm leading-relaxed" style={{ color: "rgba(237,233,246,0.35)" }}>
+                        Select a mode, then ask about any page, symbol, name, or correspondence from the Universal Transmissions Codex.
+                      </div>
+                    </div>
+                  )}
+
+                  {messages.map((msg, i) => (
+                    <div key={i}>
+                      {msg.role === "user" ? (
+                        <div>
+                          <div className="font-mono text-[8px] tracking-[0.2em] mb-1" style={{ color: "rgba(34,211,238,0.35)" }}>YOU</div>
+                          <div
+                            className="font-body text-base leading-relaxed"
+                            style={{
+                              color: "rgba(237,233,246,0.7)",
+                              padding: "10px 14px",
+                              borderLeft: "2px solid rgba(34,211,238,0.2)",
+                              background: "rgba(34,211,238,0.02)",
+                            }}
+                          >
+                            {msg.text}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="font-mono text-[8px] tracking-[0.2em] mb-1" style={{ color: "rgba(217,70,239,0.4)" }}>
+                            CODEX ORACLE · {mode.toUpperCase()} MODE
+                          </div>
+                          <div
+                            className="font-body text-base leading-[1.8]"
+                            style={{
+                              color: "#ede9f6",
+                              padding: "14px 16px",
+                              borderLeft: "2px solid rgba(217,70,239,0.3)",
+                              background: "rgba(217,70,239,0.025)",
+                            }}
+                          >
+                            <style>{`
+                              .section-header { font-family: Cinzel, serif; font-size: 11px; letter-spacing: 0.12em; color: #d4a847; display: block; margin: 10px 0 6px; }
+                              .oracle-pre { background: rgba(20,20,30,0.9); border: 1px solid rgba(217,70,239,0.2); color: rgba(237,233,246,0.6); padding: 12px; margin: 8px 0; font-family: JetBrains Mono, monospace; font-size: 12px; overflow-x: auto; }
+                              .oracle-code { background: rgba(201,162,39,0.1); color: #d4a847; padding: 1px 5px; font-family: JetBrains Mono, monospace; font-size: 12px; }
+                              .oracle-li { list-style: disc; margin-left: 16px; color: rgba(237,233,246,0.5); font-size: 14px; }
+                              .oracle-li-num { list-style: decimal; margin-left: 16px; color: rgba(237,233,246,0.5); font-size: 14px; }
+                              .oracle-p { color: rgba(237,233,246,0.7); margin: 0 0 8px; }
+                              .oracle-hr { border: none; border-top: 1px solid rgba(217,70,239,0.15); margin: 12px 0; }
+                            `}</style>
+                            <div dangerouslySetInnerHTML={{ __html: parseOracleText(msg.text) }} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {loading && (
+                    <div>
+                      <div className="font-mono text-[8px] tracking-[0.2em] mb-1" style={{ color: "rgba(217,70,239,0.4)" }}>
+                        CODEX ORACLE · {mode.toUpperCase()} MODE
+                      </div>
+                      <div
+                        className="font-body text-base"
+                        style={{
+                          padding: "14px 16px",
+                          borderLeft: "2px solid rgba(217,70,239,0.3)",
+                          background: "rgba(217,70,239,0.025)",
+                          color: "rgba(237,233,246,0.4)",
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#d946ef", animation: "pulse-dot 1.5s ease-in-out infinite" }} />
+                          <span className="font-mono text-xs tracking-wider">THE ORACLE IS TRANSMITTING</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Quick prompts */}
+                <div
+                  className="flex gap-2 overflow-x-auto px-4 py-3"
                   style={{
-                    background: "rgba(34,211,238,0.05)",
-                    borderLeft: "2px solid rgba(34,211,238,0.3)",
-                    color: "rgba(160,160,176,0.85)",
+                    borderTop: "1px solid rgba(217,70,239,0.08)",
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "rgba(217,70,239,0.3) transparent",
                   }}
                 >
-                  <p className="text-sm font-medium mb-1" style={{ color: "#22d3ee" }}>You</p>
-                  <p className="text-sm">{msg.text}</p>
+                  {QUICK_PROMPTS.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => sendMessage(q)}
+                      className="flex-shrink-0 font-body text-[12px] px-4 py-2 border transition-all"
+                      style={{
+                        borderColor: "rgba(217,70,239,0.12)",
+                        color: "rgba(237,233,246,0.4)",
+                        background: "rgba(17,15,26,0.6)",
+                        borderRadius: 0,
+                      }}
+                    >
+                      {q}
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <div
-                  className="px-4 py-3 rounded-r-lg"
-                  style={{
-                    background: "rgba(217,70,239,0.03)",
-                    borderLeft: "2px solid rgba(217,70,239,0.3)",
-                    color: "rgba(160,160,176,0.9)",
-                  }}
-                >
-                  <p className="text-sm font-medium mb-2" style={{ color: "#d946ef" }}>
-                    {activeModeData?.icon} {activeModeData?.label}
-                  </p>
-                  <div
-                    className="text-sm leading-relaxed oracle-response"
-                    dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.text) }}
-                  />
+
+                {/* Input area */}
+                <div className="p-4" style={{ borderTop: "1px solid rgba(217,70,239,0.08)" }}>
+                  <div className="flex gap-3">
+                    <textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask the Codex..."
+                      rows={2}
+                      className="flex-1 font-body text-base px-4 py-3 resize-none border"
+                      style={{
+                        background: "rgba(17,15,26,0.8)",
+                        borderColor: "rgba(217,70,239,0.15)",
+                        color: "#ede9f6",
+                        borderRadius: 0,
+                        outline: "none",
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = "rgba(217,70,239,0.4)"; }}
+                      onBlur={(e) => { e.target.style.borderColor = "rgba(217,70,239,0.15)"; }}
+                    />
+                    <button
+                      onClick={() => sendMessage(input)}
+                      disabled={loading}
+                      className="relative overflow-hidden font-display text-[10px] tracking-[0.2em] px-6 py-3 border transition-all flex-shrink-0"
+                      style={{
+                        borderColor: "rgba(212,168,71,0.5)",
+                        background: "rgba(212,168,71,0.08)",
+                        color: "#d4a847",
+                        borderRadius: 0,
+                      }}
+                    >
+                      TRANSMIT
+                    </button>
+                  </div>
+                  <div className="font-mono text-[9px] mt-2" style={{ color: "rgba(237,233,246,0.2)" }}>
+                    ENTER to send · SHIFT+ENTER for new line
+                  </div>
                 </div>
-              )}
+              </div>
+
+              {/* RIGHT SIDEBAR — 200px */}
+              <aside
+                className="hidden md:flex w-[200px] flex-shrink-0 border-l p-4 flex-col gap-5"
+                style={{ borderColor: "rgba(217,70,239,0.08)", background: "rgba(17,15,26,0.4)" }}
+              >
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] mb-3" style={{ color: "rgba(237,233,246,0.25)" }}>MENU</div>
+                  <div className="flex flex-col gap-2">
+                    {RIGHT_MENU.map((item) => (
+                      <button
+                        key={item.q}
+                        onClick={() => sendMessage(item.q)}
+                        className="font-body text-[11px] text-left flex items-center gap-2 py-1 transition-all"
+                        style={{ color: "rgba(237,233,246,0.35)" }}
+                      >
+                        <span style={{ color: rightColor[item.color] }}>◆</span>
+                        <span className="hover:text-white">{item.q}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="font-mono text-[9px] tracking-[0.3em] mb-3" style={{ color: "rgba(237,233,246,0.25)" }}>EXPLORE</div>
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href="https://www.vaultofarcana.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-body text-[11px] flex items-center gap-2 hover:text-white transition-all"
+                      style={{ color: "rgba(237,233,246,0.3)" }}
+                    >
+                      <span style={{ color: "#d946ef" }}>↗</span> VoA
+                    </a>
+                    <a
+                      href="https://www.universal-transmissions.com/codex"
+                      className="font-body text-[11px] flex items-center gap-2 hover:text-white transition-all"
+                      style={{ color: "rgba(237,233,246,0.3)" }}
+                    >
+                      <span style={{ color: "#d946ef" }}>↗</span> Codex
+                    </a>
+                    <a
+                      href="https://www.universal-transmissions.com/inquiry"
+                      className="font-body text-[11px] flex items-center gap-2 hover:text-white transition-all"
+                      style={{ color: "rgba(237,233,246,0.3)" }}
+                    >
+                      <span style={{ color: "#d946ef" }}>↗</span> Art of Inquiry
+                    </a>
+                  </div>
+                </div>
+              </aside>
             </div>
-          ))}
-
-          {loading && (
-            <div className="flex items-center gap-3 px-4 py-3" style={{ color: "rgba(160,160,176,0.5)" }}>
-              <Loader size={16} className="animate-spin" />
-              <span className="text-sm">The Oracle is consulting...</span>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
+          </div>
         </div>
-      </div>
-
-      {/* Input bar */}
-      <div
-        className="px-4 py-3 md:px-6 md:py-4 border-t shrink-0"
-        style={{ borderColor: "rgba(217,70,239,0.1)", background: "rgba(10,9,14,0.95)" }}
-      >
-        <div className="flex gap-2 md:gap-3 max-w-3xl mx-auto">
-          {/* Mic button */}
-          <button
-            onClick={toggleMic}
-            className="shrink-0 p-2.5 md:p-3 rounded-full transition-all"
-            style={{
-              border: "1px solid rgba(217,70,239,0.2)",
-              color: "rgba(217,70,239,0.5)",
-              background: "transparent",
-            }}
-            title="Voice input"
-          >
-            <Mic size={16} />
-          </button>
-
-          {/* Text input */}
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask the Codex Oracle..."
-            rows={1}
-            className="flex-1 px-4 py-2.5 md:py-3 text-sm resize-none outline-none rounded"
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(217,70,239,0.2)",
-              color: "rgba(160,160,176,0.85)",
-              fontFamily: "var(--font-body, serif)",
-              maxHeight: "160px",
-            }}
-          />
-
-          {/* Send button */}
-          <button
-            onClick={() => sendMessage(input)}
-            disabled={!input.trim() || loading}
-            className="shrink-0 px-4 md:px-5 py-2.5 md:py-3 flex items-center justify-center rounded transition-all"
-            style={{
-              border: "1px solid rgba(201,162,39,0.3)",
-              background: input.trim() && !loading ? "rgba(201,162,39,0.1)" : "transparent",
-              color: input.trim() && !loading ? "#c9a227" : "rgba(201,162,39,0.3)",
-              cursor: input.trim() && !loading ? "pointer" : "not-allowed",
-            }}
-          >
-            <Send size={16} />
-          </button>
-        </div>
-        <p className="flex items-center max-w-3xl mx-auto mt-2 font-mono text-[9px] tracking-widest" style={{ color: "rgba(217,70,239,0.2)" }}>
-          ENTER to send · SHIFT+ENTER for new line · 🎤 voice input
-        </p>
-      </div>
+      </main>
+      <Footer />
 
       <style>{`
-        .oracle-response h3 { font-family: var(--font-heading); font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: #c9a227; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-        .oracle-response h2 { font-family: var(--font-display); font-size: 1.1rem; color: #c9a227; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-        .oracle-response pre { background: rgba(20,20,30,0.9); border: 1px solid rgba(217,70,239,0.15); border-radius: 4px; padding: 1rem; overflow-x: auto; margin: 1rem 0; }
-        .oracle-response code { background: rgba(201,162,39,0.08); color: #c9a227; padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.85em; }
-        .oracle-response blockquote { border-left: 2px solid rgba(201,162,39,0.4); padding-left: 1rem; font-style: italic; color: rgba(160,160,176,0.7); margin: 1rem 0; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
       `}</style>
-    </div>
+    </>
   );
 }
