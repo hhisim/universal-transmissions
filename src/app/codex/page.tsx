@@ -13,36 +13,32 @@ export const metadata: Metadata = {
     "The Universal Transmissions Codex — 150 pages of symbolic art, sacred geometry, and visionary experience. A book unlike any other. Available in physical and digital editions.",
 };
 
+// Video data extracted from /memory/01-Projects/ut-website/video/Codex Videos/
+// 12 .md files scanned; 4 contain unique YouTube embeds
 const videos = [
   {
     youtubeId: "ECAFuxZpyK0",
     title: "Codex Stream 01 — Compilation Capture 01",
     description:
-      "Workflow time lapse of the Codex creation process. Recorded at 3AM under red monitor light.",
+      "Workflow time lapse recorded at 3AM under red monitor light. The creation process of the Universal Transmissions Codex in its earliest form.",
   },
   {
     youtubeId: "gSqdxDWO278",
     title: "Codex Stream 01 — Compilation Capture 03",
     description:
-      "Workflow time lapse and creation process of the Universal Transmissions Codex.",
+      "Workflow time lapse and creation process of the Universal Transmissions Codex — documenting the encoding sessions and symbolic rendering.",
   },
   {
     youtubeId: "N0p65Q3dz4Y",
     title: "Codex Stream 01 — Compilation Capture 07",
     description:
-      "Workflow timelapse and creation process of the Universal Transmissions Codex.",
+      "Further documentation of the Codex creation process — timelapse recordings of the symbol encoding and sacred geometry rendering.",
   },
   {
     youtubeId: "r7nvYvklpYE",
-    title: "ETHERA 24 — The First Phygital Collection",
+    title: "ETHERA 24 — The First Phygital Universal Transmissions Collection",
     description:
-      "The ETHERA 24 NFT collection launch — the first phygital Universal Transmissions collection.",
-  },
-  {
-    youtubeId: "7p0IUZ-L9dA",
-    title: "The Unwritten Book That Cannot Be Read",
-    description:
-      "An in-depth exploration of the Universal Transmissions Codex Vol. 1 — its origins, its process, and its purpose.",
+      "The launch of ETHERA 24 — the first phygital Universal Transmissions collection. NFT minting, whitelist access, and the integration of physical Codex with digital ownership.",
   },
 ];
 
@@ -67,7 +63,7 @@ export default function CodexPage() {
                 </p>
               </SectionReveal>
               <SectionReveal delay={0.2}>
-                <h1 className="font-display text-5xl md:text-7xl mb-6" style={{ color: "var(--ut-gold)" }}>
+                <h1 className="font-display text-5xl md:text-7xl mb-6 ut-gradient-text">
                   <ZalgoText text="THE CODEX" intensity="heavy" />
                 </h1>
               </SectionReveal>
@@ -77,7 +73,7 @@ export default function CodexPage() {
                 </p>
               </SectionReveal>
               <SectionReveal delay={0.5}>
-                <p className="font-body text-xl leading-relaxed mb-10 max-w-2xl" style={{ color: "var(--ut-white-dim)" }}>
+                <p className="font-body text-lg leading-relaxed mb-10 max-w-2xl" style={{ color: "var(--ut-white-dim)" }}>
                   Ten years of encoding. A lifetime of remembering. The Codex is not
                   meant to be read — it is meant to be experienced. 150 pages of
                   xenolinguistic art, sacred geometry, and symbolic systems that
@@ -136,7 +132,7 @@ export default function CodexPage() {
                     [ Volume I — The Foundation ]
                   </p>
                   <h2
-                    className="font-display text-4xl md:text-5xl mb-6"
+                    className="font-display text-4xl md:text-5xl mb-6 ut-gradient-text"
                     style={{ color: "var(--codex1-cream)" }}
                   >
                     <ZalgoText text="Universal Transmissions Codex Vol. 1" intensity="moderate" />
@@ -204,7 +200,7 @@ export default function CodexPage() {
                 >
                   [ Page Spreads ]
                 </p>
-                <h2 className="font-display text-3xl" style={{ color: "var(--ut-white)" }}>
+                <h2 className="font-display text-3xl ut-gradient-text" style={{ color: "var(--ut-white)" }}>
                   Inside the Codex
                 </h2>
               </div>
@@ -325,7 +321,7 @@ export default function CodexPage() {
                   [ Process & Documentation ]
                 </p>
                 <h2
-                  className="font-display text-3xl md:text-4xl mb-4"
+                  className="font-display text-3xl md:text-4xl mb-4 ut-gradient-text"
                   style={{ color: "var(--ut-white)" }}
                 >
                   Behind the Codex — Process & Videos
@@ -352,10 +348,10 @@ export default function CodexPage() {
                       border: "1px solid rgba(212,168,71,0.12)",
                     }}
                   >
-                    {/* YouTube Embed */}
+                    {/* YouTube Embed — 16:9 aspect ratio container */}
                     <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
                       <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?si=hVL3p5F7NMe9Ywj-&rel=0`}
+                        src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0`}
                         title={video.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         referrerPolicy="strict-origin-when-cross-origin"
