@@ -247,28 +247,28 @@ export default function TransmissionStream() {
     <div>
       {/* Section header */}
       <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-3 mb-4">
-          <div
-            className="h-px"
-            style={{
-              width: "40px",
-              background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.5))",
-            }}
-          />
-          <p
-            className="font-mono text-[10px] tracking-[0.4em] uppercase"
-            style={{ color: "var(--ut-cyan)" }}
-          >
-            [ Live Transmission Stream ]
-          </p>
-          <div
-            className="h-px"
-            style={{
-              width: "40px",
-              background: "linear-gradient(90deg, rgba(34,211,238,0.5), transparent)",
-            }}
-          />
-        </div>
+        {/* Spectrum line top */}
+        <div
+          className="h-px mx-auto mb-6"
+          style={{
+            maxWidth: "200px",
+            background: "linear-gradient(90deg, transparent 0%, rgba(217,70,239,0.6) 25%, rgba(147,51,234,0.8) 45%, rgba(99,102,241,0.8) 55%, rgba(34,211,238,0.6) 75%, transparent 100%)",
+          }}
+        />
+        <p
+          className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4"
+          style={{ color: "var(--ut-cyan)" }}
+        >
+          [ Live Transmission Stream ]
+        </p>
+        {/* Spectrum line bottom of header */}
+        <div
+          className="h-px mx-auto"
+          style={{
+            maxWidth: "200px",
+            background: "linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.6) 25%, rgba(99,102,241,0.8) 45%, rgba(147,51,234,0.8) 55%, rgba(217,70,239,0.6) 75%, transparent 100%)",
+          }}
+        />
 
         {/* View toggle */}
         <div className="flex items-center justify-center gap-2 mt-4">
