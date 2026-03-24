@@ -135,7 +135,7 @@ export default function OraclePage() {
       setMessages(prev => [...prev, oracleMsg]);
       speak(oracleText);
     } catch (err) {
-      const errMsg: Message = { role: "oracle", text: "The Oracle is currently unreachable. Please try again." };
+      const errMsg: Message = { role: "oracle", text: "The Oracle is currently offline — the backend is not reachable from this network. The Oracle AI runs on a local server and needs a public URL (tunnel) to work on the live site. Please check the local server connection or try again when the tunnel is active." };
       setMessages(prev => [...prev, errMsg]);
     } finally {
       setLoading(false);
