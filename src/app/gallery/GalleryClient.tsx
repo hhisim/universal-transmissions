@@ -22,7 +22,12 @@ export default function GalleryClient() {
   const filteredArtworks = artworks
     .filter((artwork) => {
       if (activeFilter === "all") return true;
-      if (activeFilter === "prismatic") return artwork.tags.includes("prismatic");
+      if (activeFilter === "prismatic") {
+        return (
+          artwork.tags.includes("prismatic") ||
+          artwork.tags.includes("twilight-transmissions")
+        );
+      }
       if (activeFilter === "universal-transmissions") {
         return (
           artwork.tags.includes("universal-transmissions") &&
