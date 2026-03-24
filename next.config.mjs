@@ -9,6 +9,9 @@ const nextConfig = {
       { protocol: "https", hostname: "www.universal-transmissions.com" },
       { protocol: "https", hostname: "universal-transmissions.com" },
       { protocol: "https", hostname: "vaultofarcana.com" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "drive.google.com" },
+      { protocol: "https", hostname: "googledrive.com" },
     ],
   },
   experimental: {
