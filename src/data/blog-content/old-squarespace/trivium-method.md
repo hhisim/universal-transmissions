@@ -11,18 +11,18 @@ tags: ['education', 'process', 'trivium', 'art', 'journal']
 
 Finished another transmission, inspired by the Trivium and Quadrivium learning methods of antiquity, and blended with acquired wisdom imparted from hyperdimensional gnosis.
 
-!Trivium-method---web.jpg
+![Trivium-method---web.jpg](/journal/trivium-method-1.jpg)
 
-!Trivium-Method-Detail-06.jpg
+![Trivium-Method-Detail-06.jpg](/journal/trivium-method-1.jpg)
 
-!Trivium-Method-Detail-01.jpg
+![Trivium-Method-Detail-01.jpg](/journal/trivium-method-1.jpg)
 
-!Trivium-Method-Detail-03.jpg
+![Trivium-Method-Detail-03.jpg](/journal/trivium-method-1.jpg)
 
-!Trivium-Method-Detail-04.jpg
+![Trivium-Method-Detail-04.jpg](/journal/trivium-method-1.jpg)
 
-!Trivium-Method-Detail-02.jpg
+![Trivium-Method-Detail-02.jpg](/journal/trivium-method-1.jpg)
 
-!Trivium-Method-Detail-05.jpg
+![Trivium-Method-Detail-05.jpg](/journal/trivium-method-1.jpg)
 
-!Trivium-Method-Detail-07.jpg
+![Trivium-Method-Detail-07.jpg](/journal/trivium-method-1.jpg)

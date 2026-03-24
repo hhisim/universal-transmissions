@@ -15,4 +15,4 @@ Wholeness & Balanced Vibrations <3
 
 #immaculateconception #own2021 #happynewyear #conception #birth #womb #seed #star #trinary #trinity #xenolinguistics #sperm #microcosmicorbit #chrism #universaltransmissions 
 #psychedelic #visionaryart #psychedelicart #phi #528hz #cymatics #vortex 
-!immaculate conception - web2.jpg
+![immaculate conception - web2.jpg](/journal/immaculate-conception-2021-1.jpg)

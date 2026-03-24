@@ -23,14 +23,14 @@ STEEMIT: https://steemit.com/@hakanhisim
 
 Instagram: https://www.instagram.com/hakanhisim/
 
-!WhatsApp Image 2020-10-25 at 22.40.44.jpeg
+![WhatsApp Image 2020-10-25 at 22.40.44.jpeg](/journal/codex-stream-01-compilation-capture-01-1.jpeg)
 
-!WhatsApp Image 2020-10-25 at 22.40.42.jpeg
+![WhatsApp Image 2020-10-25 at 22.40.42.jpeg](/journal/codex-stream-01-compilation-capture-01-2.jpeg)
 
-!WhatsApp Image 2020-10-d25 at 22.40.39.jpeg
+![WhatsApp Image 2020-10-d25 at 22.40.39.jpeg](/journal/codex-stream-01-compilation-capture-01-3.jpeg)
 
-!WhatsApp Image 2020-10-25 at 22.40.41.jpeg
+![WhatsApp Image 2020-10-25 at 22.40.41.jpeg](/journal/codex-stream-01-compilation-capture-01-4.jpeg)
 
-!WhatsApp Image 2020-10-25 at 22.40.39.jpeg
+![WhatsApp Image 2020-10-25 at 22.40.39.jpeg](/journal/codex-stream-01-compilation-capture-01-5.jpeg)
 
-!WhatsApp Image 2020-10-25 at 07.37.49.jpeg
+![WhatsApp Image 2020-10-25 at 07.37.49.jpeg](/journal/codex-stream-01-compilation-capture-01-6.jpeg)

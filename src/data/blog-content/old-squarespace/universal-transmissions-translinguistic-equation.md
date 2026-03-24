@@ -13,30 +13,30 @@ On amplifying the higher cortical experience by translinguistically encoding DNA
 
 ![](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-01.jpg
+![translinguistic-equation-detail-01.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-03.jpg
+![translinguistic-equation-detail-03.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-04.jpg
+![translinguistic-equation-detail-04.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-05.jpg
+![translinguistic-equation-detail-05.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-06.jpg
+![translinguistic-equation-detail-06.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-07.jpg
+![translinguistic-equation-detail-07.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-08.jpg
+![translinguistic-equation-detail-08.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-09.jpg
+![translinguistic-equation-detail-09.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-10.jpg
+![translinguistic-equation-detail-10.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-11.jpg
+![translinguistic-equation-detail-11.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-12.jpg
+![translinguistic-equation-detail-12.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-14.jpg
+![translinguistic-equation-detail-14.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-15.jpg
+![translinguistic-equation-detail-15.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)
 
-!translinguistic-equation-detail-023.jpg
+![translinguistic-equation-detail-023.jpg](/journal/universal-transmissions-translinguistic-equation-1.jpg)

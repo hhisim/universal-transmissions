@@ -11,20 +11,20 @@ tags: ['vortex', 'process', 'chakra', 'energy', 'art', 'journal']
 
 Finished the second of seven of the **Bio-Energetic Vortexes** sub-series, this one is called **"Flow"** and is inspired by the sacral chakra and the energetic power of emotions.
 
-!Universal Transmissions - Energy Vortices 2 - web.jpg
+![Universal Transmissions - Energy Vortices 2 - web.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 09.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 09.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 08.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 08.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 02.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 02.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 03.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 03.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 04.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 04.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 05.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 05.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 06.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 06.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)
 
-!Universal Transmissions - Energy Vortices 2 - Detail 07.jpg
+![Universal Transmissions - Energy Vortices 2 - Detail 07.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg)

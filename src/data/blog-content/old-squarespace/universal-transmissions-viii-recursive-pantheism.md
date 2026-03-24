@@ -19,30 +19,30 @@ I may also create a 10 hour tutorial of sorts from the video with a voice over c
 
 Here are some details from the image:
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 01.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 01.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 02.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 02.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 03.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 03.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 04.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 04.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 05.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 05.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 06.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 06.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 07.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 07.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 08.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 08.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 09.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 09.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 10.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 10.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 11.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 11.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 12.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 12.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 13.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 13.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)
 
-!Universal Transmissions VIII - Recursive Pantheism - Detaill 14.jpg
+![Universal Transmissions VIII - Recursive Pantheism - Detaill 14.jpg](/journal/universal-transmissions-viii-recursive-pantheism-1.jpg)

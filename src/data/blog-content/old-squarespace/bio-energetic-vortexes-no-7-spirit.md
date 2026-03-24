@@ -3,7 +3,7 @@ slug: bio-energetic-vortexes-no-7-spirit
 title: Bio-Energetic Vortexes No:7 - Spirit
 publishedAt: "2022-10-11"
 author: "Hakan Hisim"
-excerpt: "/journal/bio-energetic-vortexes-no-7-spirit-1.jpg I started this sub-series in the Universal Transmissions style about seven years ago with the…"
+excerpt: "I started this sub-series in the Universal Transmissions style about seven years ago with the Root Chakra. Vortex 7 marks the completion of the sequence — the Crown Chakra. All seven are now done."
 readTime: "3 min"
 hero_gradient: "from-purple-950 via-fuchsia-900 to-black"
 tags: ['vortex', 'process', 'chakra', 'energy', 'art', 'journal']
@@ -53,56 +53,56 @@ I have included all seven chakra artworks for your pleasure to view and inspire 
 
 Hakan
 
-!Spirit - Details 01.jpg
+![Spirit - Details 01.jpg](/journal/bio-energetic-vortexes-no-7-spirit-1.jpg)
 
-!Spirit - Details 02.jpg
+![Spirit - Details 02.jpg](/journal/bio-energetic-vortexes-no-7-spirit-10.jpg)
 
-!Spirit - Details 03.jpg
+![Spirit - Details 03.jpg](/journal/bio-energetic-vortexes-no-7-spirit-11.jpg)
 
-!Spirit - Details 04.jpg
+![Spirit - Details 04.jpg](/journal/bio-energetic-vortexes-no-7-spirit-12.jpg)
 
-!Spirit - Details 05.jpg
+![Spirit - Details 05.jpg](/journal/bio-energetic-vortexes-no-7-spirit-13.jpg)
 
-!Spirit - Details 06.jpg
+![Spirit - Details 06.jpg](/journal/bio-energetic-vortexes-no-7-spirit-14.jpg)
 
-!Spirit - Details 07.jpg
+![Spirit - Details 07.jpg](/journal/bio-energetic-vortexes-no-7-spirit-15.jpg)
 
-!Spirit - Details 08.jpg
+![Spirit - Details 08.jpg](/journal/bio-energetic-vortexes-no-7-spirit-16.jpg)
 
-!Spirit - Details 09.jpg
+![Spirit - Details 09.jpg](/journal/bio-energetic-vortexes-no-7-spirit-17.jpg)
 
-!Spirit - Details 10.jpg
+![Spirit - Details 10.jpg](/journal/bio-energetic-vortexes-no-7-spirit-18.jpg)
 
-!Spirit - Details 11.jpg
+![Spirit - Details 11.jpg](/journal/bio-energetic-vortexes-no-7-spirit-19.jpg)
 
-!Spirit - Details 12.jpg
+![Spirit - Details 12.jpg](/journal/bio-energetic-vortexes-no-7-spirit-2.jpg)
 
-!Spirit - Details 13.jpg
+![Spirit - Details 13.jpg](/journal/bio-energetic-vortexes-no-7-spirit-20.jpg)
 
-!Spirit - Details 14.jpg
+![Spirit - Details 14.jpg](/journal/bio-energetic-vortexes-no-7-spirit-21.jpg)
 
-!Spirit - Details 15.jpg
+![Spirit - Details 15.jpg](/journal/bio-energetic-vortexes-no-7-spirit-22.jpg)
 
-!Spirit - Details 16.jpg
+![Spirit - Details 16.jpg](/journal/bio-energetic-vortexes-no-7-spirit-23.jpg)
 
-!Spirit - Details 17.jpg
+![Spirit - Details 17.jpg](/journal/bio-energetic-vortexes-no-7-spirit-24.jpg)
 
-!Spirit - Details 18.jpg
+![Spirit - Details 18.jpg](/journal/bio-energetic-vortexes-no-7-spirit-25.jpg)
 
-!Spirit - Details 19.jpg
+![Spirit - Details 19.jpg](/journal/bio-energetic-vortexes-no-7-spirit-26.jpg)
 
-!Spirit - Details 20.jpg
+![Spirit - Details 20.jpg](/journal/bio-energetic-vortexes-no-7-spirit-27.jpg)
 
-!Spirit - Details 21.jpg
+![Spirit - Details 21.jpg](/journal/bio-energetic-vortexes-no-7-spirit-28.jpg)
 
-!Spirit - Details 22.jpg
+![Spirit - Details 22.jpg](/journal/bio-energetic-vortexes-no-7-spirit-3.jpg)
 
-!Spirit - Details 23.jpg
+![Spirit - Details 23.jpg](/journal/bio-energetic-vortexes-no-7-spirit-4.jpg)
 
-!Spirit - Details 24.jpg
+![Spirit - Details 24.jpg](/journal/bio-energetic-vortexes-no-7-spirit-5.jpg)
 
-!Spirit - Details 25.jpg
+![Spirit - Details 25.jpg](/journal/bio-energetic-vortexes-no-7-spirit-6.jpg)
 
-!Spirit - Details 26.jpg
+![Spirit - Details 26.jpg](/journal/bio-energetic-vortexes-no-7-spirit-7.jpg)
 
-!Spirit - Details 27.jpg
+![Spirit - Details 27.jpg](/journal/bio-energetic-vortexes-no-7-spirit-8.jpg)

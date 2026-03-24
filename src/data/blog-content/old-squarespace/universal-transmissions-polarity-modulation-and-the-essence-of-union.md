@@ -17,56 +17,56 @@ I took a short break to create this one thats about polarity and union, based on
 
 ![](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-2.jpeg)
 
-!Polarity modulation and the essence of Union - Detail 01.jpg
+![Polarity modulation and the essence of Union - Detail 01.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 02.jpg
+![Polarity modulation and the essence of Union - Detail 02.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 03.jpg
+![Polarity modulation and the essence of Union - Detail 03.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 04.jpg
+![Polarity modulation and the essence of Union - Detail 04.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 05.jpg
+![Polarity modulation and the essence of Union - Detail 05.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 06.jpg
+![Polarity modulation and the essence of Union - Detail 06.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 07.jpg
+![Polarity modulation and the essence of Union - Detail 07.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 08.jpg
+![Polarity modulation and the essence of Union - Detail 08.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 09.jpg
+![Polarity modulation and the essence of Union - Detail 09.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 10.jpg
+![Polarity modulation and the essence of Union - Detail 10.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 11.jpg
+![Polarity modulation and the essence of Union - Detail 11.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 12.jpg
+![Polarity modulation and the essence of Union - Detail 12.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 13.jpg
+![Polarity modulation and the essence of Union - Detail 13.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 14.jpg
+![Polarity modulation and the essence of Union - Detail 14.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 15.jpg
+![Polarity modulation and the essence of Union - Detail 15.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 16.jpg
+![Polarity modulation and the essence of Union - Detail 16.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 17.jpg
+![Polarity modulation and the essence of Union - Detail 17.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 18.jpg
+![Polarity modulation and the essence of Union - Detail 18.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 19.jpg
+![Polarity modulation and the essence of Union - Detail 19.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 20.jpg
+![Polarity modulation and the essence of Union - Detail 20.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 21.jpg
+![Polarity modulation and the essence of Union - Detail 21.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 22.jpg
+![Polarity modulation and the essence of Union - Detail 22.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 23.jpg
+![Polarity modulation and the essence of Union - Detail 23.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 24.jpg
+![Polarity modulation and the essence of Union - Detail 24.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 25.jpg
+![Polarity modulation and the essence of Union - Detail 25.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 26.jpg
+![Polarity modulation and the essence of Union - Detail 26.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)
 
-!Polarity modulation and the essence of Union - Detail 27.jpg
+![Polarity modulation and the essence of Union - Detail 27.jpg](/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg)

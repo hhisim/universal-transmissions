@@ -14,7 +14,8 @@ export const metadata: Metadata = {
 };
 
 const prismaticArtworks = artworks.filter((a) =>
-  a.tags.includes("twilight-transmissions")
+  a.tags.includes("twilight-transmissions") ||
+  a.tags.includes("twilight-pantheism")
 );
 
 export default function PrismaticPage() {

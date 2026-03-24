@@ -81,17 +81,28 @@ body {
    ============================================================ */
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--ut-black);
+  background: rgba(0, 0, 0, 0.2);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--ut-purple-deep);
+  background: linear-gradient(
+    to right,
+    rgba(217, 70, 239, 0.6),
+    rgba(0, 229, 255, 0.6),
+    rgba(201, 162, 39, 0.6)
+  );
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ut-magenta);
+  background: linear-gradient(
+    to right,
+    rgba(217, 70, 239, 1),
+    rgba(0, 229, 255, 1),
+    rgba(201, 162, 39, 1)
+  );
 }
 
 /* ============================================================

@@ -12,7 +12,9 @@ const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
   { href: "/codex", label: "Codex" },
   { href: "/about", label: "About" },
+  { href: "/oracle", label: "Oracle" },
   { href: "/sanctum", label: "Sanctum" },
+  { href: "/sanctum/member", label: "Member" },
   { href: "/journal", label: "Journal" },
   { href: "/connect", label: "Connect" },
 ];

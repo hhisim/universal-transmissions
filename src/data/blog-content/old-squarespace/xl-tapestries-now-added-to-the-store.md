@@ -13,6 +13,6 @@ We are happy to announce that the XL tapestries 60 X 80” (152 X 203 cm) are no
 
 The Tapestries are also made and shipped from the United States, so shipping prices may vary according to your location, feel free to contact us if you feel there is a problem with the shipping. Meanwhile enjoy browsing these new massive prints!
 
-!EV-01-Tapestry-01.jpg!EV-02-Tapestry-01.jpg!EV-03---Tapestry-01.jpg!EV-04---Tapestry-01.jpg!EV-05---Tapestry-01.jpg!UT-01-Tapestry-01.jpg!UT-02-Tapestry-01.jpg!UT-03-Tapestry-01.jpg!UT-04-Tapestry-01.jpg!UT-05-Tapestry-01.jpg!UT-06-Tapestry-01.jpg!UT-07-Tapestry-08.jpg!UT-08-Tapestry-01.jpg
+![EV-01-Tapestry-01.jpg!EV-02-Tapestry-01.jpg!EV-03---Tapestry-01.jpg!EV-04---Tapestry-01.jpg!EV-05---Tapestry-01.jpg!UT-01-Tapestry-01.jpg!UT-02-Tapestry-01.jpg!UT-03-Tapestry-01.jpg!UT-04-Tapestry-01.jpg!UT-05-Tapestry-01.jpg!UT-06-Tapestry-01.jpg!UT-07-Tapestry-08.jpg!UT-08-Tapestry-01.jpg](/journal/xl-tapestries-now-added-to-the-store-1.jpg)
 
 Discover the Tapestries

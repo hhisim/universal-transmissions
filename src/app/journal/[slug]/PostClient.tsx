@@ -2,12 +2,89 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 import { blogPosts, getPostBySlug, getRelatedPosts, type BlogPost } from "@/data/blog-posts";
+import { extractFirstImage } from "@/data/blog-posts";
+
+// ─── YouTube embed component ───────────────────────────────────────────────────
+
+function YouTubeEmbed({ url }: { url: string }) {
+  // Extract video ID from various YouTube URL formats
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (!match) return null;
+  const videoId = match[1];
+
+  return (
+    <div className="relative w-full overflow-hidden rounded" style={{ aspectRatio: "16/9", maxHeight: "70vh" }}>
+      <iframe
+        src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`}
+        title="Embedded video"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className="absolute inset-0 w-full h-full"
+        style={{ border: 0 }}
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
+// ─── Content with YouTube embeds ───────────────────────────────────────────────
+
+function ProcessedContent({ content }: { content: string }) {
+  // Split content by YouTube URLs and render embeds
+  const YOUTUBE_REGEX = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]+[^\n]*/gi;
+  const YOUTUBE_SHORT = /(?:https?:\/\/)?youtu\.be\/([a-zA-Z0-9_-]{11})[^\n]*/gi;
+
+  const parts: { type: "text" | "youtube"; value: string }[] = [];
+  let lastIndex = 0;
+
+  // Find all YouTube URLs
+  const combinedRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})[^\n]*/gi;
+  let match;
+
+  while ((match = combinedRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: "text", value: content.slice(lastIndex, match.index) });
+    }
+    const urlMatch = content.slice(match.index).match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})[^\n]*/);
+    if (urlMatch) {
+      parts.push({ type: "youtube", value: urlMatch[0] });
+      lastIndex = match.index + urlMatch[0].length;
+    } else {
+      lastIndex = match.index + match[0].length;
+    }
+  }
+
+  if (lastIndex < content.length) {
+    parts.push({ type: "text", value: content.slice(lastIndex) });
+  }
+
+  if (parts.length === 0) {
+    return <MarkdownRenderer content={content} />;
+  }
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.type === "youtube" ? (
+          <div key={i} className="my-10">
+            <YouTubeEmbed url={part.value} />
+          </div>
+        ) : (
+          <MarkdownRenderer key={i} content={part.value} />
+        )
+      )}
+    </>
+  );
+}
+
+// ─── Post Client ─────────────────────────────────────────────────────────────
 
 export default function PostClient({ slug }: { slug: string }) {
   const post = getPostBySlug(slug);
@@ -45,6 +122,7 @@ export default function PostClient({ slug }: { slug: string }) {
 
   const related = getRelatedPosts(post.slug, 3);
   const headings = extractHeadings(post.content);
+  const heroImage = extractFirstImage(post.content);
 
   const idx = blogPosts.findIndex((p) => p.slug === post.slug);
   const prevPost = idx > 0 ? blogPosts[idx - 1] : null;
@@ -82,14 +160,30 @@ export default function PostClient({ slug }: { slug: string }) {
       <main style={{ background: "var(--ut-black)" }}>
         {/* ── Hero ── */}
         <div className="relative overflow-hidden" style={{ minHeight: "65vh" }}>
-          <div className={`absolute inset-0 bg-gradient-to-br ${heroGradient}`} style={{ opacity: 0.9 }} />
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-              backgroundSize: "200px",
-            }}
-          />
+          {/* Background: image + gradient overlay */}
+          {heroImage ? (
+            <div className="absolute inset-0">
+              <Image
+                src={heroImage}
+                alt=""
+                fill
+                className="object-cover object-center"
+                sizes="100vw"
+                priority
+                style={{ opacity: 0.55 }}
+              />
+              <div className={`absolute inset-0 bg-gradient-to-br ${heroGradient}`} style={{ opacity: 0.75 }} />
+              <div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                  backgroundSize: "200px",
+                }}
+              />
+            </div>
+          ) : (
+            <div className={`absolute inset-0 bg-gradient-to-br ${heroGradient}`} style={{ opacity: 0.9 }} />
+          )}
 
           <div className="relative container-ut pt-32 pb-24">
             <SectionReveal>
@@ -189,9 +283,9 @@ export default function PostClient({ slug }: { slug: string }) {
                 </p>
               </SectionReveal>
 
-              {/* Full content */}
+              {/* Full content (with YouTube embeds) */}
               <SectionReveal delay={0.1}>
-                <MarkdownRenderer content={post.content} />
+                <ProcessedContent content={post.content} />
               </SectionReveal>
 
               {/* Share */}

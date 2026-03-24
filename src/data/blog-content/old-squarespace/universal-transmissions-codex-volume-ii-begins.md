@@ -31,17 +31,17 @@ I spent many months also playing around with different color themes until I foun
 
 What followed was the introduction section of the book, mainly about multidimensional travel and navigation modalities
 
-!Page 152 - web.jpg
+![Page 152 - web.jpg](/journal/universal-transmissions-codex-volume-ii-begins-1.jpg)
 
-!page 153 - web.jpg
+![page 153 - web.jpg](/journal/universal-transmissions-codex-volume-ii-begins-2.jpg)
 
-!PAGE 154 - web.jpg
+![PAGE 154 - web.jpg](/journal/universal-transmissions-codex-volume-ii-begins-3.jpg)
 
-!Page 155 - web.jpg
+![Page 155 - web.jpg](/journal/universal-transmissions-codex-volume-ii-begins-4.jpg)
 
-!Page 156 - web.jpg
+![Page 156 - web.jpg](/journal/universal-transmissions-codex-volume-ii-begins-5.jpg)
 
-!Page 157 - small.jpg
+![Page 157 - small.jpg](/journal/universal-transmissions-codex-volume-ii-begins-6.jpg)
 
 > Astral Cartography unfolds as the luminous art of arching through spectrums of consciousness, mapping the ineffable terrains where mind meets infinity. It is the blueprint for those who seek to traverse the unseen, embracing the meta-molecular synthesis of trance states, where the boundaries of self dissolve into cosmic interconnectedness.
 > 

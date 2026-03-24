@@ -2,23 +2,85 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { blogPosts, getAllTags } from "@/data/blog-posts";
 
-const POSTS_PER_PAGE = 10;
+const POSTS_PER_PAGE = 12;
+
+// Map slug -> first image from content (computed offline)
+const HERO_IMAGES: Record<string, string> = {
+  "adding-new-transmissions-soon": "/journal/adding-new-transmissions-soon-1.jpg",
+  "bio-energetic-vortexes-no-7-spirit": "/journal/bio-energetic-vortexes-no-7-spirit-1.jpg",
+  "codex-stream-01-compilation-capture-01": "/journal/codex-stream-01-compilation-capture-01-1.jpeg",
+  "codex-stream-01-compilation-capture-02": "/journal/codex-stream-01-compilation-capture-02-1.jpg",
+  "funded-in-24-hours-codex-vol-1-off-to-the-printers": "/journal/funded-in-24-hours-codex-vol-1-off-to-the-printers-1.jpg",
+  "immaculate-conception-2021": "/journal/immaculate-conception-2021-1.jpg",
+  "incoming-transmission-wip": "/journal/incoming-transmission-wip-1.jpg",
+  "making-of-universal-transmissions-codex-cc03": "/journal/making-of-universal-transmissions-codex-cc03-1.jpg",
+  "new-sub-series-bio-energetic-vortexes": "/journal/new-sub-series-bio-energetic-vortexes-1.jpeg",
+  "new-transmission": "/journal/new-transmission-1.jpg",
+  "new-transmission-linguistic-mystic": "/journal/new-transmission-linguistic-mystic-1.jpeg",
+  "new-transmissions-in-progress-sacral-vortex": "/journal/new-transmissions-in-progress-sacral-vortex-1.jpeg",
+  "receiving-transmissions": "/journal/receiving-transmissions-1.jpeg",
+  "revealing-ethera-24": "/journal/revealing-ethera-24-1.png",
+  "the-ethera-nft-is-now-available": "/journal/the-ethera-nft-is-now-available-1.jpg",
+  "the-making-of-power": "/journal/the-making-of-power-1.jpg",
+  "the-trivium-method-sketch": "/journal/the-trivium-method-sketch-1.jpg",
+  "the-universal-transmissions-codex-s-first-100-page-test-print": "/journal/the-universal-transmissions-codex-s-first-100-page-test-print-1.jpg",
+  "the-universal-transmissions-codex-vol-1-kickstarter-campaign-is-live-within-72-hours": "/journal/the-universal-transmissions-codex-vol-1-kickstarter-campaign-is-live-within-72-hours-1.jpg",
+  "third-vortex-the-power": "/journal/third-vortex-the-power-1.jpg",
+  "toroidal-tantra": "/journal/toroidal-tantra-1.jpg",
+  "transmission-honorarium": "/journal/transmission-honorarium-1.jpg",
+  "transmission-in-progress-vortex-dynamics": "/journal/transmission-in-progress-vortex-dynamics-1.jpg",
+  "transmission-viii": "/journal/transmission-viii-1.jpg",
+  "trivium-method": "/journal/trivium-method-1.jpg",
+  "twilight-transmissions-hyperdimensional-harmonics": "/journal/twilight-transmissions-hyperdimensional-harmonics-1.jpg",
+  "twilight-transmissions-translinguistic-equation-uv-activated": "/journal/twilight-transmissions-translinguistic-equation-uv-activated-1.jpg",
+  "twilight-transmissions-trinary-transcendence": "/journal/twilight-transmissions-trinary-transcendence-1.jpg",
+  "universal-transmissions-alphabet": "/journal/universal-transmissions-alphabet-1.jpg",
+  "universal-transmissions-bio-energetic-vortexes-vortex-no-1-root": "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-1-root-1.jpeg",
+  "universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow": "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-2-flow-1.jpg",
+  "universal-transmissions-bio-energetic-vortexes-vortex-no-3-power": "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-3-power-1.jpg",
+  "universal-transmissions-bio-energetic-vortexes-vortex-no-4-love": "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-4-love-1.jpg",
+  "universal-transmissions-bio-energetic-vortexes-vortex-no-5-speak": "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-5-speak-1.jpg",
+  "universal-transmissions-bio-energetic-vortexes-vortex-no-6-see": "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg",
+  "universal-transmissions-codex-creation-begins": "/journal/universal-transmissions-codex-creation-begins-1.jpg",
+  "universal-transmissions-codex-volume-ii-begins": "/journal/universal-transmissions-codex-volume-ii-begins-1.jpg",
+  "universal-transmissions-in-motion": "/journal/universal-transmissions-in-motion-1.jpg",
+  "universal-transmissions-ix-the-cosmic-egg": "/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg",
+  "universal-transmissions-ix-the-resonator-begins": "/journal/universal-transmissions-ix-the-resonator-begins-1.jpg",
+  "universal-transmissions-polarity-modulation-and-the-essence-of-union": "/journal/universal-transmissions-polarity-modulation-and-the-essence-of-union-1.jpg",
+  "universal-transmissions-translinguistic-equation": "/journal/universal-transmissions-translinguistic-equation-1.jpg",
+  "universal-transmissions-viii-recursive-pantheism": "/journal/universal-transmissions-viii-recursive-pantheism-1.jpg",
+  "universal-transmissions-x-vortex-dynamics": "/journal/universal-transmissions-x-vortex-dynamics-1.jpg",
+  "universal-transmissions-xi-vitruvian-spirit-seeding-the-new-renaissance": "/journal/universal-transmissions-xi-vitruvian-spirit-seeding-the-new-renaissance-1.jpg",
+  "what-is-the-universal-transmissions-codex": "/journal/what-is-the-universal-transmissions-codex-1.jpg",
+  "work-in-progress": "/journal/work-in-progress-1.jpg",
+  "working-on-the-5th-chakra": "/journal/working-on-the-5th-chakra-1.jpg",
+  "xl-tapestries-now-added-to-the-store": "/journal/xl-tapestries-now-added-to-the-store-1.jpg",
+};
+
+const ALL_YEARS = ['2026', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017'];
 
 export default function JournalPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<'all' | 'voa' | 'personal'>('all');
+  const [activeYear, setActiveYear] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const allTags = getAllTags();
 
   const filteredPosts = useMemo(() => {
-    if (!activeTag) return blogPosts;
-    return blogPosts.filter((p) => p.tags.includes(activeTag));
-  }, [activeTag]);
+    let posts = blogPosts;
+    if (activeCategory === 'voa') posts = posts.filter((p) => p.tradition);
+    if (activeCategory === 'personal') posts = posts.filter((p) => !p.tradition);
+    if (activeTag) posts = posts.filter((p) => p.tags.includes(activeTag));
+    if (activeYear) posts = posts.filter((p) => p.publishedAt.startsWith(activeYear));
+    return posts.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  }, [activeTag, activeCategory, activeYear]);
 
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const paginatedPosts = filteredPosts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
@@ -48,9 +110,64 @@ export default function JournalPage() {
             </div>
           </SectionReveal>
 
-          {/* Tag filter */}
+          {/* Category filter */}
           <SectionReveal delay={0.1}>
-            <div className="flex flex-wrap gap-2 justify-center mb-12">
+            <div className="flex gap-3 justify-center mb-6">
+              {[
+                { key: 'all', label: 'All' },
+                { key: 'voa', label: 'Vault of Arcana' },
+                { key: 'personal', label: 'Personal Codex Logs' },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => { setActiveCategory(key as typeof activeCategory); setPage(1) }}
+                  className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-all"
+                  style={{
+                    borderColor: activeCategory === key ? "var(--ut-cyan)" : "rgba(0,229,255,0.2)",
+                    color: activeCategory === key ? "var(--ut-cyan)" : "rgba(0,229,255,0.5)",
+                    background: activeCategory === key ? "rgba(0,229,255,0.08)" : "transparent",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </SectionReveal>
+
+          {/* Year filter */}
+          <SectionReveal delay={0.12}>
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              <button
+                onClick={() => { setActiveYear(null); setPage(1); }}
+                className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-all"
+                style={{
+                  borderColor: !activeYear ? "var(--ut-magenta)" : "rgba(217,70,239,0.15)",
+                  color: !activeYear ? "var(--ut-magenta)" : "var(--ut-white-dim)",
+                  background: !activeYear ? "rgba(217,70,239,0.06)" : "transparent",
+                }}
+              >
+                All Years
+              </button>
+              {ALL_YEARS.map((year) => (
+                <button
+                  key={year}
+                  onClick={() => { setActiveYear(year); setPage(1); }}
+                  className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-all"
+                  style={{
+                    borderColor: activeYear === year ? "var(--ut-magenta)" : "rgba(217,70,239,0.15)",
+                    color: activeYear === year ? "var(--ut-magenta)" : "var(--ut-white-dim)",
+                    background: activeYear === year ? "rgba(217,70,239,0.06)" : "transparent",
+                  }}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          </SectionReveal>
+
+          {/* Tag filter */}
+          <SectionReveal delay={0.15}>
+            <div className="flex flex-wrap gap-2 justify-center mb-10">
               <button
                 onClick={() => handleTagFilter(null)}
                 className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-all"
@@ -58,7 +175,6 @@ export default function JournalPage() {
                   borderColor: !activeTag ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
                   color: !activeTag ? "var(--ut-cyan)" : "var(--ut-white-dim)",
                   background: !activeTag ? "rgba(0,229,255,0.06)" : "transparent",
-                  opacity: !activeTag ? 1 : 0.5,
                 }}
               >
                 All
@@ -69,10 +185,9 @@ export default function JournalPage() {
                   onClick={() => handleTagFilter(tag)}
                   className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-all"
                   style={{
-                    borderColor: activeTag === tag ? "var(--ut-magenta)" : "rgba(217,70,239,0.15)",
-                    color: activeTag === tag ? "var(--ut-magenta)" : "var(--ut-white-dim)",
-                    background: activeTag === tag ? "rgba(217,70,239,0.06)" : "transparent",
-                    opacity: activeTag === tag ? 1 : 0.5,
+                    borderColor: activeTag === tag ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
+                    color: activeTag === tag ? "var(--ut-cyan)" : "var(--ut-white-dim)",
+                    background: activeTag === tag ? "rgba(0,229,255,0.06)" : "transparent",
                   }}
                 >
                   {tag}
@@ -85,6 +200,8 @@ export default function JournalPage() {
           <SectionReveal delay={0.15}>
             <p className="font-mono text-[9px] tracking-widest uppercase mb-8 text-center" style={{ color: "var(--ut-white-faint)" }}>
               {filteredPosts.length} {filteredPosts.length === 1 ? "transmission" : "transmissions"}
+              {activeYear ? ` · ${activeYear}` : ''}
+              {activeTag ? ` · #${activeTag}` : ''}
             </p>
           </SectionReveal>
 
@@ -92,7 +209,7 @@ export default function JournalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {paginatedPosts.map((post, i) => (
               <SectionReveal key={post.slug} delay={i * 0.04}>
-                <PostCard post={post} />
+                <PostCard post={post} heroImage={HERO_IMAGES[post.slug]} />
               </SectionReveal>
             ))}
           </div>
@@ -105,10 +222,7 @@ export default function JournalPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-all disabled:opacity-30"
-                  style={{
-                    borderColor: "rgba(0,229,255,0.15)",
-                    color: "var(--ut-cyan)",
-                  }}
+                  style={{ borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-cyan)" }}
                 >
                   ← Prev
                 </button>
@@ -132,10 +246,7 @@ export default function JournalPage() {
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-all disabled:opacity-30"
-                  style={{
-                    borderColor: "rgba(0,229,255,0.15)",
-                    color: "var(--ut-cyan)",
-                  }}
+                  style={{ borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-cyan)" }}
                 >
                   Next →
                 </button>
@@ -151,7 +262,7 @@ export default function JournalPage() {
 
 // ─── Post Card ─────────────────────────────────────────────────────────────────
 
-function PostCard({ post }: { post: (typeof blogPosts)[0] }) {
+function PostCard({ post, heroImage }: { post: (typeof blogPosts)[0]; heroImage?: string }) {
   const gradientMap: Record<string, string> = {
     "from-fuchsia-900 via-violet-900 to-black": "from-fuchsia-900/60 via-violet-900/40 to-transparent",
     "from-cyan-950 via-blue-950 to-black": "from-cyan-950/60 via-blue-950/40 to-transparent",
@@ -181,14 +292,27 @@ function PostCard({ post }: { post: (typeof blogPosts)[0] }) {
 
   return (
     <Link href={`/journal/${post.slug}`} className="ut-card block overflow-hidden group" style={{ padding: 0 }}>
-      {/* Hero gradient band */}
-      <div className={`h-24 bg-gradient-to-br ${cardGradient} relative flex items-end p-4`}>
-        <div className="absolute inset-0 opacity-20" style={{
-          background: `linear-gradient(to bottom, transparent 60%, var(--ut-black))`,
-        }} />
-        <span className="font-mono text-[8px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
-          {post.readTime}
-        </span>
+      {/* Hero image or gradient band */}
+      <div className="h-40 relative overflow-hidden">
+        {heroImage ? (
+          <Image
+            src={heroImage}
+            alt={post.title}
+            fill
+            className="object-cover object-center"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        ) : (
+          <div className={`absolute inset-0 bg-gradient-to-br ${cardGradient}`} />
+        )}
+        {/* Gradient overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        {/* Read time badge */}
+        <div className="absolute top-3 right-3">
+          <span className="font-mono text-[8px] tracking-[0.15em] uppercase px-2 py-1 bg-black/40 backdrop-blur-sm" style={{ color: "var(--ut-white-faint)" }}>
+            {post.readTime}
+          </span>
+        </div>
       </div>
 
       {/* Content */}

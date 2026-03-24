@@ -13,56 +13,56 @@ My first artwork completed in 2020, very fitting and auspicious timing for the t
 
 ![](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-01.jpg
+![Bio-Energetic-Vortexes---See---Detail-01.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-02.jpg
+![Bio-Energetic-Vortexes---See---Detail-02.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-03.jpg
+![Bio-Energetic-Vortexes---See---Detail-03.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-04.jpg
+![Bio-Energetic-Vortexes---See---Detail-04.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-05.jpg
+![Bio-Energetic-Vortexes---See---Detail-05.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-06.jpg
+![Bio-Energetic-Vortexes---See---Detail-06.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-07.jpg
+![Bio-Energetic-Vortexes---See---Detail-07.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-08.jpg
+![Bio-Energetic-Vortexes---See---Detail-08.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-09.jpg
+![Bio-Energetic-Vortexes---See---Detail-09.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-10.jpg
+![Bio-Energetic-Vortexes---See---Detail-10.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-11.jpg
+![Bio-Energetic-Vortexes---See---Detail-11.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-12.jpg
+![Bio-Energetic-Vortexes---See---Detail-12.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-13.jpg
+![Bio-Energetic-Vortexes---See---Detail-13.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-14.jpg
+![Bio-Energetic-Vortexes---See---Detail-14.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-15.jpg
+![Bio-Energetic-Vortexes---See---Detail-15.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-16.jpg
+![Bio-Energetic-Vortexes---See---Detail-16.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-17.jpg
+![Bio-Energetic-Vortexes---See---Detail-17.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-18.jpg
+![Bio-Energetic-Vortexes---See---Detail-18.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-19.jpg
+![Bio-Energetic-Vortexes---See---Detail-19.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-20.jpg
+![Bio-Energetic-Vortexes---See---Detail-20.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-21.jpg
+![Bio-Energetic-Vortexes---See---Detail-21.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-22.jpg
+![Bio-Energetic-Vortexes---See---Detail-22.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-23.jpg
+![Bio-Energetic-Vortexes---See---Detail-23.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-24.jpg
+![Bio-Energetic-Vortexes---See---Detail-24.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-25.jpg
+![Bio-Energetic-Vortexes---See---Detail-25.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-26.jpg
+![Bio-Energetic-Vortexes---See---Detail-26.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)
 
-!Bio-Energetic-Vortexes---See---Detail-27.jpg
+![Bio-Energetic-Vortexes---See---Detail-27.jpg](/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-6-see-1.jpg)

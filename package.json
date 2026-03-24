@@ -12,6 +12,7 @@
     "@paypal/react-paypal-js": "^9.0.2",
     "@react-three/drei": "^9.0.0",
     "@react-three/fiber": "^8.0.0",
+    "@supabase/supabase-js": "^2.100.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "gray-matter": "^4.0.3",
@@ -24,6 +25,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-html": "^16.0.1",
+    "resend": "^6.9.4",
     "sharp": "^0.34.5",
     "stripe": "^20.4.1",
     "three": "^0.183.2"

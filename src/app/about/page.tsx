@@ -10,6 +10,18 @@ export const metadata: Metadata = {
     "About the Universal Transmissions project, the Apex Being / Adam Kadmon artwork series, and frequently asked questions about the languages, symbols, and Codex.",
 };
 
+// Apex Being image grid — from actual artwork slugs
+const APEX_BEING_IMAGES = [
+  { slug: "vitruvian-spirit", label: "Vitruvian Spirit" },
+  { slug: "vehicular-dynamics", label: "Vehicular Dynamics" },
+  { slug: "indras-net", label: "Indra's Net" },
+  { slug: "tetra", label: "Tetra" },
+  { slug: "merkaba", label: "Merkaba" },
+  { slug: "higher-access", label: "Higher Access" },
+  { slug: "tesseract", label: "Tesseract" },
+  { slug: "recursive-pantheism", label: "Recursive Pantheism" },
+];
+
 export default function AboutPage() {
   return (
     <>
@@ -42,77 +54,10 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* ── APEX BEING / ADAM KADMON ──────────────── */}
+        {/* ── THE PROJECT ────────────────────────────── */}
         <section className="py-20">
           <div className="container-ut">
             <div className="max-w-4xl mx-auto">
-
-              <SectionReveal>
-                <div
-                  className="ut-card p-10 mb-12"
-                  style={{ background: "rgba(0,229,255,0.02)", border: "1px solid rgba(0,229,255,0.06)" }}
-                >
-                  <p
-                    className="font-mono text-[9px] tracking-widest uppercase mb-4"
-                    style={{ color: "var(--ut-gold)", opacity: 0.6 }}
-                  >
-                    Studies and Research Regarding the Artwork — Vehicular Dynamics
-                  </p>
-                  <h2
-                    className="font-display text-2xl mb-6"
-                    style={{ color: "var(--ut-white)" }}
-                  >
-                    <ZalgoText text="The Ăpëx Being" intensity="subtle" />
-                  </h2>
-                  <div className="space-y-6 font-body text-base leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
-                    <p>
-                      <strong style={{ color: "var(--ut-cyan)" }}>Kadmon</strong> comes from
-                      &apos;Azoth&apos; — the primordial substance from which Prima Materia or First Matter was formed.
-                      The Adam Kadmon was described as having a two-fold manifestation:
-                    </p>
-                    <ol className="space-y-3 ml-4" style={{ listStyleType: "decimal" }}>
-                      <li>
-                        A divine pattern or schematic — a &apos;Light Body&apos; of macrocosmic proportions
-                      </li>
-                      <li>
-                        A formulation of that sacred patterning into a being that was supra-physical, and from
-                        which the &apos;Adamic Race was spawned.&apos;
-                      </li>
-                    </ol>
-                    <p>
-                      From the Azoth or primitive air in which the supernal world was created, the Adam Kadmon
-                      took substance as the &apos;Kosmic Man.&apos; The Universal Transmissions project explores
-                      this divine blueprint through the lens of xenolinguistics, cymatics, and sacred geometry.
-                    </p>
-                  </div>
-                </div>
-              </SectionReveal>
-
-              {/* Visual reference images */}
-              <SectionReveal>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                  {[
-                    "/artworks/vitruvian-spirit/main.jpg",
-                    "/artworks/merkaba/main.jpg",
-                    "/artworks/indras-net/main.jpg",
-                    "/artworks/tetra/main.jpg",
-                  ].map((src, i) => (
-                    <div
-                      key={i}
-                      className="aspect-square overflow-hidden"
-                      style={{ background: "rgba(0,0,0,0.3)" }}
-                    >
-                      <img
-                        src={src}
-                        alt="Apex Being research imagery"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </SectionReveal>
-
-              {/* Mission statement */}
               <SectionReveal>
                 <div className="ut-card p-10">
                   <h3
@@ -134,7 +79,7 @@ export default function AboutPage() {
                     style={{ color: "var(--ut-white-dim)" }}
                   >
                     As he grew and disconnected from inner self, those journals were forgotten. Until he
-                    re-discovered and re-remembered them in deep ecstatic states of trance. The
+                    re-discovered and re-membered them in deep ecstatic states of trance. The
                     Xenolinguistics became a bridge to connect childhood and present experience.
                   </p>
                   <p
@@ -150,7 +95,6 @@ export default function AboutPage() {
                   </p>
                 </div>
               </SectionReveal>
-
             </div>
           </div>
         </section>
@@ -199,7 +143,7 @@ export default function AboutPage() {
                   },
                   {
                     q: "What software is used to create the artworks?",
-                    a: "Each transmission is a composite of digital painting, 3D rendering, and fractal composition — primarily using Adobe Photoshop, Cinema 4D, Zbrush, Adobe Illustrator, Ultra Fractal, and Mandelbulb 3D. The cymatic imagery is created using a Tonoscope frequency generator.",
+                    a: "Each transmission is a composite of digital painting, 3D rendering, and fractal composition — primarily using Adobe Photoshop, Cinema 4D, Zbrush, Adobe Illustrator, Ultra Fractal, and Mandelbulb 3D. The cymatic imagery is created using a Tonoscope Cymatic Generator to capture and portray the range of frequencies needed within each artwork.",
                   },
                   {
                     q: "How can I purchase prints or the Codex?",
@@ -243,6 +187,110 @@ export default function AboutPage() {
                   </p>
                 </div>
               </SectionReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ── APEX BEING / ADAM KADMON ──────────────── AFTER FAQ */}
+        <section
+          className="py-20"
+          style={{ borderTop: "1px solid rgba(0,229,255,0.06)" }}
+        >
+          <div className="container-ut">
+            <div className="max-w-5xl mx-auto">
+
+              <SectionReveal>
+                <div className="text-center mb-16">
+                  <p
+                    className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
+                    style={{ color: "var(--ut-gold)", opacity: 0.6 }}
+                  >
+                    [ Research ]
+                  </p>
+                  <h2
+                    className="font-display text-3xl md:text-4xl"
+                    style={{ color: "var(--ut-white)" }}
+                  >
+                    <ZalgoText text="The Āpex Being — Adam Kadmon" intensity="moderate" />
+                  </h2>
+                </div>
+              </SectionReveal>
+
+              {/* Research text */}
+              <SectionReveal>
+                <div
+                  className="ut-card p-10 mb-12"
+                  style={{ background: "rgba(0,229,255,0.02)", border: "1px solid rgba(0,229,255,0.06)" }}
+                >
+                  <p
+                    className="font-mono text-[9px] tracking-widest uppercase mb-4"
+                    style={{ color: "var(--ut-gold)", opacity: 0.6 }}
+                  >
+                    Studies and Research Regarding the Artwork — Vehicular Dynamics
+                  </p>
+                  <h3
+                    className="font-display text-2xl mb-6"
+                    style={{ color: "var(--ut-white)" }}
+                  >
+                    <ZalgoText text="Adam Kadmon" intensity="subtle" />
+                  </h3>
+                  <div className="space-y-6 font-body text-base leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
+                    <p>
+                      <strong style={{ color: "var(--ut-cyan)" }}>Kadmon</strong> comes from
+                      &apos;Azoth&apos; — the primordial substance from which Prima Materia or First Matter was formed.
+                      The Adam Kadmon was described as having a two-fold manifestation:
+                    </p>
+                    <ol className="space-y-3 ml-4" style={{ listStyleType: "decimal" }}>
+                      <li>
+                        A divine pattern or schematic — a &apos;Light Body&apos; of macrocosmic proportions
+                      </li>
+                      <li>
+                        A formulation of that sacred patterning into a being that was supra-physical, and from
+                        which the &apos;Adamic Race was spawned.&apos;
+                      </li>
+                    </ol>
+                    <p>
+                      From the Azoth or primitive air in which the supernal world was created, the Adam Kadmon
+                      took substance as the &apos;Kosmic Man.&apos; The Universal Transmissions project explores
+                      this divine blueprint through the lens of xenolinguistics, cymatics, and sacred geometry.
+                    </p>
+                  </div>
+                </div>
+              </SectionReveal>
+
+              {/* Visual reference images — 4 per row */}
+              <SectionReveal>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {APEX_BEING_IMAGES.map(({ slug, label }) => (
+                    <a
+                      key={slug}
+                      href={`/gallery/${slug}`}
+                      className="group block"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <div
+                        className="aspect-square overflow-hidden ut-card relative"
+                        style={{ background: "rgba(0,0,0,0.4)" }}
+                      >
+                        <img
+                          src={`/artworks/${slug}/main.jpg`}
+                          alt={label}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 flex items-end p-2">
+                          <span
+                            className="font-mono text-[8px] tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ color: "var(--ut-cyan)" }}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </SectionReveal>
+
             </div>
           </div>
         </section>

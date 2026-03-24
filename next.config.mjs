@@ -4,7 +4,10 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "images.squarespace-cdn.com" },
       { protocol: "https", hostname: "www.universal-transmissions.net" },
+      { protocol: "https", hostname: "www.universal-transmissions.com" },
+      { protocol: "https", hostname: "universal-transmissions.com" },
       { protocol: "https", hostname: "vaultofarcana.com" },
     ],
   },

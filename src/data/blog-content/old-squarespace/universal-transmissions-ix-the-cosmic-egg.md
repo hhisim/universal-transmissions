@@ -13,74 +13,74 @@ The Cosmic Egg is complete, it is the ninth installment of the Universal Transmi
 
 I have also recorded the creation process, and will also share it when I have finished compiling the video logs.
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-01.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-01.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Cosmic Egg Final - web.jpg
+![Cosmic Egg Final - web.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-02.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-02.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-03.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-03.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-04.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-04.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-31.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-31.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-05.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-05.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-20.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-20.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-35.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-35.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-28.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-28.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-06.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-06.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-07.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-07.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-08.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-08.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-09.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-09.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-10.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-10.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-11.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-11.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-12.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-12.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-13.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-13.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-14.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-14.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-15.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-15.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-16.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-16.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-17.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-17.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-18.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-18.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-19.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-19.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-21.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-21.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-22.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-22.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-23.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-23.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-24.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-24.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-25.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-25.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-26.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-26.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-27.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-27.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-29.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-29.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-30.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-30.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-32.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-32.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-33.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-33.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)
 
-!Universal-Transmissions-IX---The-Cosmic-Egg---Detail-34.jpg
+![Universal-Transmissions-IX---The-Cosmic-Egg---Detail-34.jpg](/journal/universal-transmissions-ix-the-cosmic-egg-1.jpg)

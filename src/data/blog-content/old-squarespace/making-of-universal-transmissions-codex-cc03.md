@@ -11,10 +11,10 @@ tags: ['art', 'journal', 'process']
 
 Pages 17-20 Workflow
 
-!Page 17.jpg
+![Page 17.jpg](/journal/making-of-universal-transmissions-codex-cc03-1.jpg)
 
-!Page 18.jpg
+![Page 18.jpg](/journal/making-of-universal-transmissions-codex-cc03-2.jpg)
 
-!Page 19.jpg
+![Page 19.jpg](/journal/making-of-universal-transmissions-codex-cc03-3.jpg)
 
-!Page 20.jpg
+![Page 20.jpg](/journal/making-of-universal-transmissions-codex-cc03-4.jpg)
