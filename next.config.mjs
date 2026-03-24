@@ -12,8 +12,6 @@ const nextConfig = {
     serverActions: { allowedOrigins: ["localhost:3000", "www.vaultofarcana.com"] },
   },
   webpack(config) {
-    // Treat .md files as raw text — prevents webpack from trying to parse them as JS.
-    // This is needed because blog-posts.ts imports .md files as strings.
     config.module.rules.push({
       test: /\.md$/,
       type: "asset/source",

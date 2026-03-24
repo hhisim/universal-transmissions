@@ -8,65 +8,96 @@ import * as THREE from "three";
 /* ─────────────────────────────────────────────────────────────
    True Merkaba — Star Tetrahedron
    Two interpenetrating tetrahedra sharing a center:
-     • Upper (ascending): points UP, gold wireframe
-     • Lower (descending): points DOWN, cyan wireframe
-   Surrounded by counter-rotating sacred geometry rings
-   and a central violet/plasma glow sphere.
+     • Upper (ascending): points UP, gold wireframe  — CW rotation
+     • Lower (descending): points DOWN, cyan wireframe — CCW rotation
+   Scroll accelerates the rotation speed.
+   Two counter-rotating orbiting torus rings (gold + cyan).
    ───────────────────────────────────────────────────────────── */
 
 function StarTetrahedron() {
-  const upperRef = useRef<THREE.Mesh>(null);
-  const lowerRef = useRef<THREE.Mesh>(null);
+  // Upper tetra refs — wireframe + inner glow (separate so both animate)
+  const upperWireRef = useRef<THREE.Mesh>(null);
+  const upperGlowRef = useRef<THREE.Mesh>(null);
+  // Lower tetra refs — wireframe + inner glow
+  const lowerWireRef = useRef<THREE.Mesh>(null);
+  const lowerGlowRef = useRef<THREE.Mesh>(null);
+
   const parentRef = useRef<THREE.Group>(null);
   const outerRingRef = useRef<THREE.Group>(null);
-  const innerRingRef = useRef<THREE.Mesh>(null);
   const coreRef = useRef<THREE.Mesh>(null);
-  const midRing1Ref = useRef<THREE.Mesh>(null);
-  const midRing2Ref = useRef<THREE.Mesh>(null);
+
+  // Torus ring refs — gold (outer) + cyan (inner)
+  const ring1Ref = useRef<THREE.Mesh>(null);
+  const ring2Ref = useRef<THREE.Mesh>(null);
+
+  // Torus ring orbit refs — rings orbit the center
+  const ringOrbit1Ref = useRef<THREE.Group>(null);
+  const ringOrbit2Ref = useRef<THREE.Group>(null);
+
+  // Scroll speed tracking — use a ref so we don't trigger re-renders
+  const scrollSpeedRef = useRef(1);
+
+  // Attach scroll listener on mount
+  if (typeof window !== "undefined") {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      // Base speed 1, increases up to 5x at 2000px scroll
+      scrollSpeedRef.current = 1 + Math.min(scrollY / 400, 4);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+  }
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
+    const speed = scrollSpeedRef.current;
 
-    // Parent group: slow, hypnotic full rotation with gentle tilt
+    // Parent group: slow hypnotic full rotation with gentle tilt
     if (parentRef.current) {
       parentRef.current.rotation.y = t * 0.18;
       parentRef.current.rotation.x = Math.sin(t * 0.09) * 0.22;
     }
 
-    // Upper tetra: rotates clockwise when viewed from above
-    if (upperRef.current) {
-      upperRef.current.rotation.y = t * 0.4;
-    }
+    // Upper tetra — GOLD — rotates CLOCKWISE when viewed from above
+    // (negative Y because Three.js default camera looks down -Z)
+    const cwSpeed = 0.4 * speed;
+    if (upperWireRef.current) upperWireRef.current.rotation.y = -t * cwSpeed;
+    if (upperGlowRef.current) upperGlowRef.current.rotation.y = -t * cwSpeed;
 
-    // Lower tetra: rotates counter-clockwise when viewed from above
-    if (lowerRef.current) {
-      lowerRef.current.rotation.y = -t * 0.4;
-    }
+    // Lower tetra — CYAN — rotates COUNTER-CLOCKWISE when viewed from above
+    // (positive Y = CCW from above, opposite to upper)
+    const ccwSpeed = 0.4 * speed;
+    if (lowerWireRef.current) lowerWireRef.current.rotation.y = t * ccwSpeed;
+    if (lowerGlowRef.current) lowerGlowRef.current.rotation.y = t * ccwSpeed;
 
-    // Outer star hexagram: slow counter-rotation
+    // Outer hexagram ring: slow counter-rotation
     if (outerRingRef.current) {
       outerRingRef.current.rotation.z = -t * 0.12;
-    }
-
-    // Inner torus ring: faster counter-rotation
-    if (innerRingRef.current) {
-      innerRingRef.current.rotation.z = t * 0.25;
-    }
-
-    // Mid counter-rotating rings
-    if (midRing1Ref.current) {
-      midRing1Ref.current.rotation.x = t * 0.15;
-      midRing1Ref.current.rotation.z = -t * 0.1;
-    }
-    if (midRing2Ref.current) {
-      midRing2Ref.current.rotation.x = -t * 0.12;
-      midRing2Ref.current.rotation.y = t * 0.18;
     }
 
     // Core sphere: pulsing scale for "breathing" glow effect
     if (coreRef.current) {
       const pulse = 1 + 0.18 * Math.sin(t * 2.4);
       coreRef.current.scale.setScalar(pulse);
+    }
+
+    // Gold torus ring orbits CW around center
+    if (ringOrbit1Ref.current) {
+      ringOrbit1Ref.current.rotation.y = t * 0.3 * speed;
+      ringOrbit1Ref.current.rotation.x = Math.sin(t * 0.15) * 0.3;
+    }
+
+    // Cyan torus ring orbits CCW (opposite direction)
+    if (ringOrbit2Ref.current) {
+      ringOrbit2Ref.current.rotation.y = -t * 0.25 * speed;
+      ringOrbit2Ref.current.rotation.z = Math.cos(t * 0.18) * 0.25;
+    }
+
+    // Individual torus ring spin (counter-rotate inside orbit)
+    if (ring1Ref.current) {
+      ring1Ref.current.rotation.z = t * 0.35 * speed;
+    }
+    if (ring2Ref.current) {
+      ring2Ref.current.rotation.z = -t * 0.28 * speed;
     }
   });
 
@@ -75,8 +106,8 @@ function StarTetrahedron() {
   return (
     <group ref={parentRef}>
 
-      {/* ── Upper (Ascending) Tetrahedron — GOLD ─────────── */}
-      <mesh ref={upperRef} geometry={tetraGeo}>
+      {/* ── Upper (Ascending) Tetrahedron — GOLD wireframe ─── */}
+      <mesh ref={upperWireRef} geometry={tetraGeo}>
         <meshBasicMaterial
           color="#d4a847"
           wireframe
@@ -86,8 +117,8 @@ function StarTetrahedron() {
         />
       </mesh>
 
-      {/* Solid translucent inner glow layer — upper */}
-      <mesh ref={upperRef} geometry={tetraGeo} scale={0.97}>
+      {/* Solid translucent inner glow layer — upper (same ref, same rotation) */}
+      <mesh ref={upperGlowRef} geometry={tetraGeo} scale={0.97}>
         <meshBasicMaterial
           color="#f59e0b"
           transparent
@@ -97,8 +128,8 @@ function StarTetrahedron() {
         />
       </mesh>
 
-      {/* ── Lower (Descending) Tetrahedron — CYAN ──────────── */}
-      <mesh ref={lowerRef} geometry={tetraGeo} rotation={[Math.PI, 0, 0]}>
+      {/* ── Lower (Descending) Tetrahedron — CYAN wireframe ─── */}
+      <mesh ref={lowerWireRef} geometry={tetraGeo} rotation={[Math.PI, 0, 0]}>
         <meshBasicMaterial
           color="#00e5ff"
           wireframe
@@ -109,7 +140,7 @@ function StarTetrahedron() {
       </mesh>
 
       {/* Solid translucent inner glow layer — lower */}
-      <mesh ref={lowerRef} geometry={tetraGeo} rotation={[Math.PI, 0, 0]} scale={0.97}>
+      <mesh ref={lowerGlowRef} geometry={tetraGeo} rotation={[Math.PI, 0, 0]} scale={0.97}>
         <meshBasicMaterial
           color="#06b6d4"
           transparent
@@ -181,23 +212,24 @@ function StarTetrahedron() {
         </lineSegments>
       </group>
 
-      {/* ── Inner Counter-Rotating Torus (cyan) ────────────── */}
-      <mesh ref={innerRingRef} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.25, 0.006, 8, 64]} />
-        <meshBasicMaterial color="#00e5ff" transparent opacity={0.18} />
-      </mesh>
+      {/* ── Gold Torus Ring — outer orbit group (CW) ─────── */}
+      <group ref={ringOrbit1Ref}>
+        <mesh ref={ring1Ref} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.9, 0.012, 12, 80]} />
+          <meshBasicMaterial color="#d4a847" transparent opacity={0.35} />
+        </mesh>
+      </group>
 
-      {/* ── Mid Counter-Rotating Octagon Ring (magenta) ─────── */}
-      <mesh ref={midRing1Ref} rotation={[Math.PI / 2, 0, Math.PI / 8]}>
-        <torusGeometry args={[1.5, 0.004, 8, 8]} />
-        <meshBasicMaterial color="#d946ef" transparent opacity={0.12} />
-      </mesh>
-
-      {/* ── Second Mid Ring (gold, tilted) ───────────────────── */}
-      <mesh ref={midRing2Ref} rotation={[Math.PI / 3, Math.PI / 4, 0]}>
-        <torusGeometry args={[1.35, 0.004, 8, 8]} />
-        <meshBasicMaterial color="#d4a847" transparent opacity={0.12} />
-      </mesh>
+      {/* ── Cyan Torus Ring — inner orbit group (CCW, opposite) */}
+      <group ref={ringOrbit2Ref}>
+        <mesh
+          ref={ring2Ref}
+          rotation={[Math.PI / 3, Math.PI / 5, 0]}
+        >
+          <torusGeometry args={[1.5, 0.012, 12, 80]} />
+          <meshBasicMaterial color="#00e5ff" transparent opacity={0.35} />
+        </mesh>
+      </group>
 
       {/* ── Vertical Axis Line (violet) ─────────────────────── */}
       <line>

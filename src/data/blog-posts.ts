@@ -10,7 +10,8 @@ export interface BlogPost {
   hero_gradient: string;
   tags: string[];
   tradition?: string;
-  content: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content: any;
 }
 
 // ─── Static content imports ───────────────────────────────────────────────────────────────
@@ -33,12 +34,11 @@ import taoQuantum_raw from "./blog-content/Tao/taoism-quantum-physics-controvers
 
 // ─── Strip YAML frontmatter from raw markdown ─────────────────────────────────────────────
 
-function stripFrontmatter(raw: string | { default: string }): string {
-  const str = typeof raw === "string" ? raw : (raw as unknown as { default: string }).default;
-  return str.replace(/^---\n[\s\S]*?^---\n?/m, "");
+function stripFrontmatter(raw: string): string {
+  return raw.replace(/^---[\s\S]*?---\n?/, "");
 }
 
-// ─── Registry + assembled posts ───────────────────────────────────────────────────────────
+// ─── Registry ───────────────────────────────────────────────────────────────
 
 export const blogPosts: BlogPost[] = [
   {
@@ -118,7 +118,7 @@ export const blogPosts: BlogPost[] = [
     title: "The I Ching: Ancient Oracle of Change Through 8 Trigrams and 64 Hexagrams",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "3000 years of oracular wisdom from the Yijing — 8 trigrams, 64 hexagrams, the oldest systematic divination system on Earth.",
+    excerpt: "3000 years of oracular wisdom from the Yijing — 8 trigrams, 64 hexagrams, the oldest systematic divination system on Earth, rooted in Taoist cosmology.",
     readTime: "12 min",
     hero_gradient: "from-emerald-950 via-teal-900 to-black",
     tags: ["i-ching", "yijing", "tao", "divination", "hexagrams", "bagua", "trigrams"],
@@ -130,7 +130,7 @@ export const blogPosts: BlogPost[] = [
     title: "Sufism: The Path of Divine Love — From Rumi to the Whirling Dervishes",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "Ishq — passionate, consuming love — is the engine of Sufi transformation.",
+    excerpt: "Ishq — passionate, consuming love — is the engine of Sufi transformation. From Rumi's sama to Ibn Arabi's ontology of divine presence.",
     readTime: "12 min",
     hero_gradient: "from-sky-950 via-indigo-950 to-black",
     tags: ["sufism", "rumi", "islam", "mysticism", "love", "whirling-dervishes"],
@@ -142,7 +142,7 @@ export const blogPosts: BlogPost[] = [
     title: "The Kybalion: The Seven Principles of Hermetic Philosophy Decoded",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "The Emerald Tablet's wisdom systematized into seven laws: Mentalism, Correspondence, Vibration, Polarity, Rhythm, Cause and Effect, Gender.",
+    excerpt: "The Emerald Tablet's wisdom systematized into seven laws: Mentalism, Correspondence, Vibration, Polarity, Rhythm, Cause and Effect, Gender. As above, so below.",
     readTime: "11 min",
     hero_gradient: "from-yellow-900 via-amber-900 to-black",
     tags: ["kybalion", "hermeticism", "philosophy", "emerald-tablet", "alchemy", "golden-dawn"],
@@ -154,7 +154,7 @@ export const blogPosts: BlogPost[] = [
     title: "Tarot: The Symbolic Machine for Fate and Self-Discovery",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "78 archetypes, two arcana, one symbolic machine. From the Fool's Journey to the Golden Dawn's reconstruction.",
+    excerpt: "78 archetypes, two arcana, one symbolic machine. From the Fool's Journey to the Golden Dawn's reconstruction — the Tarot as semantic navigation.",
     readTime: "12 min",
     hero_gradient: "from-violet-950 via-purple-950 to-black",
     tags: ["tarot", "magician", "archetypes", "golden-dawn", "crowley", "thoth", "cartomancy"],
@@ -166,7 +166,7 @@ export const blogPosts: BlogPost[] = [
     title: "Alchemy of the Soul: The Magnum Opus from Nigredo to Rubedo",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "Solve et Coagula — dissolve and recombine. The twelve stages of alchemical transformation.",
+    excerpt: "Solve et Coagula — dissolve and recombine. The twelve stages of alchemical transformation from calcination to projection. The Nigredo, Albedo, and Rubedo.",
     readTime: "13 min",
     hero_gradient: "from-red-950 via-rose-950 to-black",
     tags: ["alchemy", "magnum-opus", "nigredo", "rubedo", "solve-et-coagula", "hermeticism", "jung"],
@@ -178,7 +178,7 @@ export const blogPosts: BlogPost[] = [
     title: "The Five Tibetans: Ancient Rites of Rejuvenation or Modern Myth?",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "Five movements claimed to reverse aging. Peter C. Bradford's 1939 account of Tibetan lamas.",
+    excerpt: "Five movements claimed to reverse aging. Peter C. Bradford's 1939 account of Tibetan lamas — genuine antiquity or Western invention? A critical analysis.",
     readTime: "10 min",
     hero_gradient: "from-teal-950 via-cyan-950 to-black",
     tags: ["five-tibetans", "yoga", "rejuvenation", "longevity", "tibet", "rites"],
@@ -190,7 +190,7 @@ export const blogPosts: BlogPost[] = [
     title: "Enochian: Angelic Language and the Modern Occult Revival",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "John Dee and Edward Kelley, 1582–1587: 48 Calls, a 49-letter alphabet, and seven kingdoms of spirit.",
+    excerpt: "John Dee and Edward Kelley, 1582–1587: 48 Calls, a 49-letter alphabet, and seven kingdoms of spirit. The system that fueled the Golden Dawn and Crowley.",
     readTime: "12 min",
     hero_gradient: "from-zinc-800 via-neutral-900 to-black",
     tags: ["enochian", "john-dee", "kelley", "golden-dawn", "crowley", "angelic", "scrying"],
@@ -202,7 +202,7 @@ export const blogPosts: BlogPost[] = [
     title: "Sexual Alchemy in Taoist Tradition: A Comprehensive Guide to Nei Dan",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "Nei Dan — the internal elixir. The Three Treasures (Jing, Qi, Shen), the Microcosmic Orbit, and the Dragon-Tiger Copulation.",
+    excerpt: "Nei Dan — the internal elixir. The Three Treasures (Jing, Qi, Shen), the Microcosmic Orbit, and the Dragon-Tiger Copulation. Forbidden knowledge of the Orient.",
     readTime: "12 min",
     hero_gradient: "from-red-950 via-orange-900 to-black",
     tags: ["taoism", "nei-dan", "jing", "qi", "shen", "sexual-alchemy", "microcosmic-orbit"],
@@ -214,7 +214,7 @@ export const blogPosts: BlogPost[] = [
     title: "Taoism and Quantum Physics: The Real Parallels and Where Pop-Spirituality Gets It Wrong",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
-    excerpt: "Fritjof Capra's 'Tao of Physics' — where the genuine parallels between Wu and quantum vacuum truly lie.",
+    excerpt: "Fritjof Capra's 'Tao of Physics' — where the genuine parallels between Wu and quantum vacuum truly lie, and why 'Capraism' is intellectually reckless.",
     readTime: "12 min",
     hero_gradient: "from-emerald-950 via-green-900 to-black",
     tags: ["taoism", "quantum-physics", "capra", "wu", "emptiness", "measurement-problem"],
