@@ -6,6 +6,7 @@ import Image from "next/image";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import TransmissionStream from "@/components/gallery/TransmissionStream";
+import DriveGrid from "@/components/gallery/DriveGrid";
 import { artworks } from "@/data/artworks";
 
 const FILTERS = [
@@ -13,7 +14,8 @@ const FILTERS = [
   { id: "universal-transmissions", label: "UNIVERSAL TRANSMISSIONS" },
   { id: "bio-energetic-vortexes", label: "BIO-ENERGETIC VORTEXES (CHAKRAS)" },
   { id: "prismatic", label: "PRISMATIC TRANSMISSIONS" },
-  { id: "transmission-stream", label: "TRANSMISSION STREAM" },
+  { id: "grid", label: "GRID" },
+  { id: "stream", label: "STREAM" },
 ];
 
 export default function GalleryClient() {
@@ -86,15 +88,22 @@ export default function GalleryClient() {
         ))}
       </div>
 
-      {/* Transmission Stream — native UT visual language */}
-      {activeFilter === "transmission-stream" && (
+      {/* Transmission Stream — YouTube playlist */}
+      {activeFilter === "stream" && (
         <div className="mb-12 px-4 md:px-8">
           <TransmissionStream />
         </div>
       )}
 
-      {/* Grid */}
-      {activeFilter !== "transmission-stream" && (
+      {/* Grid — Google Drive images */}
+      {activeFilter === "grid" && (
+        <div className="mb-12 px-4 md:px-8">
+          <DriveGrid hideToggle />
+        </div>
+      )}
+
+      {/* Artwork grid */}
+      {activeFilter !== "stream" && activeFilter !== "grid" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredArtworks.map((artwork, i) => (
             <SectionReveal key={artwork.id} delay={i * 0.08}>
