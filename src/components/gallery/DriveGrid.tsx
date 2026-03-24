@@ -166,81 +166,10 @@ function DriveCard({ file, index }: { file: DriveFile; index: number }) {
   );
 }
 
-function StreamScroller({ files }: { files: DriveFile[] }) {
-  const [offset, setOffset] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isPaused || files.length === 0) return;
-    const interval = setInterval(() => {
-      setOffset((prev) => (prev + 1) % files.length);
-    }, 80);
-    return () => clearInterval(interval);
-  }, [isPaused, files.length]);
-
-  if (files.length === 0) return null;
-
-  const looped = [...files, ...files];
-  const visibleCount = 5;
-  const start = offset % files.length;
-
-  return (
-    <div
-      className="relative py-10"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      {/* Fade edges */}
-      <div
-        className="absolute top-0 bottom-0 left-0 z-20 pointer-events-none"
-        style={{
-          width: "100px",
-          background: "linear-gradient(90deg, var(--ut-black) 0%, transparent 100%)",
-        }}
-      />
-      <div
-        className="absolute top-0 bottom-0 right-0 z-20 pointer-events-none"
-        style={{
-          width: "100px",
-          background: "linear-gradient(-90deg, var(--ut-black) 0%, transparent 100%)",
-        }}
-      />
-
-      {/* Scrolling track */}
-      <div
-        ref={containerRef}
-        className="flex gap-5"
-        style={{ width: "max-content" }}
-      >
-        {looped.slice(start, start + visibleCount + 1).map((file, i) => (
-          <DriveCard key={`${file.id}-${i}`} file={file} index={i} />
-        ))}
-      </div>
-
-      {/* Pause indicator */}
-      {isPaused && (
-        <div
-          className="absolute top-4 right-4 font-mono text-[8px] tracking-[0.35em] uppercase px-3 py-1.5 backdrop-blur-sm"
-          style={{
-            background: "rgba(217,70,239,0.08)",
-            border: "1px solid rgba(217,70,239,0.25)",
-            color: "var(--ut-magenta)",
-            borderRadius: "2px",
-          }}
-        >
-          PAUSED
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function DriveGrid({ hideToggle = false }: { hideToggle?: boolean }) {
+export default function DriveGrid() {
   const [files, setFiles] = useState<DriveFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"stream" | "grid">("stream");
 
   const loadFiles = useCallback(async () => {
     try {
@@ -298,35 +227,6 @@ export default function DriveGrid({ hideToggle = false }: { hideToggle?: boolean
           }}
         />
 
-        {/* View toggle — hidden when used as dedicated GRID view via gallery filter */}
-        {!hideToggle && (
-        <div className="flex items-center justify-center gap-2 mt-6">
-          <button
-            onClick={() => setView("stream")}
-            className="font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 transition-all"
-            style={{
-              background: view === "stream" ? "rgba(217,70,239,0.1)" : "transparent",
-              border: `1px solid ${view === "stream" ? "rgba(217,70,239,0.45)" : "rgba(217,70,239,0.08)"}`,
-              color: view === "stream" ? "var(--ut-magenta)" : "rgba(255,255,255,0.4)",
-              borderRadius: "2px",
-            }}
-          >
-            Stream
-          </button>
-          <button
-            onClick={() => setView("grid")}
-            className="font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 transition-all"
-            style={{
-              background: view === "grid" ? "rgba(34,211,238,0.1)" : "transparent",
-              border: `1px solid ${view === "grid" ? "rgba(34,211,238,0.45)" : "rgba(34,211,238,0.08)"}`,
-              color: view === "grid" ? "var(--ut-cyan)" : "rgba(255,255,255,0.4)",
-              borderRadius: "2px",
-            }}
-          >
-            Grid
-          </button>
-        </div>
-        )}
       </div>
 
       {/* Loading state */}
@@ -396,13 +296,8 @@ export default function DriveGrid({ hideToggle = false }: { hideToggle?: boolean
         </div>
       )}
 
-      {/* Stream view */}
-      {!loading && !error && files.length > 0 && view === "stream" && (
-        <StreamScroller files={files} />
-      )}
-
-      {/* Grid view */}
-      {!loading && !error && files.length > 0 && view === "grid" && (
+      {/* Grid view — always shown */}
+      {!loading && !error && files.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {files.map((file, i) => (
             <DriveCard key={file.id} file={file} index={i} />

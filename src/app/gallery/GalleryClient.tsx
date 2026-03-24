@@ -98,7 +98,7 @@ export default function GalleryClient() {
       {/* Grid — Google Drive images */}
       {activeFilter === "grid" && (
         <div className="mb-12 px-4 md:px-8">
-          <DriveGrid hideToggle />
+          <DriveGrid />
         </div>
       )}
 
