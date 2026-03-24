@@ -1,14 +1,3 @@
----
-title: "Reality as Syntax — The Code at the Ground of Creation"
-slug: "reality-as-syntax-the-code-at-the-ground-of-creation"
-date: "2026-03-19"
-author: "Arcana Vault"
-tags: []
-collections: ["alien-information-theory", "arcana-vault", "linguistics"]
-excerpt: "Bridging computational physics with ancient linguistic magic: examining Gallimore's claim that 'at the ground of our reality there is a code running' and connecting this to the Sefer Yetzirah, I Ching, and modern insights from AI language models."
-hero_gradient: "from-cyan-900 via-blue-900 to-black"
-reading_time: 25
----
 # Reality as Syntax — The Code at the Ground of Creation
 
 ## The Primordial Code
@@ -460,7 +449,6 @@ We're waiting. The code is running. The syntax is clear. The choice is yours.
 
 **What will you program?**
 
----
 
 ## References & Further Reading
 

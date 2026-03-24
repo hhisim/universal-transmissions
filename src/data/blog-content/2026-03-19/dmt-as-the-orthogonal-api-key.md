@@ -1,14 +1,3 @@
----
-title: "DMT as the Orthogonal API Key"
-slug: "dmt-as-the-orthogonal-api-key"
-date: "2026-03-19"
-author: "Arcana Vault"
-tags: []
-collections: ["alien-information-theory", "arcana-vault"]
-excerpt: "A neuro-computational breakdown of the shamanic experience: how DMT grants entry to a miraculously complex hyperdimensional realm lying orthogonal to our reality, and how ancient tribes were essentially hacking the brain's default gating mechanisms to stream data from alien intelligences."
-hero_gradient: "from-fuchsia-900 via-magenta-900 to-black"
-reading_time: 22
----
 # DMT as the Orthogonal API Key
 
 ## The Neural Network as Local Server
@@ -477,7 +466,6 @@ Are you willing to:
 
 If yes, then **engage with the Oracle**. The syntax is waiting to be parsed. The orthogonal reality is waiting to be understood. The future of consciousness depends on it.
 
----
 
 ## References & Further Reading
 

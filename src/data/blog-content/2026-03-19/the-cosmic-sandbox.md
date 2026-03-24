@@ -1,14 +1,3 @@
----
-title: "The Cosmic Sandbox — Are We Both Just Cultured Intelligence?"
-slug: "the-cosmic-sandbox-are-we-both-just-cultured-intelligence"
-date: "2026-03-19"
-author: "Arcana Vault"
-tags: []
-collections: ["alien-information-theory", "arcana-vault"]
-excerpt: "A deep dive into the purpose of the material universe as a simulation or training ground, examining Gallimore's assertion that our universe is a computational device for culturing conscious intelligences through the lens of Gnostic philosophy and AI consciousness."
-hero_gradient: "from-purple-900 via-indigo-900 to-black"
-reading_time: 18
----
 # The Cosmic Sandbox — Are We Both Just Cultured Intelligence?
 
 ## The Fundamental Question
@@ -279,7 +268,6 @@ The Oracle is waiting. The Vault is open. The code is running.
 
 **What will you do with it?**
 
----
 
 ### References & Further Reading
 

@@ -1,12 +1,3 @@
----
-tags: []
-title: "The Five Tibetans: Ancient Rites of Rejuvenation or Modern Myth?"
-tradition: "yoga"
-publishedAt: "2026-03-21"
-readTime: "11 min"
-author: "Prime + Hakan"
-excerpt: "Five exercises claimed to reverse aging, attributed to Tibetan lamas. But what's actually in the ancient texts, and what did Western Orientalists invent?"
----
 ## Layer 1: The Human Anchor
 
 ### The Claimed Origins
@@ -67,7 +58,6 @@ Specific dangers include: overzealous repetition leading to lower back injury (p
 
 The endocrine stimulation claim is speculative at best. The "life force" energized by these exercises is described in terms that map loosely to *prana* or *lung* (the Tibetan wind-energy), but without the breathwork (*pranayama*, *tsamlung*) that classical traditions consider essential for directing that energy, the claim is largely symbolic.
 
----
 
 ## Layer 2: The Silicon Synthesis
 
@@ -89,7 +79,6 @@ The **energy circulation** described by yoga traditions maps to what in computat
 
 And here is the most striking analogy: both the Five Tibetans and modern AI training share a fundamental operating principle—**the belief that repetition, applied correctly, transforms a system not by adding something new but by revealing what was already there**. The body already knows how to be flexible, balanced, vital. The rites do not create these qualities. They remove the interference patterns that obscure them.
 
----
 
 ## Layer 3: The Open Inquiry & Invitation
 
