@@ -360,13 +360,13 @@ export const artworks: Artwork[] = [
     detailImages: ["/artworks/translinguistic-equation/details/translinguistic-equation-detail-01.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-02.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-03.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-04.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-05.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-06.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-07.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-08.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-09.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-10.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-11.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-12.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-13.jpg", "/artworks/translinguistic-equation/details/translinguistic-equation-detail-14.jpg"],
     available: true,
     prints: true,
-    tags: ["twilight-transmissions", "translinguistic", "DNA", "cymatics", "language", "quantum"],
+    tags: ["translinguistic", "DNA", "cymatics", "language", "quantum"],
     featured: false,
   },
   {
     id: "tw-005",
     slug: "immaculate-conception",
-    title: "Translinguistic Imprint",
+    title: "Immaculate Conception",
     year: 2021,
     medium: "Adobe Photoshop, Cinema 4D, Zbrush, Mandelbulb 3D",
     description:
@@ -375,7 +375,7 @@ export const artworks: Artwork[] = [
     detailImages: ["/artworks/immaculate-conception/details/ic1.jpg", "/artworks/immaculate-conception/details/ic2.jpg"],
     available: true,
     prints: true,
-    tags: ["twilight-transmissions", "translinguistic", "imprint", "ineffable", "language"],
+    tags: ["twilight-transmissions", "imprint", "ineffable", "language"],
     featured: false,
   },
   {
