@@ -70,9 +70,9 @@ export const products: Product[] = [
     price: 99,
     originalPrice: 149,
     description:
-      "Second Loop Pack in a set of 7. Created from the animated versions of the Universal Transmissions series Chakra works — same high quality as the 4K pack but rendered at 8K resolution for maximum detail and immersion.",
+      "Second Loop Pack in a set of 7. Created from the animated versions of the Universal Transmissions series Chakra works. Brought to life with meticulous detail and infused with deep resonant energy. Includes 16 videos, 60 second loops, 8K, 4K and 2K resolutions, Alpha Channel Loops, DXV3 + Mp4 Codec.",
     images: [
-      "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/f860f891-74e7-4bdc-9403-76bf9fe4a17d/SCREEN+-+SQUARE.jpg",
+      "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/ed18c68d-4afd-4c1e-94bf-9592de773bfa/SCREEN+-+SQUARE.jpg",
     ],
     available: true,
     category: "Loop Packs",
