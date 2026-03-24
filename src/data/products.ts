@@ -51,7 +51,7 @@ export const products: Product[] = [
   {
     id: "chakra-4k",
     slug: "chakra-4k-loop-pack",
-    title: "Chakra 4K Loop Pack",
+    title: "ROOT — Chakra 4K Loop Pack",
     price: 99,
     originalPrice: 149,
     description:
