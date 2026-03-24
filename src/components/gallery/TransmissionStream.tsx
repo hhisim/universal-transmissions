@@ -3,10 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 
-// Drive folder from the original iframe embed
-const DRIVE_FOLDER_ID = "1eUgyNtZdFBykgUi8HWl1CIFLOPO79hxj";
-const DRIVE_API_KEY = "AIzaSyBLcyqqNmJu5bV4sMwXBIB2rcQ2JOlCak";
-
 interface DriveFile {
   id: string;
   name: string;
