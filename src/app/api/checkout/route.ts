@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${baseUrl}/sanctum/${product.slug}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/sanctum/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/sanctum/${product.slug}?canceled=true`,
     };
 
