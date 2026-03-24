@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
             },
           },
         },
-      ],
-      billing_address_collection: "required",
+      ];
+      (sessionParams as Record<string, unknown>).billing_address_collection = "required";
     };
 
     const session = await stripe.checkout.sessions.create(sessionParams as Parameters<typeof stripe.checkout.sessions.create>[0]);

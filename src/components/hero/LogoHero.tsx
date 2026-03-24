@@ -115,7 +115,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     let H = canvas.height;
 
     function resize() {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !canvas || !glyphCanvas) return;
       const w = containerRef.current.offsetWidth;
       const h = containerRef.current.offsetHeight;
       canvas.width = w;
@@ -130,6 +130,8 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     window.addEventListener("resize", resize);
 
     function tick() {
+      const c = canvas!;
+      const g = glyphCanvas!;
       timeRef.current += 0.016;
       setRotation(timeRef.current * 0.08);
 
@@ -145,8 +147,8 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         setPulseAge(0);
       }
 
-      W = canvas.width;
-      H = canvas.height;
+      W = c.width;
+      H = c.height;
 
       // ── Clear canvas ──────────────────────────────────────────
       ctx.clearRect(0, 0, W, H);
