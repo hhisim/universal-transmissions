@@ -182,14 +182,14 @@ export default function HomePage() {
                 {
                   title: "Bio-Energetic Vortexes",
                   desc: "Seven visualizations of the human energy system — from Root to Crown — as perceived through hyper-dimensional vision. Each chakra rendered as a living mandala of fractal complexity and symbolic depth.",
-                  href: "/gallery",
+                  href: "/gallery/bio-energetic-vortexes",
                   label: "7 Works",
                 },
                 {
-                  title: "Twilight Transmissions",
+                  title: "Prismatic Transmissions",
                   desc: "A prismatic series exploring the liminal frequencies between known and unknown, rendered in twilight tones where the visible spectrum bleeds into the invisible.",
-                  href: "/gallery",
-                  label: "5+ Works",
+                  href: "/gallery/prismatic",
+                  label: "5 Works",
                 },
               ].map((series, i) => (
                 <SectionReveal key={series.title} delay={i * 0.1}>
