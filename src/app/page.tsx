@@ -18,7 +18,12 @@ export const metadata: Metadata = {
     "A pan-dimensional manuscript containing universal transmissions based on concepts of transcending syntax and linguistics. Art, codex, and the language of the divine.",
 };
 
-const featuredArtworks = artworks.filter((a) => a.featured).slice(0, 4);
+const featuredArtworks = [
+  artworks.find((a) => a.slug === "crown-chakra")!,
+  artworks.find((a) => a.slug === "prismatic-equation")!,
+  artworks.find((a) => a.slug === "twilight-pantheism")!,
+  artworks.find((a) => a.slug === "vitruvian-spirit")!,
+]
 
 export default function HomePage() {
   return (
