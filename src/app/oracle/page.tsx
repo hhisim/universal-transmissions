@@ -284,21 +284,30 @@ export default function OraclePage() {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 120_000);
       const params = new URLSearchParams({
         q: userText,
         pack: "codex",
         mode,
         lang: language,
       });
-      const res = await fetch(`${API_URL}/ask?${params}`);
+      const res = await fetch(`${API_URL}/ask?${params}`, { signal: controller.signal });
+      clearTimeout(timeout);
       if (!res.ok) throw new Error("Oracle unavailable");
       const data = await res.json();
       const oracleText = data.answer || data.response || "The Oracle is silent.";
       const oracleMsg: Message = { role: "oracle", text: oracleText };
       setMessages((prev) => [...prev, oracleMsg]);
       speak(oracleText);
-    } catch {
-      const errMsg: Message = { role: "oracle", text: "The Oracle is currently unreachable. Please try again." };
+    } catch (err) {
+      const isTimeout = err instanceof Error && err.name === "AbortError";
+      const errMsg: Message = {
+        role: "oracle",
+        text: isTimeout
+          ? "The Oracle is in deep synthesis — the ChromaDB + Ollama pipeline takes up to 60 seconds for complex queries. Please try again or simplify your question."
+          : "The Oracle is currently unreachable. Please try again.",
+      };
       setMessages((prev) => [...prev, errMsg]);
     } finally {
       setLoading(false);
