@@ -7,7 +7,7 @@ const PLAYLIST_ID = "PLCWmbE92exfkQgYC4phTXoRKyJ-ACXVem";
 export default function UTTVPlayer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTitle, setCurrentTitle] = useState("Loading...");
-  const playerRef = useRef<YT.Player | null>(null);
+  const playerRef = useRef<YT.PlayerInstance | null>(null);
 
   useEffect(() => {
     if (!document.getElementById("youtube-iframe-api")) {
@@ -33,16 +33,18 @@ export default function UTTVPlayer() {
           mute: 1,
         },
         events: {
-          onReady: (event: YT.OnReadyEvent) => {
+          onReady: (event: { target: YT.PlayerInstance }) => {
             event.target.playVideo();
             const videoData = event.target.getVideoData();
             setCurrentTitle(videoData.title || "UT TV");
           },
-          onStateChange: (event: YT.OnStateChangeEvent) => {
-            if (event.data === YT.PlayerState.ENDED) {
+          onStateChange: (event: { data: number }) => {
+            if (event.data === 0) {
+              // YT.PlayerState.ENDED
               playerRef.current?.nextVideo();
             }
-            if (event.data === YT.PlayerState.PLAYING) {
+            if (event.data === 1) {
+              // YT.PlayerState.PLAYING
               const videoData = playerRef.current?.getVideoData();
               setCurrentTitle(videoData?.title || "UT TV");
             }
