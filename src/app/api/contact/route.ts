@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error("RESEND_API_KEY not configured");
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "Universal Transmissions <noreply@universal-transmissions.com>",
       to: ["hakan@universal-transmissions.com"],
       replyTo: email,
