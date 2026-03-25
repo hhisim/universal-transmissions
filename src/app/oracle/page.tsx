@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
+import PageBackground from "@/components/scenes/PageBackground";
 
 // ============================================================
 // CODEX ORACLE PAGE — Complete, self-contained, production-ready
@@ -145,7 +146,8 @@ export default function OraclePage() {
   const labelStyle: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.15em", color: "rgba(237,233,246,0.25)", textTransform: "uppercase" as const, marginBottom: 8 };
 
   return (
-    <div style={{ background: "#0a090e", minHeight: "100vh" }}>
+    <div style={{ background: "transparent", minHeight: "100vh" }}>
+    <PageBackground variant="oracle" />
     <Navigation />
     <div style={{ position: "relative", minHeight: "calc(100vh - 200px)" }}>
       {/* BG Canvas */}
