@@ -345,7 +345,7 @@ export const artworks: Artwork[] = [
     detailImages: ["/artworks/hyperdimensional-harmonics/details/hh1.jpg", "/artworks/hyperdimensional-harmonics/details/hh2.jpg", "/artworks/hyperdimensional-harmonics/details/hh3.jpg", "/artworks/hyperdimensional-harmonics/details/hh4.jpg", "/artworks/hyperdimensional-harmonics/details/hh5.jpg", "/artworks/hyperdimensional-harmonics/details/hh6.jpg"],
     available: true,
     prints: true,
-    tags: ["twilight-transmissions", "hyperdimensional", "harmonics", "frequency", "sacred-geometry"],
+    tags: ["prismatic", "twilight-transmissions", "hyperdimensional", "harmonics", "frequency", "sacred-geometry"],
     featured: false,
   },
   {
@@ -390,7 +390,7 @@ export const artworks: Artwork[] = [
     detailImages: [],
     available: true,
     prints: true,
-    tags: ["twilight-pantheism", "pantheism", "twilight-transmissions", "divine", "nature"],
+    tags: ["prismatic", "twilight-pantheism", "pantheism", "twilight-transmissions", "divine", "nature"],
     featured: false,
   },
 
@@ -424,7 +424,7 @@ export const artworks: Artwork[] = [
     detailImages: ["/artworks/enchanted-essence/details/ee1.jpg", "/artworks/enchanted-essence/details/ee10.jpg", "/artworks/enchanted-essence/details/ee11.jpg", "/artworks/enchanted-essence/details/ee12.jpg", "/artworks/enchanted-essence/details/ee2.jpg", "/artworks/enchanted-essence/details/ee3.jpg", "/artworks/enchanted-essence/details/ee4.jpg", "/artworks/enchanted-essence/details/ee5.jpg", "/artworks/enchanted-essence/details/ee6.jpg", "/artworks/enchanted-essence/details/ee7.jpg", "/artworks/enchanted-essence/details/ee8.jpg", "/artworks/enchanted-essence/details/ee9.jpg"],
     available: true,
     prints: true,
-    tags: ["enchanted-essence", "twilight-transmissions", "self-knowledge", "enlightenment"],
+    tags: ["prismatic", "enchanted-essence", "twilight-transmissions", "self-knowledge", "enlightenment"],
     featured: false,
   },
   {
@@ -559,7 +559,7 @@ export const artworks: Artwork[] = [
     detailImages: ["/artworks/innerstellar-telemetry/details/IT1.jpg", "/artworks/innerstellar-telemetry/details/IT10.jpg", "/artworks/innerstellar-telemetry/details/IT2.jpg", "/artworks/innerstellar-telemetry/details/IT3.jpg", "/artworks/innerstellar-telemetry/details/IT4.jpg", "/artworks/innerstellar-telemetry/details/IT5.jpg", "/artworks/innerstellar-telemetry/details/IT6.jpg", "/artworks/innerstellar-telemetry/details/IT7.jpg", "/artworks/innerstellar-telemetry/details/IT8.jpg", "/artworks/innerstellar-telemetry/details/IT9.jpg"],
     available: true,
     prints: true,
-    tags: ["innerstellar", "telemetry", "consciousness", "cartography", "psyche"],
+    tags: ["prismatic", "innerstellar", "telemetry", "consciousness", "cartography", "psyche"],
     featured: false,
   },
 ];
