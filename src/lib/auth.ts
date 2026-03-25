@@ -2,7 +2,6 @@ import NextAuth from "next-auth";
 import { SupabaseAdapter } from "@auth/supabase-adapter";
 import type { NextAuthConfig } from "next-auth";
 import type { Provider } from "next-auth/providers";
-import { sendRequest } from "@/lib/email";
 
 // ─── Email provider via Brevo (Resend-compatible API) ───────────────────────
 const BREVO_API_KEY = process.env.BREVO_API_KEY ?? "";
