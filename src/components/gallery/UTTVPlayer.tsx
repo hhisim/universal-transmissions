@@ -4,36 +4,12 @@ import { useEffect, useRef, useState } from "react";
 
 const PLAYLIST_ID = "PLCWmbE92exfkQgYC4phTXoRKyJ-ACXVem";
 
-interface Video {
-  id: string;
-  title: string;
-}
-
-const VIDEOS: Video[] = [
-  { id: "ys6YjCXoIOs", title: "The Universal Transmissions Codex - Update" },
-  { id: "SC89B4vlXkc", title: "The Universal Transmissions Codex - Update" },
-  { id: "t5yiD0sxIug", title: "Making of Polarity Modulation and the essence of Union" },
-  { id: "VybQIwW3bU0", title: "The Universal Transmissions Codex - Update" },
-  { id: "E1yhN3FueSs", title: "Universal Transmissions Codex - 100 Page Test Print!" },
-  { id: "BbO1VgyZq9M", title: "Making of Universal Transmissions Codex // CC05" },
-  { id: "Owi-ooswzMM", title: "Making of Universal Transmissions Codex // CC04" },
-  { id: "jLab4KnyU48", title: "Universal Transmissions Codex first test print" },
-  { id: "gSqdxDWO278", title: "Making of Universal Transmissions Codex // CC03" },
-  { id: "vC_UYkb3l0c", title: "Making of Universal Transmissions Codex // CC02" },
-  { id: "ECAFuxZpyK0", title: "Making of Universal Transmissions Codex // CC01" },
-  { id: "au9mPzB1dVM", title: "Making of Universal Transmissions Codex // CC06" },
-  { id: "N0p65Q3dz4Y", title: "Codex Stream 01 // Compilation Capture 07" },
-];
-
 export default function UTTVPlayer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTitle, setCurrentTitle] = useState("Loading...");
-  const [isLive, setIsLive] = useState(false);
   const playerRef = useRef<YT.Player | null>(null);
-  const currentIndexRef = useRef(0);
 
   useEffect(() => {
-    // Load YouTube IFrame API
     if (!document.getElementById("youtube-iframe-api")) {
       const tag = document.createElement("script");
       tag.id = "youtube-iframe-api";
@@ -43,15 +19,12 @@ export default function UTTVPlayer() {
 
     const initPlayer = () => {
       if (!containerRef.current) return;
-
-      // Destroy existing player
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
+      if (playerRef.current) playerRef.current.destroy();
 
       playerRef.current = new window.YT.Player(containerRef.current, {
-        videoId: VIDEOS[0].id,
         playerVars: {
+          listType: "playlist",
+          list: PLAYLIST_ID,
           autoplay: 1,
           controls: 1,
           modestbranding: 1,
@@ -62,16 +35,16 @@ export default function UTTVPlayer() {
         events: {
           onReady: (event: YT.OnReadyEvent) => {
             event.target.playVideo();
-            setCurrentTitle(VIDEOS[0].title);
+            const videoData = event.target.getVideoData();
+            setCurrentTitle(videoData.title || "UT TV");
           },
           onStateChange: (event: YT.OnStateChangeEvent) => {
             if (event.data === YT.PlayerState.ENDED) {
-              currentIndexRef.current =
-                (currentIndexRef.current + 1) % VIDEOS.length;
-              const nextIndex = currentIndexRef.current;
-              const next = VIDEOS[nextIndex];
-              setCurrentTitle(next.title);
-              playerRef.current?.loadVideoById(next.id);
+              playerRef.current?.nextVideo();
+            }
+            if (event.data === YT.PlayerState.PLAYING) {
+              const videoData = playerRef.current?.getVideoData();
+              setCurrentTitle(videoData?.title || "UT TV");
             }
           },
         },
@@ -94,7 +67,7 @@ export default function UTTVPlayer() {
 
   return (
     <div className="relative w-full" style={{ aspectRatio: "16/9", background: "#0a0a0a" }}>
-      {/* YouTube player container */}
+      {/* YouTube player */}
       <div ref={containerRef} className="absolute inset-0 w-full h-full" />
 
       {/* Live badge */}
@@ -105,12 +78,12 @@ export default function UTTVPlayer() {
           left: "20px",
           background: "rgba(0,0,0,0.6)",
           backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255,0,0,0.3)",
+          border: "1px solid rgba(217,70,239,0.3)",
         }}
       >
         <div
           className="w-2.5 h-2.5 rounded-full animate-pulse"
-          style={{ background: "#ff0000", boxShadow: "0 0 8px #ff0000" }}
+          style={{ background: "#d946ef", boxShadow: "0 0 8px #d946ef" }}
         />
         <span
           className="font-mono text-xs font-bold tracking-widest uppercase"
@@ -145,18 +118,18 @@ export default function UTTVPlayer() {
         </p>
       </div>
 
-      {/* Animated schedule bar at bottom */}
+      {/* Animated spectrum bar */}
       <div
         className="absolute bottom-0 left-0 right-0 h-1"
         style={{
           background:
-            "linear-gradient(90deg, #d946ef 0%, #22d3ee 50%, #d946ef 100%)",
+            "linear-gradient(90deg, #c026d3 0%, #d946ef 15%, #f0c75e 40%, #22d3ee 70%, #22d3ee 100%)",
           backgroundSize: "200% 100%",
-          animation: "utv-gradient 4s linear infinite",
+          animation: "utv-spectrum 4s linear infinite",
         }}
       />
       <style>{`
-        @keyframes utv-gradient {
+        @keyframes utv-spectrum {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
         }
