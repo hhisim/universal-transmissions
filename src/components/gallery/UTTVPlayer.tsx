@@ -36,7 +36,7 @@ export default function UTTVPlayer() {
           onReady: (event: { target: YT.PlayerInstance }) => {
             event.target.playVideo();
             const videoData = event.target.getVideoData();
-            setCurrentTitle(videoData.title || "UT TV");
+            setCurrentTitle(videoData?.title || "UT TV");
           },
           onStateChange: (event: { data: number }) => {
             if (event.data === 0) {
