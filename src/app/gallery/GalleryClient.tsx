@@ -15,7 +15,7 @@ const FILTERS = [
   { id: "bio-energetic-vortexes", label: "BIO-ENERGETIC VORTEXES (CHAKRAS)" },
   { id: "prismatic", label: "PRISMATIC TRANSMISSIONS" },
   { id: "grid", label: "GRID" },
-  { id: "stream", label: "STREAM" },
+  { id: "stream", label: "UT TV" },
 ];
 
 export default function GalleryClient() {
