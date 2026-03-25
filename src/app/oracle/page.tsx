@@ -103,7 +103,7 @@ export default function OraclePage() {
 
   return (
     <div style={{ background: "transparent", minHeight: "100vh" }}>
-      <PageBackground variant="homepage" />
+      <PageBackground variant="oracle" />
       <Navigation />
 
       <div style={{ position: "relative", zIndex: 1 }}>
