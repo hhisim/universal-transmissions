@@ -10,6 +10,7 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 import { blogPosts, getPostBySlug, getRelatedPosts, type BlogPost } from "@/data/blog-posts";
 import { extractFirstImage } from "@/data/blog-posts";
+import PageBackground from "@/components/scenes/PageBackground";
 
 // ─── YouTube embed component ───────────────────────────────────────────────────
 
@@ -66,7 +67,8 @@ function ProcessedContent({ content }: { content: string }) {
   }
 
   if (parts.length === 0) {
-    return <MarkdownRenderer content={content} />;
+    return <MarkdownRenderer content={content} />
+    <PageBackground variant="journal" />;
   }
 
   return (
