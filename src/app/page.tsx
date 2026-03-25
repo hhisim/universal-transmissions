@@ -12,6 +12,11 @@ const LogoHero = dynamic(
   { ssr: false, loading: () => <div className="h-screen bg-ut-void" /> }
 );
 
+const UTTVPlayer = dynamic(
+  () => import("@/components/gallery/UTTVPlayer").then((m) => m.default),
+  { ssr: false }
+);
+
 export const metadata: Metadata = {
   title: "Universal Transmissions — Visual Alchemy by Hakan Hisim",
   description:
@@ -70,6 +75,13 @@ export default function HomePage() {
                 background: "linear-gradient(to bottom, transparent, var(--ut-magenta), transparent)",
               }}
             />
+          </div>
+        </section>
+
+        {/* ── UT TV — YouTube Stream ──────────────────── */}
+        <section className="relative">
+          <div className="max-w-5xl mx-auto">
+            <UTTVPlayer />
           </div>
         </section>
 
