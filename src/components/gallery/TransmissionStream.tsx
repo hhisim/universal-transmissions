@@ -290,7 +290,7 @@ export default function TransmissionStream() {
             textShadow: "0 0 40px rgba(217,70,239,0.3)",
           }}
         >
-          Transmission Stream
+          Transmission Matrix
         </h2>
 
         {/* Spectrum line bottom of header */}

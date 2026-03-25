@@ -214,7 +214,7 @@ export default function DriveGrid() {
             textShadow: "0 0 40px rgba(217,70,239,0.3)",
           }}
         >
-          Transmission Grid
+          Transmission Matrix
         </h2>
 
         {/* Spectrum line bottom of header */}
