@@ -8,12 +8,14 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { products } from "@/data/products";
+import PageBackground from "@/components/scenes/PageBackground";
 
 export default function StorePage() {
   return (
     <>
       <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+     
+      <PageBackground variant="sanctum" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Header */}
           <SectionReveal>
