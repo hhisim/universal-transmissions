@@ -10,6 +10,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { getProduct } from "@/data/products";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
+import PageBackground from "@/components/scenes/PageBackground";
 
 interface Props {
   params: { slug: string };
@@ -75,7 +76,8 @@ export default function ProductDetailPage({ params }: Props) {
   return (
     <>
       <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+     
+      <PageBackground variant="sanctum" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Success Banner */}
           {showSuccess && (
