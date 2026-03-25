@@ -100,7 +100,7 @@ function useBg(ref: React.RefObject<HTMLCanvasElement | null>) {
 export default function OraclePage() {
   const [mode, setMode] = useState("oracle");
   const [lang, setLang] = useState("en");
-  const [voice, setVoice] = useState(false);
+  const [voice, setVoice] = useState(true);
   const [gender, setGender] = useState<"f"|"m">("f");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
