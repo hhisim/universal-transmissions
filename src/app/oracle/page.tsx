@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Navigation from "@/components/ui/Navigation";
+import Footer from "@/components/ui/Footer";
 
 // ============================================================
 // CODEX ORACLE PAGE — Complete, self-contained, production-ready
@@ -142,7 +144,9 @@ export default function OraclePage() {
   const labelStyle: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.15em", color: "rgba(237,233,246,0.25)", textTransform: "uppercase" as const, marginBottom: 8 };
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", paddingTop: 80, background: "#0a090e" }}>
+    <div style={{ background: "#0a090e", minHeight: "100vh" }}>
+    <Navigation />
+    <div style={{ position: "relative", minHeight: "calc(100vh - 200px)" }}>
       {/* BG Canvas */}
       <canvas ref={cvRef} style={{ position: "fixed", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} />
 
@@ -279,6 +283,9 @@ export default function OraclePage() {
             </div>
           </div>
         </div>
+    </div>
+    <Footer />
+
 
         {/* GO DEEPER — VoA conversion */}
         <div style={{ textAlign: "center", padding: "60px 20px 40px", borderTop: borderFaint, marginTop: 0 }}>
