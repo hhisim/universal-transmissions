@@ -109,6 +109,8 @@ export default function OraclePage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [zt, setZt] = useState("CODEX ORACLE");
+  const [tier, setTier] = useState<"guest" | "free" | "initiate">("guest");
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
   const cvRef = useRef<HTMLCanvasElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -116,6 +118,18 @@ export default function OraclePage() {
 
   useEffect(() => { setZt(zg("CODEX ORACLE", 1, 1)); const t = setInterval(() => setZt(zg("CODEX ORACLE", 1, 1)), 4000); return () => clearInterval(t); }, []);
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
+
+  // Fetch session on mount to determine tier
+  useEffect(() => {
+    fetch("/api/billing/session")
+      .then(r => r.json())
+      .then(d => {
+        if (d.authenticated) {
+          setTier(d.plan || "guest");
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const send = useCallback(async (text?: string) => {
     const m = (text || input).trim();
@@ -130,6 +144,12 @@ export default function OraclePage() {
         body: JSON.stringify({ message: m, mode, language: lang, history: msgs.slice(-10) }),
       });
       const d = await r.json();
+      if (r.status === 429) {
+        setMsgs(p => [...p, { role: "oracle", text: d.error || "Daily limit reached. Upgrade to Initiate for unlimited access.", mode }]);
+        return;
+      }
+      if (d.plan) setTier(d.plan as "guest" | "free" | "initiate");
+      if (d.usage) setUsage(d.usage);
       setMsgs(p => [...p, { role: "oracle", text: d.response || d.text || d.message || "The Oracle is contemplating...", mode }]);
     } catch {
       setMsgs(p => [...p, { role: "oracle", text: "The transmission was interrupted. Please try again.", mode }]);
@@ -160,6 +180,27 @@ export default function OraclePage() {
           <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "rgba(237,233,246,0.35)", marginBottom: 20 }}>Decipher the pages. Decode the names. Map the correspondences.</p>
           <div style={{ width: 260, height: 1, margin: "0 auto 20px", background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), rgba(34,211,238,0.3), transparent)" }} />
         </div>
+
+        {/* TIER BANNER */}
+        {tier === "guest" && (
+          <div style={{ maxWidth: 680, margin: "0 auto 24px", padding: "14px 20px", border: "1px solid rgba(217,70,239,0.2)", background: "rgba(217,70,239,0.04)", textAlign: "center" }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.15em", color: "rgba(217,70,239,0.7)", textTransform: "uppercase" }}>Guest — {usage ? `${usage.used}/${usage.limit}` : "10"} questions remaining today</span>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: "rgba(237,233,246,0.4)", marginLeft: 12 }}>·</span>
+            <a href="/pricing" style={{ fontFamily: "Cinzel, serif", fontSize: 9, letterSpacing: "0.2em", color: "#d946ef", textDecoration: "none", marginLeft: 12, textTransform: "uppercase" }}>Create a free account for 25 questions/day →</a>
+          </div>
+        )}
+        {tier === "free" && (
+          <div style={{ maxWidth: 680, margin: "0 auto 24px", padding: "14px 20px", border: "1px solid rgba(212,168,71,0.2)", background: "rgba(212,168,71,0.04)", textAlign: "center" }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.15em", color: "rgba(212,168,71,0.7)", textTransform: "uppercase" }}>Free Account — {usage ? `${usage.used}/${usage.limit}` : "25"} questions remaining today</span>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: "rgba(237,233,246,0.4)", marginLeft: 12 }}>·</span>
+            <a href="/pricing" style={{ fontFamily: "Cinzel, serif", fontSize: 9, letterSpacing: "0.2em", color: "#d4a847", textDecoration: "none", marginLeft: 12, textTransform: "uppercase" }}>Unlock unlimited with Initiate $3.99/mo →</a>
+          </div>
+        )}
+        {tier === "initiate" && (
+          <div style={{ maxWidth: 680, margin: "0 auto 24px", padding: "10px 20px", border: "1px solid rgba(147,51,234,0.12)", background: "rgba(147,51,234,0.03)", textAlign: "center" }}>
+            <a href="https://vaultofarcana.com/chat" target="_blank" rel="noopener noreferrer" style={{ fontFamily: "Cinzel, serif", fontSize: 9, letterSpacing: "0.2em", color: "rgba(147,51,234,0.5)", textDecoration: "none", textTransform: "uppercase" }}>Initiate active — Explore Vault of Arcana for 5 more oracles →</a>
+          </div>
+        )}
 
         {/* MODE BUTTONS */}
         <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>

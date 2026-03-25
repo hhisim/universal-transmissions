@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase";
+import { auth } from "@/lib/auth";
 
 // ============================================================
 // File: src/app/api/oracle/route.ts
@@ -11,12 +13,19 @@ import { NextRequest, NextResponse } from "next/server";
 //   CODEX_ORACLE_API_URL = the VoA API endpoint (e.g. https://your-voa-server.com/api/v1)
 //   CODEX_ORACLE_API_KEY = the API key for authentication
 //
-// TEST: After setting env vars, redeploy and try sending a message.
-// If you see demo responses, the env vars are not set or the URL is wrong.
 // ============================================================
 
 const API_URL = process.env.CODEX_ORACLE_API_URL;
 const API_KEY = process.env.CODEX_ORACLE_API_KEY;
+
+// ─── Rate limits by plan ────────────────────────────────────────────────────
+const RATE_LIMITS = {
+  guest: 10,   // per day, by IP
+  free:  25,  // per day, by email
+  initiate: Infinity,
+};
+
+const FREE_LANGUAGES = new Set(["en", "tr", "ru"]);
 
 // Demo responses for when backend isn't connected
 const DEMO_RESPONSES: Record<string, string> = {
@@ -126,6 +135,67 @@ The page knows who is reading it.
 [NOTE: Demo response — connect backend for live page-specific guided meditation.]`,
 };
 
+// ─── Get client IP ─────────────────────────────────────────────────────────
+function getClientIP(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("x-real-ip") ?? "unknown";
+}
+
+// ─── Get today's date string for rate limit key ───────────────────────────
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+// ─── Check and increment usage counter ────────────────────────────────────
+async function checkRateLimit(opts: {
+  email?: string | null;
+  ip: string;
+  plan: string;
+}): Promise<{ allowed: boolean; used: number; limit: number; resetAt: string }> {
+  const { email, ip, plan } = opts;
+  const limit = RATE_LIMITS[plan as keyof typeof RATE_LIMITS] ?? 0;
+  const today = todayStr();
+
+  if (limit === Infinity) {
+    return { allowed: true, used: 0, limit: Infinity, resetAt: today };
+  }
+
+  // Build a usage key: use email if available, else IP
+  const usageKey = email ? `email:${email}` : `ip:${ip}`;
+  const counterKey = `${usageKey}:${today}`;
+
+  try {
+    // Try to read current count
+    const { data } = await supabaseAdmin
+      .from("ut_usage")
+      .select("count")
+      .eq("usage_key", counterKey)
+      .maybeSingle();
+
+    const used = data?.count ?? 0;
+
+    if (used >= limit) {
+      return { allowed: false, used, limit, resetAt: today };
+    }
+
+    // Increment counter (upsert)
+    await supabaseAdmin
+      .from("ut_usage")
+      .upsert(
+        { usage_key: counterKey, count: used + 1, email: email ?? null, ip: ip ?? null, plan, created_at: new Date().toISOString() },
+        { onConflict: "usage_key" }
+      );
+
+    return { allowed: true, used: used + 1, limit, resetAt: today };
+  } catch (err) {
+    // If ut_usage table doesn't exist, allow request (graceful degradation)
+    console.error("Rate limit check error:", err);
+    return { allowed: true, used: 0, limit, resetAt: today };
+  }
+}
+
+// ─── Main POST handler ───────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -135,7 +205,50 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    // --- Try live backend ---
+    // ── Auth: get email from session ───────────────────────────────────────
+    let email: string | null = null;
+    let plan = "guest";
+    let ip = getClientIP(req);
+
+    try {
+      const session = await auth();
+      if (session?.user?.email) {
+        email = session.user.email;
+
+        // Look up member record to get plan
+        const { data: member } = await supabaseAdmin
+          .from("ut_members")
+          .select("plan, subscription_status")
+          .eq("email", email)
+          .maybeSingle();
+
+        plan = member?.plan ?? "guest";
+
+        // Free plan language restriction
+        if (plan === "free" && !FREE_LANGUAGES.has(language)) {
+          return NextResponse.json({
+            error: "Free accounts are limited to EN, TR, and RU languages. Upgrade to Initiate for all languages.",
+            code: "LANGUAGE_RESTRICTED",
+          }, { status: 403 });
+        }
+      }
+    } catch (authErr) {
+      // No auth session — treat as guest (IP-based)
+    }
+
+    // ── Rate limiting ───────────────────────────────────────────────────────
+    const { allowed, used, limit } = await checkRateLimit({ email, ip, plan });
+
+    if (!allowed) {
+      return NextResponse.json({
+        error: `Daily limit reached (${used}/${limit}). Create a free account for 25 questions/day, or upgrade to Initiate for unlimited.`,
+        code: "RATE_LIMITED",
+        used,
+        limit,
+      }, { status: 429 });
+    }
+
+    // ── Try live backend ───────────────────────────────────────────────────
     if (API_URL && API_KEY) {
       try {
         const backendRes = await fetch(`${API_URL}/chat`, {
@@ -151,34 +264,40 @@ export async function POST(req: NextRequest) {
             message,
             history,
           }),
-          signal: AbortSignal.timeout(30000), // 30s timeout
+          signal: AbortSignal.timeout(30000),
         });
 
         if (backendRes.ok) {
           const data = await backendRes.json();
-          // The VoA API may return the response in different fields
           const responseText = data.response || data.text || data.message || data.reply;
           if (responseText) {
-            return NextResponse.json({ response: responseText });
+            return NextResponse.json({
+              response: responseText,
+              plan,
+              usage: { used, limit },
+            });
           }
         }
-        // If backend fails, fall through to demo mode
         console.error("Oracle backend returned non-OK:", backendRes.status);
       } catch (backendError) {
         console.error("Oracle backend error:", backendError);
-        // Fall through to demo mode
       }
     }
 
-    // --- Demo mode (backend not connected or failed) ---
+    // ── Demo mode ─────────────────────────────────────────────────────────
     const demoText = DEMO_RESPONSES[mode] || DEMO_RESPONSES.oracle;
-    return NextResponse.json({ response: demoText });
+    return NextResponse.json({
+      response: demoText,
+      plan,
+      usage: { used, limit },
+      demo: true,
+    });
 
   } catch (error) {
     console.error("Oracle API route error:", error);
     return NextResponse.json(
       { response: "The Oracle encountered an error. Please try again." },
-      { status: 200 } // Return 200 so frontend displays the message
+      { status: 200 }
     );
   }
 }
