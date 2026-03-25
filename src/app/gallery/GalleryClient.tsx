@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
-import TransmissionStream from "@/components/gallery/TransmissionStream";
+import UTTVPlayer from "@/components/gallery/UTTVPlayer";
 import DriveGrid from "@/components/gallery/DriveGrid";
 import { artworks } from "@/data/artworks";
 
@@ -88,10 +88,41 @@ export default function GalleryClient() {
         ))}
       </div>
 
-      {/* Transmission Stream — YouTube playlist */}
+      {/* UT TV — YouTube playlist */}
       {activeFilter === "stream" && (
         <div className="mb-12 px-4 md:px-8">
-          <TransmissionStream />
+          {/* Section header */}
+          <div className="text-center mb-8">
+            <div
+              className="h-px mx-auto mb-6"
+              style={{
+                maxWidth: "240px",
+                background: "linear-gradient(90deg, transparent 0%, rgba(217,70,239,0.7) 20%, rgba(147,51,234,0.9) 40%, rgba(99,102,241,0.95) 50%, rgba(147,51,234,0.9) 60%, rgba(217,70,239,0.7) 80%, transparent 100%)",
+                boxShadow: "0 0 15px rgba(147,51,234,0.3)",
+              }}
+            />
+            <p
+              className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4"
+              style={{ color: "var(--ut-cyan)" }}
+            >
+              [ Live Transmission Stream ]
+            </p>
+            <h2
+              className="font-display text-3xl md:text-4xl mb-4 text-gradient-magenta"
+              style={{ textShadow: "0 0 40px rgba(217,70,239,0.3)" }}
+            >
+              UT TV
+            </h2>
+            <div
+              className="h-px mx-auto"
+              style={{
+                maxWidth: "240px",
+                background: "linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.7) 20%, rgba(99,102,241,0.95) 40%, rgba(147,51,234,0.9) 50%, rgba(99,102,241,0.95) 60%, rgba(34,211,238,0.7) 80%, transparent 100%)",
+                boxShadow: "0 0 15px rgba(34,211,238,0.3)",
+              }}
+            />
+          </div>
+          <UTTVPlayer />
         </div>
       )}
 
