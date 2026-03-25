@@ -60,6 +60,10 @@ export default function RootLayout({
         <PageBackground />
         {children}
         <Analytics />
+        <style>{`
+          #__nextjs-enterpriseAnalytics { display: none !important; }
+          [data-w-analytics] { display: none !important; }
+        `}</style>
       </body>
     </html>
   );
