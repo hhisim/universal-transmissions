@@ -92,7 +92,7 @@ export default function UTTVPlayer() {
 
   return (
     <div className="relative w-full" style={{ aspectRatio: "16/9", background: "#0a0a0a", overflow: "hidden" }}>
-      {/* YouTube player — no controls shown */}
+      {/* YouTube player — no controls */}
       <div ref={containerRef} className="absolute inset-0 w-full h-full" />
 
       {/* UT overlay — top bar */}
