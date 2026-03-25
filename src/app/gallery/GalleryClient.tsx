@@ -7,6 +7,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import UTTVPlayer from "@/components/gallery/UTTVPlayer";
 import TransmissionStream from "@/components/gallery/TransmissionStream";
+import DriveGrid from "@/components/gallery/DriveGrid";
 import { artworks } from "@/data/artworks";
 
 const FILTERS = [
@@ -14,6 +15,7 @@ const FILTERS = [
   { id: "universal-transmissions", label: "UNIVERSAL TRANSMISSIONS" },
   { id: "bio-energetic-vortexes", label: "BIO-ENERGETIC VORTEXES (CHAKRAS)" },
   { id: "prismatic", label: "PRISMATIC TRANSMISSIONS" },
+  { id: "grid", label: "GRID" },
 ];
 
 function SkeletonGrid() {
@@ -125,6 +127,12 @@ export default function GalleryClient() {
         <UTTVPlayer />
       </div>
 
+      {/* GRID filter — DriveGrid (Google Drive loader) */}
+      {activeFilter === "grid" && <DriveGrid />}
+
+      {/* Stream filter — TransmissionStream */}
+      {activeFilter === "stream" && <TransmissionStream />}
+
       {/* Artwork grid — skeleton or real */}
       {activeFilter !== "stream" && activeFilter !== "grid" && (
         isLoading ? (
@@ -172,8 +180,6 @@ export default function GalleryClient() {
           </div>
         )
       )}
-
-      {activeFilter === "stream" && <TransmissionStream />}
     </>
   );
 }
