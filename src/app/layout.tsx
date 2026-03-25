@@ -9,14 +9,6 @@ export const metadata: Metadata = {
   },
   description:
     "Universal Transmissions — The visual lexicon of hidden knowledge. Sacred geometry, symbolic art, and the Codex Oracle by Hakan Hisim.",
-  keywords: [
-    "Universal Transmissions",
-    "Hakan Hisim",
-    "Codex Oracle",
-    "sacred geometry",
-    "symbolic art",
-    "universal transmissions",
-  ],
   authors: [{ name: "Hakan Hisim" }],
   creator: "Hakan Hisim",
   openGraph: {
@@ -55,17 +47,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <style>{`
-          vaahvercelanalytics,
-          [data-w-vercelanalytics],
-          #vercel-analytics,
-          [id*="vercel-analytics"] {
-            display: none !important;
-            visibility: hidden !important;
-          }
-        `}</style>
-      </head>
       <body className="antialiased">
         <PageBackground />
         {children}
