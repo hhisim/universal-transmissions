@@ -1,3 +1,4 @@
+SHA: 1233230b9dfad3947a380ef140e933f20ddd61a7
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -259,7 +260,7 @@ export default function OraclePage() {
             )}
 
             <div style={{ display: "flex", gap: 8, alignItems: "flex-end", padding: "0 20px 16px" }}>
-              <textarea ref={el => el && (el.style.height = "auto", el.style.height = Math.min(el.scrollHeight, 120) + "px")} rows={1} value={input} onChange={e => setInput(e.target.value)} onKeyDown={kd} placeholder="Ask the Codex Oracle..." style={{ flex: 1, background: "rgba(17,15,26,0.6)", border: "1px solid rgba(217,70,239,0.1)", padding: "11px 14px", fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: "#ede9f6", resize: "none", outline: "none", transition: "all 0.3s" }} onFocus={e => { e.currentTarget.style.borderColor = "rgba(217,70,239,0.3)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(217,70,239,0.06)"; }} onBlur={e => { e.currentTarget.style.borderColor = "rgba(217,70,239,0.1)"; e.currentTarget.style.boxShadow = "none"; }} />
+              <textarea ref={el => { if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; } }} rows={1} value={input} onChange={e => setInput(e.target.value)} onKeyDown={kd} placeholder="Ask the Codex Oracle..." style={{ flex: 1, background: "rgba(17,15,26,0.6)", border: "1px solid rgba(217,70,239,0.1)", padding: "11px 14px", fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: "#ede9f6", resize: "none", outline: "none", transition: "all 0.3s" }} onFocus={e => { e.currentTarget.style.borderColor = "rgba(217,70,239,0.3)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(217,70,239,0.06)"; }} onBlur={e => { e.currentTarget.style.borderColor = "rgba(217,70,239,0.1)"; e.currentTarget.style.boxShadow = "none"; }} />
               <button onClick={() => send()} disabled={loading || !input.trim()} style={{ position: "relative", overflow: "hidden", padding: "11px 22px", border: "1px solid rgba(212,168,71,0.3)", background: "rgba(212,168,71,0.05)", fontFamily: "Cinzel, serif", fontSize: 10, letterSpacing: "0.2em", color: "#d4a847", cursor: "pointer", transition: "all 0.3s", opacity: loading || !input.trim() ? 0.3 : 1 }}>TRANSMIT<span style={{ position: "absolute", inset: 0, background: "linear-gradient(110deg, transparent 30%, rgba(212,168,71,0.08) 50%, transparent 70%)", animation: "gloss 3s ease-in-out infinite", pointerEvents: "none" }} /></button>
             </div>
             <div style={{ textAlign: "center", paddingBottom: 10, fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: "0.12em", color: "rgba(237,233,246,0.12)" }}>ENTER to send · SHIFT+ENTER for new line</div>
@@ -315,4 +316,5 @@ export default function OraclePage() {
     </div>
   );
 }
+
 
