@@ -4,10 +4,36 @@ import { useEffect, useRef, useState } from "react";
 
 const PLAYLIST_ID = "PLCWmbE92exfkQgYC4phTXoRKyJ-ACXVem";
 
+// YouTube IFrame API types
+interface YTPlayer {
+  playVideo(): void;
+  nextVideo(): void;
+  destroy(): void;
+  getVideoData(): { title?: string; video_id?: string } | null;
+}
+
+declare global {
+  interface Window {
+    YT: {
+      Player: new (
+        el: HTMLDivElement | string,
+        opts: {
+          playerVars?: Record<string, unknown>;
+          events?: {
+            onReady?: (e: { target: YTPlayer }) => void;
+            onStateChange?: (e: { data: number }) => void;
+          };
+        }
+      ) => YTPlayer;
+    };
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
 export default function UTTVPlayer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTitle, setCurrentTitle] = useState("Loading...");
-  const playerRef = useRef<YT.PlayerInstance | null>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
 
   useEffect(() => {
     if (!document.getElementById("youtube-iframe-api")) {
@@ -33,37 +59,31 @@ export default function UTTVPlayer() {
           mute: 1,
         },
         events: {
-          onReady: (event: { target: YT.PlayerInstance }) => {
-            event.target.playVideo();
-            const videoData = event.target.getVideoData();
-            setCurrentTitle(videoData?.title || "UT TV");
+          onReady: (e) => {
+            e.target.playVideo();
+            const d = e.target.getVideoData();
+            setCurrentTitle(d?.title || "UT TV");
           },
-          onStateChange: (event: { data: number }) => {
-            if (event.data === 0) {
-              // YT.PlayerState.ENDED
-              playerRef.current?.nextVideo();
-            }
-            if (event.data === 1) {
-              // YT.PlayerState.PLAYING
-              const videoData = playerRef.current?.getVideoData();
-              setCurrentTitle(videoData?.title || "UT TV");
+          onStateChange: (e) => {
+            if (e.data === 0) e.target.nextVideo();
+            if (e.data === 1) {
+              const d = e.target.getVideoData();
+              setCurrentTitle(d?.title || "UT TV");
             }
           },
         },
       });
     };
 
-    if (window.YT && window.YT.Player) {
+    if (window.YT?.Player) {
       initPlayer();
     } else {
       window.onYouTubeIframeAPIReady = initPlayer;
     }
 
     return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
+      playerRef.current?.destroy();
+      playerRef.current = null;
     };
   }, []);
 

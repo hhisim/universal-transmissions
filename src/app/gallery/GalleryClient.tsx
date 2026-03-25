@@ -25,10 +25,15 @@ export default function GalleryClient() {
     .filter((artwork) => {
       if (activeFilter === "all") return true;
       if (activeFilter === "prismatic") {
-        return (
-          artwork.tags.includes("prismatic") ||
-          artwork.tags.includes("twilight-transmissions")
-        );
+        const prismaticSlugs = [
+          "prismatic-equation",
+          "innerstellar-telemetry",
+          "twilight-pantheism",
+          "hyperdimensional-harmonics",
+          "enchanted-essence",
+          "trinary-transcendence",
+        ];
+        return prismaticSlugs.includes(artwork.slug);
       }
       if (activeFilter === "universal-transmissions") {
         return (

@@ -13,10 +13,7 @@ export const metadata: Metadata = {
     "Six transmissions rendered in prismatic twilight tones — where the visible spectrum bleeds into the invisible.",
 };
 
-const prismaticArtworks = artworks.filter((a) =>
-  a.tags.includes("twilight-transmissions") ||
-  a.tags.includes("twilight-pantheism")
-);
+const prismaticArtworks = artworks.filter((a) => a.tags.includes("prismatic"));
 
 export default function PrismaticPage() {
   return (
