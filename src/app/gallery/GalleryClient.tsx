@@ -18,6 +18,9 @@ const FILTERS = [
 
 export default function GalleryClient() {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => { const t = setTimeout(() => setIsLoading(false), 800); return () => clearTimeout(t); }, []);
 
   const filteredArtworks = artworks
     .filter((artwork) => {
