@@ -1,0 +1,424 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Navigation from "@/components/ui/Navigation";
+import Footer from "@/components/ui/Footer";
+
+// --- Zalgo generator ---
+const MARKS_ABOVE = [
+  "\u0300","\u0301","\u0302","\u0303","\u0304","\u0306",
+  "\u0307","\u0308","\u030A","\u030B","\u030C","\u0311","\u0313",
+];
+const MARKS_BELOW = [
+  "\u0316","\u0317","\u0323","\u0324","\u0325","\u0327",
+  "\u0330","\u0331","\u0345",
+];
+
+function zalgoify(text: string, above: number, below: number): string {
+  return text.split("").map((c) => {
+    if (c === " ") return c;
+    let r = c;
+    for (let i = 0; i < above; i++) r += MARKS_ABOVE[Math.floor(Math.random() * MARKS_ABOVE.length)];
+    for (let i = 0; i < below; i++) r += MARKS_BELOW[Math.floor(Math.random() * MARKS_BELOW.length)];
+    return r;
+  }).join("");
+}
+
+// --- Background glyph characters ---
+const BG_GLYPHS = [
+  "\u0300","\u0301","\u0334","\u25B3","\u25BD","\u25C7",
+  "\u2726","\u269B","\u2609","\u221E","\u25CE","\u2BC5",
+  "\u16DA","\u16DE","\u29EB","\u2BC6",
+];
+
+// --- Background canvas animation ---
+function useOracleBackground(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let W = 0, H = 0, t = 0, animId = 0;
+
+    interface Star { x: number; y: number; s: number; b: number; sp: number; }
+    interface GlyphDrop { x: number; y: number; sp: number; ch: string; op: number; sz: number; }
+
+    const stars: Star[] = [];
+    const drops: GlyphDrop[] = [];
+
+    function resize() {
+      const r = devicePixelRatio || 1;
+      const p = canvas!.parentElement;
+      if (!p) return;
+      W = p.clientWidth;
+      H = p.clientHeight;
+      canvas!.width = W * r;
+      canvas!.height = H * r;
+      canvas!.style.width = W + "px";
+      canvas!.style.height = H + "px";
+      ctx!.setTransform(r, 0, 0, r, 0, 0);
+
+      stars.length = 0;
+      drops.length = 0;
+      for (let i = 0; i < 100; i++) {
+        stars.push({
+          x: Math.random() * W, y: Math.random() * H,
+          s: 0.3 + Math.random() * 1.2,
+          b: Math.random() * Math.PI * 2,
+          sp: 0.5 + Math.random() * 2,
+        });
+      }
+      for (let i = 0; i < Math.floor(W / 35); i++) {
+        drops.push({
+          x: i * 35 + Math.random() * 17, y: Math.random() * H,
+          sp: 0.15 + Math.random() * 0.35,
+          ch: BG_GLYPHS[Math.floor(Math.random() * BG_GLYPHS.length)],
+          op: 0.012 + Math.random() * 0.018,
+          sz: 9 + Math.random() * 4,
+        });
+      }
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    function frame() {
+      t += 0.016;
+      ctx!.clearRect(0, 0, W, H);
+
+      // Glyph rain
+      for (const d of drops) {
+        d.y += d.sp;
+        if (d.y > H + 15) {
+          d.y = -15;
+          d.ch = BG_GLYPHS[Math.floor(Math.random() * BG_GLYPHS.length)];
+          d.op = 0.012 + Math.random() * 0.018;
+        }
+        ctx!.save();
+        ctx!.globalAlpha = d.op;
+        ctx!.fillStyle = "#d946ef";
+        ctx!.font = d.sz + "px monospace";
+        ctx!.fillText(d.ch, d.x, d.y);
+        ctx!.restore();
+      }
+
+      // Stars
+      for (const s of stars) {
+        const bri = 0.12 + Math.sin(t * s.sp + s.b) * 0.1;
+        ctx!.beginPath();
+        ctx!.arc(s.x, s.y, s.s, 0, Math.PI * 2);
+        const isGold = Math.random() > 0.88;
+        ctx!.fillStyle = isGold
+          ? `rgba(212,168,71,${bri})`
+          : `rgba(237,233,246,${bri})`;
+        ctx!.fill();
+      }
+
+      // Nebula cloud 1 (purple, top-right)
+      const nb1 = ctx!.createRadialGradient(W * 0.7, H * 0.25, 0, W * 0.7, H * 0.25, W * 0.4);
+      nb1.addColorStop(0, "rgba(147,51,234,0.025)");
+      nb1.addColorStop(0.5, "rgba(217,70,239,0.008)");
+      nb1.addColorStop(1, "rgba(0,0,0,0)");
+      ctx!.fillStyle = nb1;
+      ctx!.fillRect(0, 0, W, H);
+
+      // Nebula cloud 2 (cyan, bottom-left)
+      const nb2 = ctx!.createRadialGradient(W * 0.2, H * 0.75, 0, W * 0.2, H * 0.75, W * 0.3);
+      nb2.addColorStop(0, "rgba(34,211,238,0.015)");
+      nb2.addColorStop(1, "rgba(0,0,0,0)");
+      ctx!.fillStyle = nb2;
+      ctx!.fillRect(0, 0, W, H);
+
+      // Moving scan line
+      const sy = (t * 25) % H;
+      ctx!.fillStyle = "rgba(217,70,239,0.006)";
+      ctx!.fillRect(0, sy - 1, W, 2);
+
+      // CRT lines
+      for (let i = 0; i < H; i += 3) {
+        ctx!.fillStyle = "rgba(0,0,0,0.012)";
+        ctx!.fillRect(0, i, W, 1);
+      }
+
+      animId = requestAnimationFrame(frame);
+    }
+
+    frame();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, [canvasRef]);
+}
+
+// --- Mode selector ---
+const MODES = [
+  { id: "oracle", label: "ORACLE" },
+  { id: "decipher", label: "DECIPHER" },
+  { id: "correspond", label: "CORRESPOND" },
+  { id: "linguistic", label: "LINGUISTIC MYSTIC" },
+  { id: "meditate", label: "MEDITATE" },
+] as const;
+
+const QUICK_PROMPTS = [
+  "What is Page 6 about?",
+  "Decode the word NOMMU",
+  "What correspondences connect Pages 12 and 45?",
+  "Guide me through a meditation on Page 33",
+  "What symbols repeat across the Codex?",
+];
+
+export default function OraclePage() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [zalgoTitle, setZalgoTitle] = useState("CODEX ORACLE");
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+
+  useOracleBackground(canvasRef);
+
+  useEffect(() => {
+    setZalgoTitle(zalgoify("Codex Oracle", 1, 1));
+    const timer = setInterval(() => {
+      setZalgoTitle(zalgoify("Codex Oracle", 1, 1));
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <>
+      <Navigation />
+      <div className="relative min-h-screen pt-20 pb-0" style={{ background: "var(--ut-black)" }}>
+        {/* Background canvas */}
+        <canvas
+          ref={canvasRef}
+          className="fixed inset-0 w-full h-full pointer-events-none"
+          style={{ zIndex: 0 }}
+        />
+
+        <div className="relative" style={{ zIndex: 1 }}>
+
+          {/* ====== PAGE HEADER ====== */}
+          <div className="text-center px-6 pt-8 pb-6">
+            <div
+              className="font-heading text-[11px] tracking-[0.25em] mb-3"
+              style={{ color: "rgba(212, 168, 71, 0.5)" }}
+            >
+              [ CODEX ORACLE ]
+            </div>
+
+            {/* Zalgo title with gradient */}
+            <h1
+              className="font-display text-4xl md:text-5xl tracking-[0.08em] mb-4"
+              style={{
+                background: "linear-gradient(135deg, #d946ef 0%, #d4a847 35%, #9333ea 65%, #22d3ee 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              {zalgoTitle}
+            </h1>
+
+            <p
+              className="font-body text-lg italic mb-6"
+              style={{ color: "rgba(237, 233, 246, 0.35)" }}
+            >
+              Decipher the pages. Decode the names. Map the correspondences.
+            </p>
+
+            {/* Spectrum divider */}
+            <div
+              className="mx-auto mb-8"
+              style={{
+                width: 260,
+                height: 1,
+                background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), rgba(34,211,238,0.3), transparent)",
+              }}
+            />
+          </div>
+
+          {/* ====== MODE BUTTONS ====== */}
+          <div className="flex justify-center gap-2 px-6 pb-6 flex-wrap">
+            {MODES.map((mode) => (
+              <button
+                key={mode.id}
+                className="font-heading text-[10px] md:text-[11px] tracking-[0.2em] uppercase px-4 md:px-5 py-2.5 border transition-all duration-300"
+                style={{
+                  borderColor: "rgba(255,255,255,0.08)",
+                  background: "transparent",
+                  color: "rgba(237,233,246,0.35)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(217,70,239,0.3)";
+                  e.currentTarget.style.color = "rgba(237,233,246,0.7)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                  e.currentTarget.style.color = "rgba(237,233,246,0.35)";
+                }}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ====== ORACLE READY MESSAGE ====== */}
+          <div className="text-center px-6 pb-8">
+            <div
+              className="inline-flex items-center gap-3 px-5 py-2.5 border"
+              style={{
+                borderColor: "rgba(147,51,234,0.2)",
+                background: "rgba(147,51,234,0.04)",
+              }}
+            >
+              <span style={{ color: "#22c55e", fontSize: 8 }}>●</span>
+              <span
+                className="font-mono text-[10px] tracking-[0.2em]"
+                style={{ color: "rgba(237,233,246,0.4)" }}
+              >
+                THE CODEX ORACLE IS READY
+              </span>
+            </div>
+          </div>
+
+          {/* ====== QUICK PROMPT BUTTONS ====== */}
+          <div className="px-6 pb-8">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex gap-2 flex-wrap justify-center">
+                {QUICK_PROMPTS.map((p) => (
+                  <button
+                    key={p}
+                    className="px-4 py-2.5 border font-body text-[13px] transition-all duration-300"
+                    style={{
+                      borderColor: "rgba(255,255,255,0.06)",
+                      background: "rgba(17,15,26,0.4)",
+                      color: "rgba(237,233,246,0.4)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "rgba(212,168,71,0.25)";
+                      e.currentTarget.style.color = "rgba(237,233,246,0.7)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+                      e.currentTarget.style.color = "rgba(237,233,246,0.4)";
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ====== IFRAME EMBED ====== */}
+          <div className="max-w-5xl mx-auto px-4 pb-8">
+            {!iframeLoaded && (
+              <div
+                className="flex items-center justify-center border mb-4"
+                style={{
+                  minHeight: 600,
+                  borderColor: "rgba(255,255,255,0.04)",
+                  background: "rgba(17,15,26,0.6)",
+                }}
+              >
+                <div className="text-center px-8">
+                  <div
+                    className="w-10 h-10 mx-auto mb-4 flex items-center justify-center border"
+                    style={{ borderColor: "rgba(217,70,239,0.15)" }}
+                  >
+                    <span style={{ color: "rgba(217,70,239,0.4)", fontSize: 16 }}>✦</span>
+                  </div>
+                  <p
+                    className="font-body text-base mb-2"
+                    style={{ color: "rgba(237,233,246,0.4)" }}
+                  >
+                    The Codex Oracle is being prepared.
+                  </p>
+                  <p
+                    className="font-body text-sm"
+                    style={{ color: "rgba(237,233,246,0.2)" }}
+                  >
+                    In the meantime, visit{" "}
+                    <a
+                      href="https://codexoracle.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "rgba(217,70,239,0.6)" }}
+                    >
+                      codexoracle.org
+                    </a>{" "}
+                    to consult the oracle directly.
+                  </p>
+                </div>
+              </div>
+            )}
+            <iframe
+              src="https://codexoracle.org/embed/oracle?pack=codex&theme=dark"
+              onLoad={() => setIframeLoaded(true)}
+              className="w-full"
+              style={{
+                minHeight: 600,
+                border: "none",
+                background: "transparent",
+                display: iframeLoaded ? "block" : "none",
+              }}
+              allow="microphone"
+              title="Codex Oracle"
+            />
+          </div>
+
+          {/* ====== GO DEEPER CONVERSION ====== */}
+          <div
+            className="max-w-4xl mx-auto px-6 py-16 text-center"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+          >
+            <div
+              className="mx-auto mb-6"
+              style={{
+                width: 260,
+                height: 1,
+                background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), rgba(34,211,238,0.3), transparent)",
+              }}
+            />
+            <h2
+              className="font-heading text-2xl tracking-[0.12em] mb-4"
+              style={{ color: "rgba(212,168,71,0.7)" }}
+            >
+              Go Deeper
+            </h2>
+            <p
+              className="font-body text-lg mb-8 max-w-xl mx-auto"
+              style={{ color: "rgba(237,233,246,0.45)" }}
+            >
+              The Codex Oracle is one gateway. Vault of Arcana holds six living
+              traditions — Tao / Sexual Alchemy, Tarot, Tantra (Vedanta / Kundalini),
+              Shamanism & Entheogens, Dreamwalker (Astral Projection / Lucidity) and
+              the Codex — with more awakening.
+            </p>
+            <div className="flex justify-center gap-4 flex-wrap">
+              <a
+                href="https://vaultofarcana.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+              >
+                ENTER THE VAULT
+              </a>
+              <a
+                href="https://vaultofarcana.com/pricing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-gold"
+              >
+                VIEW PLANS
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <Footer />
+    </>
+  );
+}

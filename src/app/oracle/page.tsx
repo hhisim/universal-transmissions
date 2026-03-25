@@ -1,734 +1,300 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
 
 // ============================================================
-// ORACLE PAGE — Complete self-contained component
+// CODEX ORACLE PAGE — Complete, self-contained, production-ready
 // File: src/app/oracle/page.tsx
 //
-// INSTRUCTIONS FOR PRIME:
-// 1. Delete the ENTIRE current oracle/page.tsx
-// 2. Replace with THIS FILE exactly as-is
-// 3. Do NOT modify, "improve", or refactor any part of this code
-// 4. Do NOT add emoji anywhere
-// 5. Do NOT add border-radius to any element
-// 6. Deploy and verify it matches the visual reference HTML
+// PRIME: DELETE the current oracle/page.tsx entirely.
+// Replace with THIS FILE. Do not modify anything.
 // ============================================================
 
-// --- Zalgo generator (self-contained, no external import) ---
-const MARKS_ABOVE = [
-  "\u0300","\u0301","\u0302","\u0303","\u0304","\u0306",
-  "\u0307","\u0308","\u030A","\u030B","\u030C","\u0311","\u0313",
-];
-const MARKS_BELOW = [
-  "\u0316","\u0317","\u0323","\u0324","\u0325","\u0327",
-  "\u0330","\u0331","\u0345",
-];
-
-function zalgoify(text: string, above: number, below: number): string {
-  return text.split("").map((c) => {
+// --- Zalgo ---
+const MA = ["\u0300","\u0301","\u0302","\u0303","\u0308","\u030A","\u030C","\u0311","\u0313"];
+const MB = ["\u0316","\u0323","\u0325","\u0330","\u0331","\u0345"];
+function zg(t: string, a: number, b: number): string {
+  return t.split("").map(c => {
     if (c === " ") return c;
     let r = c;
-    for (let i = 0; i < above; i++) r += MARKS_ABOVE[Math.floor(Math.random() * MARKS_ABOVE.length)];
-    for (let i = 0; i < below; i++) r += MARKS_BELOW[Math.floor(Math.random() * MARKS_BELOW.length)];
+    for (let i = 0; i < a; i++) r += MA[~~(Math.random() * MA.length)];
+    for (let i = 0; i < b; i++) r += MB[~~(Math.random() * MB.length)];
     return r;
   }).join("");
 }
 
 // --- Types ---
-interface ChatMessage {
-  role: "user" | "oracle";
-  content: string;
-  mode?: string;
-}
+interface Msg { role: "user" | "oracle"; text: string; mode?: string; }
 
-// --- Constants ---
+// --- Data ---
 const MODES = [
-  { id: "oracle", label: "ORACLE", color: "#d946ef", desc: "Poetic synthesis" },
-  { id: "decipher", label: "DECIPHER", color: "#22d3ee", desc: "Page decryption" },
-  { id: "correspond", label: "CORRESPOND", color: "#9333ea", desc: "Symbol cross-reference" },
-  { id: "linguistic", label: "LINGUISTIC MYSTIC", color: "#d4a847", desc: "Name & word decoding" },
-  { id: "meditate", label: "MEDITATE", color: "#22c55e", desc: "Page contemplation" },
-] as const;
-
-const QUICK_PROMPTS = [
+  { id: "oracle", label: "ORACLE", c: "#d946ef" },
+  { id: "decipher", label: "DECIPHER", c: "#22d3ee" },
+  { id: "correspond", label: "CORRESPOND", c: "#9333ea" },
+  { id: "linguistic", label: "LINGUISTIC MYSTIC", c: "#d4a847" },
+  { id: "meditate", label: "MEDITATE", c: "#22c55e" },
+];
+const PROMPTS = [
   "What is Page 6 about?",
-  "What is the meaning of Page 24?",
-  "What does the cube represent on Page 39?",
-  "Decode the word NOMMU letter by letter",
+  "Decode the word NOMMU",
   "What correspondences connect Pages 12 and 45?",
+  "Guide me through a meditation on Page 33",
+  "What symbols repeat across the Codex?",
 ];
-
-const MENU_ITEMS = [
-  { q: "What is Page 6 about?", color: "#d4a847" },
-  { q: "Decode the name ŠURPU", color: "#d946ef" },
-  { q: "Map correspondences for Page 12", color: "#9333ea" },
-  { q: "What symbols repeat across the Codex?", color: "#22d3ee" },
-  { q: "Guide me through a meditation on Page 33", color: "#22c55e" },
+const MENU = [
+  { q: "What is Page 6 about?", c: "#d4a847" },
+  { q: "Decode the name ŠURPU", c: "#d946ef" },
+  { q: "Map correspondences for Page 12", c: "#9333ea" },
+  { q: "What symbols repeat across the Codex?", c: "#22d3ee" },
+  { q: "Meditation on Page 33", c: "#22c55e" },
 ];
-
-// --- Background glyph characters ---
-const BG_GLYPHS = [
-  "\u0300","\u0301","\u0334","\u25B3","\u25BD","\u25C7",
-  "\u2726","\u269B","\u2609","\u221E","\u25CE","\u2BC5",
-  "\u16DA","\u16DE","\u29EB","\u2BC6",
-];
+const BGL = ["\u25B3","\u25BD","\u25C7","\u2726","\u269B","\u2609","\u221E","\u25CE","\u2BC5","\u16DA","\u16DE","\u29EB","\u0300","\u0301","\u0334"];
 
 // ============================================================
-// BACKGROUND CANVAS ANIMATION
+// BACKGROUND CANVAS
 // ============================================================
-function useOracleBackground(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
+function useBg(ref: React.RefObject<HTMLCanvasElement | null>) {
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let W = 0, H = 0, t = 0, animId = 0;
-
-    interface Star { x: number; y: number; s: number; b: number; sp: number; }
-    interface GlyphDrop { x: number; y: number; sp: number; ch: string; op: number; sz: number; }
-
-    const stars: Star[] = [];
-    const drops: GlyphDrop[] = [];
+    const cv = ref.current;
+    if (!cv) return;
+    const cx = cv.getContext("2d");
+    if (!cx) return;
+    let W = 0, H = 0, t = 0, af = 0;
+    type S = { x: number; y: number; s: number; b: number; sp: number };
+    type D = { x: number; y: number; sp: number; ch: string; op: number; sz: number };
+    const stars: S[] = [], drops: D[] = [];
 
     function resize() {
-      const r = devicePixelRatio || 1;
-      const p = canvas!.parentElement;
+      const r = devicePixelRatio || 1, p = cv!.parentElement;
       if (!p) return;
-      W = p.clientWidth;
-      H = p.clientHeight;
-      canvas!.width = W * r;
-      canvas!.height = H * r;
-      canvas!.style.width = W + "px";
-      canvas!.style.height = H + "px";
-      ctx!.setTransform(r, 0, 0, r, 0, 0);
-
-      stars.length = 0;
-      drops.length = 0;
-      for (let i = 0; i < 100; i++) {
-        stars.push({
-          x: Math.random() * W, y: Math.random() * H,
-          s: 0.3 + Math.random() * 1.2,
-          b: Math.random() * Math.PI * 2,
-          sp: 0.5 + Math.random() * 2,
-        });
-      }
-      for (let i = 0; i < Math.floor(W / 35); i++) {
-        drops.push({
-          x: i * 35 + Math.random() * 17, y: Math.random() * H,
-          sp: 0.15 + Math.random() * 0.35,
-          ch: BG_GLYPHS[Math.floor(Math.random() * BG_GLYPHS.length)],
-          op: 0.012 + Math.random() * 0.018,
-          sz: 9 + Math.random() * 4,
-        });
-      }
+      W = p.clientWidth; H = p.clientHeight;
+      cv!.width = W * r; cv!.height = H * r;
+      cv!.style.width = W + "px"; cv!.style.height = H + "px";
+      cx!.setTransform(r, 0, 0, r, 0, 0);
+      stars.length = 0; drops.length = 0;
+      for (let i = 0; i < 90; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, s: 0.3 + Math.random() * 1.2, b: Math.random() * Math.PI * 2, sp: 0.5 + Math.random() * 2 });
+      for (let i = 0; i < ~~(W / 35); i++) drops.push({ x: i * 35 + Math.random() * 17, y: Math.random() * H, sp: 0.15 + Math.random() * 0.35, ch: BGL[~~(Math.random() * BGL.length)], op: 0.012 + Math.random() * 0.018, sz: 9 + Math.random() * 4 });
     }
-
-    resize();
-    window.addEventListener("resize", resize);
+    resize(); window.addEventListener("resize", resize);
 
     function frame() {
-      t += 0.016;
-      ctx!.clearRect(0, 0, W, H);
-
-      // Glyph rain
-      for (const d of drops) {
-        d.y += d.sp;
-        if (d.y > H + 15) {
-          d.y = -15;
-          d.ch = BG_GLYPHS[Math.floor(Math.random() * BG_GLYPHS.length)];
-          d.op = 0.012 + Math.random() * 0.018;
-        }
-        ctx!.save();
-        ctx!.globalAlpha = d.op;
-        ctx!.fillStyle = "#d946ef";
-        ctx!.font = d.sz + "px monospace";
-        ctx!.fillText(d.ch, d.x, d.y);
-        ctx!.restore();
-      }
-
-      // Stars
-      for (const s of stars) {
-        const bri = 0.12 + Math.sin(t * s.sp + s.b) * 0.1;
-        ctx!.beginPath();
-        ctx!.arc(s.x, s.y, s.s, 0, Math.PI * 2);
-        const isGold = Math.random() > 0.88;
-        ctx!.fillStyle = isGold
-          ? `rgba(212,168,71,${bri})`
-          : `rgba(237,233,246,${bri})`;
-        ctx!.fill();
-      }
-
-      // Nebula cloud 1 (purple, top-right)
-      const nb1 = ctx!.createRadialGradient(W * 0.7, H * 0.25, 0, W * 0.7, H * 0.25, W * 0.4);
-      nb1.addColorStop(0, "rgba(147,51,234,0.025)");
-      nb1.addColorStop(0.5, "rgba(217,70,239,0.008)");
-      nb1.addColorStop(1, "rgba(0,0,0,0)");
-      ctx!.fillStyle = nb1;
-      ctx!.fillRect(0, 0, W, H);
-
-      // Nebula cloud 2 (cyan, bottom-left)
-      const nb2 = ctx!.createRadialGradient(W * 0.2, H * 0.75, 0, W * 0.2, H * 0.75, W * 0.3);
-      nb2.addColorStop(0, "rgba(34,211,238,0.015)");
-      nb2.addColorStop(1, "rgba(0,0,0,0)");
-      ctx!.fillStyle = nb2;
-      ctx!.fillRect(0, 0, W, H);
-
-      // Moving scan line
-      const sy = (t * 25) % H;
-      ctx!.fillStyle = "rgba(217,70,239,0.006)";
-      ctx!.fillRect(0, sy - 1, W, 2);
-
-      // CRT lines
-      for (let i = 0; i < H; i += 3) {
-        ctx!.fillStyle = "rgba(0,0,0,0.012)";
-        ctx!.fillRect(0, i, W, 1);
-      }
-
-      animId = requestAnimationFrame(frame);
+      t += 0.016; cx!.clearRect(0, 0, W, H);
+      for (const d of drops) { d.y += d.sp; if (d.y > H + 15) { d.y = -15; d.ch = BGL[~~(Math.random() * BGL.length)]; d.op = 0.012 + Math.random() * 0.018; } cx!.save(); cx!.globalAlpha = d.op; cx!.fillStyle = "#d946ef"; cx!.font = d.sz + "px monospace"; cx!.fillText(d.ch, d.x, d.y); cx!.restore(); }
+      for (const s of stars) { const b = 0.12 + Math.sin(t * s.sp + s.b) * 0.1; cx!.beginPath(); cx!.arc(s.x, s.y, s.s, 0, Math.PI * 2); cx!.fillStyle = Math.random() > 0.88 ? `rgba(212,168,71,${b})` : `rgba(237,233,246,${b})`; cx!.fill(); }
+      const n1 = cx!.createRadialGradient(W * 0.7, H * 0.25, 0, W * 0.7, H * 0.25, W * 0.4); n1.addColorStop(0, "rgba(147,51,234,0.025)"); n1.addColorStop(1, "rgba(0,0,0,0)"); cx!.fillStyle = n1; cx!.fillRect(0, 0, W, H);
+      const n2 = cx!.createRadialGradient(W * 0.2, H * 0.75, 0, W * 0.2, H * 0.75, W * 0.3); n2.addColorStop(0, "rgba(34,211,238,0.015)"); n2.addColorStop(1, "rgba(0,0,0,0)"); cx!.fillStyle = n2; cx!.fillRect(0, 0, W, H);
+      const sy = (t * 25) % H; cx!.fillStyle = "rgba(217,70,239,0.006)"; cx!.fillRect(0, sy - 1, W, 2);
+      for (let i = 0; i < H; i += 3) { cx!.fillStyle = "rgba(0,0,0,0.012)"; cx!.fillRect(0, i, W, 1); }
+      af = requestAnimationFrame(frame);
     }
-
     frame();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener("resize", resize);
-    };
-  }, [canvasRef]);
+    return () => { cancelAnimationFrame(af); window.removeEventListener("resize", resize); };
+  }, [ref]);
 }
 
 // ============================================================
-// MAIN COMPONENT
+// COMPONENT
 // ============================================================
 export default function OraclePage() {
-  // --- State ---
-  const [activeMode, setActiveMode] = useState("oracle");
-  const [language, setLanguage] = useState("en");
-  const [voiceOn, setVoiceOn] = useState(false);
-  const [voiceGender, setVoiceGender] = useState<"female" | "male">("female");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [zalgoTitle, setZalgoTitle] = useState("CODEX ORACLE");
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [mode, setMode] = useState("oracle");
+  const [lang, setLang] = useState("en");
+  const [voice, setVoice] = useState(false);
+  const [gender, setGender] = useState<"f"|"m">("f");
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [zt, setZt] = useState("CODEX ORACLE");
+  const cvRef = useRef<HTMLCanvasElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // --- Background animation ---
-  useOracleBackground(canvasRef);
+  useBg(cvRef);
 
-  // --- Animated Zalgo title ---
-  useEffect(() => {
-    setZalgoTitle(zalgoify("CODEX ORACLE", 1, 1));
-    const timer = setInterval(() => {
-      setZalgoTitle(zalgoify("CODEX ORACLE", 1, 1));
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+  useEffect(() => { setZt(zg("CODEX ORACLE", 1, 1)); const t = setInterval(() => setZt(zg("CODEX ORACLE", 1, 1)), 4000); return () => clearInterval(t); }, []);
+  useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
-  // --- Scroll chat to bottom ---
-  useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  // --- Send message ---
-  const sendMessage = useCallback(async (text?: string) => {
-    const msg = (text || inputValue).trim();
-    if (!msg) return;
-    setInputValue("");
-
-    const userMsg: ChatMessage = { role: "user", content: msg };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsLoading(true);
-
+  const send = useCallback(async (text?: string) => {
+    const m = (text || input).trim();
+    if (!m) return;
+    setInput("");
+    setMsgs(p => [...p, { role: "user", text: m }]);
+    setLoading(true);
     try {
-      const res = await fetch("/api/oracle", {
+      const r = await fetch("/api/oracle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: msg,
-          mode: activeMode,
-          language,
-          history: messages.slice(-10),
-        }),
+        body: JSON.stringify({ message: m, mode, language: lang, history: msgs.slice(-10) }),
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        const oracleMsg: ChatMessage = {
-          role: "oracle",
-          content: data.response || data.text || data.message || "The Oracle is contemplating...",
-          mode: activeMode,
-        };
-        setMessages((prev) => [...prev, oracleMsg]);
-      } else {
-        setMessages((prev) => [...prev, {
-          role: "oracle",
-          content: "The transmission was interrupted. Please try again.",
-          mode: activeMode,
-        }]);
-      }
+      const d = await r.json();
+      setMsgs(p => [...p, { role: "oracle", text: d.response || d.text || d.message || "The Oracle is contemplating...", mode }]);
     } catch {
-      setMessages((prev) => [...prev, {
-        role: "oracle",
-        content: "The Oracle is currently unreachable. Check your connection and try again.",
-        mode: activeMode,
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [inputValue, activeMode, language, messages]);
+      setMsgs(p => [...p, { role: "oracle", text: "The transmission was interrupted. Please try again.", mode }]);
+    } finally { setLoading(false); }
+  }, [input, mode, lang, msgs]);
 
-  // --- Key handler ---
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  const kd = (e: React.KeyboardEvent) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+  const ml = (id: string) => MODES.find(m => m.id === id)?.label || "ORACLE";
+  const has = msgs.length > 0;
 
-  // --- Get mode label ---
-  const getModeLabel = (id: string) => MODES.find((m) => m.id === id)?.label || "ORACLE";
+  // Shared styles
+  const borderFaint = "1px solid rgba(255,255,255,0.04)";
+  const labelStyle: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.15em", color: "rgba(237,233,246,0.25)", textTransform: "uppercase" as const, marginBottom: 8 };
 
-  const hasMessages = messages.length > 0;
-
-  // ============================================================
-  // RENDER
-  // ============================================================
   return (
-    <div className="relative min-h-screen pt-20 pb-0">
-      {/* Background canvas */}
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 w-full h-full pointer-events-none"
-        style={{ zIndex: 0 }}
-      />
+    <div style={{ position: "relative", minHeight: "100vh", paddingTop: 80, background: "#0a090e" }}>
+      {/* BG Canvas */}
+      <canvas ref={cvRef} style={{ position: "fixed", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} />
 
-      <div className="relative" style={{ zIndex: 1 }}>
-        {/* ====== PAGE HEADER — matches Gallery page pattern ====== */}
-        <div className="text-center px-6 pt-8 pb-2">
-          <div
-            className="font-heading text-[11px] tracking-[0.25em] mb-3"
-            style={{ color: "rgba(212, 168, 71, 0.5)" }}
-          >
-            [ SACRED TEXT / SYMBOLIC ORACLE ]
-          </div>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", padding: "0 16px" }}>
 
-          {/* Zalgo title with gradient */}
-          <h1
-            className="font-display text-4xl md:text-5xl tracking-[0.08em] mb-3 transition-opacity duration-1000"
-            style={{
-              background: "linear-gradient(135deg, #d946ef 0%, #d4a847 35%, #9333ea 65%, #22d3ee 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            {zalgoTitle}
-          </h1>
-
-          <p className="font-body text-lg italic mb-6" style={{ color: "rgba(237, 233, 246, 0.35)" }}>
-            Decipher the pages. Decode the names. Map the correspondences.
-          </p>
-
-          {/* Spectrum divider */}
-          <div
-            className="mx-auto mb-6"
-            style={{
-              width: 260,
-              height: 1,
-              background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), rgba(34,211,238,0.3), transparent)",
-            }}
-          />
+        {/* HEADER */}
+        <div style={{ textAlign: "center", paddingTop: 32, paddingBottom: 8 }}>
+          <div style={{ fontFamily: "Cinzel, serif", fontSize: 11, letterSpacing: "0.25em", color: "rgba(212,168,71,0.5)", marginBottom: 8 }}>[ CODEX ORACLE ]</div>
+          <h1 style={{ fontFamily: "'Cinzel Decorative', Cinzel, serif", fontSize: "clamp(28px, 5vw, 48px)", letterSpacing: "0.08em", background: "linear-gradient(135deg, #d946ef 0%, #d4a847 35%, #9333ea 65%, #22d3ee 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", marginBottom: 8, transition: "opacity 1s" }}>{zt}</h1>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "rgba(237,233,246,0.35)", marginBottom: 20 }}>Decipher the pages. Decode the names. Map the correspondences.</p>
+          <div style={{ width: 260, height: 1, margin: "0 auto 20px", background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), rgba(34,211,238,0.3), transparent)" }} />
         </div>
 
-        {/* ====== MODE BUTTONS — matches Gallery filter button pattern ====== */}
-        <div className="flex justify-center gap-2 px-6 pb-6 flex-wrap">
-          {MODES.map((mode) => (
-            <button
-              key={mode.id}
-              onClick={() => setActiveMode(mode.id)}
-              className="font-heading text-[10px] md:text-[11px] tracking-[0.2em] uppercase px-4 md:px-5 py-2.5 border transition-all duration-300"
-              style={{
-                borderColor: activeMode === mode.id ? mode.color + "55" : "rgba(255,255,255,0.08)",
-                background: activeMode === mode.id ? mode.color + "0a" : "transparent",
-                color: activeMode === mode.id ? mode.color : "rgba(237,233,246,0.35)",
-              }}
-              onMouseEnter={(e) => {
-                if (activeMode !== mode.id) {
-                  e.currentTarget.style.color = "rgba(237,233,246,0.6)";
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeMode !== mode.id) {
-                  e.currentTarget.style.color = "rgba(237,233,246,0.35)";
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                }
-              }}
-            >
-              {mode.label}
-            </button>
+        {/* MODE BUTTONS */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+          {MODES.map(mo => (
+            <button key={mo.id} onClick={() => setMode(mo.id)} style={{ fontFamily: "Cinzel, serif", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", padding: "10px 20px", border: `1px solid ${mode === mo.id ? mo.c + "55" : "rgba(255,255,255,0.08)"}`, background: mode === mo.id ? mo.c + "0a" : "transparent", color: mode === mo.id ? mo.c : "rgba(237,233,246,0.35)", cursor: "pointer", transition: "all 0.3s" }}>{mo.label}</button>
           ))}
         </div>
 
-        {/* ====== THREE-COLUMN LAYOUT ====== */}
-        <div
-          className="max-w-7xl mx-auto flex"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.04)", minHeight: 520 }}
-        >
-          {/* ---- LEFT SIDEBAR ---- */}
-          <div
-            className="hidden lg:flex flex-col gap-5 p-5 flex-shrink-0"
-            style={{ width: 220, borderRight: "1px solid rgba(255,255,255,0.04)" }}
-          >
-            {/* Language */}
+        {/* THREE COLUMN */}
+        <div style={{ display: "flex", gap: 0, borderTop: borderFaint, minHeight: 520 }}>
+
+          {/* LEFT */}
+          <div style={{ width: 210, flexShrink: 0, borderRight: borderFaint, padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>
-                Language
-              </div>
-              <div className="flex gap-1">
-                {(["en", "tr", "ru"] as const).map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => setLanguage(lang)}
-                    className="px-3 py-1.5 font-mono text-[9px] tracking-[0.1em] uppercase border transition-all duration-300"
-                    style={{
-                      borderColor: language === lang ? "rgba(217,70,239,0.3)" : "rgba(255,255,255,0.06)",
-                      background: language === lang ? "rgba(217,70,239,0.08)" : "transparent",
-                      color: language === lang ? "#d946ef" : "rgba(237,233,246,0.25)",
-                    }}
-                  >
-                    {lang}
-                  </button>
+              <div style={labelStyle}>Language</div>
+              <div style={{ display: "flex", gap: 4 }}>
+                {(["en","tr","ru"] as const).map(l => (
+                  <button key={l} onClick={() => setLang(l)} style={{ padding: "5px 12px", border: `1px solid ${lang === l ? "rgba(217,70,239,0.3)" : "rgba(255,255,255,0.06)"}`, background: lang === l ? "rgba(217,70,239,0.08)" : "transparent", color: lang === l ? "#d946ef" : "rgba(237,233,246,0.25)", fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", transition: "all 0.3s" }}>{l}</button>
                 ))}
               </div>
             </div>
 
-            {/* Voice */}
             <div>
-              <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>
-                Voice
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setVoiceOn(!voiceOn)}
-                  className="px-4 py-1.5 font-mono text-[9px] tracking-[0.08em] border transition-all duration-300"
-                  style={{
-                    borderColor: voiceOn ? "rgba(34,211,238,0.3)" : "rgba(255,255,255,0.06)",
-                    background: voiceOn ? "rgba(34,211,238,0.06)" : "transparent",
-                    color: voiceOn ? "#22d3ee" : "rgba(237,233,246,0.25)",
-                  }}
-                >
-                  {voiceOn ? "ON" : "OFF"}
-                </button>
-                {voiceOn && (
-                  <div className="flex gap-1 flex-1">
-                    {(["female", "male"] as const).map((g) => (
-                      <button
-                        key={g}
-                        onClick={() => setVoiceGender(g)}
-                        className="flex-1 py-1 text-center font-mono text-[9px] border transition-all duration-300"
-                        style={{
-                          borderColor: voiceGender === g ? "rgba(212,168,71,0.3)" : "rgba(255,255,255,0.06)",
-                          background: voiceGender === g ? "rgba(212,168,71,0.08)" : "transparent",
-                          color: voiceGender === g ? "#d4a847" : "rgba(237,233,246,0.25)",
-                        }}
-                      >
-                        {g === "female" ? "♀ FEM" : "♂ MAL"}
-                      </button>
+              <div style={labelStyle}>Voice</div>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <button onClick={() => setVoice(!voice)} style={{ padding: "5px 14px", border: `1px solid ${voice ? "rgba(34,211,238,0.3)" : "rgba(255,255,255,0.06)"}`, background: voice ? "rgba(34,211,238,0.06)" : "transparent", color: voice ? "#22d3ee" : "rgba(237,233,246,0.25)", fontFamily: "'JetBrains Mono', monospace", fontSize: 9, cursor: "pointer", transition: "all 0.3s" }}>{voice ? "ON" : "OFF"}</button>
+                {voice && (
+                  <div style={{ display: "flex", gap: 4, flex: 1 }}>
+                    {(["f","m"] as const).map(g => (
+                      <button key={g} onClick={() => setGender(g)} style={{ flex: 1, padding: "4px 0", textAlign: "center", border: `1px solid ${gender === g ? "rgba(212,168,71,0.3)" : "rgba(255,255,255,0.06)"}`, background: gender === g ? "rgba(212,168,71,0.08)" : "transparent", color: gender === g ? "#d4a847" : "rgba(237,233,246,0.25)", fontFamily: "'JetBrains Mono', monospace", fontSize: 9, cursor: "pointer", transition: "all 0.3s" }}>{g === "f" ? "♀ FEM" : "♂ MAL"}</button>
                     ))}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Mode descriptions */}
-            <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
-              <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>
-                Active Mode
+            <div style={{ borderTop: borderFaint, paddingTop: 12 }}>
+              <div style={labelStyle}>Active: <span style={{ color: MODES.find(m=>m.id===mode)?.c }}>{ml(mode)}</span></div>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: "rgba(237,233,246,0.25)", lineHeight: 1.6 }}>
+                {mode === "oracle" && "Poetic synthesis of page symbolism, geometry, and hidden meaning."}
+                {mode === "decipher" && "Structured page decryption with geometric, linguistic, and correspondence layers."}
+                {mode === "correspond" && "Cross-reference symbols across pages, traditions, planets, and archetypes."}
+                {mode === "linguistic" && "Decode any word or name letter by letter through the alphabet ontology."}
+                {mode === "meditate" && "Guided contemplative practice connected to a specific Codex page."}
               </div>
-              {MODES.map((mode) => (
-                <div
-                  key={mode.id}
-                  className="mb-1 font-body text-[13px] leading-relaxed transition-opacity duration-300"
-                  style={{
-                    color: activeMode === mode.id ? mode.color : "rgba(237,233,246,0.15)",
-                    opacity: activeMode === mode.id ? 1 : 0.5,
-                  }}
-                >
-                  {activeMode === mode.id && "▸ "}{mode.label}
-                  {activeMode === mode.id && (
-                    <span style={{ color: "rgba(237,233,246,0.3)", marginLeft: 6, fontSize: 11 }}>
-                      — {mode.desc}
-                    </span>
-                  )}
-                </div>
-              ))}
             </div>
 
-            {/* Ask About */}
-            <div className="mt-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
-              <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-2" style={{ color: "rgba(237,233,246,0.25)" }}>
-                Ask About
-              </div>
-              <div className="font-body text-[13px] leading-relaxed" style={{ color: "rgba(237,233,246,0.3)" }}>
-                <div className="mb-1">✦ Any of the 150 Codex pages</div>
-                <div className="mb-1">✦ Symbols &amp; alphabets</div>
-                <div className="mb-1">✦ Page names &amp; meanings</div>
-                <div className="mb-1">✦ Energetic meaning of words</div>
-                <div>✦ Cross-references &amp; correspondences</div>
+            <div style={{ marginTop: "auto", borderTop: borderFaint, paddingTop: 12 }}>
+              <div style={labelStyle}>Ask About</div>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: "rgba(237,233,246,0.3)", lineHeight: 1.8 }}>
+                {["Any of the 150 Codex pages", "Symbols & alphabets", "Page names & meanings", "Energetic meaning of words", "Correspondences & cross-references"].map(t => <div key={t}>✦ {t}</div>)}
               </div>
             </div>
           </div>
 
-          {/* ---- CENTER — Chat Area ---- */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Chat messages */}
-            <div
-              ref={chatRef}
-              className="flex-1 p-5 overflow-y-auto"
-              style={{ maxHeight: 420 }}
-            >
-              {/* Welcome state */}
-              {!hasMessages && (
-                <div className="text-center py-10 px-4">
-                  <div
-                    className="w-12 h-12 mx-auto mb-4 flex items-center justify-center border"
-                    style={{ borderColor: "rgba(217,70,239,0.15)" }}
-                  >
-                    <span style={{ color: "rgba(217,70,239,0.4)", fontSize: 18 }}>✦</span>
-                  </div>
-                  <div className="font-heading text-base tracking-[0.1em] mb-3" style={{ color: "rgba(237,233,246,0.5)" }}>
-                    Begin with a question about the Codex
-                  </div>
-                  <p className="font-body text-sm leading-relaxed max-w-sm mx-auto" style={{ color: "rgba(237,233,246,0.2)" }}>
-                    150 pages of xenolinguistic art, sacred geometry, and symbolic transmissions.
-                    Ask about any page, decode a name, or explore the correspondence web.
-                  </p>
+          {/* CENTER */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+            <div ref={chatRef} style={{ flex: 1, padding: 20, overflowY: "auto", maxHeight: 420 }}>
+              {!has && (
+                <div style={{ textAlign: "center", padding: "40px 16px" }}>
+                  <div style={{ width: 48, height: 48, margin: "0 auto 16px", border: "1px solid rgba(217,70,239,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: "rgba(217,70,239,0.4)", fontSize: 18 }}>✦</span></div>
+                  <div style={{ fontFamily: "Cinzel, serif", fontSize: 16, letterSpacing: "0.1em", color: "rgba(237,233,246,0.5)", marginBottom: 12 }}>Begin with a question about the Codex</div>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: "rgba(237,233,246,0.2)", lineHeight: 1.7, maxWidth: 380, margin: "0 auto" }}>150 pages of xenolinguistic art, sacred geometry, and symbolic transmissions. Ask about any page, decode a name, or explore the correspondence web.</p>
                 </div>
               )}
-
-              {/* Messages */}
-              {messages.map((msg, i) => (
-                <div key={i}>
-                  {msg.role === "user" ? (
-                    <div className="mb-4 px-3.5 py-2.5" style={{ borderLeft: "2px solid rgba(34,211,238,0.2)", background: "rgba(34,211,238,0.02)" }}>
-                      <div className="font-mono text-[8px] tracking-[0.15em] mb-1" style={{ color: "rgba(34,211,238,0.35)" }}>
-                        YOU
-                      </div>
-                      <div className="font-body text-[15px] leading-relaxed" style={{ color: "rgba(237,233,246,0.65)" }}>
-                        {msg.content}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mb-4 px-4 py-3.5" style={{ borderLeft: "2px solid rgba(217,70,239,0.3)", background: "rgba(217,70,239,0.025)" }}>
-                      <div className="font-mono text-[8px] tracking-[0.15em] mb-2" style={{ color: "rgba(217,70,239,0.4)" }}>
-                        CODEX ORACLE · {getModeLabel(msg.mode || "oracle")} MODE
-                      </div>
-                      <div className="font-body text-base leading-[1.75]" style={{ color: "#ede9f6" }}>
-                        {msg.content}
-                      </div>
-                    </div>
-                  )}
+              {msgs.map((m, i) => (
+                <div key={i} style={{ marginBottom: 16, padding: m.role === "oracle" ? "14px 16px" : "10px 14px", borderLeft: `2px solid ${m.role === "oracle" ? "rgba(217,70,239,0.3)" : "rgba(34,211,238,0.2)"}`, background: m.role === "oracle" ? "rgba(217,70,239,0.025)" : "rgba(34,211,238,0.02)" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: "0.15em", color: m.role === "oracle" ? "rgba(217,70,239,0.4)" : "rgba(34,211,238,0.35)", marginBottom: m.role === "oracle" ? 8 : 4 }}>
+                    {m.role === "oracle" ? `CODEX ORACLE · ${ml(m.mode || "oracle")} MODE` : "YOU"}
+                  </div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: m.role === "oracle" ? 16 : 15, lineHeight: 1.75, color: m.role === "oracle" ? "#ede9f6" : "rgba(237,233,246,0.65)", whiteSpace: "pre-wrap" }}>{m.text}</div>
                 </div>
               ))}
-
-              {/* Loading indicator */}
-              {isLoading && (
-                <div className="mb-4 px-4 py-3.5" style={{ borderLeft: "2px solid rgba(217,70,239,0.3)", background: "rgba(217,70,239,0.025)" }}>
-                  <div className="font-mono text-[8px] tracking-[0.15em] mb-2" style={{ color: "rgba(217,70,239,0.4)" }}>
-                    CODEX ORACLE · RECEIVING TRANSMISSION...
-                  </div>
-                  <div className="flex gap-1.5 items-center">
-                    <span className="w-1.5 h-1.5 animate-pulse" style={{ background: "#d946ef" }} />
-                    <span className="w-1.5 h-1.5 animate-pulse" style={{ background: "#9333ea", animationDelay: "0.15s" }} />
-                    <span className="w-1.5 h-1.5 animate-pulse" style={{ background: "#22d3ee", animationDelay: "0.3s" }} />
+              {loading && (
+                <div style={{ marginBottom: 16, padding: "14px 16px", borderLeft: "2px solid rgba(217,70,239,0.3)", background: "rgba(217,70,239,0.025)" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: "0.15em", color: "rgba(217,70,239,0.4)", marginBottom: 8 }}>CODEX ORACLE · RECEIVING...</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {[0, 0.15, 0.3].map((d, i) => <span key={i} style={{ width: 6, height: 6, background: ["#d946ef","#9333ea","#22d3ee"][i], animation: "pulse 1.5s ease-in-out infinite", animationDelay: d + "s" }} />)}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Quick prompts */}
-            {!hasMessages && (
-              <div className="px-5 pb-2">
-                <div className="flex gap-1.5 overflow-x-auto pb-2.5" style={{ scrollbarWidth: "none" }}>
-                  {QUICK_PROMPTS.map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => sendMessage(p)}
-                      className="flex-shrink-0 px-3 py-2 border font-body text-[13px] transition-all duration-300 whitespace-nowrap"
-                      style={{
-                        borderColor: "rgba(255,255,255,0.05)",
-                        background: "rgba(17,15,26,0.4)",
-                        color: "rgba(237,233,246,0.3)",
-                        maxWidth: 260,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(212,168,71,0.2)";
-                        e.currentTarget.style.color = "rgba(237,233,246,0.6)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
-                        e.currentTarget.style.color = "rgba(237,233,246,0.3)";
-                      }}
-                    >
-                      {p}
-                    </button>
+            {!has && (
+              <div style={{ padding: "0 20px 8px" }}>
+                <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 10 }}>
+                  {PROMPTS.map(p => (
+                    <button key={p} onClick={() => send(p)} style={{ flexShrink: 0, padding: "7px 12px", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(17,15,26,0.4)", color: "rgba(237,233,246,0.3)", fontFamily: "'Cormorant Garamond', serif", fontSize: 13, cursor: "pointer", transition: "all 0.3s", whiteSpace: "nowrap", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis" }}>{p}</button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Input bar */}
-            <div className="flex gap-2 items-end px-5 pb-4">
-              <textarea
-                ref={inputRef}
-                rows={1}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask the Codex Oracle..."
-                className="flex-1 font-body text-base resize-none outline-none transition-all duration-300"
-                style={{
-                  background: "rgba(17,15,26,0.6)",
-                  border: "1px solid rgba(217,70,239,0.1)",
-                  padding: "11px 14px",
-                  color: "#ede9f6",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(217,70,239,0.3)";
-                  e.currentTarget.style.boxShadow = "0 0 12px rgba(217,70,239,0.06)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(217,70,239,0.1)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
-              <button
-                onClick={() => sendMessage()}
-                disabled={isLoading || !inputValue.trim()}
-                className="relative overflow-hidden font-heading text-[10px] tracking-[0.2em] transition-all duration-300 disabled:opacity-30"
-                style={{
-                  padding: "11px 22px",
-                  border: "1px solid rgba(212,168,71,0.3)",
-                  background: "rgba(212,168,71,0.05)",
-                  color: "#d4a847",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(212,168,71,0.6)";
-                  e.currentTarget.style.boxShadow = "0 0 20px rgba(212,168,71,0.12)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(212,168,71,0.3)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                TRANSMIT
-                {/* Gloss sweep */}
-                <span
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: "linear-gradient(110deg, transparent 30%, rgba(212,168,71,0.08) 50%, transparent 70%)",
-                    animation: "gloss 3s ease-in-out infinite",
-                  }}
-                />
-              </button>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-end", padding: "0 20px 16px" }}>
+              <textarea ref={el => el && (el.style.height = "auto", el.style.height = Math.min(el.scrollHeight, 120) + "px")} rows={1} value={input} onChange={e => setInput(e.target.value)} onKeyDown={kd} placeholder="Ask the Codex Oracle..." style={{ flex: 1, background: "rgba(17,15,26,0.6)", border: "1px solid rgba(217,70,239,0.1)", padding: "11px 14px", fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: "#ede9f6", resize: "none", outline: "none", transition: "all 0.3s" }} onFocus={e => { e.currentTarget.style.borderColor = "rgba(217,70,239,0.3)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(217,70,239,0.06)"; }} onBlur={e => { e.currentTarget.style.borderColor = "rgba(217,70,239,0.1)"; e.currentTarget.style.boxShadow = "none"; }} />
+              <button onClick={() => send()} disabled={loading || !input.trim()} style={{ position: "relative", overflow: "hidden", padding: "11px 22px", border: "1px solid rgba(212,168,71,0.3)", background: "rgba(212,168,71,0.05)", fontFamily: "Cinzel, serif", fontSize: 10, letterSpacing: "0.2em", color: "#d4a847", cursor: "pointer", transition: "all 0.3s", opacity: loading || !input.trim() ? 0.3 : 1 }}>TRANSMIT<span style={{ position: "absolute", inset: 0, background: "linear-gradient(110deg, transparent 30%, rgba(212,168,71,0.08) 50%, transparent 70%)", animation: "gloss 3s ease-in-out infinite", pointerEvents: "none" }} /></button>
             </div>
-            <div className="text-center pb-3 font-mono text-[8px] tracking-[0.12em]" style={{ color: "rgba(237,233,246,0.12)" }}>
-              ENTER to send · SHIFT+ENTER for new line
-            </div>
+            <div style={{ textAlign: "center", paddingBottom: 10, fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: "0.12em", color: "rgba(237,233,246,0.12)" }}>ENTER to send · SHIFT+ENTER for new line</div>
           </div>
 
-          {/* ---- RIGHT SIDEBAR ---- */}
-          <div
-            className="hidden xl:flex flex-col p-5 flex-shrink-0"
-            style={{ width: 200, borderLeft: "1px solid rgba(255,255,255,0.04)" }}
-          >
-            <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-3" style={{ color: "rgba(212,168,71,0.4)" }}>
-              Codex Oracle Menu
-            </div>
-
-            {/* Menu items */}
-            {MENU_ITEMS.map((item) => (
-              <button
-                key={item.q}
-                onClick={() => sendMessage(item.q)}
-                className="block w-full text-left mb-1.5 p-2.5 border font-body text-[13px] leading-relaxed transition-all duration-300"
-                style={{
-                  borderColor: "rgba(255,255,255,0.04)",
-                  background: "rgba(17,15,26,0.3)",
-                  color: "rgba(237,233,246,0.5)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = item.color + "33";
-                  e.currentTarget.style.color = "rgba(237,233,246,0.8)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)";
-                  e.currentTarget.style.color = "rgba(237,233,246,0.5)";
-                }}
-              >
-                <span style={{ color: item.color, marginRight: 6 }}>♦</span>
-                {item.q}
-              </button>
+          {/* RIGHT */}
+          <div style={{ width: 200, flexShrink: 0, borderLeft: borderFaint, padding: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ ...labelStyle, color: "rgba(212,168,71,0.4)" }}>Codex Oracle Menu</div>
+            {MENU.map(m => (
+              <button key={m.q} onClick={() => send(m.q)} style={{ display: "block", width: "100%", textAlign: "left", padding: 10, border: "1px solid rgba(255,255,255,0.04)", background: "rgba(17,15,26,0.3)", color: "rgba(237,233,246,0.5)", fontFamily: "'Cormorant Garamond', serif", fontSize: 13, cursor: "pointer", transition: "all 0.3s", lineHeight: 1.5, marginBottom: 4 }}><span style={{ color: m.c, marginRight: 6 }}>♦</span>{m.q}</button>
             ))}
-
-            {/* Constellation links */}
-            <div className="mt-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
-              <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-1.5" style={{ color: "rgba(237,233,246,0.2)" }}>
-                Explore More
-              </div>
-              <a
-                href="https://vaultofarcana.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block font-body text-xs mb-1 transition-colors duration-300"
-                style={{ color: "rgba(34,211,238,0.4)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(34,211,238,0.7)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(34,211,238,0.4)"; }}
-              >
-                Vault of Arcana ↗
-              </a>
-              <a
-                href="https://codexoracle.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block font-body text-xs mb-1 transition-colors duration-300"
-                style={{ color: "rgba(212,168,71,0.4)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(212,168,71,0.7)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(212,168,71,0.4)"; }}
-              >
-                Codex Oracle ↗
-              </a>
-              <a
-                href="https://vaultofarcana.com/correspondence-engine"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block font-body text-xs transition-colors duration-300"
-                style={{ color: "rgba(147,51,234,0.4)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(147,51,234,0.7)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(147,51,234,0.4)"; }}
-              >
-                Correspondence Engine ↗
-              </a>
+            <div style={{ marginTop: "auto", borderTop: borderFaint, paddingTop: 12 }}>
+              <div style={{ ...labelStyle, color: "rgba(237,233,246,0.2)" }}>Explore More</div>
+              {[
+                { href: "https://vaultofarcana.com/chat", label: "Vault of Arcana", c: "rgba(34,211,238,0.4)" },
+                { href: "https://codexoracle.com", label: "Codex Oracle", c: "rgba(212,168,71,0.4)" },
+                { href: "https://vaultofarcana.com/correspondence-engine", label: "Correspondence Engine", c: "rgba(147,51,234,0.4)" },
+              ].map(l => (
+                <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontFamily: "'Cormorant Garamond', serif", fontSize: 12, color: l.c, textDecoration: "none", marginBottom: 4, transition: "color 0.3s" }}>{l.label} ↗</a>
+              ))}
             </div>
+          </div>
+        </div>
+
+        {/* GO DEEPER — VoA conversion */}
+        <div style={{ textAlign: "center", padding: "60px 20px 40px", borderTop: borderFaint, marginTop: 0 }}>
+          <div style={{ width: 200, height: 1, margin: "0 auto 32px", background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), transparent)" }} />
+          <div style={{ fontFamily: "Cinzel, serif", fontSize: 22, letterSpacing: "0.12em", color: "#d4a847", marginBottom: 12 }}>Go Deeper</div>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, color: "rgba(237,233,246,0.4)", maxWidth: 520, margin: "0 auto 24px", lineHeight: 1.7 }}>The Codex Oracle is one gateway. Vault of Arcana holds six living traditions — Tao, Tarot, Tantra, Entheogens, Dreamwalker, and the Codex — with more awakening.</p>
+          <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+            <a href="https://www.vaultofarcana.com/chat" style={{ padding: "12px 28px", border: "1px solid rgba(217,70,239,0.3)", color: "#d946ef", fontFamily: "Cinzel, serif", fontSize: 10, letterSpacing: "0.2em", textDecoration: "none", transition: "all 0.3s" }}>ENTER THE VAULT</a>
+            <a href="https://www.vaultofarcana.com/pricing" style={{ padding: "12px 28px", border: "1px solid rgba(212,168,71,0.3)", color: "#d4a847", fontFamily: "Cinzel, serif", fontSize: 10, letterSpacing: "0.2em", textDecoration: "none", transition: "all 0.3s" }}>VIEW PLANS</a>
           </div>
         </div>
       </div>
 
-      {/* Gloss animation keyframe — injected once */}
-      <style jsx global>{`
-        @keyframes gloss {
-          0%, 100% { transform: translateX(-100%); }
-          50% { transform: translateX(100%); }
+      <style>{`
+        @keyframes gloss { 0%,100%{transform:translateX(-100%)} 50%{transform:translateX(100%)} }
+        @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+        ::-webkit-scrollbar{width:5px}
+        ::-webkit-scrollbar-track{background:rgba(10,9,14,0.5)}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(217,70,239,0.2),rgba(212,168,71,0.2));border-radius:3px}
+        @media(max-width:1024px){
+          [style*="width: 210px"],[style*="width: 200px"]{display:none !important}
+        }
+        @media(max-width:768px){
+          [style*="width: 210px"],[style*="width: 200px"]{display:none !important}
         }
       `}</style>
     </div>

@@ -354,9 +354,35 @@ export default function PostClient({ slug }: { slug: string }) {
                 </SectionReveal>
               )}
 
-              {/* Back to journal */}
+              {/* ASK THE ORACLE CTA */}
               <SectionReveal delay={0.35}>
-                <div className="text-center mt-16">
+                <div
+                  className="mt-12 p-6 border"
+                  style={{
+                    borderColor: "rgba(147,51,234,0.15)",
+                    background: "rgba(147,51,234,0.03)",
+                  }}
+                >
+                  <div className="font-heading text-[11px] tracking-[0.2em] mb-2" style={{ color: "rgba(147,51,234,0.7)" }}>
+                    ASK THE ORACLE
+                  </div>
+                  <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "rgba(237,233,246,0.5)" }}>
+                    Explore the symbolism, geometry, and hidden correspondences within this transmission through the living intelligence of Vault of Arcana.
+                  </p>
+                  <div className="flex gap-3 flex-wrap">
+                    <a href="/oracle" className="font-heading text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all hover:border-[rgba(212,168,71,0.5)]" style={{ borderColor: "rgba(212,168,71,0.25)", background: "rgba(212,168,71,0.05)", color: "rgba(212,168,71,0.8)" }}>
+                      CODEX ORACLE
+                    </a>
+                    <a href="https://www.vaultofarcana.com/chat" target="_blank" rel="noopener noreferrer" className="font-heading text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all hover:border-[rgba(0,229,255,0.5)]" style={{ borderColor: "rgba(0,229,255,0.2)", background: "rgba(0,229,255,0.03)", color: "rgba(0,229,255,0.6)" }}>
+                      VAULT OF ARCANA →
+                    </a>
+                  </div>
+                </div>
+              </SectionReveal>
+
+              {/* Back to journal */}
+              <SectionReveal delay={0.4}>
+                <div className="text-center mt-10">
                   <Link
                     href="/journal"
                     className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest uppercase px-6 py-3 border transition-all hover:border-[var(--ut-cyan)]"

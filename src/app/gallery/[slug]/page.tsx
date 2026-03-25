@@ -216,8 +216,31 @@ export default function ArtworkDetailPage({ params }: Props) {
           </div>
         </div>
 
+        {/* ── ASK THE ORACLE ─────────────────────────── */}
+        <div className="container-ut mt-12">
+          <SectionReveal>
+            <div
+              className="border-t pt-8"
+              style={{ borderColor: "rgba(255,255,255,0.04)" }}
+            >
+              <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-3" style={{ color: "rgba(212,168,71,0.4)" }}>
+                EXPLORE THIS TRANSMISSION
+              </div>
+              <p className="font-body text-sm mb-3" style={{ color: "rgba(237,233,246,0.4)" }}>
+                Ask the Codex Oracle about the symbolism, geometry, and hidden correspondences within this piece.
+              </p>
+              <a
+                href={`/oracle?q=Tell+me+about+${encodeURIComponent(artwork.title)}`}
+                className="font-heading text-[10px] tracking-[0.2em] uppercase oracle-link"
+              >
+                ASK THE ORACLE ABOUT THIS PIECE →
+              </a>
+            </div>
+          </SectionReveal>
+        </div>
+
         {/* ── NAVIGATE BACK ────────────────────────────── */}
-        <div className="container-ut mt-16">
+        <div className="container-ut mt-10">
           <SectionReveal>
             <div
               className="border-t flex justify-between items-center pt-8"

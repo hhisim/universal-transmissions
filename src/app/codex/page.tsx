@@ -426,6 +426,24 @@ export default function CodexPage() {
           </div>
         </section>
 
+        {/* ── DECIPHER THE CODEX ──────────────────────────── */}
+        <section className="py-16 px-6 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+          <div className="font-heading text-[11px] tracking-[0.25em] mb-3" style={{ color: "rgba(212,168,71,0.5)" }}>
+            [ DECIPHER THE CODEX ]
+          </div>
+          <h2 className="font-heading text-2xl tracking-[0.12em] mb-4" style={{ color: "var(--ut-white)" }}>
+            Own a copy? Unlock its secrets.
+          </h2>
+          <p className="font-body text-lg mb-8 max-w-xl mx-auto" style={{ color: "rgba(237,233,246,0.5)" }}>
+            The Codex Oracle is a specialized intelligence that analyzes and interprets
+            every page, symbol, and transmission within the Universal Transmissions Codex.
+            Photograph a page. Ask a question. Receive a multi-layered decryption.
+          </p>
+          <a href="/oracle" className="btn-gold">
+            ACTIVATE THE CODEX ORACLE
+          </a>
+        </section>
+
       </main>
       <Footer />
     </>

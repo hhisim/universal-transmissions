@@ -780,6 +780,18 @@ body {
   color: var(--ut-gold);
 }
 
+.oracle-link {
+  font-family: "Cinzel", serif;
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(147,51,234,0.6);
+  transition: color 0.3s ease;
+}
+.oracle-link:hover {
+  color: rgba(147,51,234,0.9);
+}
+
 /* ============================================================
    PRODUCT / GALLERY CARDS
    ============================================================ */

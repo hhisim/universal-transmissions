@@ -6,7 +6,7 @@ import Image from "next/image";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import UTTVPlayer from "@/components/gallery/UTTVPlayer";
-import DriveGrid from "@/components/gallery/DriveGrid";
+import TransmissionStream from "@/components/gallery/TransmissionStream";
 import { artworks } from "@/data/artworks";
 
 const FILTERS = [
@@ -14,8 +14,6 @@ const FILTERS = [
   { id: "universal-transmissions", label: "UNIVERSAL TRANSMISSIONS" },
   { id: "bio-energetic-vortexes", label: "BIO-ENERGETIC VORTEXES (CHAKRAS)" },
   { id: "prismatic", label: "PRISMATIC TRANSMISSIONS" },
-  { id: "grid", label: "GRID" },
-  { id: "stream", label: "UT TV" },
 ];
 
 export default function GalleryClient() {
@@ -128,13 +126,6 @@ export default function GalleryClient() {
             />
           </div>
           <UTTVPlayer />
-        </div>
-      )}
-
-      {/* Grid — Google Drive images */}
-      {activeFilter === "grid" && (
-        <div className="mb-12 px-4 md:px-8">
-          <DriveGrid />
         </div>
       )}
 

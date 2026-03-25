@@ -313,7 +313,7 @@ export default function HomePage() {
                     <ZalgoText text="The Oracle" intensity="subtle" />
                   </h3>
                   <p className="font-body text-sm leading-relaxed mb-5" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                    Ask questions of a curated intelligence shaped by rare esoteric archives. Four living traditions — Tao, Tarot, Tantra, and Entheogenic wisdom — with more awakening.
+                    Ask questions of a curated intelligence shaped by rare esoteric archives. Six living traditions — Tao / Sexual Alchemy, Tarot, Tantra (Vedanta / Kundalini), Shamanism & Entheogens, Dreamwalker (Astral Projection / Lucidity) and the Codex — with more awakening.
                   </p>
                   <span className="btn-primary text-xs py-3 px-6">CONSULT THE ORACLE</span>
                 </a>
@@ -339,6 +339,26 @@ export default function HomePage() {
                 </a>
               </SectionReveal>
             </div>
+          </div>
+        </section>
+
+        {/* ── CODEX ORACLE SECTION ─────────────────────────── */}
+        <section className="py-20 px-6" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="font-heading text-[11px] tracking-[0.25em] mb-3" style={{ color: "rgba(212,168,71,0.5)" }}>
+              [ LIVING INTELLIGENCE ]
+            </div>
+            <h2 className="font-heading text-3xl tracking-[0.12em] mb-4" style={{ background: "linear-gradient(135deg, #d946ef 0%, #d4a847 35%, #9333ea 65%, #22d3ee 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              The Codex Oracle
+            </h2>
+            <p className="font-body text-lg mb-8 max-w-xl mx-auto" style={{ color: "rgba(237,233,246,0.5)" }}>
+              Ask questions about any of the 150 pages. Decode names letter by letter.
+              Map the correspondences between symbols, planets, chakras, and traditions.
+              The oracle draws from 577 cross-references and decades of esoteric research.
+            </p>
+            <a href="/oracle" className="btn-primary">
+              CONSULT THE ORACLE
+            </a>
           </div>
         </section>
 
