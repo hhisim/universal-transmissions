@@ -81,7 +81,7 @@ function ProcessedContent({ content }: { content: string }) {
         ) : (
           <MarkdownRenderer key={i} content={part.value} />
 
-        <PageBackground variant="journal" />        )
+                )
       )}
     </>
   );
@@ -160,6 +160,7 @@ export default function PostClient({ slug }: { slug: string }) {
   return (
     <>
       <Navigation />
+        <PageBackground variant="journal" />
       <main style={{ background: "var(--ut-black)" }}>
         {/* ── Hero ── */}
         <div className="relative overflow-hidden" style={{ minHeight: "65vh" }}>
