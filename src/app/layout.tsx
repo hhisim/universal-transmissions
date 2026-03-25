@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import PageBackground from "@/components/ui/PageBackground";
-import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: {
@@ -56,14 +55,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <style>{`
+          vaahvercelanalytics,
+          [data-w-vercelanalytics],
+          #vercel-analytics,
+          [id*="vercel-analytics"] {
+            display: none !important;
+            visibility: hidden !important;
+          }
+        `}</style>
+      </head>
       <body className="antialiased">
         <PageBackground />
         {children}
-        <Analytics />
-        <style>{`
-          #__nextjs-enterpriseAnalytics { display: none !important; }
-          [data-w-analytics] { display: none !important; }
-        `}</style>
       </body>
     </html>
   );
