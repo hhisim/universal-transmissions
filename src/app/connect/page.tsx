@@ -5,6 +5,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import PageBackground from "@/components/scenes/PageBackground";
 
 export default function ConnectPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -33,7 +34,8 @@ export default function ConnectPage() {
   return (
     <>
       <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+     
+      <PageBackground variant="connect" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           <div className="max-w-2xl mx-auto">
             {/* Header */}
