@@ -3,20 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 // ============================================================
 // File: src/app/api/oracle/route.ts
 //
-// This route connects to the VoA Codex Oracle backend.
-// If the backend isn't configured, it returns demo responses
-// so the page looks functional while the backend is being set up.
+// VoA Codex Oracle backend proxy.
+// Backend: http://204.168.154.237:8002
+// Endpoint: GET /ask?q=...&mode=...&lang=...&pack=...
 //
 // REQUIRED ENV VARS (set in Vercel → Settings → Environment Variables):
-//   CODEX_ORACLE_API_URL = the VoA API endpoint (e.g. https://your-voa-server.com/api/v1)
-//   CODEX_ORACLE_API_KEY = the API key for authentication
-//
-// TEST: After setting env vars, redeploy and try sending a message.
-// If you see demo responses, the env vars are not set or the URL is wrong.
+//   CODEX_ORACLE_API_URL = http://204.168.154.237:8002
+//   CODEX_ORACLE_API_KEY = your VoA API key
 // ============================================================
 
-const API_URL = process.env.CODEX_ORACLE_API_URL;
-const API_KEY = process.env.CODEX_ORACLE_API_KEY;
+const API_URL = process.env.CODEX_ORACLE_API_URL || "http://204.168.154.237:8002";
+const API_KEY = process.env.CODEX_ORACLE_API_KEY || "";
 
 // Demo responses for when backend isn't connected
 const DEMO_RESPONSES: Record<string, string> = {
@@ -136,37 +133,33 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Try live backend ---
-    if (API_URL && API_KEY) {
+    if (API_URL) {
       try {
-        const backendRes = await fetch(`${API_URL}/chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`,
-          },
-          body: JSON.stringify({
-            pack: "codex",
-            mode,
-            lang: language,
-            message,
-            history,
-          }),
-          signal: AbortSignal.timeout(30000), // 30s timeout
+        const params = new URLSearchParams({
+          q: message,
+          mode,
+          lang: language,
+          pack: "codex",
+        });
+        const headers: HeadersInit = { "Content-Type": "application/json" };
+        if (API_KEY) headers["Authorization"] = `Bearer ${API_KEY}`;
+
+        const backendRes = await fetch(`${API_URL}/ask?${params}`, {
+          method: "GET",
+          headers,
+          signal: AbortSignal.timeout(30000),
         });
 
         if (backendRes.ok) {
           const data = await backendRes.json();
-          // The VoA API may return the response in different fields
-          const responseText = data.response || data.text || data.message || data.reply;
+          const responseText = data.response || data.text || data.message || data.reply || data.answer;
           if (responseText) {
             return NextResponse.json({ response: responseText });
           }
         }
-        // If backend fails, fall through to demo mode
         console.error("Oracle backend returned non-OK:", backendRes.status);
       } catch (backendError) {
         console.error("Oracle backend error:", backendError);
-        // Fall through to demo mode
       }
     }
 
