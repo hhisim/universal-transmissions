@@ -28,7 +28,8 @@
     "resend": "^6.9.4",
     "sharp": "^0.34.5",
     "stripe": "^20.4.1",
-    "three": "^0.183.2"
+    "three": "^0.183.2",
+    "@vercel/analytics": "^1.5.0"
   },
   "devDependencies": {
     "@types/node": "^20",
