@@ -3,6 +3,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import PageBackground from "@/components/scenes/PageBackground";
 
 export const metadata: Metadata = {
   title: "About — Universal Transmissions",
@@ -26,7 +27,8 @@ export default function AboutPage() {
   return (
     <>
       <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+     
+      <PageBackground variant="about" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HEADER ─────────────────────────────────── */}
         <section className="py-20" style={{ borderBottom: "1px solid rgba(0,229,255,0.06)" }}>
