@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // ============================================================
 // CODEX ORACLE PAGE — Complete, self-contained, production-ready
@@ -223,7 +225,13 @@ export default function OraclePage() {
                   <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: "0.15em", color: m.role === "oracle" ? "rgba(217,70,239,0.4)" : "rgba(34,211,238,0.35)", marginBottom: m.role === "oracle" ? 8 : 4 }}>
                     {m.role === "oracle" ? `CODEX ORACLE · ${ml(m.mode || "oracle")} MODE` : "YOU"}
                   </div>
-                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: m.role === "oracle" ? 16 : 15, lineHeight: 1.75, color: m.role === "oracle" ? "#ede9f6" : "rgba(237,233,246,0.65)", whiteSpace: "pre-wrap" }}>{m.text}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: m.role === "oracle" ? 16 : 15, lineHeight: 1.75, color: m.role === "oracle" ? "#ede9f6" : "rgba(237,233,246,0.65)", whiteSpace: "pre-wrap" }}>
+                    {m.role === "oracle" ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                    ) : (
+                      <span>{m.text}</span>
+                    )}
+                  </div>
                 </div>
               ))}
               {loading && (
@@ -300,3 +308,4 @@ export default function OraclePage() {
     </div>
   );
 }
+
