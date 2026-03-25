@@ -201,7 +201,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://codexoracle.com"
+                  href="https://vaultofarcana.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 font-body text-sm transition-colors"

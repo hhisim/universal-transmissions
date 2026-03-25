@@ -263,7 +263,7 @@ export default function OraclePage() {
               <div style={{ ...labelStyle, color: "rgba(237,233,246,0.2)" }}>Explore More</div>
               {[
                 { href: "https://vaultofarcana.com/chat", label: "Vault of Arcana", c: "rgba(34,211,238,0.4)" },
-                { href: "https://codexoracle.com", label: "Codex Oracle", c: "rgba(212,168,71,0.4)" },
+                { href: "https://vaultofarcana.com", label: "Codex Oracle", c: "rgba(212,168,71,0.4)" },
                 { href: "https://vaultofarcana.com/correspondence-engine", label: "Correspondence Engine", c: "rgba(147,51,234,0.4)" },
               ].map(l => (
                 <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontFamily: "'Cormorant Garamond', serif", fontSize: 12, color: l.c, textDecoration: "none", marginBottom: 4, transition: "color 0.3s" }}>{l.label} ↗</a>
