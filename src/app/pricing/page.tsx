@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Check, Zap, Star, Crown } from "lucide-react";
+import PageBackground from "@/components/scenes/PageBackground";
 
 const TIERS = [
   {
@@ -173,6 +174,7 @@ export default function PricingPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                     <div style={{ width: 36, height: 36, border: `1px solid ${t.borderColor}`, background: `${t.color}08`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Icon size={16} color={t.color} />
+                      <PageBackground variant="homepage" />
                     </div>
                     <div style={{ fontFamily: "Cinzel, serif", fontSize: 14, letterSpacing: "0.15em", color: t.color }}>{t.name}</div>
                   </div>
