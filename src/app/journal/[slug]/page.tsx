@@ -12,7 +12,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata>
-    <PageBackground variant="journal" /> {
+     {
   const post = getPostBySlug(params.slug);
   if (!post) return { title: "Not Found" };
   return {
@@ -29,5 +29,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata>
 }
 
 export default function PostPage({ params }: Props) {
-  return <PostClient slug={params.slug} />;
+  return (
+    <>
+      <PageBackground variant="journal" />
+      <PostClient slug={params.slug} />
+    </>
+  );
 }
