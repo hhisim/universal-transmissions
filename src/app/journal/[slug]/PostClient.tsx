@@ -68,7 +68,7 @@ function ProcessedContent({ content }: { content: string }) {
 
   if (parts.length === 0) {
     return <MarkdownRenderer content={content} />
-    <PageBackground variant="journal" />;
+    ;
   }
 
   return (
@@ -80,7 +80,8 @@ function ProcessedContent({ content }: { content: string }) {
           </div>
         ) : (
           <MarkdownRenderer key={i} content={part.value} />
-        )
+
+        <PageBackground variant="journal" />        )
       )}
     </>
   );
