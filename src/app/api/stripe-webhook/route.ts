@@ -177,9 +177,10 @@ export async function POST(req: NextRequest) {
     case "invoice.payment_succeeded": {
       const invoice = event.data.object as Stripe.Invoice;
       // Ensure member record exists when payment succeeds
-      if (invoice.subscription && invoice.customer_email) {
+      const invoiceAny = invoice as any;
+      if (invoiceAny.subscription && invoice.customer_email) {
         const customerId = invoice.customer as string;
-        const subscriptionId = invoice.subscription as string;
+        const subscriptionId = invoiceAny.subscription as string;
 
         try {
           await supabaseAdmin
