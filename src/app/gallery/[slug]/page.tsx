@@ -8,6 +8,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks, getArtwork } from "@/data/artworks";
 import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
+import PageBackground from "@/components/scenes/PageBackground";
 
 interface Props {
   params: { slug: string };
@@ -33,6 +34,7 @@ export default function ArtworkDetailPage({ params }: Props) {
   return (
     <>
       <Navigation />
+      <PageBackground variant="gallery" />
       <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── BREADCRUMB ───────────────────────────────── */}
