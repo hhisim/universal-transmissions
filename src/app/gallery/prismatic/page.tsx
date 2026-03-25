@@ -6,6 +6,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
+import PageBackground from "@/components/scenes/PageBackground";
 
 export const metadata: Metadata = {
   title: "Prismatic Transmissions",
@@ -19,7 +20,8 @@ export default function PrismaticPage() {
   return (
     <>
       <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+     
+      <PageBackground variant="gallery" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Header */}
           <SectionReveal>
