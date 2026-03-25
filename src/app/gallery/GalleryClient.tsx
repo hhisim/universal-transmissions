@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import SectionReveal from "@/components/ui/SectionReveal";
@@ -16,11 +16,33 @@ const FILTERS = [
   { id: "prismatic", label: "PRISMATIC TRANSMISSIONS" },
 ];
 
+function SkeletonGrid() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: 9 }).map((_, i) => (
+        <div
+          key={i}
+          className="relative overflow-hidden"
+          style={{
+            aspectRatio: "4/5",
+            background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 100%)",
+            animation: "shimmer 1.8s ease-in-out infinite",
+            animationDelay: `${i * 0.1}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function GalleryClient() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => { const t = setTimeout(() => setIsLoading(false), 800); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(t);
+  }, []);
 
   const filteredArtworks = artworks
     .filter((artwork) => {
@@ -72,7 +94,11 @@ export default function GalleryClient() {
         {FILTERS.map((filter) => (
           <button
             key={filter.id}
-            onClick={() => setActiveFilter(filter.id)}
+            onClick={() => {
+              setActiveFilter(filter.id);
+              setIsLoading(true);
+              setTimeout(() => setIsLoading(false), 600);
+            }}
             className="font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 border transition-all"
             style={{
               borderColor:
@@ -94,87 +120,60 @@ export default function GalleryClient() {
         ))}
       </div>
 
-      {/* UT TV — YouTube playlist */}
-      {activeFilter === "stream" && (
-        <div className="mb-12 px-4 md:px-8">
-          {/* Section header */}
-          <div className="text-center mb-8">
-            <div
-              className="h-px mx-auto mb-6"
-              style={{
-                maxWidth: "240px",
-                background: "linear-gradient(90deg, transparent 0%, rgba(217,70,239,0.7) 20%, rgba(147,51,234,0.9) 40%, rgba(99,102,241,0.95) 50%, rgba(147,51,234,0.9) 60%, rgba(217,70,239,0.7) 80%, transparent 100%)",
-                boxShadow: "0 0 15px rgba(147,51,234,0.3)",
-              }}
-            />
-            <p
-              className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4"
-              style={{ color: "var(--ut-cyan)" }}
-            >
-              [ Live Transmission Stream ]
-            </p>
-            <h2
-              className="font-display text-3xl md:text-4xl mb-4 text-gradient-magenta"
-              style={{ textShadow: "0 0 40px rgba(217,70,239,0.3)" }}
-            >
-              UT TV
-            </h2>
-            <div
-              className="h-px mx-auto"
-              style={{
-                maxWidth: "240px",
-                background: "linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.7) 20%, rgba(99,102,241,0.95) 40%, rgba(147,51,234,0.9) 50%, rgba(99,102,241,0.95) 60%, rgba(34,211,238,0.7) 80%, transparent 100%)",
-                boxShadow: "0 0 15px rgba(34,211,238,0.3)",
-              }}
-            />
-          </div>
-          <UTTVPlayer />
-        </div>
-      )}
+      {/* UT-TV Player */}
+      <div className="mb-12">
+        <UTTVPlayer />
+      </div>
 
-      {/* Artwork grid */}
+      {/* Artwork grid — skeleton or real */}
       {activeFilter !== "stream" && activeFilter !== "grid" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredArtworks.map((artwork, i) => (
-            <SectionReveal key={artwork.id} delay={i * 0.08}>
-              <Link
-                href={`/gallery/${artwork.slug}`}
-                className="artwork-card ut-card block overflow-hidden group"
-              >
-                <div className="relative aspect-[4/5] overflow-hidden">
-                  <Image
-                    src={artwork.images[0]}
-                    alt={artwork.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
-                  <div className="artwork-card-overlay">
-                    <div>
-                      <p className="font-heading text-sm tracking-widest uppercase" style={{ color: "var(--ut-cyan)" }}>
-                        View →
-                      </p>
+        isLoading ? (
+          <SkeletonGrid />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredArtworks.map((artwork, i) => (
+              <SectionReveal key={artwork.id} delay={i * 0.08}>
+                <Link
+                  href={`/gallery/${artwork.slug}`}
+                  className="artwork-card ut-card block overflow-hidden group"
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden">
+                    <Image
+                      src={artwork.images[0]}
+                      alt={artwork.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                    <div className="artwork-card-overlay">
+                      <div>
+                        <p className="font-heading text-sm tracking-widest uppercase" style={{ color: "var(--ut-cyan)" }}>
+                          View →
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="p-5">
-                  <h2 className="font-heading text-base tracking-wider mb-1" style={{ color: "var(--ut-white)" }}>
-                    {artwork.title}
-                  </h2>
-                  <p className="font-mono text-[10px] mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}>
-                    {artwork.medium} · {artwork.year}
-                  </p>
-                  {artwork.available && artwork.price && (
-                    <p className="font-mono text-xs" style={{ color: "var(--ut-gold)" }}>
-                      From ${artwork.price}
+                  <div className="p-5">
+                    <h2 className="font-heading text-base tracking-wider mb-1" style={{ color: "var(--ut-white)" }}>
+                      {artwork.title}
+                    </h2>
+                    <p className="font-mono text-[10px] mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}>
+                      {artwork.medium} · {artwork.year}
                     </p>
-                  )}
-                </div>
-              </Link>
-            </SectionReveal>
-          ))}
-        </div>
+                    {artwork.available && artwork.price && (
+                      <p className="font-mono text-xs" style={{ color: "var(--ut-gold)" }}>
+                        From ${artwork.price}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              </SectionReveal>
+            ))}
+          </div>
+        )
       )}
+
+      {activeFilter === "stream" && <TransmissionStream />}
     </>
   );
 }
