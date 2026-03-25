@@ -3,6 +3,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import PageBackground from "@/components/scenes/PageBackground";
 
 export const metadata: Metadata = {
   title: "Geometry Research — Universal Transmissions",
@@ -75,7 +76,8 @@ export default function ResearchGeometryPage() {
   return (
     <>
       <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+     
+      <PageBackground variant="research" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
