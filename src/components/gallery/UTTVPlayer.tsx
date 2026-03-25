@@ -65,9 +65,9 @@ export default function UTTVPlayer() {
             setCurrentTitle(d?.title || "UT TV");
           },
           onStateChange: (e) => {
-            if (e.data === 0) e.target.nextVideo();
+            if (e.data === 0) playerRef.current?.nextVideo();
             if (e.data === 1) {
-              const d = e.target.getVideoData();
+              const d = playerRef.current?.getVideoData();
               setCurrentTitle(d?.title || "UT TV");
             }
           },
