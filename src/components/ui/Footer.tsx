@@ -81,19 +81,19 @@ export default function Footer() {
               <li>
                 <a href="https://vaultofarcana.com" target="_blank" rel="noopener noreferrer"
                   className="font-body text-xs transition-colors" style={{ color: "var(--ut-white-dim)" }}>
-                  Vault of Arcana
+                  Vault of Arcana ↗
                 </a>
               </li>
               <li>
                 <a href="https://www.vaultofarcana.com/chat" target="_blank" rel="noopener noreferrer"
                   className="font-body text-xs transition-colors" style={{ color: "var(--ut-white-dim)" }}>
-                  Codex Oracle
+                  Codex Oracle ↗
                 </a>
               </li>
               <li>
                 <a href="https://hakanhisim.net" target="_blank" rel="noopener noreferrer"
                   className="font-body text-xs transition-colors" style={{ color: "var(--ut-white-dim)" }}>
-                  Hakan Hisim
+                  Hakan Hisim ↗
                 </a>
               </li>
             </ul>
@@ -142,7 +142,7 @@ export default function Footer() {
         <div className="divider-spectrum mb-4" />
         <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
           <p className="font-mono text-[10px] tracking-wider" style={{ color: "var(--ut-white-faint)" }}>
-            2026 Universal Transmissions — Hakan Hisim
+            © 2026 Universal Transmissions — Hakan Hisim
           </p>
           <p className="font-mono text-[9px] tracking-[0.2em] ut-gradient-text">
             SIGNAL LOCKED · NODE: UT
