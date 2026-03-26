@@ -1,7 +1,6 @@
 import { blogPosts, getPostBySlug, getRelatedPosts } from "@/data/blog-posts";
 import type { Metadata } from "next";
 import PostClient from "./PostClient";
-import PageBackground from "@/components/scenes/PageBackground";
 
 interface Props {
   params: { slug: string };
@@ -30,9 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata>
 
 export default function PostPage({ params }: Props) {
   return (
-    <>
-      <PageBackground variant="journal" />
-      <PostClient slug={params.slug} />
+    <><PostClient slug={params.slug} />
     </>
   );
 }
