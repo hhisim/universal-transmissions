@@ -19,7 +19,7 @@ const MODES = [
   { id: "correspond", label: "CORRESPOND",         c: "#9333ea" },
   { id: "etymology",  label: "LINGUISTIC MYSTIC",  c: "#d4a847" },
   { id: "meditate",   label: "MEDITATE",           c: "#22c55e" },
-  { id: "websearch",  label: "WEB SEARCH",         c: "#f97316" },
+
 ];
 
 const PROMPTS = [
@@ -36,7 +36,7 @@ const MODE_DESCRIPTIONS: Record<string, string> = {
   correspond: "Cross-reference symbols across pages, traditions, planets, and archetypes.",
   etymology:  "Decode any word or name letter by letter through the alphabet ontology.",
   meditate:   "Guided contemplative practice connected to a specific Codex page.",
-  websearch:  "Live web search with synthesis — real-time research on any topic.",
+
 };
 
 interface Msg { role: "user" | "oracle"; text: string; mode?: string; }
