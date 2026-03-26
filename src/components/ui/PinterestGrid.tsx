@@ -22,6 +22,7 @@ interface PinterestGridProps {
 export default function PinterestGrid({
   boardSlug = "hakanhisim/typography-symbols",
   fallbackUrl,
+  title,
   subtitle = "Visual Reference Archive",
 }: PinterestGridProps) {
   const [pins, setPins] = useState<PinterestPin[]>([]);
