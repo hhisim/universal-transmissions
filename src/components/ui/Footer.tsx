@@ -13,6 +13,7 @@ const FOOTER_LINKS = [
   { href: "/sanctum", label: "Sanctum" },
   { href: "/journal", label: "Journal" },
   { href: "/connect", label: "Connect" },
+  { href: "/privacy", label: "Privacy Policy" },
 ];
 
 export default function Footer() {
