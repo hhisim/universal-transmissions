@@ -4,6 +4,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
+import PinterestGrid from "@/components/ui/PinterestGrid";
 
 export const metadata: Metadata = {
   title: "Geometry Research — Universal Transmissions",
@@ -456,6 +457,39 @@ export default function ResearchGeometryPage() {
 
       </main>
       <Footer />
+
+      {/* ── PINTEREST BOARD (below footer) ─────────── */}
+      <section
+        className="py-16"
+        style={{ background: "var(--ut-black)", borderTop: "1px solid var(--ut-border)" }}
+      >
+        <div className="container-ut">
+          <SectionReveal>
+            <div className="text-center mb-10">
+              <p
+                className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
+                style={{ color: "var(--ut-gold)", opacity: 0.5 }}
+              >
+                [ Geometrika ]
+              </p>
+              <h2
+                className="font-display text-2xl md:text-3xl"
+                style={{ color: "var(--ut-gold)" }}
+              >
+                <ZalgoText text="Visual Reference Archive" intensity="moderate" />
+              </h2>
+            </div>
+          </SectionReveal>
+          <SectionReveal delay={0.1}>
+            <PinterestGrid
+              boardSlug="hakanhisim/geometrika"
+              fallbackUrl="https://www.pinterest.com/hakanhisim/geometrika/"
+              title="Visual Reference Archive"
+              subtitle="Geometrika"
+            />
+          </SectionReveal>
+        </div>
+      </section>
     </>
   );
 }
