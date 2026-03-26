@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 const FOOTER_LINKS = [
@@ -15,7 +16,34 @@ const FOOTER_LINKS = [
 ];
 
 export default function Footer() {
-  return (
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [msg, setMsg] = useState("");
+
+  async function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus("success");
+        setMsg("You're in the signal. Welcome.");
+        setEmail("");
+      } else {
+        setStatus("error");
+        setMsg(data.error || "Signup failed.");
+      }
+    } catch {
+      setStatus("error");
+      setMsg("Connection error. Try again.");
+    }
+  }
     <footer className="border-t" style={{ borderColor: "rgba(217, 70, 239, 0.06)", background: "var(--ut-black)" }}>
       <div className="container-ut py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-6">
@@ -74,20 +102,29 @@ export default function Footer() {
             <p className="font-body text-xs mb-3" style={{ color: "var(--ut-white-dim)" }}>
               Occasional dispatches. No spam.
             </p>
-            <form className="flex flex-col gap-2" onSubmit={(e) => e.preventDefault()}>
+            <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
               <input
                 type="email"
                 placeholder="your@frequency.com"
                 required
-                className="font-body text-xs px-3 py-2 w-full outline-none transition-all"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={status === "loading" || status === "success"}
+                className="font-body text-xs px-3 py-2 w-full outline-none transition-all disabled:opacity-50"
                 style={{
                   background: "rgba(255,255,255,0.04)",
                   border: "1px solid rgba(212,168,71,0.2)",
                   color: "#ede9f6",
                 }}
               />
+              {msg && (
+                <p className="font-mono text-[9px]" style={{ color: status === "success" ? "var(--ut-cyan)" : "#ff6b6b" }}>
+                  {msg}
+                </p>
+              )}
               <button
                 type="submit"
+                disabled={status === "loading" || status === "success"}
                 className="font-heading text-[9px] tracking-[0.2em] uppercase py-2 w-full border transition-all disabled:opacity-40"
                 style={{
                   borderColor: "rgba(212,168,71,0.3)",
@@ -95,7 +132,7 @@ export default function Footer() {
                   color: "rgba(212,168,71,0.8)",
                 }}
               >
-                Subscribe
+                {status === "loading" ? "..." : status === "success" ? "In the signal ✓" : "Subscribe"}
               </button>
             </form>
           </div>
