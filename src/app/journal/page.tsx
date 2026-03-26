@@ -8,7 +8,6 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { blogPosts, getAllTags } from "@/data/blog-posts";
-import PageBackground from "@/components/scenes/PageBackground";
 
 const POSTS_PER_PAGE = 12;
 
@@ -89,8 +88,7 @@ export default function JournalPage() {
   return (
     <>
       <Navigation />
-      <PageBackground variant="journal" />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Hero Header */}
           <SectionReveal>
