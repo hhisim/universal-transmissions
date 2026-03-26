@@ -123,19 +123,21 @@ export default function GalleryClient() {
         ))}
       </div>
 
-      {/* UT-TV Player */}
-      <div className="mb-12">
-        <UTTVPlayer />
-      </div>
+      {/* STREAM filter — UT-TV Player */}
+      {activeFilter === "stream" && (
+        <div className="mb-12">
+          <UTTVPlayer />
+        </div>
+      )}
 
       {/* GRID filter — DriveGrid (Google Drive loader) */}
       {activeFilter === "grid" && <DriveGrid />}
 
-      {/* Stream filter — TransmissionStream */}
+      {/* STREAM filter — TransmissionStream */}
       {activeFilter === "stream" && <TransmissionStream />}
 
-      {/* Artwork grid — skeleton or real */}
-      {activeFilter !== "stream" && activeFilter !== "grid" && (
+      {/* Artwork grid — shown for ALL, universal-transmissions, bio-energetic-vortexes, prismatic */}
+      {activeFilter !== "grid" && (
         isLoading ? (
           <SkeletonGrid />
         ) : (
