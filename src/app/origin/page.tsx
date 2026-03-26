@@ -23,6 +23,26 @@ const APEX_BEING_SLUGS = [
   "recursive-pantheism",
 ];
 
+// Real Squarespace CDN image URLs from the-apex-being.md project file
+const APEX_BEING_IMAGES: Record<string, string> = {
+  "vitruvian-spirit":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1612357755661-7YHJVR605210UHRZELOB/Vitr%C4%B1vian+Spirit+2021+-+Seeding+the+new+rennaisiance+FINAL+-+web3.jpg",
+  "vehicular-dynamics":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485381131655-RU1JVC1WS5BJZHQ4JIIA/MANUSCRIPT+6+-+Vehicular+Dynamics+print+-+web.jpg",
+  "indras-net":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380342047-EDZO847LGTR8Y41D646L/347f5557d700f80c7cf5f6778e1539f5.jpg",
+  "tetra":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380341979-ZPYYME478YGA8350NBIE/216ed5edb0cf582a7dc6e55845c0615d.jpg",
+  "merkaba":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485381886747-QPO5J5M7EYZL9M7CXE43/leomerkaba_6442216903_o.jpg",
+  "higher-access":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380374448-HPIFSQT3ZHHVWW0JL64C/DEW.jpg",
+  "tesseract":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380427317-4FPZTUS9F88JK9SQ7N70/NW6eItbg.png",
+  "recursive-pantheism":
+    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380393944-S47XPODE1LAU7DN1UUUT/b22KRKr.png",
+};
+
 export default function OriginPage() {
   return (
     <>
@@ -264,11 +284,12 @@ export default function OriginPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {APEX_BEING_SLUGS.map((slug) => {
                     const artwork = artworks.find((a) => a.slug === slug);
-                    if (!artwork) return null;
+                    const imageUrl = APEX_BEING_IMAGES[slug];
+                    if (!imageUrl) return null;
                     return (
                       <a
                         key={slug}
-                        href={`/gallery/${slug}`}
+                        href={artwork ? `/gallery/${slug}` : "#"}
                         className="group block"
                         style={{ textDecoration: "none" }}
                       >
@@ -277,8 +298,8 @@ export default function OriginPage() {
                           style={{ background: "rgba(0,0,0,0.4)" }}
                         >
                           <img
-                            src={artwork.images[0]}
-                            alt={artwork.title}
+                            src={imageUrl}
+                            alt={artwork?.title ?? slug}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                           <div
@@ -289,7 +310,7 @@ export default function OriginPage() {
                               className="font-mono text-[8px] tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                               style={{ color: "var(--ut-cyan)" }}
                             >
-                              {artwork.title.split("—")[1]?.trim() ?? artwork.title}
+                              {artwork?.title.split("—")[1]?.trim() ?? slug}
                             </span>
                           </div>
                         </div>
