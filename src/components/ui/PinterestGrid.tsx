@@ -86,7 +86,7 @@ export default function PinterestGrid({
   return (
     <div className="w-full">
       {/* 8 columns, small images — shows all available pins */}
-      <div className="columns-8 gap-2 space-y-2">
+      <div className="columns-12 gap-2 space-y-2">
         {pins.map((pin) => (
           <a
             key={pin.id}
