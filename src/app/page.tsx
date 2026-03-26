@@ -38,15 +38,15 @@ export default function HomePage() {
           <div className="absolute inset-0">
             <LogoHero />
           </div>
-          <div className="relative z-10 text-center px-6 mt-[52vh]">
+          <div className="relative z-10 text-center px-6 mt-[22vh]">
             <h1
-              className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] mb-6 ut-gradient-text"
+              className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] mb-4 ut-gradient-text"
               style={{ color: "var(--ut-white)" }}
             >
               <ZalgoText text="Universal Transmissions" intensity="moderate" />
             </h1>
             <p
-              className="font-body text-lg md:text-xl italic mb-10"
+              className="font-body text-base md:text-lg italic mb-8"
               style={{ color: "var(--ut-gold)" }}
             >
               Language is a code — and it can be hacked
@@ -71,12 +71,12 @@ export default function HomePage() {
         </section>
 
         {/* ── VIDEO — Square Cloudinary player ─────────── */}
-        <section className="relative py-24 flex items-center justify-center">
+        <section className="relative py-12 flex items-center justify-center">
           <HomeVideo />
         </section>
 
         {/* ── MANIFESTO ───────────────────────────────── */}
-        <section className="py-24">
+        <section className="py-16">
           <div className="container-ut">
             <div className="max-w-3xl mx-auto text-center">
               <SectionReveal>
@@ -107,7 +107,7 @@ export default function HomePage() {
         </section>
 
         {/* ── FEATURED ARTWORKS ─────────────────────────── */}
-        <section className="py-24" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
+        <section className="py-16" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
           <div className="container-ut">
             <SectionReveal>
               <div className="text-center mb-12">
