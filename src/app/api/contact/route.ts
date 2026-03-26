@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     await getResend().emails.send({
       from: "Universal Transmissions <noreply@universal-transmissions.com>",
-      to: ["hakan@universal-transmissions.com"],
+      to: ["hhisim@hotmail.com"],
       replyTo: email,
       subject: `[UT Contact] ${subject}`,
       html: `
