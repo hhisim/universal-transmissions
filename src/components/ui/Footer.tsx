@@ -44,6 +44,8 @@ export default function Footer() {
       setMsg("Connection error. Try again.");
     }
   }
+
+  return (
     <footer className="border-t" style={{ borderColor: "rgba(217, 70, 239, 0.06)", background: "var(--ut-black)" }}>
       <div className="container-ut py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-6">
@@ -56,7 +58,7 @@ export default function Footer() {
               </p>
             </Link>
             <p className="font-body text-xs leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
-              Sacred geometry, xenolinguistics & the architecture of consciousness.
+              Sacred geometry, xenolinguistics &amp; the architecture of consciousness.
             </p>
           </div>
           {/* Navigate */}
@@ -79,19 +81,19 @@ export default function Footer() {
               <li>
                 <a href="https://vaultofarcana.com" target="_blank" rel="noopener noreferrer"
                   className="font-body text-xs transition-colors" style={{ color: "var(--ut-white-dim)" }}>
-                  Vault of Arcana ↗
+                  Vault of Arcana
                 </a>
               </li>
               <li>
                 <a href="https://www.vaultofarcana.com/chat" target="_blank" rel="noopener noreferrer"
                   className="font-body text-xs transition-colors" style={{ color: "var(--ut-white-dim)" }}>
-                  Codex Oracle ↗
+                  Codex Oracle
                 </a>
               </li>
               <li>
                 <a href="https://hakanhisim.net" target="_blank" rel="noopener noreferrer"
                   className="font-body text-xs transition-colors" style={{ color: "var(--ut-white-dim)" }}>
-                  Hakan Hisim ↗
+                  Hakan Hisim
                 </a>
               </li>
             </ul>
@@ -132,7 +134,7 @@ export default function Footer() {
                   color: "rgba(212,168,71,0.8)",
                 }}
               >
-                {status === "loading" ? "..." : status === "success" ? "In the signal ✓" : "Subscribe"}
+                {status === "loading" ? "..." : status === "success" ? "In the signal" : "Subscribe"}
               </button>
             </form>
           </div>
@@ -140,7 +142,7 @@ export default function Footer() {
         <div className="divider-spectrum mb-4" />
         <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
           <p className="font-mono text-[10px] tracking-wider" style={{ color: "var(--ut-white-faint)" }}>
-            © 2026 Universal Transmissions — Hakan Hisim
+            2026 Universal Transmissions — Hakan Hisim
           </p>
           <p className="font-mono text-[9px] tracking-[0.2em] ut-gradient-text">
             SIGNAL LOCKED · NODE: UT
