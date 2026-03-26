@@ -5,11 +5,29 @@ import { supabaseAdmin } from "@/lib/supabase";
 const DIGITAL_PRODUCTS = ["codex-digital", "chakra-4k", "chakra-8k"];
 const PHYSICAL_PRODUCTS = ["codex-physical", "hexahedron-cube"];
 
-// Countries supported by Stripe's shipping_address_collection
-// NOTE: Turkey (TR) and Israel (IL) are NOT supported by Stripe shipping_address_collection
+// Exact countries accepted by Stripe's shipping_address_collection (from Stripe error message)
 const SUPPORTED_SHIPPING_COUNTRIES = [
-  "US","CA","GB","DE","FR","IT","ES","NL","BE","AT","CH","SE","NO","DK","FI","IE","PT","PL","CZ","HU","RO","BG","HR","SK","SI","EE","LV","LT","GR","MT","CY","LU","IS","LI","MC","AD","SM","VA","ME","RS","BA","MK","AL","XK","ZA","BR","AR","CL","CO","MX","PE","VE","UY","PY","BO","EC","GY","SR","GF","PA","CR","HN","NI","SV","GT","BZ","JM","HT","DO","TT","BB","BS","CU","PR","VI","GU","CW","SX","BQ","AW","LC","DM","VC","AG","GD","KN","AI","MS","VG","TC",
-  "AU","NZ","JP","CN","KR","IN","TH","VN","MY","SG","ID","PH","PK","BD","LK","NP","MM","KH","LA","MN","TW","HK","MO",
+  "AC","AD","AE","AF","AG","AI","AL","AM","AO","AQ","AR","AT","AU","AW","AX","AZ",
+  "BA","BB","BD","BE","BF","BG","BH","BI","BJ","BL","BM","BN","BO","BQ","BR","BS","BT","BV","BW","BY","BZ",
+  "CA","CD","CF","CG","CH","CI","CK","CL","CM","CN","CO","CR","CV","CW","CY","CZ",
+  "DE","DJ","DK","DM","DO","DZ","EC","EE","EG","EH","ER","ES","ET","FI","FJ","FK","FO","FR",
+  "GA","GB","GD","GE","GF","GG","GH","GI","GL","GM","GN","GP","GQ","GR","GS","GT","GU","GW","GY",
+  "HK","HN","HR","HT","HU",
+  "ID","IE","IL","IM","IN","IO","IQ","IS","IT","JE","JM","JO","JP","KE","KG","KH","KI","KM","KN","KR","KW","KY","KZ",
+  "LA","LB","LC","LI","LK","LR","LS","LT","LU","LV","LY",
+  "MA","MC","MD","ME","MF","MG","MK","ML","MM","MN","MO","MQ","MR","MS","MT","MU","MV","MW","MX","MY","MZ",
+  "NA","NC","NE","NG","NI","NL","NO","NP","NR","NU","NZ",
+  "OM",
+  "PA","PE","PF","PG","PH","PK","PL","PM","PN","PR","PS","PT","PY",
+  "QA","RE","RO","RS","RU","RW",
+  "SA","SB","SC","SD","SE","SG","SH","SI","SJ","SK","SL","SM","SN","SO","SR","SS","ST","SV","SX","SZ",
+  "TA","TC","TD","TF","TG","TH","TJ","TK","TL","TM","TN","TO","TR","TT","TV","TW","TZ",
+  "UA","UG","US","UY","UZ",
+  "VA","VC","VE","VG","VN","VU",
+  "WF","WS",
+  "XK",
+  "YE","YT",
+  "ZA","ZM","ZW","ZZ",
 ];
 
 export async function POST(req: NextRequest) {
