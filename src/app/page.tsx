@@ -34,11 +34,11 @@ export default function HomePage() {
       <main style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO — Interactive Logo ──────────────────── */}
-        <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
+        <section className="relative flex flex-col items-center overflow-hidden" style={{ height: "60vh" }}>
           <div className="absolute inset-0">
             <LogoHero />
           </div>
-          <div className="relative z-10 text-center px-6 mt-[22vh]">
+          <div className="relative z-10 text-center px-6" style={{ marginTop: "42vh" }}>
             <h1
               className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] mb-4 ut-gradient-text"
               style={{ color: "var(--ut-white)" }}
