@@ -90,7 +90,7 @@ export default function OraclePage() {
     try {
       // Call the VPS backend directly from the client (bypasses serverless timeout)
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 55000);
+      const timeout = setTimeout(() => controller.abort(), 90000);
 
       const r = await fetch(`${API_URL}/chat`, {
         method: "POST",
