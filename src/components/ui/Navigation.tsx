@@ -13,12 +13,17 @@ const NAV_LINKS = [
   { href: "/codex", label: "Codex" },
   { href: "/origin", label: "Origin" },
   { href: "/research", label: "Research" },
-  { href: "/linguistics", label: "Linguistics" },
-  { href: "/cymatics", label: "Cymatics" },
   { href: "/oracle", label: "Oracle" },
   { href: "/sanctum", label: "Sanctum" },
   { href: "/journal", label: "Journal" },
   { href: "/connect", label: "Connect" },
+];
+
+const RESEARCH_ITEMS = [
+  { href: "/research/cymatics", label: "Cymatics" },
+  { href: "/research/linguistics", label: "Linguistics" },
+  { href: "/research/symbolism", label: "Symbolism" },
+  { href: "/research/geometry", label: "Geometry" },
 ];
 
 export default function Navigation() {
@@ -61,6 +66,58 @@ export default function Navigation() {
         {/* Desktop nav */}
         <ul className="hidden lg:flex items-center gap-6">
           {NAV_LINKS.map((link) => {
+            if (link.href === "/research") {
+              return (
+                <li key={link.href} ref={dropdownRef} className="relative">
+                  <button
+                    onClick={() => setDropdownOpen((v) => !v)}
+                    className="nav-link group flex items-center gap-1"
+                  >
+                    <span className="group-hover:hidden">
+                      <ZalgoText text={link.label} intensity="subtle" />
+                    </span>
+                    <span className="hidden group-hover:inline">
+                      <ZalgoText text={link.label} intensity="moderate" />
+                    </span>
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className="ml-1 opacity-50 group-hover:opacity-80 transition-opacity">
+                      <path d="M1 2.5L4 5.5L7 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  <AnimatePresence>
+                    {dropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-44 border"
+                        style={{
+                          background: "rgba(10, 9, 14, 0.97)",
+                          backdropFilter: "blur(16px)",
+                          borderColor: "rgba(217, 70, 239, 0.15)",
+                          boxShadow: "0 0 40px rgba(147, 51, 234, 0.15), 0 8px 32px rgba(0,0,0,0.6)",
+                        }}
+                      >
+                        <div className="p-1">
+                          {RESEARCH_ITEMS.map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              className="flex items-center gap-2 w-full text-left px-4 py-2.5 font-body text-[13px] transition-all hover:text-white"
+                              style={{ color: "rgba(237,233,246,0.6)" }}
+                              onClick={() => { setDropdownOpen(false); setOpen(false); }}
+                            >
+                              <span style={{ color: "rgba(217,70,239,0.4)" }}>›</span>
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </li>
+              );
+            }
             const active = pathname === link.href;
             return (
               <li key={link.href}>
@@ -245,6 +302,33 @@ export default function Navigation() {
           >
             <ul className="flex flex-col p-6 gap-4">
               {NAV_LINKS.map((link) => {
+                if (link.href === "/research") {
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        onClick={() => setOpen(false)}
+                        className="nav-link block"
+                      >
+                        <ZalgoText text={link.label} intensity="subtle" />
+                      </Link>
+                      <ul className="ml-4 mt-2 flex flex-col gap-2">
+                        {RESEARCH_ITEMS.map((item) => (
+                          <li key={item.href}>
+                            <Link
+                              href={item.href}
+                              onClick={() => setOpen(false)}
+                              className="nav-link block text-[13px] opacity-70"
+                              style={{ color: "rgba(237,233,246,0.5)" }}
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  );
+                }
                 const active = pathname === link.href;
                 return (
                   <li key={link.href}>

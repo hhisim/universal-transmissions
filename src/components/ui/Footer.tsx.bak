@@ -8,6 +8,8 @@ const FOOTER_LINKS = [
   { href: "/codex", label: "Codex" },
   { href: "/origin", label: "Origin" },
   { href: "/research", label: "Research" },
+  { href: "/linguistics", label: "Linguistics" },
+  { href: "/cymatics", label: "Cymatics" },
   { href: "/oracle", label: "Oracle" },
   { href: "/sanctum", label: "Sanctum" },
   { href: "/journal", label: "Journal" },
