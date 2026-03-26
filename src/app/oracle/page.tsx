@@ -17,7 +17,7 @@ const MODES = [
   { id: "oracle",     label: "ORACLE",            c: "#d946ef" },
   { id: "decipher",   label: "DECIPHER",          c: "#22d3ee" },
   { id: "correspond", label: "CORRESPOND",         c: "#9333ea" },
-  { id: "linguistic", label: "LINGUISTIC MYSTIC",  c: "#d4a847" },
+  { id: "etymology",  label: "LINGUISTIC MYSTIC",  c: "#d4a847" },
   { id: "meditate",   label: "MEDITATE",           c: "#22c55e" },
 ];
 
@@ -33,7 +33,7 @@ const MODE_DESCRIPTIONS: Record<string, string> = {
   oracle:     "Poetic synthesis of page symbolism, geometry, and hidden meaning.",
   decipher:   "Structured decryption with geometric, linguistic, and correspondence layers.",
   correspond: "Cross-reference symbols across pages, traditions, planets, and archetypes.",
-  linguistic: "Decode any word or name letter by letter through the alphabet ontology.",
+  etymology:  "Decode any word or name letter by letter through the alphabet ontology.",
   meditate:   "Guided contemplative practice connected to a specific Codex page.",
 };
 
