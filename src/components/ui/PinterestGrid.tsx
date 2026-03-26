@@ -26,7 +26,10 @@ export default function PinterestGrid() {
     )
       .then((r) => r.json())
       .then((data: BoardData) => {
-        setPins(data.pins || []);
+        const sorted = [...(data.pins || [])].sort((a, b) =>
+          Number(b.id) - Number(a.id)
+        );
+        setPins(sorted);
         setLoading(false);
       })
       .catch(() => setLoading(false));
