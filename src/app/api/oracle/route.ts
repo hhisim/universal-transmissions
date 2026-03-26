@@ -264,7 +264,7 @@ export async function POST(req: NextRequest) {
             message,
             history,
           }),
-          signal: AbortSignal.timeout(30000),
+          signal: AbortSignal.timeout(55000),
         });
 
         if (backendRes.ok) {
