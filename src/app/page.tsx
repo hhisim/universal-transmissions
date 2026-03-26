@@ -6,6 +6,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
+import Image from 'next/image';
 
 const LogoHero = dynamic(
   () => import("@/components/hero/LogoHero").then((m) => m.LogoHero),
