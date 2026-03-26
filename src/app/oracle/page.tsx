@@ -92,10 +92,10 @@ export default function OraclePage() {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 90000);
 
-      const r = await fetch(`${API_URL}/chat`, {
+      const r = await fetch('/api/oracle', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pack: "codex", mode, lang, message: m }),
+        body: JSON.stringify({ message: m, mode, lang }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
