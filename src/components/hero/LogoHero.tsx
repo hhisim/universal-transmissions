@@ -351,7 +351,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     <div
       ref={containerRef}
       className={`relative w-full cursor-crosshair ${className}`}
-      style={{ height: "100svh", minHeight: 400, background: "#0a090e" }}
+      style={{ height: "58vh", background: "#0a090e" }}
     >
       {/* ── Glyph rain canvas — sized to logo area only ── */}
       <canvas
