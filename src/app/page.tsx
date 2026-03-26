@@ -79,8 +79,8 @@ export default function HomePage() {
         </section>
 
         {/* ── UT TV — YouTube Stream ──────────────────── */}
-        <section className="relative">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative" style={{ padding: "0 0 40px" }}>
+          <div className="mx-auto" style={{ width: "75%", maxWidth: "900px" }}>
             <UTTVPlayer />
           </div>
         </section>

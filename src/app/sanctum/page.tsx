@@ -1,6 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import Navigation from "@/components/ui/Navigation";
@@ -10,7 +9,7 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import { products } from "@/data/products";
 import PageBackground from "@/components/scenes/PageBackground";
 
-export default function StorePage() {
+export default function SanctumPage() {
   return (
     <>
       <Navigation />

@@ -27,8 +27,9 @@ async function sendBrevoEmail({ to, token }: { to: string; token: string }) {
   }
 }
 
-async function sendVerificationRequest(params: { identifier: string; token: string; url: string; provider: any; theme: unknown }) {
-  await sendBrevoEmail({ to: params.identifier, token: params.token });
+// ─── Email request callback ────────────────────────────────────────────────
+async function sendVerificationRequest({ identifier, token, url }: { identifier: string; token: string; url: string }) {
+  await sendBrevoEmail({ to: identifier, token });
 }
 
 // ─── Adapter: lazy async init to avoid build-time crash ──────────────────
