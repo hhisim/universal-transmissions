@@ -52,7 +52,7 @@ export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [researchOpen, setResearchOpen] = useState(false);
   const [memberOpen, setMemberOpen] = useState(false);
-  const [mobileResearchOpen, setMobileResearchOpen] = useState(false);
+
   const researchRef = useRef<HTMLLIElement>(null);
   const memberRef = useRef<HTMLLIElement>(null);
 
@@ -73,7 +73,6 @@ export default function Navigation() {
   // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
-    setMobileResearchOpen(false);
   }, [pathname]);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
@@ -110,11 +109,9 @@ export default function Navigation() {
                   onMouseEnter={() => setResearchOpen(true)}
                   onMouseLeave={() => setResearchOpen(false)}
                 >
-                  <button
-                    onClick={() => setResearchOpen((v) => !v)}
+                  <Link
+                    href="/research"
                     className="nav-link group flex items-center gap-1 cursor-pointer"
-                    aria-expanded={researchOpen}
-                    aria-haspopup="true"
                   >
                     <span className="group-hover:hidden">
                       <ZalgoText text={link.label} intensity="subtle" />
@@ -135,7 +132,7 @@ export default function Navigation() {
                     >
                       <path d="M1 2.5L4 5.5L7 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                     </svg>
-                  </button>
+                  </Link>
 
                   <AnimatePresence>
                     {researchOpen && (
@@ -341,54 +338,13 @@ export default function Navigation() {
                 if (link.href === "/research") {
                   return (
                     <li key={link.href}>
-                      {/* Research toggle — accordion, no navigation */}
-                      <button
-                        onClick={() => setMobileResearchOpen((v) => !v)}
-                        className="flex items-center justify-between w-full text-left py-2.5"
-                        style={{ color: "rgba(237,233,246,0.7)" }}
+                      <Link
+                        href={link.href}
+                        className="block py-2.5"
+                        style={{ color: isActive(link.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.7)" }}
                       >
                         <ZalgoText text={link.label} intensity="subtle" />
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 8 8"
-                          fill="none"
-                          style={{
-                            transform: mobileResearchOpen ? "rotate(180deg)" : "rotate(0deg)",
-                            transition: "transform 0.2s ease",
-                            opacity: 0.5,
-                          }}
-                        >
-                          <path d="M1 2.5L4 5.5L7 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                        </svg>
-                      </button>
-
-                      <AnimatePresence>
-                        {mobileResearchOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <ul className="ml-4 pb-2 flex flex-col gap-0.5">
-                              {RESEARCH_ITEMS.map((item) => (
-                                <li key={item.href}>
-                                  <Link
-                                    href={item.href}
-                                    className="block py-2 text-[13px]"
-                                    style={{
-                                      color: isActive(item.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.5)",
-                                    }}
-                                  >
-                                    {item.label}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      </Link>
                     </li>
                   );
                 }
