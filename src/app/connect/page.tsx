@@ -23,14 +23,15 @@ export default function ConnectPage() {
         body: JSON.stringify(form),
       });
       const data = await res.json().catch(() => ({}));
+      console.log("[connect] API response:", res.status, data);
       if (res.ok) {
         setStatus("success");
         setForm({ name: "", email: "", subject: "", message: "" });
       } else {
         setStatus("error");
-        setErrorMsg(data.error || "Something went wrong. Please try again.");
+        setErrorMsg(data.error || `Error ${res.status}: Something went wrong.`);
       }
-    } catch {
+    } catch (err) {
       setStatus("error");
       setErrorMsg("Connection failed. Please try again.");
     }
