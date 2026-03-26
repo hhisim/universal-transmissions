@@ -55,7 +55,7 @@ export default function ArtworkDetailPage({ params }: Props) {
         <div className="container-ut">
           <SectionReveal>
             <Lightbox
-              mainImage={artwork.images[0]}
+              images={artwork.images}
               title={artwork.title}
             />
           </SectionReveal>
