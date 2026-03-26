@@ -350,22 +350,27 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
   return (
     <div
       ref={containerRef}
-      className={`relative w-full overflow-hidden cursor-crosshair ${className}`}
+      className={`relative w-full cursor-crosshair ${className}`}
       style={{ height: "100svh", minHeight: 400, background: "#0a090e" }}
     >
-      {/* ── Glyph rain canvas (background layer) ── */}
-      <canvas
-        ref={glyphCanvasRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ zIndex: 0 }}
-      />
+      {/* ── Animation crop band — animation lives here, clipped ── */}
+      <div
+        className="absolute inset-x-0 overflow-hidden pointer-events-none"
+        style={{ top: 0, height: "58vh", zIndex: 0 }}
+      >
+        {/* ── Glyph rain canvas (background layer) ── */}
+        <canvas
+          ref={glyphCanvasRef}
+          className="absolute inset-0 pointer-events-none"
+        />
 
-      {/* ── Particle/flash canvas (top layer) ── */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ zIndex: 10 }}
-      />
+        {/* ── Particle/flash canvas (top layer) ── */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 pointer-events-none"
+          style={{ zIndex: 10 }}
+        />
+      </div>
 
       {/* ── SVG colour-matrix tint filters ── */}
       <svg width="0" height="0" style={{ position: "absolute", pointerEvents: "none" }}>
@@ -484,13 +489,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         }}
       />
 
-      {/* ── Hint text ── */}
-      <div
-        className="absolute bottom-8 left-0 right-0 text-center font-mono tracking-[0.25em] pointer-events-none select-none"
-        style={{ zIndex: 12, fontSize: "9px", color: "rgba(217,70,239,0.2)" }}
-      >
-        INTERACT WITH THE TRANSMISSION
-      </div>
+      {/* ── Hint text removed ── */}
     </div>
   );
 }
