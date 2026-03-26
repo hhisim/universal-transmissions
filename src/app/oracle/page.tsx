@@ -10,6 +10,9 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import { motion } from "framer-motion";
 import ZalgoText from "@/components/ui/ZalgoText";
 
+const API_URL = process.env.NEXT_PUBLIC_ORACLE_API_URL ?? "http://204.168.154.237:8002";
+const API_KEY = process.env.NEXT_PUBLIC_ORACLE_API_KEY ?? "prime-oracle-key-2026";
+
 const MODES = [
   { id: "oracle",     label: "ORACLE",            c: "#d946ef" },
   { id: "decipher",   label: "DECIPHER",          c: "#22d3ee" },
@@ -85,21 +88,29 @@ export default function OraclePage() {
     setMsgs(p => [...p, { role: "user", text: m }]);
     setLoading(true);
     try {
-      const r = await fetch("/api/oracle", {
+      // Call the VPS backend directly from the client (bypasses serverless timeout)
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 55000);
+
+      const r = await fetch(`${API_URL}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: m, mode, language: lang, history: msgs.slice(-10) }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify({ pack: "codex", mode, lang, message: m, history: msgs.slice(-10) }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
+
       const d = await r.json();
-      if (r.status === 429) {
-        setMsgs(p => [...p, { role: "oracle", text: d.error || "Daily limit reached.", mode }]);
-        return;
-      }
-      if (d.plan) setTier(d.plan as "guest"|"free"|"initiate");
-      if (d.usage) setUsage(d.usage);
-      setMsgs(p => [...p, { role: "oracle", text: d.response || d.text || d.message || "The Oracle is contemplating...", mode }]);
-    } catch {
-      setMsgs(p => [...p, { role: "oracle", text: "The transmission was interrupted.", mode }]);
+      const responseText = d.response || d.text || d.message || d.reply || "";
+      setMsgs(p => [...p, { role: "oracle", text: responseText || "The Oracle is contemplating...", mode }]);
+    } catch (e) {
+      const errMsg = e instanceof Error && e.name === "AbortError"
+        ? "The Oracle took too long to respond. Please try again."
+        : "The transmission was interrupted.";
+      setMsgs(p => [...p, { role: "oracle", text: errMsg, mode }]);
     } finally { setLoading(false); }
   }, [input, mode, lang, msgs]);
 
