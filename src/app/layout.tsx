@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import PageBackground from "@/components/ui/PageBackground";
 
@@ -49,6 +50,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <PageBackground />
+        <Analytics />
         {children}
       </body>
     </html>
