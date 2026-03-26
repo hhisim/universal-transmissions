@@ -456,7 +456,7 @@ export default function ResearchGeometryPage() {
         </section>
 
       </main>
-      <Footer />
+
 
       {/* ── PINTEREST BOARD (below footer) ─────────── */}
       <section
@@ -490,6 +490,8 @@ export default function ResearchGeometryPage() {
           </SectionReveal>
         </div>
       </section>
+
+      <Footer />
     </>
   );
 }

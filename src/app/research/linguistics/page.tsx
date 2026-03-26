@@ -277,7 +277,7 @@ export default function ResearchLinguisticsPage() {
         </section>
 
       </main>
-      <Footer />
+
 
       {/* ── PINTEREST BOARD (below footer) ─────────── */}
       <section
@@ -306,6 +306,8 @@ export default function ResearchLinguisticsPage() {
           </SectionReveal>
         </div>
       </section>
+
+      <Footer />
     </>
   );
 }

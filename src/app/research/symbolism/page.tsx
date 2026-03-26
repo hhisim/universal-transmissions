@@ -353,7 +353,7 @@ export default function ResearchSymbolismPage() {
         </section>
 
       </main>
-      <Footer />
+
 
       {/* ── PINTEREST BOARD (below footer) ─────────── */}
       <section
@@ -387,6 +387,8 @@ export default function ResearchSymbolismPage() {
           </SectionReveal>
         </div>
       </section>
+
+      <Footer />
     </>
   );
 }

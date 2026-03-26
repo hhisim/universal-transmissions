@@ -337,7 +337,7 @@ export default function ResearchCymaticsPage() {
         </section>
 
       </main>
-      <Footer />
+
 
       {/* ── PINTEREST BOARD (below footer) ─────────── */}
       <section
@@ -371,6 +371,8 @@ export default function ResearchCymaticsPage() {
           </SectionReveal>
         </div>
       </section>
+
+      <Footer />
     </>
   );
 }

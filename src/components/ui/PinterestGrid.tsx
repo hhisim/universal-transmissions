@@ -85,7 +85,7 @@ export default function PinterestGrid({
 
   return (
     <div className="w-full">
-      <div className="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
+      <div className="columns-4 md:columns-6 lg:columns-8 gap-2 space-y-2">
         {pins.map((pin) => (
           <a
             key={pin.id}
@@ -96,24 +96,13 @@ export default function PinterestGrid({
             style={{ background: "rgba(0,0,0,0.3)" }}
           >
             <img
-              src={pin.images["564x"]?.url || pin.images["236x"]?.url}
+              src={pin.images["236x"]?.url}
               alt={pin.description || subtitle}
               className="w-full h-auto object-cover hover:opacity-80 transition-opacity duration-300"
               loading="lazy"
             />
           </a>
         ))}
-      </div>
-      <div className="text-center mt-6">
-        <a
-          href={boardUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-mono text-[10px] tracking-widest uppercase hover:opacity-70 transition-opacity"
-          style={{ color: "var(--ut-white-dim)", opacity: 0.4 }}
-        >
-          View all on Pinterest →
-        </a>
       </div>
     </div>
   );
