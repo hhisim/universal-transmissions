@@ -94,11 +94,8 @@ export default function OraclePage() {
 
       const r = await fetch(`${API_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({ pack: "codex", mode, lang, message: m, history: msgs.slice(-10) }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack: "codex", mode, lang, message: m }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
