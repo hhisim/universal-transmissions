@@ -353,24 +353,31 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       className={`relative w-full cursor-crosshair ${className}`}
       style={{ height: "100svh", minHeight: 400, background: "#0a090e" }}
     >
-      {/* ── Animation crop band — clipped to logo area, centered vertically ── */}
-      <div
-        className="absolute inset-x-0 overflow-hidden pointer-events-none"
-        style={{ top: "11vh", height: "58vh", zIndex: 0 }}
-      >
-        {/* ── Glyph rain canvas (background layer) ── */}
-        <canvas
-          ref={glyphCanvasRef}
-          className="absolute inset-0 pointer-events-none"
-        />
+      {/* ── Glyph rain canvas — sized to logo area only ── */}
+      <canvas
+        ref={glyphCanvasRef}
+        className="absolute pointer-events-none"
+        style={{
+          zIndex: 0,
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+        }}
+      />
 
-        {/* ── Particle/flash canvas (top layer) ── */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 pointer-events-none"
-          style={{ zIndex: 10 }}
-        />
-      </div>
+      {/* ── Particle/flash canvas — sized to logo area only ── */}
+      <canvas
+        ref={canvasRef}
+        className="absolute pointer-events-none"
+        style={{
+          zIndex: 10,
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+        }}
+      />
 
       {/* ── SVG colour-matrix tint filters ── */}
       <svg width="0" height="0" style={{ position: "absolute", pointerEvents: "none" }}>
@@ -489,7 +496,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         }}
       />
 
-      {/* ── Hint text removed ── */}
+
     </div>
   );
 }
