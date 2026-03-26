@@ -21,9 +21,11 @@ export default function ProductDetailPage({ params }: Props) {
 
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal">("stripe");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleCheckout() {
     setLoading(true);
+    setError("");
     try {
       if (paymentMethod === "stripe") {
         const res = await fetch("/api/checkout", {
@@ -32,7 +34,11 @@ export default function ProductDetailPage({ params }: Props) {
           body: JSON.stringify({ productId: product!.id }),
         });
         const data = await res.json();
-        if (data.url) window.location.href = data.url;
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+        setError(data.error || "Failed to start checkout. Please try again.");
       } else {
         const res = await fetch("/api/paypal/create-order", {
           method: "POST",
@@ -42,10 +48,12 @@ export default function ProductDetailPage({ params }: Props) {
         const data = await res.json();
         if (data.orderId) {
           window.location.href = `https://www.paypal.com/checkoutnow?token=${data.orderId}`;
+          return;
         }
+        setError(data.error || "Failed to start PayPal. Please try again.");
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      setError("Connection error. Please check your internet and try again.");
     } finally {
       setLoading(false);
     }
@@ -122,6 +130,20 @@ export default function ProductDetailPage({ params }: Props) {
                     </button>
                   </div>
                 </div>
+
+                {/* Error message */}
+                {error && (
+                  <p
+                    className="font-body text-sm text-center p-3 mb-4"
+                    style={{
+                      color: "#ff4444",
+                      background: "rgba(255,68,68,0.06)",
+                      border: "1px solid rgba(255,68,68,0.2)",
+                    }}
+                  >
+                    {error}
+                  </p>
+                )}
 
                 {/* Checkout button */}
                 <button
