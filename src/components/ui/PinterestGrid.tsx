@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 interface PinterestGridProps {
   boardSlug?: string;
@@ -17,14 +17,14 @@ export default function PinterestGrid({
   const boardUrl = fallbackUrl || `https://www.pinterest.com/${boardSlug}/`;
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pinterest's embed: data-pin-do="embedBoard" triggers on pinit.js load
-  // The embed renders as an iframe with the full board
+  // Pinterest official embed — data-pin-board-scale controls image size
+  // 1 = smallest (most columns), higher = larger images
   return (
     <div ref={containerRef} className="w-full">
       <a
         data-pin-do="embedBoard"
         data-pin-board-width="1400"
-        data-pin-board-scale="1.6"
+        data-pin-board-scale="1"
         href={boardUrl}
       />
       <Script
