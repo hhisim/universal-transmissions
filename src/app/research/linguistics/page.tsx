@@ -276,36 +276,36 @@ export default function ResearchLinguisticsPage() {
           </div>
         </section>
 
-        {/* ── PINTEREST BOARD ──────────────────────── */}
-        <section
-          className="py-16"
-          style={{ borderTop: "1px solid var(--ut-border)" }}
-        >
-          <div className="container-ut">
-            <SectionReveal>
-              <div className="text-center mb-10">
-                <p
-                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
-                  style={{ color: "var(--ut-magenta)", opacity: 0.5 }}
-                >
-                  [ Typography & Symbols ]
-                </p>
-                <h2
-                  className="font-display text-2xl md:text-3xl glow-magenta"
-                  style={{ color: "var(--ut-magenta)" }}
-                >
-                  <ZalgoText text="Visual Reference Archive" intensity="moderate" />
-                </h2>
-              </div>
-            </SectionReveal>
-            <SectionReveal delay={0.1}>
-              <PinterestGrid />
-            </SectionReveal>
-          </div>
-        </section>
-
       </main>
       <Footer />
+
+      {/* ── PINTEREST BOARD (below footer) ─────────── */}
+      <section
+        className="py-16"
+        style={{ background: "var(--ut-black)", borderTop: "1px solid var(--ut-border)" }}
+      >
+        <div className="container-ut">
+          <SectionReveal>
+            <div className="text-center mb-10">
+              <p
+                className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
+                style={{ color: "var(--ut-magenta)", opacity: 0.5 }}
+              >
+                [ Typography & Symbols ]
+              </p>
+              <h2
+                className="font-display text-2xl md:text-3xl glow-magenta"
+                style={{ color: "var(--ut-magenta)" }}
+              >
+                <ZalgoText text="Visual Reference Archive" intensity="moderate" />
+              </h2>
+            </div>
+          </SectionReveal>
+          <SectionReveal delay={0.1}>
+            <PinterestGrid />
+          </SectionReveal>
+        </div>
+      </section>
     </>
   );
 }
