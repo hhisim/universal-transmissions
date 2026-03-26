@@ -15,6 +15,7 @@ interface PinterestPin {
 interface PinterestGridProps {
   boardSlug?: string;
   fallbackUrl?: string;
+  title?: string;
   subtitle?: string;
 }
 
