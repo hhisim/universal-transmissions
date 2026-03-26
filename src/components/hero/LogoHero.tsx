@@ -353,10 +353,10 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       className={`relative w-full cursor-crosshair ${className}`}
       style={{ height: "100svh", minHeight: 400, background: "#0a090e" }}
     >
-      {/* ── Animation crop band — animation lives here, clipped ── */}
+      {/* ── Animation crop band — clipped to logo area, centered vertically ── */}
       <div
         className="absolute inset-x-0 overflow-hidden pointer-events-none"
-        style={{ top: 0, height: "58vh", zIndex: 0 }}
+        style={{ top: "11vh", height: "58vh", zIndex: 0 }}
       >
         {/* ── Glyph rain canvas (background layer) ── */}
         <canvas
