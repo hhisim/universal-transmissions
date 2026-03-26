@@ -38,117 +38,139 @@ export default function ConnectPage() {
 
   return (
     <>
-      <PageBackground variant="connect" />
+      {/* Full-page animation stays anchored to the viewport */}
+      <PageBackground variant="connect" opacity={0.65} />
+
       <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
-        <div className="container-ut">
+
+      <main className="pt-24 pb-20 relative" style={{ background: "var(--ut-black)", zIndex: 1 }}>
+        {/* Dark gradient behind form area to anchor the animation */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse at 50% 40%, rgba(34,211,238,0.04) 0%, rgba(0,0,0,0) 60%)",
+          }}
+        />
+
+        <div className="container-ut relative">
           <div className="max-w-2xl mx-auto">
+
             {/* Header */}
             <SectionReveal>
-              <div className="text-center mb-16 pt-8">
+              <div className="text-center mb-10 pt-8">
                 <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "var(--ut-cyan)" }}>
                   [ Open Channel ]
                 </p>
                 <h1 className="font-display text-4xl md:text-6xl glow-cyan mb-4">
                   <ZalgoText text="Connect" intensity="moderate" />
                 </h1>
-                <p className="font-body text-lg" style={{ color: "var(--ut-white-dim)" }}>
+                <p className="font-body text-base" style={{ color: "var(--ut-white-dim)" }}>
                   Open a channel. All transmissions are received.
                 </p>
               </div>
             </SectionReveal>
 
-            {/* Form */}
-            <SectionReveal delay={0.2}>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Form card — animation visually sits behind this */}
+            <SectionReveal delay={0.15}>
+              <div
+                className="relative"
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(0,229,255,0.08)",
+                  borderRadius: "2px",
+                }}
+              >
+                <form onSubmit={handleSubmit} className="space-y-6 p-8 md:p-10">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        className="w-full bg-transparent border px-4 py-3 font-body text-base transition-colors focus:border-[var(--ut-cyan)] outline-none"
+                        style={{ borderColor: "rgba(0,229,255,0.2)", color: "var(--ut-white)" }}
+                        placeholder="Your name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={form.email}
+                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                        className="w-full bg-transparent border px-4 py-3 font-body text-base transition-colors focus:border-[var(--ut-cyan)] outline-none"
+                        style={{ borderColor: "rgba(0,229,255,0.2)", color: "var(--ut-white)" }}
+                        placeholder="you@example.com"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
-                      Name
+                      Subject
                     </label>
                     <input
                       type="text"
                       required
-                      value={form.name}
-                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                      className="w-full bg-transparent border px-4 py-3 font-body text-base transition-colors focus:border-[var(--ut-cyan)]"
+                      value={form.subject}
+                      onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
+                      className="w-full bg-transparent border px-4 py-3 font-body text-base transition-colors focus:border-[var(--ut-cyan)] outline-none"
                       style={{ borderColor: "rgba(0,229,255,0.2)", color: "var(--ut-white)" }}
-                      placeholder="Your name"
+                      placeholder="Subject"
                     />
                   </div>
+
                   <div>
                     <label className="block font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
-                      Email
+                      Message
                     </label>
-                    <input
-                      type="email"
+                    <textarea
                       required
-                      value={form.email}
-                      onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                      className="w-full bg-transparent border px-4 py-3 font-body text-base transition-colors focus:border-[var(--ut-cyan)]"
+                      rows={6}
+                      value={form.message}
+                      onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                      className="w-full bg-transparent border px-4 py-3 font-body text-base resize-none transition-colors focus:border-[var(--ut-cyan)] outline-none"
                       style={{ borderColor: "rgba(0,229,255,0.2)", color: "var(--ut-white)" }}
-                      placeholder="you@example.com"
+                      placeholder="Your transmission..."
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label className="block font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={form.subject}
-                    onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
-                    className="w-full bg-transparent border px-4 py-3 font-body text-base transition-colors focus:border-[var(--ut-cyan)]"
-                    style={{ borderColor: "rgba(0,229,255,0.2)", color: "var(--ut-white)" }}
-                    placeholder="Subject"
-                  />
-                </div>
+                  {status === "success" && (
+                    <p className="font-body text-sm text-center p-4" style={{ color: "var(--ut-cyan)", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.15)" }}>
+                      Transmission received. We will respond within 48 hours.
+                    </p>
+                  )}
 
-                <div>
-                  <label className="block font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
-                    Message
-                  </label>
-                  <textarea
-                    required
-                    rows={6}
-                    value={form.message}
-                    onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                    className="w-full bg-transparent border px-4 py-3 font-body text-base resize-none transition-colors focus:border-[var(--ut-cyan)]"
-                    style={{ borderColor: "rgba(0,229,255,0.2)", color: "var(--ut-white)" }}
-                    placeholder="Your transmission..."
-                  />
-                </div>
+                  {status === "error" && (
+                    <p className="font-body text-sm text-center p-4" style={{ color: "#ff4444", background: "rgba(255,68,68,0.05)", border: "1px solid rgba(255,68,68,0.15)" }}>
+                      {errorMsg || "Signal lost. Please try again or email directly."}
+                    </p>
+                  )}
 
-                {status === "success" && (
-                  <p className="font-body text-sm text-center p-4" style={{ color: "var(--ut-cyan)", background: "rgba(0,229,255,0.05)", border: "1px solid rgba(0,229,255,0.15)" }}>
-                    Transmission received. We will respond within 48 hours.
-                  </p>
-                )}
-
-                {status === "error" && (
-                  <p className="font-body text-sm text-center p-4" style={{ color: "#ff4444", background: "rgba(255,68,68,0.05)", border: "1px solid rgba(255,68,68,0.15)" }}>
-                    {errorMsg || "Signal lost. Please try again or email directly."}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={status === "sending"}
-                  className="w-full btn-primary justify-center text-base py-4"
-                >
-                  {status === "sending" ? "Transmitting..." : "Send Transmission"}
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    disabled={status === "sending"}
+                    className="w-full btn-primary justify-center text-base py-4"
+                  >
+                    {status === "sending" ? "Transmitting..." : "Send Transmission"}
+                  </button>
+                </form>
+              </div>
             </SectionReveal>
 
-            {/* Other channels */}
+            {/* Social Media */}
             <SectionReveal delay={0.3}>
-              <div className="mt-16 pt-12 border-t text-center" style={{ borderColor: "rgba(0,229,255,0.06)" }}>
+              <div className="mt-12 pt-10 border-t text-center" style={{ borderColor: "rgba(0,229,255,0.06)" }}>
                 <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-6" style={{ color: "var(--ut-white-dim)", opacity: 0.4 }}>
-                  Other Channels
+                  Social Media
                 </p>
                 <div className="flex flex-wrap justify-center gap-6">
                   <a
@@ -187,12 +209,26 @@ export default function ConnectPage() {
                     </svg>
                     Vault of Arcana
                   </a>
+                  <a
+                    href="https://www.hakanhisim.net"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 font-heading text-xs tracking-widest uppercase hover:text-[var(--ut-cyan)] transition-colors"
+                    style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}
+                  >
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" style={{ color: "rgba(0,229,255,0.7)" }}>
+                      <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 15h2v-6H11v6zm0-8h2V7h-2v2z"/>
+                    </svg>
+                    hakanhisim.net
+                  </a>
                 </div>
               </div>
             </SectionReveal>
+
           </div>
         </div>
       </main>
+
       <Footer />
     </>
   );
