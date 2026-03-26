@@ -35,6 +35,10 @@ export const metadata: Metadata = {
     description: "The visual lexicon of hidden knowledge.",
     creator: "@hakanhisim",
   },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   robots: {
     index: true,
     follow: true,
