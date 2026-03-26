@@ -7,10 +7,9 @@ export async function POST(req: Request) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 90000);
 
-    const res = await fetch('https://oracle.hakanhisim.net/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pack: 'codex', mode, lang, message }),
+    const params = new URLSearchParams({ q: message, mode: mode || 'oracle', lang: lang || 'en' });
+    const res = await fetch(`http://204.168.154.237:8002/ask?${params}`, {
+      method: 'GET',
       signal: controller.signal,
     });
 
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json({ response: data.answer || data.text || data.message || "" });
   } catch (err) {
     console.error('[oracle/api]', err);
     return NextResponse.json(
