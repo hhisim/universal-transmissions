@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ExternalLink } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import ZalgoText from "./ZalgoText";
 
 const NAV_LINKS = [
@@ -12,6 +12,9 @@ const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
   { href: "/codex", label: "Codex" },
   { href: "/origin", label: "Origin" },
+  { href: "/research", label: "Research" },
+  { href: "/linguistics", label: "Linguistics" },
+  { href: "/cymatics", label: "Cymatics" },
   { href: "/oracle", label: "Oracle" },
   { href: "/sanctum", label: "Sanctum" },
   { href: "/journal", label: "Journal" },
@@ -24,7 +27,6 @@ export default function Navigation() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLLIElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     if (!dropdownOpen) return;
     function handleClick(e: MouseEvent) {
@@ -48,26 +50,18 @@ export default function Navigation() {
       <nav className="container-ut flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex flex-col items-start">
-          <span
-            className="font-display text-sm tracking-widest"
-            style={{ color: "var(--ut-magenta)" }}
-          >
+          <span className="font-display text-sm tracking-widest" style={{ color: "var(--ut-magenta)" }}>
             UT
           </span>
-          <span
-            className="font-heading text-[9px] tracking-[0.3em] uppercase"
-            style={{ color: "var(--ut-white-dim)" }}
-          >
+          <span className="font-heading text-[9px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-white-dim)" }}>
             Universal Transmissions
           </span>
         </Link>
 
         {/* Desktop nav */}
-        <ul className="hidden md:flex items-center gap-8">
+        <ul className="hidden lg:flex items-center gap-6">
           {NAV_LINKS.map((link) => {
-            const active =
-              pathname === link.href ||
-              (link.href === "/sanctum" && pathname === "/store");
+            const active = pathname === link.href;
             return (
               <li key={link.href}>
                 <Link
@@ -97,7 +91,6 @@ export default function Navigation() {
               className="flex items-center gap-2 group"
               aria-label="Member account"
             >
-              {/* Octagonal sign-in icon */}
               <svg
                 width="22"
                 height="22"
@@ -113,7 +106,6 @@ export default function Navigation() {
                   fill="rgba(217,70,239,0.04)"
                   className="transition-all duration-300 group-hover:stroke-[rgba(217,70,239,0.8)] group-hover:fill-[rgba(217,70,239,0.1)]"
                 />
-                {/* Inner octagon */}
                 <polygon
                   points="10.3,6.1 13.7,6.1 16.1,8.5 16.1,12.0 13.7,14.4 10.3,14.4 7.9,12.0 7.9,8.5"
                   stroke="rgba(217,70,239,0.15)"
@@ -121,7 +113,6 @@ export default function Navigation() {
                   strokeLinejoin="round"
                   fill="none"
                 />
-                {/* Person silhouette */}
                 <circle
                   cx="12"
                   cy="9.5"
@@ -140,7 +131,6 @@ export default function Navigation() {
               </svg>
             </button>
 
-            {/* Dropdown */}
             <AnimatePresence>
               {dropdownOpen && (
                 <motion.div
@@ -157,7 +147,6 @@ export default function Navigation() {
                   }}
                 >
                   <div className="p-1">
-                    {/* Sign in */}
                     <Link
                       href="/sanctum/member/login"
                       className="flex items-center gap-3 w-full text-left px-4 py-3 font-body text-[13px] transition-all hover:text-white group/si"
@@ -176,16 +165,12 @@ export default function Navigation() {
                       </span>
                       Sign In
                     </Link>
-
-                    {/* Divider */}
                     <div
                       className="h-px mx-3 my-1"
                       style={{
                         background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.2), transparent)",
                       }}
                     />
-
-                    {/* Member links */}
                     <Link
                       href="/sanctum/member"
                       className="flex items-center gap-3 w-full text-left px-4 py-2.5 font-body text-[12px] transition-all hover:text-white"
@@ -202,17 +187,7 @@ export default function Navigation() {
                     >
                       <span>◇</span> Oracle Access
                     </Link>
-                    <Link
-                      href="/sanctum/member/login"
-                      className="flex items-center gap-3 w-full text-left px-4 py-2.5 font-body text-[12px] transition-all hover:text-white"
-                      style={{ color: "rgba(237,233,246,0.45)" }}
-                      onClick={() => setOpen(false)}
-                    >
-                      <span>○</span> Sign Out
-                    </Link>
                   </div>
-
-                  {/* Bottom glow line */}
                   <div
                     className="h-px"
                     style={{
@@ -224,7 +199,7 @@ export default function Navigation() {
             </AnimatePresence>
           </li>
 
-          {/* Constellation links */}
+          {/* External links */}
           <li className="border-l border-white/10 pl-6 flex items-center gap-4">
             <a
               href="https://vaultofarcana.com"
@@ -247,7 +222,7 @@ export default function Navigation() {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2"
+          className="lg:hidden p-2"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -262,7 +237,7 @@ export default function Navigation() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden overflow-hidden"
+            className="lg:hidden overflow-hidden"
             style={{
               background: "rgba(10, 9, 14, 0.95)",
               borderBottom: "1px solid rgba(217, 70, 239, 0.06)",
@@ -270,9 +245,7 @@ export default function Navigation() {
           >
             <ul className="flex flex-col p-6 gap-4">
               {NAV_LINKS.map((link) => {
-                const active =
-                  pathname === link.href ||
-                  (link.href === "/sanctum" && pathname === "/store");
+                const active = pathname === link.href;
                 return (
                   <li key={link.href}>
                     <Link

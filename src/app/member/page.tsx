@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Crown, Zap, Star, CreditCard, ExternalLink, LogOut, Check } from "lucide-react";
-import PageBackground from "@/components/scenes/PageBackground";
 
 type Plan = "guest" | "free" | "initiate";
 
@@ -88,8 +87,7 @@ export default function MemberPage() {
           <div style={{ marginBottom: 32 }}>
             <div style={{ width: 64, height: 64, margin: "0 auto 20px", border: "1px solid rgba(217,70,239,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Star size={24} color="rgba(217,70,239,0.4)" />
-              <PageBackground variant="homepage" />
-            </div>
+</div>
             <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 28, letterSpacing: "0.08em", color: "#ede9f6", marginBottom: 12 }}>Member Access</h1>
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: "rgba(237,233,246,0.4)", lineHeight: 1.7 }}>
               Sign in to access your Codex Oracle membership, manage your subscription, and view your usage.

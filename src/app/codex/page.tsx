@@ -6,7 +6,6 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import RotatingMerkaba from "@/components/three/RotatingMerkaba";
-import PageBackground from "@/components/scenes/PageBackground";
 
 export const metadata: Metadata = {
   title: "The Codex — Universal Transmissions",
@@ -47,8 +46,7 @@ export default function CodexPage() {
   return (
     <>
       <Navigation />
-     
-      <PageBackground variant="codex" /> <main style={{ background: "var(--ut-black)" }}>
+<main style={{ background: "var(--ut-black)" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}
         <section className="relative min-h-[85vh] flex items-center overflow-hidden">

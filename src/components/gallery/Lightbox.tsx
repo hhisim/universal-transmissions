@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
 interface LightboxProps {
-  mainImage: string;
+  images: string[];
   title: string;
 }
 
@@ -15,11 +15,18 @@ interface ImageThumbProps {
 }
 
 
-export default function Lightbox({ mainImage, title }: LightboxProps) {
+export default function Lightbox({ images, title }: LightboxProps) {
   const [open, setOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Reset index when opening
+  const handleOpen = () => {
+    setCurrentIndex(0);
+    setOpen(true);
+  };
 
   return (
     <>
@@ -27,14 +34,14 @@ export default function Lightbox({ mainImage, title }: LightboxProps) {
       <div
         className="relative aspect-square cursor-zoom-in overflow-hidden glow-border-magenta"
         style={{ borderColor: "rgba(217,70,239,0.15)" }}
-        onClick={() => setOpen(true)}
-        onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
+        onClick={handleOpen}
+        onKeyDown={(e) => e.key === "Enter" && handleOpen()}
         role="button"
         tabIndex={0}
         aria-label={`View ${title} fullscreen`}
       >
         <Image
-          src={mainImage}
+          src={images[0]}
           alt={title}
           fill
           className="object-cover chromatic-hover"
@@ -52,7 +59,13 @@ export default function Lightbox({ mainImage, title }: LightboxProps) {
 
       {/* Lightbox portal */}
       {mounted && open && createPortal(
-        <LightboxOverlay src={mainImage} title={title} onClose={() => setOpen(false)} />,
+        <LightboxOverlay
+          images={images}
+          currentIndex={currentIndex}
+          onClose={() => setOpen(false)}
+          onNavigate={(idx) => setCurrentIndex(idx)}
+          title={title}
+        />,
         document.body
       )}
     </>
@@ -84,29 +97,43 @@ export function ImageThumb({ src, alt }: ImageThumbProps) {
         />
       </div>
       {mounted && open && createPortal(
-        <LightboxOverlay src={src} title={alt} onClose={() => setOpen(false)} />,
+        <LightboxOverlay
+          images={[src]}
+          currentIndex={0}
+          onClose={() => setOpen(false)}
+          onNavigate={() => {}}
+          title={alt}
+        />,
         document.body
       )}
     </>
   );
 }
 
-/* ── Internal overlay ── */
+/* ── Internal overlay with gallery navigation ── */
 function LightboxOverlay({
-  src,
-  title,
+  images,
+  currentIndex,
   onClose,
+  onNavigate,
+  title,
 }: {
-  src: string;
-  title: string;
+  images: string[];
+  currentIndex: number;
   onClose: () => void;
+  onNavigate: (index: number) => void;
+  title: string;
 }) {
-  const [imgEl, setImgEl] = useState<HTMLImageElement | null>(null);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < images.length - 1;
+  const currentSrc = images[currentIndex];
 
-  // Keyboard close
+  // Keyboard navigation
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && hasPrev) onNavigate(currentIndex - 1);
+      if (e.key === "ArrowRight" && hasNext) onNavigate(currentIndex + 1);
     }
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -114,7 +141,17 @@ function LightboxOverlay({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, [onClose, currentIndex, hasPrev, hasNext, onNavigate]);
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hasPrev) onNavigate(currentIndex - 1);
+  };
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hasNext) onNavigate(currentIndex + 1);
+  };
 
   return (
     <div
@@ -122,6 +159,16 @@ function LightboxOverlay({
       style={{ background: "rgba(5,5,7,0.95)" }}
       onClick={onClose}
     >
+      {/* Counter */}
+      {images.length > 1 && (
+        <div
+          className="absolute top-6 left-1/2 -translate-x-1/2 font-mono text-xs tracking-widest uppercase"
+          style={{ color: "var(--ut-white-dim)" }}
+        >
+          {currentIndex + 1} / {images.length}
+        </div>
+      )}
+
       {/* Close button */}
       <button
         className="absolute top-6 right-6 z-10 p-2 font-mono text-xs tracking-widest uppercase"
@@ -132,6 +179,32 @@ function LightboxOverlay({
         ✕ Close
       </button>
 
+      {/* Prev button */}
+      {images.length > 1 && (
+        <button
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 font-mono text-lg transition-opacity"
+          style={{ color: "var(--ut-white-dim)" }}
+          onClick={handlePrev}
+          aria-label="Previous image"
+          disabled={!hasPrev}
+        >
+          ‹
+        </button>
+      )}
+
+      {/* Next button */}
+      {images.length > 1 && (
+        <button
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 font-mono text-lg transition-opacity"
+          style={{ color: "var(--ut-white-dim)" }}
+          onClick={handleNext}
+          aria-label="Next image"
+          disabled={!hasNext}
+        >
+          ›
+        </button>
+      )}
+
       {/* Image */}
       <div
         className="relative w-full h-full flex items-center justify-center p-8"
@@ -139,8 +212,9 @@ function LightboxOverlay({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={src}
-          alt={title}
+          key={currentSrc}
+          src={currentSrc}
+          alt={`${title} ${currentIndex + 1}`}
           className="max-w-full max-h-full object-contain"
           style={{
             maxWidth: "90vw",

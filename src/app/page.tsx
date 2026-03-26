@@ -6,15 +6,11 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
+import Image from 'next/image';
 
 const LogoHero = dynamic(
   () => import("@/components/hero/LogoHero").then((m) => m.LogoHero),
   { ssr: false, loading: () => <div className="h-screen bg-ut-void" /> }
-);
-
-const UTTVPlayer = dynamic(
-  () => import("@/components/gallery/UTTVPlayer").then((m) => m.default),
-  { ssr: false }
 );
 
 export const metadata: Metadata = {
@@ -38,12 +34,9 @@ export default function HomePage() {
 
         {/* ── HERO — Interactive Logo ──────────────────── */}
         <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
-          {/* Interactive logo canvas fills the hero */}
           <div className="absolute inset-0">
             <LogoHero />
           </div>
-
-          {/* Text content — BELOW the logo, centered */}
           <div className="relative z-10 text-center px-6 mt-[52vh]">
             <h1
               className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] mb-6 ut-gradient-text"
@@ -66,8 +59,6 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-
-          {/* Scroll indicator */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
             <div
               className="w-[1px] h-12"
@@ -78,11 +69,157 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── UT TV — YouTube Stream ──────────────────── */}
-        <section className="relative" style={{ padding: "0 0 40px" }}>
-          <div className="mx-auto" style={{ width: "75%", maxWidth: "900px" }}>
-            <UTTVPlayer />
+        {/* ── VIDEO — Square Cloudinary player ─────────── */}
+        <section className="relative py-24 flex items-center justify-center">
+          <style>{`
+            .video-wrapper {
+              position: relative;
+              width: 500px;
+              height: 500px;
+              border-radius: 16px;
+              overflow: hidden;
+              background: #000;
+            }
+            video {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              display: block;
+            }
+            .controls {
+              position: absolute;
+              bottom: 20px;
+              left: 50%;
+              transform: translateX(-50%);
+              display: flex;
+              gap: 12px;
+              opacity: 0;
+              transition: opacity 0.3s ease;
+              z-index: 10;
+            }
+            .video-wrapper:hover .controls {
+              opacity: 1;
+            }
+            @media (pointer: coarse) {
+              .controls { opacity: 1; }
+            }
+            .ctrl-btn {
+              width: 48px;
+              height: 48px;
+              border: none;
+              border-radius: 50%;
+              background: rgba(255, 255, 255, 0.15);
+              backdrop-filter: blur(10px);
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s ease;
+            }
+            .ctrl-btn:hover {
+              background: rgba(255, 255, 255, 0.25);
+              transform: scale(1.05);
+            }
+            .ctrl-btn:active { transform: scale(0.95); }
+            .ctrl-btn svg { width: 20px; height: 20px; fill: white; }
+            .click-overlay {
+              position: absolute;
+              inset: 0;
+              cursor: pointer;
+              z-index: 5;
+            }
+            .paused-indicator {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) scale(0);
+              width: 80px;
+              height: 80px;
+              background: rgba(255, 255, 255, 0.15);
+              backdrop-filter: blur(10px);
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: transform 0.3s ease;
+              pointer-events: none;
+            }
+            .paused-indicator.show { transform: translate(-50%, -50%) scale(1); }
+            .paused-indicator svg { width: 32px; height: 32px; margin-left: 4px; }
+          `}</style>
+          <div className="video-wrapper">
+            <video
+              id="homeVideo"
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster="https://res.cloudinary.com/dvkxsh4ve/video/upload/so_0,w_500,h_500,c_fill/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.jpg"
+            >
+              <source
+                src="https://res.cloudinary.com/dvkxsh4ve/video/upload/w_500,h_500,c_fill/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.mp4"
+                type="video/mp4"
+              />
+            </video>
+            <div className="click-overlay" id="clickOverlay" />
+            <div className="paused-indicator" id="pauseIndicator">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <div className="controls">
+              <button className="ctrl-btn" id="playBtn" aria-label="Play/Pause">
+                <svg id="playIcon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <svg id="pauseIcon" viewBox="0 0 24 24" style={{display:"none"}}><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <button className="ctrl-btn" id="muteBtn" aria-label="Mute/Unmute">
+                <svg id="muteIcon" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                <svg id="soundIcon" viewBox="0 0 24 24" style={{display:"none"}}><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              </button>
+            </div>
           </div>
+          <script dangerouslySetInnerHTML={{ __html: `
+            (function() {
+              var video = document.getElementById('homeVideo');
+              var clickOverlay = document.getElementById('clickOverlay');
+              var playBtn = document.getElementById('playBtn');
+              var muteBtn = document.getElementById('muteBtn');
+              var playIcon = document.getElementById('playIcon');
+              var pauseIcon = document.getElementById('pauseIcon');
+              var muteIcon = document.getElementById('muteIcon');
+              var soundIcon = document.getElementById('soundIcon');
+              var pauseIndicator = document.getElementById('pauseIndicator');
+
+              function togglePlay() {
+                if (video.paused) {
+                  video.play();
+                  playIcon.style.display = 'none';
+                  pauseIcon.style.display = 'block';
+                  pauseIndicator.classList.remove('show');
+                } else {
+                  video.pause();
+                  playIcon.style.display = 'block';
+                  pauseIcon.style.display = 'none';
+                  pauseIndicator.classList.add('show');
+                }
+              }
+
+              function toggleMute() {
+                video.muted = !video.muted;
+                if (video.muted) {
+                  muteIcon.style.display = 'block';
+                  soundIcon.style.display = 'none';
+                } else {
+                  muteIcon.style.display = 'none';
+                  soundIcon.style.display = 'block';
+                }
+              }
+
+              clickOverlay.addEventListener('click', togglePlay);
+              playBtn.addEventListener('click', function(e) { e.stopPropagation(); togglePlay(); });
+              muteBtn.addEventListener('click', function(e) { e.stopPropagation(); toggleMute(); });
+              pauseIcon.style.display = 'none';
+              soundIcon.style.display = 'none';
+            })();
+          `}} />
         </section>
 
         {/* ── MANIFESTO ───────────────────────────────── */}
@@ -120,321 +257,139 @@ export default function HomePage() {
         <section className="py-24" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
           <div className="container-ut">
             <SectionReveal>
-              <div className="text-center mb-16">
-                <p
-                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
-                  style={{ color: "var(--ut-magenta)", opacity: 0.5 }}
-                >
-                  [ Featured Transmissions ]
-                </p>
-                <h2
-                  className="font-display text-3xl md:text-4xl glow-spectrum"
-                  style={{ color: "var(--ut-white)" }}
-                >
-                  <ZalgoText text="Selected Works" intensity="moderate" />
-                </h2>
-                <p className="font-body text-base mt-3" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
-                  Each piece is a transmission — a message encoded in geometry, light, and sacred form.
-                </p>
-              </div>
-            </SectionReveal>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {featuredArtworks.map((artwork, i) => (
-                <SectionReveal key={artwork.id} delay={i * 0.1}>
-                  <Link
-                    href={`/gallery/${artwork.slug}`}
-                    className="ut-card group block overflow-hidden"
-                  >
-                    <div
-                      className="aspect-square overflow-hidden"
-                      style={{ background: "rgba(0,0,0,0.4)" }}
-                    >
-                      <img
-                        src={artwork.images[0]}
-                        alt={artwork.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    </div>
-                    <div className="p-6">
-                      <p
-                        className="font-mono text-[9px] tracking-widest uppercase mb-2"
-                        style={{ color: "var(--ut-magenta)", opacity: 0.5 }}
-                      >
-                        {artwork.year}
-                      </p>
-                      <h3
-                        className="font-heading text-sm tracking-wider"
-                        style={{ color: "var(--ut-white)" }}
-                      >
-                        <ZalgoText text={artwork.title} intensity="subtle" />
-                      </h3>
-                    </div>
-                  </Link>
-                </SectionReveal>
-              ))}
-            </div>
-
-            <SectionReveal delay={0.4}>
-              <div className="text-center mt-12">
-                <Link href="/gallery" className="btn-secondary">
-                  VIEW ALL TRANSMISSIONS
-                </Link>
-              </div>
-            </SectionReveal>
-          </div>
-        </section>
-
-        {/* ── SERIES OVERVIEW ──────────────────────────── */}
-        <section className="py-24" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
-          <div className="container-ut">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: "Universal Transmissions",
-                  desc: "The original series — eleven transmissions exploring language, geometry, and consciousness through a unique visual lexicon. Each piece is a self-contained universe of xenolinguistic code, sacred geometry, and dimensional mapping.",
-                  href: "/gallery",
-                  label: "11 Works",
-                },
-                {
-                  title: "Bio-Energetic Vortexes",
-                  desc: "Seven visualizations of the human energy system — from Root to Crown — as perceived through hyper-dimensional vision. Each chakra rendered as a living mandala of fractal complexity and symbolic depth.",
-                  href: "/gallery/bio-energetic-vortexes",
-                  label: "7 Works",
-                },
-                {
-                  title: "Prismatic Transmissions",
-                  desc: "A prismatic series exploring the liminal frequencies between known and unknown, rendered in twilight tones where the visible spectrum bleeds into the invisible.",
-                  href: "/gallery/prismatic",
-                  label: "5 Works",
-                },
-              ].map((series, i) => (
-                <SectionReveal key={series.title} delay={i * 0.1}>
-                  <Link href={series.href} className="ut-card-gold group p-8 block">
-                    <p
-                      className="font-mono text-[9px] tracking-widest uppercase mb-3"
-                      style={{ color: "var(--ut-gold)", opacity: 0.7 }}
-                    >
-                      {series.label}
-                    </p>
-                    <h3
-                      className="font-display text-xl mb-3"
-                      style={{ color: "var(--ut-white)" }}
-                    >
-                      <ZalgoText text={series.title} intensity="subtle" />
-                    </h3>
-                    <p className="font-body text-sm leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
-                      {series.desc}
-                    </p>
-                  </Link>
-                </SectionReveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── CODEX CALLOUT ────────────────────────────── */}
-        <section className="py-24" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
-          <div className="container-ut">
-            <SectionReveal>
-              <div
-                className="ut-card p-12 text-center"
-                style={{ background: "rgba(217,70,239,0.03)", border: "1px solid rgba(217,70,239,0.08)" }}
-              >
-                <p
-                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-4"
-                  style={{ color: "var(--ut-gold)", opacity: 0.7 }}
-                >
-                  [ The Codex ]
-                </p>
-                <h2
-                  className="font-display text-3xl md:text-4xl mb-6 glow-spectrum"
-                  style={{ color: "var(--ut-white)" }}
-                >
-                  <ZalgoText
-                    text="The Unwritten Book That Cannot Be Read"
-                    intensity="moderate"
-                  />
-                </h2>
-                <p
-                  className="font-body text-base max-w-2xl mx-auto mb-8"
-                  style={{ color: "var(--ut-white-dim)" }}
-                >
-                  A 150-page manuscript of bizarre beauty — more than a book, it is a condensed collection of high-quality art prints woven into existence through a childlike fascination with linguistics, etymology, and visionary experience. The Codex is not meant to be read. It is meant to be experienced. Ten years of devotion. A lifetime of dreaming. 150 pages of encoded wonder.
-                </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                  <Link href="/codex" className="btn-gold">
-                    DISCOVER THE CODEX
-                  </Link>
-                  <Link href="/sanctum" className="btn-secondary">
-                    VISIT THE SANCTUM
-                  </Link>
-                </div>
-              </div>
-            </SectionReveal>
-          </div>
-        </section>
-
-        {/* ── THE SOURCE — VoA Cross-link ─────────────── */}
-        <section className="py-24" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
-          <div className="container-ut">
-            <SectionReveal>
               <div className="text-center mb-12">
                 <p
-                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
-                  style={{ color: "var(--ut-magenta)", opacity: 0.5 }}
+                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-4"
+                  style={{ color: "var(--ut-cyan)", opacity: 0.5 }}
                 >
-                  [ The Source ]
+                  [ Selected Transmissions ]
                 </p>
                 <h2
-                  className="font-display text-3xl md:text-4xl glow-spectrum"
+                  className="font-display text-3xl md:text-4xl"
                   style={{ color: "var(--ut-white)" }}
                 >
-                  <ZalgoText text="Where the Transmissions Begin" intensity="moderate" />
-                </h2>
-                <p className="font-body text-base mt-4 max-w-2xl mx-auto" style={{ color: "var(--ut-white-dim)" }}>
-                  Universal Transmissions is the visual output of thirty years of immersion in esoteric tradition — Hermetic philosophy, Tantric practice, Taoist contemplation, sacred geometry, and the cartography of consciousness. That accumulated knowledge now lives as an interactive oracle and living mystery school.
-                </p>
-              </div>
-            </SectionReveal>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              <SectionReveal delay={0.1}>
-                <a
-                  href="https://vaultofarcana.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ut-card p-8 block group"
-                >
-                  <p className="font-mono text-[9px] tracking-widest uppercase mb-3" style={{ color: "var(--ut-magenta)", opacity: 0.7 }}>
-                    ↗ Enter
-                  </p>
-                  <h3 className="font-display text-xl mb-3" style={{ color: "var(--ut-white)" }}>
-                    <ZalgoText text="The Oracle" intensity="subtle" />
-                  </h3>
-                  <p className="font-body text-sm leading-relaxed mb-5" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                    Ask questions of a curated intelligence shaped by rare esoteric archives. Six living traditions — Tao / Sexual Alchemy, Tarot, Tantra (Vedanta / Kundalini), Shamanism & Entheogens, Dreamwalker (Astral Projection / Lucidity) and the Codex — with more awakening.
-                  </p>
-                  <span className="btn-primary text-xs py-3 px-6">CONSULT THE ORACLE</span>
-                </a>
-              </SectionReveal>
-
-              <SectionReveal delay={0.2}>
-                <a
-                  href="https://vaultofarcana.com/correspondence-engine"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ut-card p-8 block group"
-                >
-                  <p className="font-mono text-[9px] tracking-widest uppercase mb-3" style={{ color: "var(--ut-gold)", opacity: 0.7 }}>
-                    ↗ Explore
-                  </p>
-                  <h3 className="font-display text-xl mb-3" style={{ color: "var(--ut-white)" }}>
-                    <ZalgoText text="Correspondence Codex" intensity="subtle" />
-                  </h3>
-                  <p className="font-body text-sm leading-relaxed mb-5" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                    A symbolic cross-reference engine mapping the hidden connections between traditions, elements, planets, chakras, and archetypes.
-                  </p>
-                  <span className="btn-gold text-xs py-3 px-6">EXPLORE CORRESPONDENCES</span>
-                </a>
-              </SectionReveal>
-            </div>
-          </div>
-        </section>
-
-        {/* ── CODEX ORACLE SECTION ─────────────────────────── */}
-        <section className="py-20 px-6" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="font-heading text-[11px] tracking-[0.25em] mb-3" style={{ color: "rgba(212,168,71,0.5)" }}>
-              [ LIVING INTELLIGENCE ]
-            </div>
-            <h2 className="font-heading text-3xl tracking-[0.12em] mb-4" style={{ background: "linear-gradient(135deg, #d946ef 0%, #d4a847 35%, #9333ea 65%, #22d3ee 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              The Codex Oracle
-            </h2>
-            <p className="font-body text-lg mb-8 max-w-xl mx-auto" style={{ color: "rgba(237,233,246,0.5)" }}>
-              Ask questions about any of the 150 pages. Decode names letter by letter.
-              Map the correspondences between symbols, planets, chakras, and traditions.
-              The oracle draws from 577 cross-references and decades of esoteric research.
-            </p>
-            <a href="/oracle" className="btn-primary">
-              CONSULT THE ORACLE
-            </a>
-          </div>
-        </section>
-
-        {/* ── FAQ ─────────────────────────────────────── */}
-        <section className="py-24" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
-          <div className="container-ut">
-            <SectionReveal>
-              <div className="text-center mb-16">
-                <p
-                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
-                  style={{ color: "var(--ut-magenta)", opacity: 0.5 }}
-                >
-                  [ Frequent Inquiries ]
-                </p>
-                <h2
-                  className="font-display text-3xl md:text-4xl glow-spectrum"
-                  style={{ color: "var(--ut-white)" }}
-                >
-                  <ZalgoText text="Common Questions" intensity="moderate" />
+                  <ZalgoText text="From the Archive" intensity="subtle" />
                 </h2>
               </div>
             </SectionReveal>
 
-            <div className="max-w-3xl mx-auto space-y-6">
-              {[
-                {
-                  q: "What are the written languages in these artworks?",
-                  a: "The languages are an amalgamation of various alphabets and symbols — some sourced from ancient scripts found through research, others brought back from journeys out of the body into higher and lower dimensional realms. They resonate with many people because they hint at a prototype or archetypal xenolinguistic alphabet encoded within the fabric of reality — glimpsed in parts during dreams, trance states, and deep meditation.",
-                },
-                {
-                  q: "Does the language actually mean anything?",
-                  a: "Meaning is a tricky thing. These images contain both language and symbols used in artistically aesthetic ways, and also contain encoded information transcribed from remembered experiences during trance states. Language is the prime component in the manifestation of reality.",
-                },
-                {
-                  q: "What is the Universal Transmissions Codex?",
-                  a: "The Codex is the result of an alchemical process — a concentrated distillation of an entire life's journey. It is a book that cannot be read, and its purpose is NOT to be read. 150 high-quality art prints bound together in the highest quality PUR binding on museum-grade semi-gloss paper.",
-                },
-                {
-                  q: "Are the artworks available as prints?",
-                  a: "Yes. Most works in the collection are available as high-quality archival giclée prints, tapestries, and stretched canvas. Every print is signed by the artist. Visit the Sanctum for current availability.",
-                },
-                {
-                  q: "What is Vault of Arcana?",
-                  a: "Vault of Arcana is a living mystery school — an interactive oracle and archive built from the same thirty years of esoteric research that produced Universal Transmissions. Where UT is the visual output, VoA is the knowledge architecture.",
-                },
-                {
-                  q: "Are you an alien?",
-                  a: "No — just a human being experiencing the magnificent wonder of our multidimensional realities, like everyone else on this exquisite planet.",
-                },
-              ].map((faq, i) => (
-                <SectionReveal key={i} delay={i * 0.05}>
-                  <div className="ut-card p-8">
-                    <h3
-                      className="font-heading text-sm tracking-wider uppercase mb-3"
-                      style={{ color: "var(--ut-magenta)" }}
-                    >
-                      <ZalgoText text={faq.q} intensity="subtle" />
-                    </h3>
-                    <p className="font-body text-sm leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                      {faq.a}
-                    </p>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {featuredArtworks.slice(0, 2).map((artwork, i) => (
+                <SectionReveal key={artwork.id} delay={i * 0.15}>
+                  <Link
+                    href={`/gallery/${artwork.slug}`}
+                    className="artwork-card ut-card block overflow-hidden group"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <Image
+                        src={artwork.images[0]}
+                        alt={artwork.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                      <div className="artwork-card-overlay">
+                        <p
+                          className="font-heading text-sm tracking-widest uppercase"
+                          style={{ color: "var(--ut-cyan)" }}
+                        >
+                          View Transmission →
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3
+                        className="font-heading text-base tracking-wider mb-1"
+                        style={{ color: "var(--ut-white)" }}
+                      >
+                        {artwork.title}
+                      </h3>
+                      <p
+                        className="font-mono text-[10px]"
+                        style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}
+                      >
+                        {artwork.medium} · {artwork.year}
+                      </p>
+                    </div>
+                  </Link>
                 </SectionReveal>
               ))}
             </div>
 
+            <SectionReveal delay={0.2}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                {featuredArtworks.slice(2).map((artwork, i) => (
+                  <Link
+                    key={artwork.id}
+                    href={`/gallery/${artwork.slug}`}
+                    className="artwork-card ut-card block overflow-hidden group"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <Image
+                        src={artwork.images[0]}
+                        alt={artwork.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                      <div className="artwork-card-overlay">
+                        <p
+                          className="font-heading text-sm tracking-widest uppercase"
+                          style={{ color: "var(--ut-cyan)" }}
+                        >
+                          View Transmission →
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3
+                        className="font-heading text-base tracking-wider mb-1"
+                        style={{ color: "var(--ut-white)" }}
+                      >
+                        {artwork.title}
+                      </h3>
+                      <p
+                        className="font-mono text-[10px]"
+                        style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}
+                      >
+                        {artwork.medium} · {artwork.year}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </SectionReveal>
+
             <SectionReveal delay={0.3}>
-              <div className="text-center mt-10">
-                <Link href="/about" className="btn-secondary">
-                  READ MORE IN THE ABOUT PAGE
+              <div className="text-center mt-12">
+                <Link href="/gallery" className="btn-secondary">
+                  View All Transmissions
                 </Link>
               </div>
             </SectionReveal>
           </div>
         </section>
 
+        {/* ── CTA ─────────────────────────────────────── */}
+        <section
+          className="py-32 text-center"
+          style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}
+        >
+          <div className="container-ut">
+            <SectionReveal>
+              <span style={{ color: "var(--ut-magenta)" }}>
+                <ZalgoText
+                  text="The transmission never ends."
+                  intensity="moderate"
+                  className="font-display text-2xl md:text-4xl block mb-6"
+                />
+              </span>
+              <Link href="/gallery" className="btn-primary">
+                Enter the Archive
+              </Link>
+            </SectionReveal>
+          </div>
+        </section>
       </main>
       <Footer />
     </>
