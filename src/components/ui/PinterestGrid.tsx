@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 
 interface PinterestPin {
   id: string;
-  images: { "564x": { url: string }; "236x": { url: string } };
+  images: {
+    "236x": { width: number; height: number; url: string };
+    "564x": { width: number; height: number; url: string };
+  };
   link: string | null;
   description: string;
 }
@@ -15,25 +18,28 @@ interface PinterestGridProps {
   subtitle?: string;
 }
 
-// Pinterest's unauthenticated widget API
-const PINTEREST_WIDGET = (slug: string) =>
-  `https://api.pinterest.com/v3/pidgets/boards/${slug}/pins/`;
-
 export default function PinterestGrid({
   boardSlug = "hakanhisim/typography-symbols",
-  fallbackUrl = `https://www.pinterest.com/${boardSlug}/`,
+  fallbackUrl,
   subtitle = "Visual Reference Archive",
 }: PinterestGridProps) {
   const [pins, setPins] = useState<PinterestPin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const boardUrl = fallbackUrl || `https://www.pinterest.com/${boardSlug}/`;
 
   useEffect(() => {
-    fetch(PINTEREST_WIDGET(boardSlug))
+    setLoading(true);
+    setError(false);
+
+    fetch(`/api/pinterest-board?board=${encodeURIComponent(boardSlug)}`)
       .then((r) => r.json())
-      .then((data: { data?: { pins?: PinterestPin[] } }) => {
-        const pins = data?.data?.pins ?? [];
-        setPins(pins);
+      .then((data: { pins?: PinterestPin[]; error?: string }) => {
+        if (data.error) {
+          setError(true);
+        } else {
+          setPins(data.pins ?? []);
+        }
         setLoading(false);
       })
       .catch(() => {
@@ -60,10 +66,10 @@ export default function PinterestGrid({
           className="font-mono text-[10px] tracking-widest uppercase mb-4"
           style={{ color: "var(--ut-white-dim)", opacity: 0.4 }}
         >
-          {error ? "Board unavailable" : "No pins found"}
+          Board unavailable
         </p>
         <a
-          href={fallbackUrl}
+          href={boardUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="font-mono text-[10px] tracking-widest uppercase"
@@ -77,12 +83,11 @@ export default function PinterestGrid({
 
   return (
     <div className="w-full">
-      {/* Masonry-style image grid */}
       <div className="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
         {pins.map((pin) => (
           <a
             key={pin.id}
-            href={pin.link || fallbackUrl}
+            href={pin.link || boardUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="block overflow-hidden break-inside-avoid rounded-sm"
@@ -97,10 +102,9 @@ export default function PinterestGrid({
           </a>
         ))}
       </div>
-
       <div className="text-center mt-6">
         <a
-          href={fallbackUrl}
+          href={boardUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="font-mono text-[10px] tracking-widest uppercase hover:opacity-70 transition-opacity"
