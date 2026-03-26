@@ -7,6 +7,53 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import ZalgoText from "./ZalgoText";
 
+function MobileResearchItem({ isActive }: { isActive: (href: string) => boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <li>
+      <div className="flex flex-col">
+        <Link
+          href="/research"
+          className="flex items-center justify-between w-full text-left py-2.5"
+          style={{ color: isActive("/research") ? "var(--ut-magenta)" : "rgba(237,233,246,0.7)" }}
+        >
+          <ZalgoText text="Research" intensity="subtle" />
+          <button
+            onClick={(e) => { e.preventDefault(); setExpanded((v) => !v); }}
+            className="p-1"
+            aria-label="Toggle submenu"
+          >
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 8 8"
+              fill="none"
+              style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+            >
+              <path d="M1 2.5L4 5.5L7 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </Link>
+        {expanded && (
+          <ul className="ml-4 pb-2 flex flex-col gap-0.5">
+            {RESEARCH_ITEMS.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block py-2 text-[13px]"
+                  style={{ color: isActive(item.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.5)" }}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </li>
+  );
+}
+
 const NAV_LINKS = [
   { href: "/", label: "Transmission" },
   { href: "/gallery", label: "Gallery" },
@@ -336,17 +383,7 @@ export default function Navigation() {
             <ul className="flex flex-col p-6 gap-1">
               {NAV_LINKS.map((link) => {
                 if (link.href === "/research") {
-                  return (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="block py-2.5"
-                        style={{ color: isActive(link.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.7)" }}
-                      >
-                        <ZalgoText text={link.label} intensity="subtle" />
-                      </Link>
-                    </li>
-                  );
+                  return <MobileResearchItem key={link.href} isActive={isActive} />;
                 }
                 return (
                   <li key={link.href}>
