@@ -5,31 +5,6 @@ import { supabaseAdmin } from "@/lib/supabase";
 const DIGITAL_PRODUCTS = ["codex-digital", "chakra-4k", "chakra-8k"];
 const PHYSICAL_PRODUCTS = ["codex-physical", "hexahedron-cube"];
 
-// Exact countries accepted by Stripe's shipping_address_collection (from Stripe error message)
-const SUPPORTED_SHIPPING_COUNTRIES = [
-  "AC","AD","AE","AF","AG","AI","AL","AM","AO","AQ","AR","AT","AU","AW","AX","AZ",
-  "BA","BB","BD","BE","BF","BG","BH","BI","BJ","BL","BM","BN","BO","BQ","BR","BS","BT","BV","BW","BY","BZ",
-  "CA","CD","CF","CG","CH","CI","CK","CL","CM","CN","CO","CR","CV","CW","CY","CZ",
-  "DE","DJ","DK","DM","DO","DZ","EC","EE","EG","EH","ER","ES","ET","FI","FJ","FK","FO","FR",
-  "GA","GB","GD","GE","GF","GG","GH","GI","GL","GM","GN","GP","GQ","GR","GS","GT","GU","GW","GY",
-  "HK","HN","HR","HT","HU",
-  "ID","IE","IL","IM","IN","IO","IQ","IS","IT","JE","JM","JO","JP","KE","KG","KH","KI","KM","KN","KR","KW","KY","KZ",
-  "LA","LB","LC","LI","LK","LR","LS","LT","LU","LV","LY",
-  "MA","MC","MD","ME","MF","MG","MK","ML","MM","MN","MO","MQ","MR","MS","MT","MU","MV","MW","MX","MY","MZ",
-  "NA","NC","NE","NG","NI","NL","NO","NP","NR","NU","NZ",
-  "OM",
-  "PA","PE","PF","PG","PH","PK","PL","PM","PN","PR","PS","PT","PY",
-  "QA","RE","RO","RS","RU","RW",
-  "SA","SB","SC","SD","SE","SG","SH","SI","SJ","SK","SL","SM","SN","SO","SR","SS","ST","SV","SX","SZ",
-  "TA","TC","TD","TF","TG","TH","TJ","TK","TL","TM","TN","TO","TR","TT","TV","TW","TZ",
-  "UA","UG","US","UY","UZ",
-  "VA","VC","VE","VG","VN","VU",
-  "WF","WS",
-  "XK",
-  "YE","YT",
-  "ZA","ZM","ZW","ZZ",
-];
-
 export async function POST(req: NextRequest) {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
@@ -43,7 +18,6 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.universal-transmissions.com";
     const unitAmount = Math.round(product.price * 100);
 
-    // Build form-encoded body
     const params = new URLSearchParams({
       "payment_method_types[0]": "card",
       "line_items[0][price_data][currency]": "usd",
@@ -56,12 +30,10 @@ export async function POST(req: NextRequest) {
       cancel_url: `${baseUrl}/sanctum/${product.slug}?canceled=true`,
     });
 
+    // Physical products: add flat-rate shipping
     if (PHYSICAL_PRODUCTS.includes(productId)) {
-      SUPPORTED_SHIPPING_COUNTRIES.forEach((c, i) =>
-        params.append(`shipping_address_collection[allowed_countries][${i}]`, c)
-      );
       const shipAmt = productId === "codex-physical" ? 3000 : 2000;
-      const shipName = productId === "codex-physical" ? "Standard Shipping ($30, AU/Asia $50)" : "Worldwide Shipping ($20)";
+      const shipName = productId === "codex-physical" ? "Standard Shipping" : "Worldwide Shipping";
       params.append("shipping_options[0][shipping_rate_data][type]", "fixed_amount");
       params.append("shipping_options[0][shipping_rate_data][fixed_amount][amount]", String(shipAmt));
       params.append("shipping_options[0][shipping_rate_data][fixed_amount][currency]", "usd");
@@ -70,7 +42,6 @@ export async function POST(req: NextRequest) {
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][minimum][value]", "5");
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][unit]", "business_day");
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][value]", "21");
-      params.append("billing_address_collection", "required");
     }
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
