@@ -319,3 +319,13 @@ export default function OriginPage() {
                   })}
                 </div>
               </SectionReveal>
+
+            </div>
+          </div>
+        </section>
+
+      </main>
+      <Footer />
+    </>
+  );
+}

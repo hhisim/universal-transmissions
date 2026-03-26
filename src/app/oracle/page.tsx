@@ -7,6 +7,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
+import { motion } from "framer-motion";
 import ZalgoText from "@/components/ui/ZalgoText";
 
 const MODES = [
@@ -116,20 +117,30 @@ export default function OraclePage() {
       <main style={{ background: "var(--ut-black)" }}>
 
         {/* Header */}
-        <SectionReveal>
-          <div className="container-ut text-center pt-24 pb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="container-ut text-center pt-32 pb-12"
+        >
             <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "rgba(212,168,71,0.5)" }}>
               [ Codex Oracle ]
             </p>
             <h1 className="font-display text-4xl md:text-6xl mb-4" style={{ color: "var(--ut-white)" }}>
-              <ZalgoText text="Ask the Oracle" intensity="moderate" />
+              <ZalgoText text="Consult Oracle" intensity="moderate" />
             </h1>
             <p className="font-body text-lg max-w-xl mx-auto" style={{ color: "var(--ut-white-dim)" }}>
               150 pages of xenolinguistic art, sacred geometry, and symbolic transmissions.
               Ask about any page, decode a name, or explore the correspondence web.
             </p>
-          </div>
-        </SectionReveal>
+        </motion.div>
+
+        {/* Oracle body — animates in as one unit on page load */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
+        >
 
         {/* Mode selector */}
         <div className="container-ut pb-6">
@@ -313,6 +324,7 @@ export default function OraclePage() {
             </div>
           </div>
         </SectionReveal>
+        </motion.div>
 
       </main>
 
@@ -322,7 +334,7 @@ export default function OraclePage() {
         @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
         ::-webkit-scrollbar{width:5px}
         ::-webkit-scrollbar-track{background:rgba(10,9,14,0.5)}
-        ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(217,70,239,0.2),rgba(212,168,71,0.2));border-radius:3px}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(to right,#c026d3 0%,#d946ef 20%,#f0c75e 45%,#22d3ee 75%,#22d3ee 100%);border-radius:3px}
       `}</style>
     </>
   );
