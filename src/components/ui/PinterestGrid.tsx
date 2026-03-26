@@ -85,7 +85,8 @@ export default function PinterestGrid({
 
   return (
     <div className="w-full">
-      <div className="columns-4 md:columns-6 lg:columns-8 gap-2 space-y-2">
+      {/* Full gallery — 4 columns, shows all available pins */}
+      <div className="columns-4 gap-2 space-y-2">
         {pins.map((pin) => (
           <a
             key={pin.id}
@@ -104,6 +105,14 @@ export default function PinterestGrid({
           </a>
         ))}
       </div>
+
+      {/* Pin count indicator */}
+      <p
+        className="font-mono text-[9px] text-center mt-6 tracking-widest uppercase"
+        style={{ color: "var(--ut-white-dim)", opacity: 0.25 }}
+      >
+        {pins.length} images from this board
+      </p>
     </div>
   );
 }

@@ -4,7 +4,13 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 const DIGITAL_PRODUCTS = ["codex-digital", "chakra-4k", "chakra-8k"];
 const PHYSICAL_PRODUCTS = ["codex-physical", "hexahedron-cube"];
-const AU_ASIA = ["AU","NZ","JP","CN","KR","IN","TH","VN","MY","SG","ID","PH","PK","BD","LK","NP","MM","KH","LA","MN","TW","HK","MO"];
+
+// Countries supported by Stripe's shipping_address_collection
+// NOTE: Turkey (TR) and Israel (IL) are NOT supported by Stripe shipping_address_collection
+const SUPPORTED_SHIPPING_COUNTRIES = [
+  "US","CA","GB","DE","FR","IT","ES","NL","BE","AT","CH","SE","NO","DK","FI","IE","PT","PL","CZ","HU","RO","BG","HR","SK","SI","EE","LV","LT","GR","MT","CY","LU","IS","LI","MC","AD","SM","VA","ME","RS","BA","MK","AL","XK","ZA","BR","AR","CL","CO","MX","PE","VE","UY","PY","BO","EC","GY","SR","GF","PA","CR","HN","NI","SV","GT","BZ","JM","HT","DO","TT","BB","BS","CU","PR","VI","GU","CW","SX","BQ","AW","LC","DM","VC","AG","GD","KN","AI","MS","VG","TC",
+  "AU","NZ","JP","CN","KR","IN","TH","VN","MY","SG","ID","PH","PK","BD","LK","NP","MM","KH","LA","MN","TW","HK","MO",
+];
 
 export async function POST(req: NextRequest) {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -33,11 +39,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (PHYSICAL_PRODUCTS.includes(productId)) {
-      const allCountries = [
-        "US","CA","GB","DE","FR","IT","ES","NL","BE","AT","CH","SE","NO","DK","FI","IE","PT","PL","CZ","HU","RO","BG","HR","SK","SI","EE","LV","LT","GR","MT","CY","LU","IS","LI","MC","AD","SM","VA","ME","RS","BA","MK","AL","XK","TR","IL","ZA","BR","AR","CL","CO","MX","PE","VE","UY","PY","BO","EC","GY","SR","GF","PA","CR","HN","NI","SV","GT","BZ","JM","HT","DO","TT","BB","BS","CU","PR","VI","GU","CW","SX","BQ","AW","LC","DM","VC","AG","GD","KN","AI","MS","VG","TC",
-        ...AU_ASIA,
-      ];
-      allCountries.forEach((c, i) => params.append(`shipping_address_collection[allowed_countries][${i}]`, c));
+      SUPPORTED_SHIPPING_COUNTRIES.forEach((c, i) =>
+        params.append(`shipping_address_collection[allowed_countries][${i}]`, c)
+      );
       const shipAmt = productId === "codex-physical" ? 3000 : 2000;
       const shipName = productId === "codex-physical" ? "Standard Shipping ($30, AU/Asia $50)" : "Worldwide Shipping ($20)";
       params.append("shipping_options[0][shipping_rate_data][type]", "fixed_amount");
