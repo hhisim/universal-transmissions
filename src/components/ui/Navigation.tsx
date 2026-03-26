@@ -29,19 +29,24 @@ const RESEARCH_ITEMS = [
 export default function Navigation() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLLIElement>(null);
+  const [researchOpen, setResearchOpen] = useState(false);
+  const [memberOpen, setMemberOpen] = useState(false);
+  const researchRef = useRef<HTMLLIElement>(null);
+  const memberRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
-    if (!dropdownOpen) return;
+    if (!researchOpen && !memberOpen) return;
     function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
+      if (researchRef.current && !researchRef.current.contains(e.target as Node)) {
+        setResearchOpen(false);
+      }
+      if (memberRef.current && !memberRef.current.contains(e.target as Node)) {
+        setMemberOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [dropdownOpen]);
+  }, [researchOpen, memberOpen]);
 
   return (
     <header
@@ -68,9 +73,9 @@ export default function Navigation() {
           {NAV_LINKS.map((link) => {
             if (link.href === "/research") {
               return (
-                <li key={link.href} ref={dropdownRef} className="relative">
+                <li key={link.href} ref={researchRef} className="relative">
                   <button
-                    onClick={() => setDropdownOpen((v) => !v)}
+                    onClick={() => { setResearchOpen((v) => !v); setMemberOpen(false); }}
                     className="nav-link group flex items-center gap-1"
                   >
                     <span className="group-hover:hidden">
@@ -84,7 +89,7 @@ export default function Navigation() {
                     </svg>
                   </button>
                   <AnimatePresence>
-                    {dropdownOpen && (
+                    {researchOpen && (
                       <motion.div
                         initial={{ opacity: 0, y: -6, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -105,7 +110,7 @@ export default function Navigation() {
                               href={item.href}
                               className="flex items-center gap-2 w-full text-left px-4 py-2.5 font-body text-[13px] transition-all hover:text-white"
                               style={{ color: "rgba(237,233,246,0.6)" }}
-                              onClick={() => { setDropdownOpen(false); setOpen(false); }}
+                              onClick={() => { setResearchOpen(false); setOpen(false); }}
                             >
                               <span style={{ color: "rgba(217,70,239,0.4)" }}>›</span>
                               {item.label}
@@ -142,9 +147,9 @@ export default function Navigation() {
           })}
 
           {/* Member dropdown */}
-          <li ref={dropdownRef} className="relative">
+          <li ref={memberRef} className="relative">
             <button
-              onClick={() => setDropdownOpen((v) => !v)}
+              onClick={() => { setMemberOpen((v) => !v); setResearchOpen(false); }}
               className="flex items-center gap-2 group"
               aria-label="Member account"
             >
@@ -189,7 +194,7 @@ export default function Navigation() {
             </button>
 
             <AnimatePresence>
-              {dropdownOpen && (
+              {memberOpen && (
                 <motion.div
                   initial={{ opacity: 0, y: -8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
