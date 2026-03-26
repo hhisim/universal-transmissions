@@ -377,12 +377,13 @@ export default function HomePage() {
         >
           <div className="container-ut">
             <SectionReveal>
-              <ZalgoText
-                text="The transmission never ends."
-                intensity="moderate"
-                className="font-display text-2xl md:text-4xl block mb-6"
-                style={{ color: "var(--ut-magenta)" }}
-              />
+              <span style={{ color: "var(--ut-magenta)" }}>
+                <ZalgoText
+                  text="The transmission never ends."
+                  intensity="moderate"
+                  className="font-display text-2xl md:text-4xl block mb-6"
+                />
+              </span>
               <Link href="/gallery" className="btn-primary">
                 Enter the Archive
               </Link>
