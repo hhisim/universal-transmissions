@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import styles from './HomeWrapper.module.css'
 import { TRADITIONS } from '@/lib/constants'
-importtraditionIcons from '@/components/icons/tradition-icons'
+
+const SEARCH_QUERY_URL = '/oracle'
 
 const HomeWrapper = () => {
   const router = useRouter()
