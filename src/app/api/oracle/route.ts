@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const timeout = setTimeout(() => controller.abort(), 90000);
 
     const params = new URLSearchParams({ q: message, mode: mode || 'oracle', lang: lang || 'en' });
-    const res = await fetch(`http://204.168.154.237:8002/ask?${params}`, {
+    const res = await fetch(`https://oracle.hakanhisim.net/ask?${params}`, {
       method: 'GET',
       signal: controller.signal,
     });

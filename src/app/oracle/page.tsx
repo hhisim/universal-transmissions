@@ -1,4 +1,5 @@
 "use client";
+import OracleStub from './OracleStub'
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
