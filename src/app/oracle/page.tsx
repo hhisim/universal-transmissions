@@ -91,22 +91,34 @@ export default function OraclePage() {
     setMsgs(p => [...p, { role: "user", text: m }]);
     setLoading(true);
     try {
-      // Call oracle backend directly from browser (Vercel server can't reach oracle.hakanhisim.net)
+      // Call VoA oracle backend (same backend, no separate oracle.hakanhisim.net needed)
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 90000);
-      const oracleParams = new URLSearchParams({ q: m, mode, lang: lang || 'en' });
-      const r = await fetch(`https://oracle.hakanhisim.net/ask?${oracleParams}`, {
+      const r = await fetch(`https://www.vaultofarcana.com/api/oracle/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: m, mode, lang: lang || 'en' }),
+        signal: controller.signal,
+      });
         signal: controller.signal,
       });
       clearTimeout(timeout);
       const d = await r.json();
       const responseText = d.answer || d.response || d.text || d.message || d.reply || "";
       setMsgs(p => [...p, { role: "oracle", text: responseText || "The Oracle is contemplating...", mode }]);
+      // Enable voice for this response
+      if (responseText && typeof window !== 'undefined') {
+        const utterance = new SpeechSynthesisUtterance(responseText);
+        utterance.lang = (lang || 'en').startsWith('tr') ? 'tr-TR' : (lang || 'en').startsWith('ru') ? 'ru-RU' : 'en-US';
+        utterance.rate = 0.95;
+        speechSynthesis.speak(utterance);
+      }
     } catch (e) {
       const errMsg = e instanceof Error && e.name === "AbortError"
         ? "The Oracle took too long to respond. Please try again."
         : "The transmission was interrupted.";
       setMsgs(p => [...p, { role: "oracle", text: errMsg, mode }]);
+      setLoading(false);
     } finally { setLoading(false); }
   }, [input, mode, lang, msgs]);
 
