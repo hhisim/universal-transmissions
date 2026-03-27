@@ -37,13 +37,13 @@ const HomeWrapper = () => {
   useEffect(() => {
     const style = document.createElement('style')
     style.innerHTML = `
-      @keyframes float${tradition.replace(/\s/g, '-')} {
+      @keyframes float${tradition.name.replace(/\s/g, '-')} {
         0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
         50% { transform: translateY(-20px) rotate(3deg); opacity: 1; }
       }
     `
     document.head.appendChild(style)
-    setHeroBgStyle({ animation: `float${tradition.replace(/\s/g, '-')} 8s ease-in-out infinite` })
+    setHeroBgStyle({ animation: `float${tradition.name.replace(/\s/g, '-')} 8s ease-in-out infinite` })
     return () => { document.head.removeChild(style) }
   }, [tradition])
 
@@ -74,31 +74,31 @@ const HomeWrapper = () => {
         <div className="max-w-5xl mx-auto">
           <div
             className="text-center cursor-pointer group"
-            onClick={() => router.push(`/oracle?tradition=${tradition.toLowerCase().replace(/\s/g, '-')}`)}
+            onClick={() => router.push(`/oracle?tradition=${tradition.id.replace(/\s/g, '-')}`)}
             onMouseEnter={() => document.querySelectorAll('.tradition-card').forEach(el => (el as HTMLElement).style.opacity = '0.4')}
             onMouseLeave={() => document.querySelectorAll('.tradition-card').forEach(el => (el as HTMLElement).style.opacity = '1')}
           >
             <div className={styles.traditionIcon} style={heroBgStyle}>
-              {TRADITION_ICONS[tradition]}
+              {TRADITION_ICONS[tradition.id]}
             </div>
             <div className={`${styles.traditionLabel} ${traditionSwitcher ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
-              {tradition}
+              {tradition.label}
             </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-12">
             {TRADITIONS.map(t => (
               <Link
-                key={t}
-                href={`/oracle?tradition=${t.toLowerCase().replace(/\s/g, '-')}`}
+                key={t.id}
+                href={`/oracle?tradition=${t.id}`}
                 className={`tradition-card ${styles.traditionCard}`}
                 onMouseEnter={() => document.querySelectorAll('.tradition-card').forEach(el => (el as HTMLElement).style.opacity = '0.4')}
                 onMouseLeave={() => document.querySelectorAll('.tradition-card').forEach(el => (el as HTMLElement).style.opacity = '1')}
                 onClick={() => setTradition(t)}
               >
                 <div className={styles.traditionCardInner}>
-                  <div className={styles.traditionCardIcon}>{TRADITION_ICONS[t]}</div>
-                  <div className={styles.traditionCardLabel}>{t}</div>
+                  <div className={styles.traditionCardIcon}>{TRADITION_ICONS[t.id]}</div>
+                  <div className={styles.traditionCardLabel}>{t.label}</div>
                 </div>
               </Link>
             ))}

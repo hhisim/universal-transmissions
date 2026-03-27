@@ -100,8 +100,6 @@ export default function OraclePage() {
         body: JSON.stringify({ q: m, mode, lang: lang || 'en' }),
         signal: controller.signal,
       });
-        signal: controller.signal,
-      });
       clearTimeout(timeout);
       const d = await r.json();
       const responseText = d.answer || d.response || d.text || d.message || d.reply || "";
