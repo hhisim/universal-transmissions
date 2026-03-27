@@ -4,6 +4,9 @@ import "./globals.css";
 import PageBackground from "@/components/ui/PageBackground";
 
 export const metadata: Metadata = {
+  verification: {
+    google: 'N_Zt8XImandmsyzfEnqu1YttaDdnOool9Oh95rzS9FI',
+  },
   title: {
     default: "Universal Transmissions — Sacred Art & Symbolic Code",
     template: "%s | Universal Transmissions",

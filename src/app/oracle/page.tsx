@@ -20,6 +20,10 @@ const MODES = [
   { id: "correspond", label: "CORRESPOND",         c: "#9333ea" },
   { id: "etymology",  label: "LINGUISTIC MYSTIC",  c: "#d4a847" },
   { id: "meditate",   label: "MEDITATE",           c: "#22c55e" },
+  { id: "seeker",     label: "SEEKER",             c: "#f59e0b" },
+  { id: "scholar",    label: "SCHOLAR",            c: "#3b82f6" },
+  { id: "quote",      label: "QUOTE",              c: "#ec4899" },
+  { id: "vision",     label: "VISION",             c: "#8b5cf6" },
 
 ];
 
@@ -37,6 +41,10 @@ const MODE_DESCRIPTIONS: Record<string, string> = {
   correspond: "Cross-reference symbols across pages, traditions, planets, and archetypes.",
   etymology:  "Decode any word or name letter by letter through the alphabet ontology.",
   meditate:   "Guided contemplative practice connected to a specific Codex page.",
+  seeker:     "Exploratory mode for uncovering deeper patterns and connections.",
+  scholar:    "Academic analysis of historical, linguistic, and cultural context.",
+  quote:      "Extract and interpret sacred texts, aphorisms, and key passages.",
+  vision:     "Prophetic illumination through symbols, dreams, and archetypal vision.",
 
 };
 
