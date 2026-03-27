@@ -9,7 +9,6 @@ export async function POST(req: Request) {
 
     const params = new URLSearchParams({ q: message, mode: mode || 'oracle', lang: lang || 'en' });
     const res = await fetch(`https://oracle.hakanhisim.net/ask?${params}`, {
-      method: 'GET',
       signal: controller.signal,
     });
 
