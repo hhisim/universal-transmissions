@@ -91,20 +91,16 @@ export default function OraclePage() {
     setMsgs(p => [...p, { role: "user", text: m }]);
     setLoading(true);
     try {
-      // Call the VPS backend directly from the client (bypasses serverless timeout)
+      // Call oracle backend directly from browser (Vercel server can't reach oracle.hakanhisim.net)
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 90000);
-
-      const r = await fetch('/api/oracle', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: m, mode, lang }),
+      const oracleParams = new URLSearchParams({ q: m, mode, lang: lang || 'en' });
+      const r = await fetch(`https://oracle.hakanhisim.net/ask?${oracleParams}`, {
         signal: controller.signal,
       });
       clearTimeout(timeout);
-
       const d = await r.json();
-      const responseText = d.response || d.text || d.message || d.reply || "";
+      const responseText = d.answer || d.response || d.text || d.message || d.reply || "";
       setMsgs(p => [...p, { role: "oracle", text: responseText || "The Oracle is contemplating...", mode }]);
     } catch (e) {
       const errMsg = e instanceof Error && e.name === "AbortError"
