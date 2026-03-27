@@ -15,16 +15,15 @@ const API_URL = process.env.NEXT_PUBLIC_ORACLE_API_URL ?? "http://204.168.154.23
 const API_KEY = process.env.NEXT_PUBLIC_ORACLE_API_KEY ?? "prime-oracle-key-2026";
 
 const MODES = [
-  { id: "oracle",     label: "ORACLE",            c: "#d946ef" },
-  { id: "decipher",   label: "DECIPHER",          c: "#22d3ee" },
-  { id: "correspond", label: "CORRESPOND",         c: "#9333ea" },
-  { id: "etymology",  label: "LINGUISTIC MYSTIC",  c: "#d4a847" },
-  { id: "meditate",   label: "MEDITATE",           c: "#22c55e" },
-  { id: "seeker",     label: "SEEKER",             c: "#f59e0b" },
-  { id: "scholar",    label: "SCHOLAR",            c: "#3b82f6" },
-  { id: "quote",      label: "QUOTE",              c: "#ec4899" },
-  { id: "vision",     label: "VISION",             c: "#8b5cf6" },
-
+  { id: "oracle",        label: "ORACLE",            c: "#d946ef" },
+  { id: "decipher",      label: "DECIPHER",           c: "#22d3ee" },
+  { id: "correspondence", label: "CORRESPOND",        c: "#9333ea" },
+  { id: "etymology",     label: "LINGUISTIC MYSTIC", c: "#d4a847" },
+  { id: "meditation",    label: "MEDITATE",           c: "#22c55e" },
+  { id: "seeker",        label: "SEEKER",             c: "#f59e0b" },
+  { id: "scholar",       label: "SCHOLAR",           c: "#3b82f6" },
+  { id: "quote",         label: "QUOTE",             c: "#ec4899" },
+  { id: "vision",        label: "VISION",            c: "#8b5cf6" },
 ];
 
 const PROMPTS = [
@@ -36,16 +35,15 @@ const PROMPTS = [
 ];
 
 const MODE_DESCRIPTIONS: Record<string, string> = {
-  oracle:     "Poetic synthesis of page symbolism, geometry, and hidden meaning.",
-  decipher:   "Structured decryption with geometric, linguistic, and correspondence layers.",
-  correspond: "Cross-reference symbols across pages, traditions, planets, and archetypes.",
-  etymology:  "Decode any word or name letter by letter through the alphabet ontology.",
-  meditate:   "Guided contemplative practice connected to a specific Codex page.",
-  seeker:     "Exploratory mode for uncovering deeper patterns and connections.",
-  scholar:    "Academic analysis of historical, linguistic, and cultural context.",
-  quote:      "Extract and interpret sacred texts, aphorisms, and key passages.",
-  vision:     "Prophetic illumination through symbols, dreams, and archetypal vision.",
-
+  oracle:         "Poetic synthesis of page symbolism, geometry, and hidden meaning.",
+  decipher:       "Structured decryption with geometric, linguistic, and correspondence layers.",
+  correspondence: "Cross-reference symbols across pages, traditions, planets, and archetypes.",
+  etymology:      "Decode any word or name letter by letter through the alphabet ontology.",
+  meditation:     "Guided contemplative practice connected to a specific Codex page.",
+  seeker:        "Exploratory mode for uncovering deeper patterns and connections.",
+  scholar:       "Academic analysis of historical, linguistic, and cultural context.",
+  quote:         "Extract and interpret sacred texts, aphorisms, and key passages.",
+  vision:        "Prophetic illumination through symbols, dreams, and archetypal vision.",
 };
 
 interface Msg { role: "user" | "oracle"; text: string; mode?: string; }
@@ -105,7 +103,7 @@ export default function OraclePage() {
       const r = await fetch(`https://www.vaultofarcana.com/api/oracle/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: m, mode, lang: lang || 'en' }),
+        body: JSON.stringify({ q: m, pack: 'codex', mode, lang: lang || 'en' }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
