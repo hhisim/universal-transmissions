@@ -5,7 +5,7 @@ import PageBackground from "@/components/ui/PageBackground";
 
 export const metadata: Metadata = {
   verification: {
-    google: '387c5TKuDQhB8zKDt21HjoaRtPXIILoBbnSC_2E19fQ',
+    google: ['387c5TKuDQhB8zKDt21HjoaRtPXIILoBbnSC_2E19fQ', 'N_Zt8XImandmsyzfEnqu1YttaDdnOool9Oh95rzS9FI'],
   },
   title: {
     default: "Universal Transmissions — Sacred Art & Symbolic Code",
