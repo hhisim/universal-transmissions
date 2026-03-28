@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       console.log(`Subscription ${event.type}: ${subscription.id} for customer ${customerId}`);
 
       // Determine plan and status
-      let plan = "free";
+      let plan: 'free' | 'initiate' = 'free';
       let subscriptionStatus = subscription.status;
 
       if (subscription.status === "active" || subscription.status === "trialing") {
@@ -104,14 +104,14 @@ export async function POST(req: NextRequest) {
         subscriptionStatus = "past_due";
         plan = "initiate"; // keep plan but mark status
       } else if (subscription.status === "canceled" || subscription.status === "unpaid") {
-        plan = "guest";
+        plan = "free";
         subscriptionStatus = "canceled";
       }
 
       // Get period end
       const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString();
 
-      // Update ut_members
+      // Update ut_members (existing store members)
       try {
         await supabaseAdmin
           .from("ut_members")
@@ -123,10 +123,25 @@ export async function POST(req: NextRequest) {
             stripe_customer_id: customerId,
           })
           .eq("stripe_customer_id", customerId);
-
-        console.log(`Member updated: plan=${plan}, status=${subscriptionStatus}`);
+        console.log(`ut_members updated: plan=${plan}, status=${subscriptionStatus}`);
       } catch (err) {
-        console.error("Failed to update member subscription:", err);
+        console.error("Failed to update ut_members subscription:", err);
+      }
+
+      // Update profiles table (Oracle members) — keyed by email
+      if (email) {
+        try {
+          await supabaseAdmin
+            .from("profiles")
+            .update({
+              plan,
+              stripe_customer_id: customerId,
+            })
+            .eq("id", email);
+          console.log(`profiles updated: email=${email}, plan=${plan}`);
+        } catch (err) {
+          console.error("Failed to update Oracle profile subscription:", err);
+        }
       }
       break;
     }
@@ -137,6 +152,7 @@ export async function POST(req: NextRequest) {
 
       console.log(`Subscription deleted: ${subscription.id} for customer ${customerId}`);
 
+      // Revert ut_members
       try {
         await supabaseAdmin
           .from("ut_members")
@@ -147,10 +163,27 @@ export async function POST(req: NextRequest) {
             current_period_end: null,
           })
           .eq("stripe_customer_id", customerId);
-
-        console.log("Member reverted to guest plan");
+        console.log("ut_members reverted to guest");
       } catch (err) {
-        console.error("Failed to cancel member subscription:", err);
+        console.error("Failed to cancel ut_members subscription:", err);
+      }
+
+      // Revert profiles (Oracle) — find by stripe_customer_id
+      try {
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle()
+        if (profile) {
+          await supabaseAdmin
+            .from("profiles")
+            .update({ plan: "free" })
+            .eq("id", profile.id)
+          console.log(`profiles reverted to free: ${profile.id}`);
+        }
+      } catch (err) {
+        console.error("Failed to revert Oracle profile:", err);
       }
       break;
     }

@@ -10,6 +10,13 @@ export async function GET() {
       return NextResponse.json({ authenticated: false, plan: "guest" });
     }
 
+    // Check Oracle profile first, fall back to ut_members
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("plan, stripe_customer_id")
+      .eq("id", session.user.email)
+      .maybeSingle();
+
     const { data: member } = await supabaseAdmin
       .from("ut_members")
       .select("plan, subscription_status, current_period_end")
@@ -19,7 +26,8 @@ export async function GET() {
     return NextResponse.json({
       authenticated: true,
       email: session.user.email,
-      plan: member?.plan ?? "guest",
+      plan: profile?.plan ?? member?.plan ?? "guest",
+      stripeCustomerId: profile?.stripe_customer_id ?? null,
       subscription_status: member?.subscription_status ?? "inactive",
       current_period_end: member?.current_period_end ?? null,
     });

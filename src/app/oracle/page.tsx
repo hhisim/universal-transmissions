@@ -209,7 +209,9 @@ export default function OraclePage() {
   const [loading, setLoading] = useState(false);
   const [voiceOn, setVoiceOn] = useState(true);
   const [questionsUsed, setQuestionsUsed] = useState(0);
-  const [tier] = useState<"guest" | "free" | "initiate">("guest");
+  const [tier, setTier] = useState<"guest" | "free" | "initiate">("guest");
+  const [limit, setLimit] = useState<number | "unlimited">(10);
+  const [authToken, setAuthToken] = useState<string | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
   const t = T[lang] || T.en;
@@ -219,6 +221,33 @@ export default function OraclePage() {
   const hasMessages = msgs.length > 0;
 
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
+
+  // Fetch usage status on mount to set tier correctly
+  useEffect(() => {
+    async function loadUsage() {
+      try {
+        const sessionRes = await fetch('/api/auth/session')
+        const sessionData = await sessionRes.json()
+        const token = sessionData?.tokens?.access_token
+        setAuthToken(token || null)
+
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+        if (token) headers['Authorization'] = `Bearer ${token}`
+
+        const res = await fetch('/api/oracle', { headers })
+        if (res.ok) {
+          const data = await res.json()
+          const fetchedTier = data.isLoggedIn ? (data.plan === 'initiate' ? 'initiate' : 'free') : 'guest'
+          setTier(fetchedTier)
+          setQuestionsUsed(data.used ?? 0)
+          setLimit(data.limit ?? (fetchedTier === 'initiate' ? 'unlimited' : fetchedTier === 'free' ? 25 : 10))
+        }
+      } catch {
+        // default guest
+      }
+    }
+    loadUsage()
+  }, [])
 
   // Speak oracle responses
   const speak = useCallback((text: string) => {
@@ -238,12 +267,27 @@ export default function OraclePage() {
     setMsgs(p => [...p, { role: "user", text: m }]);
     setLoading(true);
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
       const res = await fetch("/api/oracle", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ message: m, mode, lang, speed }),
       });
       const data = await res.json();
+
+      // Handle limit reached
+      if (data.error === "limit_reached" || res.status === 403) {
+        setMsgs(p => [...p, {
+          role: "oracle",
+          text: `You've reached your daily limit. ${data.login ? ` [Sign in](${data.login})` : ''} ${data.upgrade ? `[Upgrade here](${data.upgrade})` : ''}`,
+          mode,
+        }]);
+        setTier("free"); // force re-check on next load
+        setLoading(false);
+        return;
+      }
+
       const answer = data.response || data.answer || "";
       setMsgs(p => [...p, { role: "oracle", text: answer || t.sealed, mode }]);
       setQuestionsUsed(q => q + 1);
@@ -251,13 +295,12 @@ export default function OraclePage() {
     } catch {
       setMsgs(p => [...p, { role: "oracle", text: t.sealed, mode }]);
     } finally { setLoading(false); }
-  }, [input, mode, lang, speed, loading, speak, t.sealed]);
+  }, [input, mode, lang, speed, loading, authToken, speak, t.sealed]);
 
   const kd = (e: React.KeyboardEvent) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 
-  // Tier limits
-  const limit = tier === "initiate" ? Infinity : tier === "free" ? 25 : 10;
-  const atLimit = questionsUsed >= limit;
+  // Tier limits — `limit` is now state-driven from the API
+  const atLimit = limit === "unlimited" ? false : questionsUsed >= limit;
 
   return (
     <>

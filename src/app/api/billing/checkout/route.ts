@@ -40,12 +40,19 @@ export async function POST(req: NextRequest) {
       });
       customerId = customer.id;
 
-      // Store customer ID in ut_members
+      // Store customer ID in ut_members (store) and profiles (Oracle)
       await supabaseAdmin
         .from("ut_members")
         .upsert(
           { email, stripe_customer_id: customerId, plan: "free" },
           { onConflict: "email" }
+        );
+      // Also create/update Oracle profile keyed by email
+      await supabaseAdmin
+        .from("profiles")
+        .upsert(
+          { id: email, stripe_customer_id: customerId, plan: "free" },
+          { onConflict: "id" }
         );
     }
 
@@ -66,7 +73,7 @@ export async function POST(req: NextRequest) {
           plan: "initiate",
         },
       },
-      success_url: `${baseUrl}/member?session_id={CHECKOUT_SESSION_ID}&success=1`,
+      success_url: `${baseUrl}/account?session_id={CHECKOUT_SESSION_ID}&success=1`,
       cancel_url: `${baseUrl}/pricing?canceled=1`,
       metadata: { email },
     });
