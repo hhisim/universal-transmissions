@@ -58,11 +58,7 @@ export default function HomePage() {
               <Link href="/codex" className="btn-secondary">
                 DISCOVER THE CODEX
               </Link>
-              <Link
-                href="/oracle"
-                className="btn-secondary"
-                style={{ borderColor: "var(--ut-cyan)", color: "var(--ut-cyan)" }}
-              >
+              <Link href="/oracle" className="btn-cyan">
                 CONSULT THE ORACLE
               </Link>
             </div>
