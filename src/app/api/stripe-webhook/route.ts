@@ -135,9 +135,10 @@ export async function POST(req: NextRequest) {
             .from("profiles")
             .update({
               plan,
+              email,
               stripe_customer_id: customerId,
             })
-            .eq("id", email);
+            .eq("email", email);
           console.log(`profiles updated: email=${email}, plan=${plan}`);
         } catch (err) {
           console.error("Failed to update Oracle profile subscription:", err);
@@ -209,18 +210,18 @@ export async function POST(req: NextRequest) {
 
     case "invoice.payment_succeeded": {
       const invoice = event.data.object as Stripe.Invoice;
-      // Ensure member record exists when payment succeeds
       const invoiceAny = invoice as any;
       if (invoiceAny.subscription && invoice.customer_email) {
         const customerId = invoice.customer as string;
         const subscriptionId = invoiceAny.subscription as string;
+        const customerEmail = invoice.customer_email;
 
         try {
           await supabaseAdmin
             .from("ut_members")
             .upsert(
               {
-                email: invoice.customer_email,
+                email: customerEmail,
                 stripe_customer_id: customerId,
                 stripe_subscription_id: subscriptionId,
                 plan: "initiate",
@@ -228,6 +229,21 @@ export async function POST(req: NextRequest) {
               },
               { onConflict: "email" }
             );
+
+          // Also upsert profiles (Oracle) — look up UUID by email
+          const { data: authUser } = await supabaseAdmin
+            .from("auth.users")
+            .select("id")
+            .eq("email", customerEmail)
+            .maybeSingle();
+          if (authUser?.id) {
+            await supabaseAdmin
+              .from("profiles")
+              .upsert(
+                { id: authUser.id, email: customerEmail, stripe_customer_id: customerId, plan: "initiate" },
+                { onConflict: "id" }
+              );
+          }
         } catch (err) {
           console.error("Failed to upsert member on invoice.payment_succeeded:", err);
         }

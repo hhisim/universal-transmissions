@@ -47,13 +47,20 @@ export async function POST(req: NextRequest) {
           { email, stripe_customer_id: customerId, plan: "free" },
           { onConflict: "email" }
         );
-      // Also create/update Oracle profile keyed by email
-      await supabaseAdmin
-        .from("profiles")
-        .upsert(
-          { id: email, stripe_customer_id: customerId, plan: "free" },
-          { onConflict: "id" }
-        );
+      // Also create Oracle profile — look up UUID from auth.users by email
+      const { data: authUser } = await supabaseAdmin
+        .from("auth.users")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+      if (authUser?.id) {
+        await supabaseAdmin
+          .from("profiles")
+          .upsert(
+            { id: authUser.id, stripe_customer_id: customerId, plan: "free" },
+            { onConflict: "id" }
+          );
+      }
     }
 
     // 3. Create subscription checkout session
