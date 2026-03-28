@@ -1,218 +1,213 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
+import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { motion } from "framer-motion";
 import ZalgoText from "@/components/ui/ZalgoText";
 
-const CosmicBackground = dynamic(() => import("@/components/oracle/CosmicBackground"), { ssr: false });
-
 /* ═══════════════════════════════════════════════════════════
-   i18n
+   i18n — translates ALL UI elements
    ═══════════════════════════════════════════════════════════ */
+
 const T: Record<string, Record<string, string>> = {
   en: {
     subtitle: "[ Universal Transmissions · Codex Oracle ]",
     heading: "Consult Oracle",
     desc: "150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a 577-entry correspondence codex. The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.",
     begin: "Begin with a question about the Codex",
-    transmit: "TRANSMIT", placeholder: "Ask the Codex Oracle...",
-    receiving: "RECEIVING TRANSMISSION", deepProc: "DEEP PROCESSING",
-    engine: "Engine", fast: "FAST", deep: "DEEP",
-    language: "Language", voice: "Voice", female: "FEMALE", male: "MALE",
-    clear: "CLEAR", goDeeper: "Go Deeper",
+    transmit: "TRANSMIT",
+    placeholder: "Ask the Codex Oracle...",
+    receiving: "RECEIVING TRANSMISSION",
+    deepProc: "DEEP PROCESSING",
+    engine: "Engine",
+    fast: "FAST",
+    deep: "DEEP",
+    language: "Language",
+    clear: "CLEAR",
+    goDeeper: "Go Deeper",
     goDesc: "The Codex Oracle is one gateway. Vault of Arcana holds six living traditions — Tao, Tarot, Tantra, Entheogens, Dreamwalker, and the Codex — with more awakening.",
-    enterVault: "Enter the Vault", getBook: "Get the Book",
-    guestLimit: "Guest · {n}/10 today", freeLimit: "Free · {n}/25 today", initiateActive: "Initiate · Unlimited",
-    upgrade: "UPGRADE", enterHint: "ENTER to send · SHIFT+ENTER for new line",
-    you: "YOU", oracleLabel: "CODEX ORACLE",
-    decodeName: "Decode your name", decodeBtn: "DECODE", decodeHint: "Enter any name to reveal its energetic signature",
-    corrLink: "View in Correspondence Codex →",
+    enterVault: "Enter the Vault",
+    getBook: "Get the Book",
+    guestLimit: "Guest · {n}/10 today",
+    freeLimit: "Free · {n}/25 today",
+    initiateActive: "Initiate · Unlimited",
+    upgrade: "UPGRADE",
+    enterHint: "ENTER to send · SHIFT+ENTER for new line",
+    you: "YOU",
+    oracleLabel: "CODEX ORACLE",
+    sealed: "This transmission has not yet entered the archive.",
   },
   tr: {
     subtitle: "[ Evrensel İletimler · Kodeks Kehaneti ]",
     heading: "Kehânete Danış",
     desc: "150 sayfa ksenolinguistik sanat, aşkın geometri ve hiperboyutsal iletimler — beş veri katmanı, pan-boyutsal bir dilbilim mistik ve 577 girişli bir korespondens kodeksi aracılığıyla deşifre edildi. Veri seti her gün sürekli gelişiyor, algoritma özyinelemeli bir yenilik motoru aracılığıyla kendini yeniden icat ediyor.",
     begin: "Kodeks hakkında bir soru ile başlayın",
-    transmit: "İLET", placeholder: "Kodeks Kehanetine sor...",
-    receiving: "İLETİM ALINIYOR", deepProc: "DERİN İŞLEM",
-    engine: "Motor", fast: "HIZLI", deep: "DERİN",
-    language: "Dil", voice: "Ses", female: "KADIN", male: "ERKEK",
-    clear: "TEMİZLE", goDeeper: "Daha Derine",
-    goDesc: "Kodeks Kehaneti tek bir kapıdır. Vault of Arcana altı canlı geleneği barındırır.",
-    enterVault: "Kasaya Gir", getBook: "Kitabı Al",
-    guestLimit: "Misafir · {n}/10 bugün", freeLimit: "Ücretsiz · {n}/25 bugün", initiateActive: "Mürit · Sınırsız",
-    upgrade: "YÜKSELT", enterHint: "ENTER gönder · SHIFT+ENTER yeni satır",
-    you: "SEN", oracleLabel: "KODEKS KEHANETİ",
-    decodeName: "İsmini çöz", decodeBtn: "ÇÖZ", decodeHint: "Enerji imzasını görmek için herhangi bir isim girin",
-    corrLink: "Korrespondans Kodeksinde görüntüle →",
+    transmit: "İLET",
+    placeholder: "Kodeks Kehanetine sor...",
+    receiving: "İLETİM ALINIYOR",
+    deepProc: "DERİN İŞLEM",
+    engine: "Motor",
+    fast: "HIZLI",
+    deep: "DERİN",
+    language: "Dil",
+    clear: "TEMİZLE",
+    goDeeper: "Daha Derine",
+    goDesc: "Kodeks Kehaneti tek bir kapıdır. Vault of Arcana altı canlı geleneği barındırır — Tao, Tarot, Tantra, Enteojenler, Düş Yürüyücüsü ve Kodeks.",
+    enterVault: "Kasaya Gir",
+    getBook: "Kitabı Al",
+    guestLimit: "Misafir · {n}/10 bugün",
+    freeLimit: "Ücretsiz · {n}/25 bugün",
+    initiateActive: "Mürit · Sınırsız",
+    upgrade: "YÜKSELT",
+    enterHint: "ENTER gönder · SHIFT+ENTER yeni satır",
+    you: "SEN",
+    oracleLabel: "KODEKS KEHANETİ",
+    sealed: "Bu iletim henüz arşive girmedi.",
   },
   ru: {
     subtitle: "[ Универсальные Трансляции · Оракул Кодекса ]",
     heading: "Обратиться к Оракулу",
-    desc: "150 страниц ксенолингвистического искусства, трансцендентной геометрии и гипердименсиональных передач.",
+    desc: "150 страниц ксенолингвистического искусства, трансцендентной геометрии и гипердименсиональных передач — расшифрованных через пять слоёв данных, пан-дименсиональный лингвистический мистик и 577-элементный кодекс соответствий.",
     begin: "Начните с вопроса о Кодексе",
-    transmit: "ПЕРЕДАТЬ", placeholder: "Спросите Оракула Кодекса...",
-    receiving: "ПРИЁМ ПЕРЕДАЧИ", deepProc: "ГЛУБОКАЯ ОБРАБОТКА",
-    engine: "Движок", fast: "БЫСТРО", deep: "ГЛУБОКО",
-    language: "Язык", voice: "Голос", female: "ЖЕНСКИЙ", male: "МУЖСКОЙ",
-    clear: "ОЧИСТИТЬ", goDeeper: "Глубже",
+    transmit: "ПЕРЕДАТЬ",
+    placeholder: "Спросите Оракула Кодекса...",
+    receiving: "ПРИЁМ ПЕРЕДАЧИ",
+    deepProc: "ГЛУБОКАЯ ОБРАБОТКА",
+    engine: "Движок",
+    fast: "БЫСТРО",
+    deep: "ГЛУБОКО",
+    language: "Язык",
+    clear: "ОЧИСТИТЬ",
+    goDeeper: "Глубже",
     goDesc: "Оракул Кодекса — лишь одни врата. Vault of Arcana хранит шесть живых традиций.",
-    enterVault: "Войти в Хранилище", getBook: "Получить Книгу",
-    guestLimit: "Гость · {n}/10 сегодня", freeLimit: "Бесплатно · {n}/25 сегодня", initiateActive: "Посвящённый · Безлимит",
-    upgrade: "УЛУЧШИТЬ", enterHint: "ENTER отправить · SHIFT+ENTER новая строка",
-    you: "ВЫ", oracleLabel: "ОРАКУЛ КОДЕКСА",
-    decodeName: "Расшифруй имя", decodeBtn: "РАСШИФРОВАТЬ", decodeHint: "Введите имя, чтобы увидеть его энергетическую подпись",
-    corrLink: "Открыть в Кодексе Соответствий →",
+    enterVault: "Войти в Хранилище",
+    getBook: "Получить Книгу",
+    guestLimit: "Гость · {n}/10 сегодня",
+    freeLimit: "Бесплатно · {n}/25 сегодня",
+    initiateActive: "Посвящённый · Безлимит",
+    upgrade: "УЛУЧШИТЬ",
+    enterHint: "ENTER отправить · SHIFT+ENTER новая строка",
+    you: "ВЫ",
+    oracleLabel: "ОРАКУЛ КОДЕКСА",
+    sealed: "Эта передача ещё не поступила в архив.",
   },
 };
 
 /* ═══════════════════════════════════════════════════════════
-   MODES
+   MODES — remove scholar from UI, add tarot_arcana
    ═══════════════════════════════════════════════════════════ */
+
 const MODES = [
-  { id: "oracle",         label: { en: "ORACLE", tr: "KEHANET", ru: "ОРАКУЛ" },            icon: "✦", c: "#d946ef" },
-  { id: "decipher",       label: { en: "DECIPHER", tr: "DEŞİFRE", ru: "ДЕШИФР" },           icon: "🜂", c: "#22d3ee" },
-  { id: "tarot_arcana",   label: { en: "TAROT ARCANA", tr: "TAROT ARCANA", ru: "ТАРО" },    icon: "🂠", c: "#c026d3" },
-  { id: "ginabul",        label: { en: "GINA'ABUL", tr: "GINA'ABUL", ru: "ГИНА'АБУЛЬ" },    icon: "𒀭", c: "#d4a847" },
-  { id: "etymology",      label: { en: "LINGUISTICS", tr: "DİLBİLİM", ru: "ЛИНГВИСТ" },     icon: "🔤", c: "#f0c75e" },
-  { id: "correspondence", label: { en: "CORRESPOND", tr: "KORESPOND", ru: "СООТВЕТСТВИЯ" },  icon: "🔗", c: "#9333ea" },
-  { id: "meditation",     label: { en: "MEDITATE", tr: "MEDİTASYON", ru: "МЕДИТАЦИЯ" },      icon: "◎", c: "#22c55e" },
-  { id: "seeker",         label: { en: "SEEKER", tr: "ARAYAN", ru: "ИСКАТЕЛЬ" },             icon: "✧", c: "#f59e0b" },
-  { id: "quote",          label: { en: "TRANSMISSION", tr: "İLETİM", ru: "ПЕРЕДАЧА" },       icon: "⚡", c: "#ec4899" },
+  { id: "oracle",         label: { en: "ORACLE", tr: "KEHANET", ru: "ОРАКУЛ" },           icon: "✦", c: "#d946ef" },
+  { id: "decipher",       label: { en: "DECIPHER", tr: "DEŞİFRE", ru: "ДЕШИФР" },          icon: "🜂", c: "#22d3ee" },
+  { id: "tarot_arcana",   label: { en: "TAROT ARCANA", tr: "TAROT ARCANA", ru: "ТАРО" },   icon: "🂠", c: "#c026d3" },
+  { id: "ginabul",        label: { en: "GINA'ABUL", tr: "GINA'ABUL", ru: "ГИНА'АБУЛЬ" },   icon: "𒀭", c: "#d4a847" },
+  { id: "etymology",      label: { en: "LINGUISTICS", tr: "DİLBİLİM", ru: "ЛИНГВИСТ" },    icon: "🔤", c: "#f0c75e" },
+  { id: "correspondence", label: { en: "CORRESPOND", tr: "KORESPOND", ru: "СООТВЕТСТВИЯ" }, icon: "🔗", c: "#9333ea" },
+  { id: "meditation",     label: { en: "MEDITATE", tr: "MEDİTASYON", ru: "МЕДИТАЦИЯ" },     icon: "◎", c: "#22c55e" },
+  { id: "seeker",         label: { en: "SEEKER", tr: "ARAYAN", ru: "ИСКАТЕЛЬ" },            icon: "✧", c: "#f59e0b" },
+  { id: "quote",          label: { en: "TRANSMISSION", tr: "İLETİM", ru: "ПЕРЕДАЧА" },      icon: "⚡", c: "#ec4899" },
 ];
 
 const STARTERS: Record<string, Record<string, string[]>> = {
-  oracle: { en: ["What is page 38 about?", "How does the Codex encode frequency?", "What symbols repeat across pages?"], tr: ["Sayfa 38 ne hakkında?", "Kodeks frekansı nasıl kodlar?", "Hangi semboller tekrar ediyor?"], ru: ["О чём страница 38?", "Как Кодекс кодирует частоту?", "Какие символы повторяются?"] },
-  decipher: { en: ["Decipher page 6", "Decipher page 24", "What is page 70 about?"], tr: ["Sayfa 6'yı deşifre et", "Sayfa 24'ü deşifre et", "Sayfa 70 ne hakkında?"], ru: ["Расшифруй страницу 6", "Расшифруй страницу 24", "О чём страница 70?"] },
-  tarot_arcana: { en: ["Tarot archetype for page 6", "Which Arcana matches page 38?", "Tarot reading for page 70"], tr: ["Sayfa 6 Tarot arketipi", "Sayfa 38 hangi Arcana?", "Sayfa 70 Tarot okuması"], ru: ["Архетип Таро для страницы 6", "Какая Аркана для стр. 38?", "Таро для страницы 70"] },
-  ginabul: { en: ["Decode ZU.AN.NA", "What does UB-ŠÀ-TÉŠ mean?", "Decode NU.MU.NA-DIŠTU"], tr: ["ZU.AN.NA'yı çöz", "UB-ŠÀ-TÉŠ ne demek?", "NU.MU.NA-DIŠTU'yu çöz"], ru: ["Расшифруй ZU.AN.NA", "Что значит UB-ŠÀ-TÉŠ?", "Расшифруй NU.MU.NA-DIŠTU"] },
-  etymology: { en: ["Decode NOMMO letter by letter", "Energetic signature of MERKABA", "What does ANUNNAKI encode?"], tr: ["NOMMO'yu harf harf çöz", "MERKABA'nın enerji imzası", "ANUNNAKI ne kodlar?"], ru: ["Расшифруй NOMMO по буквам", "Энерг. подпись МЕРКАБА", "Что кодирует АНУННАКИ?"] },
-  correspondence: { en: ["Merkaba correspondences", "Crystals connected to page 24", "Flower of Life web"], tr: ["Merkaba korespondesları", "Sayfa 24'e bağlı kristaller", "Yaşam Çiçeği ağı"], ru: ["Соответствия Меркабы", "Кристаллы страницы 24", "Сеть Цветка Жизни"] },
-  meditation: { en: ["Meditation for page 6", "Breathwork for the Cosmic Egg", "Grounding practice for page 9"], tr: ["Sayfa 6 meditasyonu", "Kozmik Yumurta nefes çalışması", "Sayfa 9 topraklama"], ru: ["Медитация для страницы 6", "Дыхание Космического Яйца", "Заземление для стр. 9"] },
-  seeker: { en: ["I just got the book. Where to start?", "What is the Codex?", "What are the border glyphs?"], tr: ["Kitabı aldım. Nereden başlayım?", "Kodeks nedir?", "Sınır glifleri nedir?"], ru: ["С чего начать?", "Что такое Кодекс?", "Что за глифы на рамках?"] },
-  quote: { en: ["Transmission about consciousness", "Fragment about geometry", "Whisper from the Nommo"], tr: ["Bilinç hakkında iletim", "Geometri parçası", "Nommo'dan fısıltı"], ru: ["Передача о сознании", "Фрагмент о геометрии", "Шёпот Номмо"] },
+  oracle: {
+    en: ["What is page 38 about?", "How does the Codex encode frequency?", "What symbols repeat across pages?", "What is the Codex teaching about consciousness?"],
+    tr: ["Sayfa 38 ne hakkında?", "Kodeks frekansı nasıl kodlar?", "Sayfalar arasında hangi semboller tekrar ediyor?", "Kodeks bilinç hakkında ne öğretiyor?"],
+    ru: ["О чём страница 38?", "Как Кодекс кодирует частоту?", "Какие символы повторяются?", "Чему учит Кодекс о сознании?"],
+  },
+  decipher: {
+    en: ["Decipher page 6", "Decipher page 24 — the Cosmic Egg", "What is page 70 about?", "Decipher page 9"],
+    tr: ["Sayfa 6'yı deşifre et", "Sayfa 24'ü deşifre et", "Sayfa 70 ne hakkında?", "Sayfa 9'u deşifre et"],
+    ru: ["Расшифруй страницу 6", "Расшифруй страницу 24", "О чём страница 70?", "Расшифруй страницу 9"],
+  },
+  tarot_arcana: {
+    en: ["What Tarot archetype matches page 6?", "The Tarot connection to the Cosmic Egg", "Which Major Arcana resonates with page 38?", "Tarot reading for page 70"],
+    tr: ["Sayfa 6 hangi Tarot arketipiyle eşleşir?", "Kozmik Yumurta'nın Tarot bağlantısı", "Sayfa 38 hangi Büyük Arcana ile rezonans yapar?", "Sayfa 70 için Tarot okuması"],
+    ru: ["Какой архетип Таро соответствует странице 6?", "Связь Таро с Космическим Яйцом", "Какая Старшая Аркана резонирует со стр. 38?", "Расклад Таро для страницы 70"],
+  },
+  ginabul: {
+    en: ["Decode ZU.AN.NA", "What does UB-ŠÀ-TÉŠ mean?", "Decode NU.MU.NA-DIŠTU", "What does ZI.ŠAG.KA mean?"],
+    tr: ["ZU.AN.NA'yı çöz", "UB-ŠÀ-TÉŠ ne demek?", "NU.MU.NA-DIŠTU'yu çöz", "ZI.ŠAG.KA ne demek?"],
+    ru: ["Расшифруй ZU.AN.NA", "Что значит UB-ŠÀ-TÉŠ?", "Расшифруй NU.MU.NA-DIŠTU", "Что значит ZI.ŠAG.KA?"],
+  },
+  etymology: {
+    en: ["Decode NOMMO letter by letter", "Energetic signature of MERKABA", "What does ANUNNAKI encode?", "Alphabet philosophy of the Codex"],
+    tr: ["NOMMO'yu harf harf çöz", "MERKABA'nın enerji imzası", "ANUNNAKI ne kodlar?", "Kodeks'in alfabe felsefesi"],
+    ru: ["Расшифруй NOMMO по буквам", "Энергетическая подпись МЕРКАБА", "Что кодирует АНУННАКИ?", "Философия алфавита Кодекса"],
+  },
+  correspondence: {
+    en: ["Merkaba correspondences", "Planetary rulers across the Codex", "Crystals connected to page 24", "Flower of Life correspondence web"],
+    tr: ["Merkaba korespondesları", "Kodeks'teki gezegen yöneticileri", "Sayfa 24'e bağlı kristaller", "Yaşam Çiçeği korrespondans ağı"],
+    ru: ["Соответствия Меркабы", "Планетарные управители Кодекса", "Кристаллы страницы 24", "Сеть соответствий Цветка Жизни"],
+  },
+  meditation: {
+    en: ["Meditation for page 6", "Breathwork for the Cosmic Egg", "Contemplation for the Nommo", "Grounding practice for page 9"],
+    tr: ["Sayfa 6 için meditasyon", "Kozmik Yumurta nefes çalışması", "Nommo tefekkürü", "Sayfa 9 topraklama pratiği"],
+    ru: ["Медитация для страницы 6", "Дыхание Космического Яйца", "Созерцание Номмо", "Заземление для страницы 9"],
+  },
+  seeker: {
+    en: ["I just got the book. Where to start?", "What is the Codex?", "How do the pages connect?", "What are the border glyphs?"],
+    tr: ["Kitabı aldım. Nereden başlayım?", "Kodeks nedir?", "Sayfalar nasıl bağlanır?", "Sınır glifleri nedir?"],
+    ru: ["Я получил книгу. С чего начать?", "Что такое Кодекс?", "Как связаны страницы?", "Что за глифы на рамках?"],
+  },
+  quote: {
+    en: ["A transmission about consciousness", "A fragment about geometry", "A whisper from the Nommo", "An essence from the Cosmic Egg"],
+    tr: ["Bilinç hakkında bir iletim", "Geometri hakkında bir parça", "Nommo'dan bir fısıltı", "Kozmik Yumurta'dan bir öz"],
+    ru: ["Передача о сознании", "Фрагмент о геометрии", "Шёпот от Номмо", "Суть Космического Яйца"],
+  },
 };
 
 const FOLLOWUPS: Record<string, Record<string, string[]>> = {
-  oracle: { en: ["Go deeper", "Shadow aspect?", "Connected pages?"], tr: ["Daha derine", "Gölge yönü?", "Bağlı sayfalar?"], ru: ["Глубже", "Тень?", "Связанные стр.?"] },
-  decipher: { en: ["Etymology of the name", "Meditation for this page", "Tarot connection"], tr: ["İsmin etimolojisi", "Bu sayfa meditasyonu", "Tarot bağlantısı"], ru: ["Этимология", "Медитация", "Связь с Таро"] },
-  tarot_arcana: { en: ["Decipher this page", "Correspondence web", "Meditation"], tr: ["Sayfayı deşifre et", "Korrespondans ağı", "Meditasyon"], ru: ["Дешифровка", "Соответствия", "Медитация"] },
-  ginabul: { en: ["Decipher this page", "Letter-by-letter decode", "Connected names"], tr: ["Sayfayı deşifre et", "Harf harf çöz", "Bağlı isimler"], ru: ["Дешифровка", "По буквам", "Связь имён"] },
-  etymology: { en: ["Gina'abul decode", "Correspondence web", "Decipher the page"], tr: ["Gina'abul çöz", "Korrespondans", "Sayfayı deşifre et"], ru: ["Гина'абул", "Соответствия", "Дешифровка"] },
-  correspondence: { en: ["Decipher this", "Meditate on this", "Tarot archetype"], tr: ["Bunu deşifre et", "Medite et", "Tarot arketipi"], ru: ["Дешифровка", "Медитация", "Таро"] },
-  meditation: { en: ["Decipher the page", "Go deeper", "Connected practice"], tr: ["Sayfayı deşifre et", "Daha derine", "Bağlı pratik"], ru: ["Дешифровка", "Глубже", "Практика"] },
-  seeker: { en: ["Tell me more", "Which page?", "How does this connect?"], tr: ["Daha anlat", "Hangi sayfa?", "Nasıl bağlanır?"], ru: ["Расскажи", "Какая стр.?", "Как связано?"] },
-  quote: { en: ["Another transmission", "Decipher this", "Go deeper"], tr: ["Başka iletim", "Deşifre et", "Derine"], ru: ["Ещё", "Дешифруй", "Глубже"] },
+  oracle:         { en: ["Go deeper", "Shadow aspect?", "Connected pages?"], tr: ["Daha derine", "Gölge yönü?", "Bağlı sayfalar?"], ru: ["Глубже", "Теневой аспект?", "Связанные страницы?"] },
+  decipher:       { en: ["Etymology of the name", "Meditation for this page", "Tarot connection"], tr: ["İsmin etimolojisi", "Bu sayfa meditasyonu", "Tarot bağlantısı"], ru: ["Этимология имени", "Медитация", "Связь с Таро"] },
+  tarot_arcana:   { en: ["Decipher this page", "Correspondence web", "Meditation"], tr: ["Sayfayı deşifre et", "Korrespondans ağı", "Meditasyon"], ru: ["Расшифровка страницы", "Сеть соответствий", "Медитация"] },
+  ginabul:        { en: ["Decipher this page", "Letter-by-letter decode", "Connected names"], tr: ["Sayfayı deşifre et", "Harf harf çöz", "Bağlı isimler"], ru: ["Расшифровка", "По буквам", "Связанные имена"] },
+  etymology:      { en: ["Gina'abul decode", "Correspondence web", "Decipher the page"], tr: ["Gina'abul çözümleme", "Korrespondans ağı", "Sayfayı deşifre et"], ru: ["Гина'абул", "Соответствия", "Дешифровка"] },
+  correspondence: { en: ["Decipher this symbol", "Meditate on this", "Tarot archetype"], tr: ["Bu sembolü deşifre et", "Buna medite et", "Tarot arketipi"], ru: ["Расшифровка символа", "Медитация", "Архетип Таро"] },
+  meditation:     { en: ["Decipher the page", "Go deeper", "Connected practice"], tr: ["Sayfayı deşifre et", "Daha derine", "Bağlı pratik"], ru: ["Дешифровка", "Глубже", "Связанная практика"] },
+  seeker:         { en: ["Tell me more", "Which page?", "How does this connect?"], tr: ["Daha anlat", "Hangi sayfa?", "Nasıl bağlanır?"], ru: ["Расскажи больше", "Какая страница?", "Как связано?"] },
+  quote:          { en: ["Another transmission", "Decipher this", "Go deeper"], tr: ["Başka bir iletim", "Bunu deşifre et", "Daha derine"], ru: ["Ещё передачу", "Расшифруй это", "Глубже"] },
 };
 
 /* ═══════════════════════════════════════════════════════════
-   AUDIO PLAYER — Google TTS via backend /tts
+   COMPONENT
    ═══════════════════════════════════════════════════════════ */
-function AudioPlayer({ src, color }: { src: string; color: string }) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const onTime = () => setProgress(audio.currentTime);
-    const onLoad = () => setDuration(audio.duration);
-    const onEnd = () => setPlaying(false);
-    audio.addEventListener("timeupdate", onTime);
-    audio.addEventListener("loadedmetadata", onLoad);
-    audio.addEventListener("ended", onEnd);
-    return () => { audio.removeEventListener("timeupdate", onTime); audio.removeEventListener("loadedmetadata", onLoad); audio.removeEventListener("ended", onEnd); };
-  }, [src]);
-
-  // Autoplay when src changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio && src) {
-      audio.load();
-      audio.play().then(() => setPlaying(true)).catch(() => {});
-    }
-  }, [src]);
-
-  const toggle = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (playing) { audio.pause(); setPlaying(false); }
-    else { audio.play().then(() => setPlaying(true)).catch(() => {}); }
-  };
-
-  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const audio = audioRef.current;
-    if (!audio || !duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct = (e.clientX - rect.left) / rect.width;
-    audio.currentTime = pct * duration;
-  };
-
-  const fmt = (s: number) => { const m = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${m}:${sec.toString().padStart(2, "0")}`; };
-
-  if (!src) return null;
-
-  return (
-    <div className="flex items-center gap-3 mt-3">
-      <audio ref={audioRef} src={src} preload="auto" />
-      <button onClick={toggle} style={{ color, fontSize: 16, cursor: "pointer", background: "none", border: "none", width: 28 }}>
-        {playing ? "⏸" : "▶"}
-      </button>
-      <div onClick={seek} style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, cursor: "pointer", position: "relative" }}>
-        <div style={{ width: `${duration ? (progress / duration) * 100 : 0}%`, height: "100%", background: color, borderRadius: 2, transition: "width 0.1s" }} />
-      </div>
-      <span className="font-mono text-[8px]" style={{ color: "var(--ut-white-faint)", minWidth: 40 }}>
-        {fmt(progress)}/{fmt(duration)}
-      </span>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════
-   CHAT BUBBLE
-   ═══════════════════════════════════════════════════════════ */
-interface Msg { role: "user" | "oracle"; text: string; mode?: string; audioUrl?: string }
+interface Msg { role: "user" | "oracle"; text: string; mode?: string }
 
 function ChatBubble({ msg, modeColor, lang }: { msg: Msg; modeColor: string; lang: string }) {
   const isOracle = msg.role === "oracle";
   const t = T[lang] || T.en;
-  const modeLabel = (MODES.find(m => m.id === msg.mode)?.label as Record<string, string>)?.[lang] || "ORACLE";
-
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-      style={{ marginBottom: 20, padding: "16px 20px", borderLeft: `2px solid ${isOracle ? modeColor + "44" : "rgba(34,211,238,0.15)"}`, background: isOracle ? modeColor + "06" : "rgba(34,211,238,0.02)" }}>
+      style={{
+        marginBottom: 20, padding: "16px 20px",
+        borderLeft: `2px solid ${isOracle ? modeColor + "44" : "rgba(34,211,238,0.15)"}`,
+        background: isOracle ? modeColor + "06" : "rgba(34,211,238,0.02)",
+      }}>
       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: isOracle ? modeColor + "88" : "rgba(34,211,238,0.35)", marginBottom: 10 }}>
-        {isOracle ? `${t.oracleLabel} · ${modeLabel}` : t.you}
+        {isOracle ? `${t.oracleLabel} · ${(MODES.find(m => m.id === msg.mode)?.label as any)?.[lang] || "ORACLE"}` : t.you}
       </div>
       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, lineHeight: 1.8, color: isOracle ? "var(--ut-white)" : "var(--ut-white-dim)" }}>
         {isOracle ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown> : msg.text}
       </div>
-      {isOracle && msg.audioUrl && <AudioPlayer src={msg.audioUrl} color={modeColor} />}
     </motion.div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MAIN PAGE
-   ═══════════════════════════════════════════════════════════ */
 export default function OraclePage() {
   const [mode, setMode] = useState("oracle");
   const [lang, setLang] = useState("en");
   const [speed, setSpeed] = useState<"fast" | "deep">("fast");
-  const [voiceOn, setVoiceOn] = useState(true);
-  const [voiceGender, setVoiceGender] = useState<"f" | "m">("f");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [nameInput, setNameInput] = useState("");
+  const [voiceOn, setVoiceOn] = useState(true);
   const [questionsUsed, setQuestionsUsed] = useState(0);
   const [tier] = useState<"guest" | "free" | "initiate">("guest");
   const chatRef = useRef<HTMLDivElement>(null);
@@ -222,29 +217,23 @@ export default function OraclePage() {
   const starters = (STARTERS[mode] || STARTERS.oracle)[lang] || (STARTERS[mode] || STARTERS.oracle).en;
   const followups = (FOLLOWUPS[mode] || FOLLOWUPS.oracle)[lang] || (FOLLOWUPS[mode] || FOLLOWUPS.oracle).en;
   const hasMessages = msgs.length > 0;
-  const limit = tier === "initiate" ? Infinity : tier === "free" ? 25 : 10;
-  const atLimit = questionsUsed >= limit;
 
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
-  // Fetch TTS audio for a response
-  const fetchTTS = useCallback(async (text: string): Promise<string> => {
-    if (!voiceOn) return "";
-    try {
-      const res = await fetch("/api/oracle/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, lang, voice: voiceGender === "m" ? "standard" : "hd" }),
-      });
-      if (!res.ok) return "";
-      const blob = await res.blob();
-      return URL.createObjectURL(blob);
-    } catch { return ""; }
-  }, [voiceOn, lang, voiceGender]);
+  // Speak oracle responses
+  const speak = useCallback((text: string) => {
+    if (!voiceOn || typeof window === "undefined" || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text.replace(/[#*_🜂⚛🧭🔐✧✦✶◎𒀭🔗🂠⚡🔤]/g, ""));
+    utt.lang = lang === "tr" ? "tr-TR" : lang === "ru" ? "ru-RU" : "en-US";
+    utt.rate = 0.92;
+    utt.pitch = 0.95;
+    window.speechSynthesis.speak(utt);
+  }, [voiceOn, lang]);
 
   const send = useCallback(async (text?: string) => {
     const m = (text || input).trim();
-    if (!m || loading || atLimit) return;
+    if (!m || loading) return;
     setInput("");
     setMsgs(p => [...p, { role: "user", text: m }]);
     setLoading(true);
@@ -256,28 +245,25 @@ export default function OraclePage() {
       });
       const data = await res.json();
       const answer = data.response || data.answer || "";
-      const audioUrl = answer ? await fetchTTS(answer) : "";
-      setMsgs(p => [...p, { role: "oracle", text: answer || "This transmission has not yet entered the archive.", mode, audioUrl }]);
+      setMsgs(p => [...p, { role: "oracle", text: answer || t.sealed, mode }]);
       setQuestionsUsed(q => q + 1);
+      if (answer) speak(answer);
     } catch {
-      setMsgs(p => [...p, { role: "oracle", text: "The transmission was interrupted.", mode }]);
+      setMsgs(p => [...p, { role: "oracle", text: t.sealed, mode }]);
     } finally { setLoading(false); }
-  }, [input, mode, lang, speed, loading, atLimit, fetchTTS]);
-
-  const decodeName = () => {
-    if (!nameInput.trim()) return;
-    setMode("etymology");
-    send(`Decode the energetic signature of the name ${nameInput.trim()} letter by letter`);
-    setNameInput("");
-  };
+  }, [input, mode, lang, speed, loading, speak, t.sealed]);
 
   const kd = (e: React.KeyboardEvent) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+
+  // Tier limits
+  const limit = tier === "initiate" ? Infinity : tier === "free" ? 25 : 10;
+  const atLimit = questionsUsed >= limit;
 
   return (
     <>
       <Navigation />
-      <CosmicBackground />
-      <main style={{ background: "transparent", position: "relative", zIndex: 1 }}>
+      <PageBackground variant="oracle" />
+      <main style={{ background: "var(--ut-black)" }}>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}
@@ -291,46 +277,29 @@ export default function OraclePage() {
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.15 }}>
 
-        {/* Modes */}
+        {/* Mode Selector */}
         <div className="container-ut pb-4">
           <div className="flex flex-wrap justify-center gap-2">
             {MODES.map(mo => (
               <button key={mo.id} onClick={() => setMode(mo.id)}
                 className="font-heading text-[9px] md:text-[10px] tracking-[0.16em] uppercase px-3 md:px-4 py-2 border transition-all duration-300"
-                style={{ borderColor: mode === mo.id ? mo.c + "66" : "rgba(255,255,255,0.06)", color: mode === mo.id ? mo.c : "var(--ut-white-faint)", background: mode === mo.id ? mo.c + "0a" : "transparent" }}>
+                style={{
+                  borderColor: mode === mo.id ? mo.c + "66" : "rgba(255,255,255,0.06)",
+                  color: mode === mo.id ? mo.c : "var(--ut-white-faint)",
+                  background: mode === mo.id ? mo.c + "0a" : "transparent",
+                }}>
                 <span style={{ marginRight: 5, fontSize: 11 }}>{mo.icon}</span>
-                {(mo.label as Record<string, string>)[lang] || (mo.label as Record<string, string>).en}
+                {(mo.label as any)[lang] || (mo.label as any).en}
               </button>
             ))}
           </div>
         </div>
 
-        {/* === LINGUISTICS: Name Decoder === */}
-        {mode === "etymology" && (
-          <div className="container-ut pb-4">
-            <div className="flex items-center justify-center gap-3 max-w-md mx-auto">
-              <div className="flex-1 relative">
-                <input type="text" value={nameInput} onChange={e => setNameInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter") decodeName(); }}
-                  placeholder={t.decodeName}
-                  className="w-full bg-[rgba(17,15,26,0.6)] border px-4 py-2.5 font-body text-base text-[var(--ut-white)] outline-none transition-all focus:border-[rgba(240,199,94,0.3)]"
-                  style={{ borderColor: "rgba(240,199,94,0.15)" }} />
-              </div>
-              <button onClick={decodeName} disabled={!nameInput.trim()}
-                className="font-heading text-[9px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all"
-                style={{ borderColor: "rgba(240,199,94,0.4)", color: "#f0c75e", background: "rgba(240,199,94,0.06)", opacity: nameInput.trim() ? 1 : 0.3 }}>
-                {t.decodeBtn}
-              </button>
-            </div>
-            <p className="text-center mt-2 font-mono text-[8px] tracking-wider" style={{ color: "rgba(240,199,94,0.3)" }}>{t.decodeHint}</p>
-          </div>
-        )}
-
-        {/* Main: starters | chat | follow-ups */}
+        {/* Main layout: starters | chat | follow-ups */}
         <div className="container-ut pb-8">
           <div className="flex gap-4 items-start">
 
-            {/* LEFT: Starters */}
+            {/* LEFT: Starter questions */}
             <div className="hidden lg:flex flex-col gap-2 w-56 flex-shrink-0 pt-4">
               {starters.map((q, i) => (
                 <button key={i} onClick={() => send(q)} disabled={atLimit}
@@ -342,19 +311,22 @@ export default function OraclePage() {
             </div>
 
             {/* CENTER: Chat */}
-            <div className="flex-1 ut-card p-0 overflow-hidden" style={{ borderColor: currentMode.c + "12", background: "rgba(10,9,14,0.85)", backdropFilter: "blur(12px)" }}>
-              <div ref={chatRef} className="oracle-scroll" style={{ minHeight: 420, maxHeight: 580, overflowY: "auto", padding: "24px 24px 16px" }}>
+            <div className="flex-1 ut-card p-0 overflow-hidden" style={{ borderColor: currentMode.c + "12" }}>
+              <div ref={chatRef} style={{ minHeight: 420, maxHeight: 580, overflowY: "auto", padding: "24px 24px 16px" }}>
                 {!hasMessages && (
                   <div className="text-center py-16">
                     <div style={{ width: 52, height: 52, margin: "0 auto 16px", border: `1px solid ${currentMode.c}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
                       <span style={{ color: currentMode.c + "66" }}>{currentMode.icon}</span>
                     </div>
                     <p className="font-heading text-sm tracking-wider mb-5" style={{ color: "var(--ut-white-dim)" }}>{t.begin}</p>
+                    {/* Mobile starters */}
                     <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto lg:hidden">
                       {starters.map((q, i) => (
                         <button key={i} onClick={() => send(q)}
-                          className="font-body text-sm px-4 py-2 border hover:border-[rgba(217,70,239,0.3)]"
-                          style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint)" }}>{q}</button>
+                          className="font-body text-sm px-4 py-2 border transition-all hover:border-[rgba(217,70,239,0.3)]"
+                          style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint)" }}>
+                          {q}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -370,22 +342,6 @@ export default function OraclePage() {
                     </div>
                   </div>
                 )}
-                {/* Follow-ups + correspondence link (mobile) */}
-                {hasMessages && !loading && msgs[msgs.length - 1]?.role === "oracle" && (
-                  <div className="lg:hidden">
-                    <div className="flex flex-wrap gap-2 mt-2 mb-2">
-                      {followups.map((f, i) => (
-                        <button key={i} onClick={() => send(f)}
-                          className="font-mono text-[8px] tracking-widest uppercase px-3 py-1.5 border hover:border-[rgba(217,70,239,0.3)]"
-                          style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint)" }}>{f}</button>
-                      ))}
-                    </div>
-                    {(mode === "correspondence" || mode === "tarot_arcana") && (
-                      <a href="https://vaultofarcana.com/correspondence-engine" target="_blank" rel="noopener"
-                        className="font-mono text-[8px] tracking-wider" style={{ color: "#9333ea", opacity: 0.7 }}>{t.corrLink}</a>
-                    )}
-                  </div>
-                )}
               </div>
               {/* Input */}
               <div style={{ padding: "0 24px 20px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
@@ -394,7 +350,9 @@ export default function OraclePage() {
                     <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>
                       {tier === "guest" ? "Daily limit reached. Create a free account for 25/day." : "Daily limit reached."}
                     </span>
-                    {tier !== "initiate" && <a href="/pricing" className="ml-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "#d946ef" }}>{t.upgrade}</a>}
+                    {tier !== "initiate" && (
+                      <a href="/pricing" className="ml-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "#d946ef" }}>{t.upgrade}</a>
+                    )}
                   </div>
                 )}
                 <div className="flex gap-3 items-end mt-4">
@@ -412,70 +370,66 @@ export default function OraclePage() {
               </div>
             </div>
 
-            {/* RIGHT: Follow-ups + Correspondence link */}
+            {/* RIGHT: Follow-up suggestions */}
             <div className="hidden lg:flex flex-col gap-2 w-48 flex-shrink-0 pt-4">
-              {hasMessages && !loading && msgs[msgs.length - 1]?.role === "oracle" && (
-                <>
-                  {followups.map((f, i) => (
-                    <button key={i} onClick={() => send(f)}
-                      className="text-left font-mono text-[9px] tracking-wider uppercase px-3 py-2 border transition-all hover:border-[rgba(217,70,239,0.3)]"
-                      style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint)" }}>{f}</button>
-                  ))}
-                  {(mode === "correspondence" || mode === "tarot_arcana" || mode === "oracle") && (
-                    <a href="https://vaultofarcana.com/correspondence-engine" target="_blank" rel="noopener"
-                      className="text-left font-mono text-[8px] tracking-wider px-3 py-2 border transition-all hover:border-[rgba(147,51,234,0.4)]"
-                      style={{ borderColor: "rgba(147,51,234,0.15)", color: "#9333ea", opacity: 0.7, display: "block" }}>
-                      {t.corrLink}
-                    </a>
-                  )}
-                </>
-              )}
+              {hasMessages && !loading && msgs[msgs.length - 1]?.role === "oracle" && followups.map((f, i) => (
+                <button key={i} onClick={() => send(f)}
+                  className="text-left font-mono text-[9px] tracking-wider uppercase px-3 py-2 border transition-all hover:border-[rgba(217,70,239,0.3)]"
+                  style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint)" }}>
+                  {f}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Settings */}
+        {/* Settings: Speed · Language · Voice · Tier · Clear */}
         <div className="container-ut pb-8">
-          <div className="flex flex-wrap gap-4 md:gap-5 items-center justify-center">
+          <div className="flex flex-wrap gap-4 md:gap-6 items-center justify-center">
             {/* Speed */}
             <div className="flex items-center gap-2">
               <span className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-white-faint)" }}>{t.engine}</span>
-              <button onClick={() => setSpeed("fast")} className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
-                style={{ borderColor: speed === "fast" ? "rgba(34,211,238,0.5)" : "rgba(255,255,255,0.06)", color: speed === "fast" ? "#22d3ee" : "var(--ut-white-faint)", background: speed === "fast" ? "rgba(34,211,238,0.08)" : "transparent" }}>⚡ {t.fast}</button>
-              <button onClick={() => setSpeed("deep")} className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
-                style={{ borderColor: speed === "deep" ? "rgba(147,51,234,0.5)" : "rgba(255,255,255,0.06)", color: speed === "deep" ? "#9333ea" : "var(--ut-white-faint)", background: speed === "deep" ? "rgba(147,51,234,0.08)" : "transparent" }}>◈ {t.deep}</button>
+              <button onClick={() => setSpeed("fast")}
+                className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
+                style={{ borderColor: speed === "fast" ? "rgba(34,211,238,0.5)" : "rgba(255,255,255,0.06)", color: speed === "fast" ? "#22d3ee" : "var(--ut-white-faint)", background: speed === "fast" ? "rgba(34,211,238,0.08)" : "transparent" }}>
+                ⚡ {t.fast}
+              </button>
+              <button onClick={() => setSpeed("deep")}
+                className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
+                style={{ borderColor: speed === "deep" ? "rgba(147,51,234,0.5)" : "rgba(255,255,255,0.06)", color: speed === "deep" ? "#9333ea" : "var(--ut-white-faint)", background: speed === "deep" ? "rgba(147,51,234,0.08)" : "transparent" }}>
+                ◈ {t.deep}
+              </button>
             </div>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
             {/* Language */}
             <div className="flex items-center gap-2">
               <span className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-white-faint)" }}>{t.language}</span>
               {(["en", "tr", "ru"] as const).map(l => (
-                <button key={l} onClick={() => setLang(l)} className="font-mono text-[9px] tracking-widest uppercase px-2.5 py-1.5 border transition-all"
-                  style={{ borderColor: lang === l ? "var(--ut-magenta)44" : "rgba(255,255,255,0.06)", color: lang === l ? "var(--ut-magenta)" : "var(--ut-white-faint)" }}>{l.toUpperCase()}</button>
+                <button key={l} onClick={() => setLang(l)}
+                  className="font-mono text-[9px] tracking-widest uppercase px-2.5 py-1.5 border transition-all"
+                  style={{ borderColor: lang === l ? "var(--ut-magenta)44" : "rgba(255,255,255,0.06)", color: lang === l ? "var(--ut-magenta)" : "var(--ut-white-faint)", background: lang === l ? "rgba(217,70,239,0.06)" : "transparent" }}>
+                  {l.toUpperCase()}
+                </button>
               ))}
             </div>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
-            {/* Voice + Gender */}
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-white-faint)" }}>{t.voice}</span>
-              <button onClick={() => setVoiceOn(!voiceOn)} className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
-                style={{ borderColor: voiceOn ? "rgba(34,211,238,0.4)" : "rgba(255,255,255,0.06)", color: voiceOn ? "#22d3ee" : "var(--ut-white-faint)" }}>
-                {voiceOn ? "🔊 ON" : "🔇 OFF"}</button>
-              {voiceOn && (<>
-                <button onClick={() => setVoiceGender("f")} className="font-mono text-[9px] px-2.5 py-1 border transition-all"
-                  style={{ borderColor: voiceGender === "f" ? "rgba(212,168,71,0.4)" : "rgba(255,255,255,0.06)", color: voiceGender === "f" ? "#d4a847" : "var(--ut-white-faint)" }}>{t.female}</button>
-                <button onClick={() => setVoiceGender("m")} className="font-mono text-[9px] px-2.5 py-1 border transition-all"
-                  style={{ borderColor: voiceGender === "m" ? "rgba(212,168,71,0.4)" : "rgba(255,255,255,0.06)", color: voiceGender === "m" ? "#d4a847" : "var(--ut-white-faint)" }}>{t.male}</button>
-              </>)}
-            </div>
+            {/* Voice */}
+            <button onClick={() => { setVoiceOn(!voiceOn); if (voiceOn) window.speechSynthesis?.cancel(); }}
+              className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
+              style={{ borderColor: voiceOn ? "rgba(34,211,238,0.4)" : "rgba(255,255,255,0.06)", color: voiceOn ? "#22d3ee" : "var(--ut-white-faint)" }}>
+              {voiceOn ? "🔊 ON" : "🔇 OFF"}
+            </button>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
             {/* Tier */}
             <span className="font-mono text-[8px] tracking-widest" style={{ color: "rgba(212,168,71,0.45)" }}>
               {tier === "initiate" ? t.initiateActive : tier === "free" ? t.freeLimit.replace("{n}", String(questionsUsed)) : t.guestLimit.replace("{n}", String(questionsUsed))}
             </span>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
-            <button onClick={() => setMsgs([])} className="font-mono text-[8px] tracking-widest uppercase px-3 py-1.5 border transition-all hover:border-[rgba(255,255,255,0.15)]"
-              style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint)" }}>{t.clear}</button>
+            <button onClick={() => { setMsgs([]); window.speechSynthesis?.cancel(); }}
+              className="font-mono text-[8px] tracking-widest uppercase px-3 py-1.5 border transition-all hover:border-[rgba(255,255,255,0.15)]"
+              style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint)" }}>
+              {t.clear}
+            </button>
           </div>
         </div>
 
@@ -497,10 +451,10 @@ export default function OraclePage() {
       </main>
       <Footer />
       <style>{`
-        @keyframes oP{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:.8;transform:scale(1.1)}}
-        .oracle-scroll::-webkit-scrollbar{width:5px}
-        .oracle-scroll::-webkit-scrollbar-track{background:rgba(10,9,14,0.5)}
-        .oracle-scroll::-webkit-scrollbar-thumb{background:linear-gradient(to bottom,#581c87 0%,#9333ea 18%,#d946ef 36%,#d4a847 54%,#22d3ee 72%,#0891b2 100%);border-radius:3px}
+        @keyframes oP { 0%,100%{opacity:.25;transform:scale(.9)} 50%{opacity:.8;transform:scale(1.1)} }
+        ::-webkit-scrollbar{width:5px}
+        ::-webkit-scrollbar-track{background:rgba(10,9,14,0.5)}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(to bottom,#581c87 0%,#9333ea 20%,#d946ef 40%,#d4a847 60%,#22d3ee 80%,#0891b2 100%);border-radius:3px}
       `}</style>
     </>
   );
