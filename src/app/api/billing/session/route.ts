@@ -14,7 +14,7 @@ export async function GET() {
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("plan, stripe_customer_id")
-      .eq("id", session.user.email)
+      .eq("email", session.user.email)
       .maybeSingle();
 
     const { data: member } = await supabaseAdmin

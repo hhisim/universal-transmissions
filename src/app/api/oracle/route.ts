@@ -45,13 +45,19 @@ export async function GET(req: NextRequest) {
       if (user) {
         userId = user.id
         isLoggedIn = true
-        // Fetch plan from profiles table
+        // Fetch plan from profiles table (try UUID first, fall back to email)
         const { data: profile } = await supabaseAdmin
           .from('profiles')
           .select('plan')
           .eq('id', userId)
+        const profileByEmail = !profile
+          ? await supabaseAdmin.from('profiles').select('plan').eq('email', email).maybeSingle()
+          : null
           .maybeSingle()
-        plan = (profile?.plan as PlanId) || 'free'
+        const profileByEmail = !profile
+          ? await supabaseAdmin.from('profiles').select('plan').eq('email', email).maybeSingle()
+          : null
+        plan = ((profile ?? profileByEmail)?.plan as PlanId) || 'free'
       }
     } catch {
       // continue as guest
@@ -130,8 +136,11 @@ export async function POST(req: NextRequest) {
           .from('profiles')
           .select('plan')
           .eq('id', userId)
+        const profileByEmail = !profile
+          ? await supabaseAdmin.from('profiles').select('plan').eq('email', email).maybeSingle()
+          : null
           .maybeSingle()
-        plan = (profile?.plan as PlanId) || 'free'
+        plan = ((profile ?? profileByEmail)?.plan as PlanId) || 'free'
       }
     } catch {
       // continue
