@@ -205,7 +205,7 @@ export default function AccountPage() {
                   </button>
                 )}
                 {!isInitiate && (
-                  <Link href="/pricing" className="btn-primary text-xs px-6 py-3 inline-flex items-center gap-2">
+                  <Link href="/sanctum/member/oracle#plans" className="btn-primary text-xs px-6 py-3 inline-flex items-center gap-2">
                     <Crown size={12} /> Upgrade to Initiate
                   </Link>
                 )}

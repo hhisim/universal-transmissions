@@ -169,6 +169,7 @@ export default function MemberOraclePage() {
             </div>
 
             {/* Upgrade CTA for non-initiate */}
+            <div id="plans" />
             {plan !== 'initiate' && (
               <div className="mb-8 p-6" style={{
                 border: '1px solid rgba(212,168,71,0.2)',
@@ -180,7 +181,7 @@ export default function MemberOraclePage() {
                 <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 14, color: 'rgba(237,233,246,0.5)', marginBottom: 20, lineHeight: 1.7 }}>
                   Unlimited questions, all Oracle modes, all languages, full message history.
                 </div>
-                <Link href="/pricing" style={{
+                <Link href="/sanctum/member/oracle#plans" style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   padding: '12px 28px',
                   border: '1px solid rgba(212,168,71,0.4)',
@@ -212,7 +213,7 @@ export default function MemberOraclePage() {
                 }}>
                   ← Account
                 </Link>
-                <Link href="/pricing" style={{
+                <Link href="/sanctum/member/oracle#plans" style={{
                   fontFamily: 'Cinzel, serif', fontSize: 10,
                   letterSpacing: '0.2em', color: 'rgba(237,233,246,0.3)',
                   textTransform: 'uppercase', textDecoration: 'none',

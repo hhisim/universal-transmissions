@@ -139,7 +139,7 @@ export default function MemberPage() {
           </p>
 
           <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-            <Link href="/pricing" style={{ fontFamily: "Cinzel, serif", fontSize: 9, letterSpacing: "0.2em", color: "rgba(237,233,246,0.3)", textDecoration: "none", textTransform: "uppercase" }}>
+            <Link href="/sanctum/member/oracle#plans" style={{ fontFamily: "Cinzel, serif", fontSize: 9, letterSpacing: "0.2em", color: "rgba(237,233,246,0.3)", textDecoration: "none", textTransform: "uppercase" }}>
               View all plans →
             </Link>
           </div>
@@ -248,7 +248,7 @@ export default function MemberPage() {
               </button>
             ) : (
               <Link
-                href="/pricing"
+                href="/sanctum/member/oracle#plans"
                 style={{
                   flex: 1,
                   minWidth: 160,
