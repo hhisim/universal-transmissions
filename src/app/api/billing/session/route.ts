@@ -1,31 +1,43 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { supabaseAdmin, getSupabaseAdmin } from "@/lib/supabase";
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.email) {
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
+    if (!token) {
       return NextResponse.json({ authenticated: false, plan: "guest" });
     }
 
-    // Check Oracle profile first, fall back to ut_members
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user?.email) {
+      return NextResponse.json({ authenticated: false, plan: "guest" });
+    }
+
+    const email = user.email;
+
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("plan, stripe_customer_id")
-      .eq("email", session.user.email)
+      .eq("email", email)
       .maybeSingle();
 
     const { data: member } = await supabaseAdmin
       .from("ut_members")
       .select("plan, subscription_status, current_period_end")
-      .eq("email", session.user.email)
+      .eq("email", email)
       .maybeSingle();
 
     return NextResponse.json({
       authenticated: true,
-      email: session.user.email,
+      email,
       plan: profile?.plan ?? member?.plan ?? "guest",
       stripeCustomerId: profile?.stripe_customer_id ?? null,
       subscription_status: member?.subscription_status ?? "inactive",

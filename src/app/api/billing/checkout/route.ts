@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { supabaseAdmin, getSupabaseAdmin } from "@/lib/supabase";
-import { auth } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Get logged-in user session
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    // 1. Get logged-in user from Supabase session cookie
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    // Get access token from Authorization header
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const email = session.user.email;
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user?.email) {
+      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+    }
+
+    const email = user.email;
     const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_INITIATE_MONTHLY;
 
     if (!priceId) {

@@ -75,14 +75,14 @@ export default function OraclePlansPage() {
   const [checkingOut, setCheckingOut] = useState(false)
 
   useEffect(() => {
-    // Check session both ways — supabase client (instant, client-side) + API (for plan data)
     async function load() {
-      // First check the Supabase client session directly
       const { data: sessionData } = await supabase.auth.getSession()
       if (sessionData?.session) {
-        // We know the user is logged in — now fetch plan data from API
+        const token = sessionData.session.access_token
         try {
-          const r = await fetch('/api/billing/session')
+          const r = await fetch('/api/billing/session', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
           const data = await r.json()
           setSession(data)
           setPlan(data.plan || 'guest')
@@ -94,11 +94,13 @@ export default function OraclePlansPage() {
     }
     load()
 
-    // Also listen for auth changes (fires after magic link callback completes)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sessionData) => {
       if (event === 'SIGNED_IN' && sessionData) {
+        const token = sessionData.access_token
         try {
-          const r = await fetch('/api/billing/session')
+          const r = await fetch('/api/billing/session', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
           const data = await r.json()
           setSession(data)
           setPlan(data.plan || 'guest')
@@ -118,12 +120,22 @@ export default function OraclePlansPage() {
       window.location.href = '/signup?redirect=/oracle/plans'
       return
     }
+    const accessToken = sessionData.session.access_token
     setCheckingOut(true)
     try {
-      const r = await fetch('/api/billing/checkout', { method: 'POST' })
+      const r = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
       const d = await r.json()
-      if (d.url) window.location.href = d.url
-      else alert('Could not start checkout. Please try again.')
+      if (d.url) {
+        window.location.href = d.url
+      } else {
+        alert(d.error || 'Could not start checkout. Please try again.')
+      }
     } catch {
       alert('Checkout failed. Please try again.')
     } finally {
