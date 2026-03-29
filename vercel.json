@@ -5,7 +5,6 @@
     { "source": "/start", "destination": "/oracle", "permanent": true },
     { "source": "/ask", "destination": "/oracle", "permanent": true },
     { "source": "/chat", "destination": "/oracle", "permanent": true },
-    { "source": "/q/:q", "destination": "/oracle?q=:q", "permanent": true },
-    { "source": "/journal", "destination": "/oracle", "permanent": false }
+    { "source": "/q/:q", "destination": "/oracle?q=:q", "permanent": true }
   ]
 }

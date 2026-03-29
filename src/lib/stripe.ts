@@ -1,4 +1,19 @@
-import Stripe from "stripe";
+import Stripe from 'stripe'
 
-// SDK version 20.4.1 uses 2024-11-20.acacia as default/latest
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_placeholder");
+let stripeClient: Stripe | null = null
+
+export function getStripe(): Stripe {
+  if (!stripeClient) {
+    const key = process.env.STRIPE_SECRET_KEY
+    if (!key) throw new Error('STRIPE_SECRET_KEY is not set')
+    stripeClient = new Stripe(key, {
+      apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
+      // Use fetch instead of Node's http module — required for Vercel serverless
+      httpClient: Stripe.createFetchHttpClient(),
+    })
+  }
+  return stripeClient
+}
+
+// Alias for existing code that imports `stripe`
+export const stripe = getStripe()

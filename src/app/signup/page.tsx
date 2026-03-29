@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navigation from '@/components/ui/Navigation'
@@ -10,7 +10,7 @@ import SectionReveal from '@/components/ui/SectionReveal'
 import ZalgoText from '@/components/ui/ZalgoText'
 import { supabase } from '@/lib/supabase-client'
 
-export default function SignupPage() {
+function SignupPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnTo = searchParams.get('returnTo') || '/account'
@@ -140,5 +140,23 @@ export default function SignupPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <Navigation />
+        <main className="pt-24 pb-20 min-h-screen" style={{ background: 'var(--ut-black)' }}>
+          <div className="container-ut max-w-lg mx-auto">
+            <div className="text-center pt-8" style={{ color: 'var(--ut-white-dim)' }}>Loading…</div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    }>
+      <SignupPageContent />
+    </Suspense>
   )
 }

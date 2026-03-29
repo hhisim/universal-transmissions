@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navigation from '@/components/ui/Navigation'
@@ -17,6 +17,24 @@ function formatDate(iso: string | null | undefined) {
 }
 
 export default function AccountPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <Navigation />
+        <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black)' }}>
+          <div className="text-center">
+            <div className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: 'var(--ut-gold)' }}>Loading...</div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    }>
+      <AccountPageContent />
+    </Suspense>
+  )
+}
+
+function AccountPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [session, setSession] = useState<any>(null)
