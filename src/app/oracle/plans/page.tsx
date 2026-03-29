@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Navigation from '@/components/ui/Navigation'
 import Footer from '@/components/ui/Footer'
 import { Crown, Zap, Star, CheckCircle } from 'lucide-react'
+import { supabase } from '@/lib/supabase-client'
 
 const TIERS = [
   {
@@ -85,7 +86,9 @@ export default function OraclePlansPage() {
   }, [])
 
   async function handleInitiateCheckout() {
-    if (!session) {
+    // Check session directly via supabase client (not via API — avoids race conditions)
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (!sessionData?.session) {
       window.location.href = '/signup?redirect=/oracle/plans'
       return
     }
