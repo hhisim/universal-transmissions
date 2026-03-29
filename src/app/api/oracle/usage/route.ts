@@ -117,10 +117,12 @@ export async function POST(req: NextRequest) {
       if (plan === 'free') {
         const today = new Date().toISOString().split('T')[0]
         // Upsert: increment count for today
-        await supabaseAdmin.rpc('increment_oracle_usage', {
-          p_email: email,
-          p_date: today,
-        }).catch(async () => {
+        try {
+          await supabaseAdmin.rpc('increment_oracle_usage', {
+            p_email: email,
+            p_date: today,
+          })
+        } catch {
           // Fallback if RPC not available
           const { data: existing } = await supabaseAdmin
             .from('ut_oracle_usage')
@@ -140,7 +142,7 @@ export async function POST(req: NextRequest) {
               .from('ut_oracle_usage')
               .insert({ email, date: today, count: 1 })
           }
-        })
+        }
 
         return NextResponse.json({ success: true, tier: 'free' })
       }
@@ -155,9 +157,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Upsert guest total count
-    await supabaseAdmin.rpc('increment_guest_usage', {
-      p_anonymous_id: anonymous_id,
-    }).catch(async () => {
+    try {
+      await supabaseAdmin.rpc('increment_guest_usage', {
+        p_anonymous_id: anonymous_id,
+      })
+    } catch {
       const { data: existing } = await supabaseAdmin
         .from('ut_guest_usage')
         .select('total_count')
@@ -174,7 +178,7 @@ export async function POST(req: NextRequest) {
           .from('ut_guest_usage')
           .insert({ anonymous_id, total_count: 1 })
       }
-    })
+    }
 
     return NextResponse.json({ success: true, tier: 'guest' })
 
