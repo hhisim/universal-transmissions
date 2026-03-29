@@ -319,20 +319,12 @@ export default function Navigation() {
                       <span>⬡</span> Member Portal
                     </Link>
                     <Link
-                      href="/sanctum/member/oracle"
+                      href="/oracle/plans"
                       className="flex items-center gap-3 w-full text-left px-4 py-2.5 font-body text-[12px] transition-all hover:text-white"
                       style={{ color: "rgba(237,233,246,0.45)" }}
                       onClick={() => setMemberOpen(false)}
                     >
                       <span>◇</span> Oracle Access
-                    </Link>
-                    <Link
-                      href="/sanctum/member/oracle#plans"
-                      className="flex items-center gap-3 w-full text-left px-4 py-2.5 font-body text-[12px] transition-all hover:text-white"
-                      style={{ color: "rgba(212,168,71,0.5)" }}
-                      onClick={() => setMemberOpen(false)}
-                    >
-                      <span>◇</span> View Plans — $3.99/mo
                     </Link>
                   </div>
                   <div

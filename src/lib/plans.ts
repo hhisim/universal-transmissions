@@ -15,7 +15,7 @@ export type PlanConfig = {
   stripePriceId?: string
 }
 
-const INITIATE_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRICE_INITIATE_MONTHLY ?? 'price_UT_INITIATE_PLACEHOLDER'
+const INITIATE_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRICE_INITIATE_MONTHLY ?? 'price_1TG0XHD1VUXAFjstsFd04oXF'
 
 export const PLAN_CONFIG: Record<PlanId, PlanConfig> = {
   guest: {
