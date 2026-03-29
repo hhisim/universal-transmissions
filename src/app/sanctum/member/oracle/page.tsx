@@ -19,13 +19,12 @@ const TIERS = [
     priceSub: 'No account required',
     description: 'Explore the Codex Oracle in demo mode',
     features: [
-      { text: '10 questions per day', included: true },
+      { text: '10 questions total (no account)', included: true },
       { text: 'English only', included: true },
       { text: 'Voice-first mode', included: true },
       { text: 'Demo responses only', included: true },
       { text: 'Full correspondence web', included: false },
       { text: 'Guided meditations', included: false },
-      { text: 'Unlimited questions', included: false },
     ],
     cta: 'Try the Oracle',
     ctaHref: '/oracle',
@@ -41,13 +40,12 @@ const TIERS = [
     priceSub: 'Sign up with email',
     description: 'Create an account to unlock more questions',
     features: [
-      { text: '25 questions per day', included: true },
+      { text: '25 questions per day (reset daily)', included: true },
       { text: 'EN, TR, and RU languages', included: true },
       { text: '5 voice messages per day', included: true },
       { text: 'Full oracle responses', included: true },
       { text: 'Full correspondence web', included: false },
       { text: 'Guided meditations', included: false },
-      { text: 'Unlimited questions', included: false },
     ],
     cta: 'Create Free Account',
     ctaHref: '/sanctum/member/login',
@@ -117,7 +115,6 @@ export default function MemberOraclePage() {
 
   async function handleInitiateCheckout() {
     if (!session) {
-      window.location.href = '/sanctum/member/login?returnTo=/sanctum/member/oracle'
       return
     }
     setCheckingOut(true)
