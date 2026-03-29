@@ -123,7 +123,7 @@ function SignupPageContent() {
                   <input
                     className="w-full px-4 py-3 bg-transparent border font-mono text-sm"
                     style={{ borderColor: 'rgba(217,70,239,0.2)', color: '#ede9f6', borderRadius: '8px' }}
-                    placeholder="Hakan Hisim"
+                    placeholder="Hermes Thoth"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     autoComplete="name"
