@@ -3,7 +3,7 @@ import { artworks } from "@/data/artworks";
 import { products } from "@/data/products";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://www.universal-transmissions.net";
+  const base = "https://www.universal-transmissions.com";
 
   const staticPages = ["", "/gallery", "/codex", "/store", "/journal", "/connect"].map((route) => ({
     url: `${base}${route}`,
