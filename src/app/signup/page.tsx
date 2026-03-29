@@ -89,11 +89,8 @@ function SignupPageContent() {
 
     // Session is returned immediately since mailer_autoconfirm = true
     if (data.session) {
-      // Redirect to Oracle Access to choose plan and checkout
       window.location.href = '/oracle/plans'
     } else {
-      // Email confirmation required — show success
-      setError('') // no error, just redirect to login
       window.location.href = '/login'
     }
   }

@@ -69,64 +69,69 @@ const TIERS = [
   },
 ]
 
+async function fetchSessionWithToken(token: string) {
+  const r = await fetch('/api/billing/session', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return r.json()
+}
+
 export default function OraclePlansPage() {
   const [session, setSession] = useState<any>(null)
   const [plan, setPlan] = useState<string>('guest')
+  const [loading, setLoading] = useState(true)
   const [checkingOut, setCheckingOut] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     async function load() {
-      const { data: sessionData } = await supabase.auth.getSession()
-      if (sessionData?.session) {
-        const token = sessionData.session.access_token
-        try {
-          const r = await fetch('/api/billing/session', {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          const data = await r.json()
-          setSession(data)
+      setLoading(true)
+      try {
+        // Force refresh to pick up any session set by signup/login
+        const { data: { session: localSession }, error: refreshError } = await supabase.auth.refreshSession()
+        if (refreshError) console.error('Refresh error:', refreshError)
+
+        const activeSession = localSession || (await supabase.auth.getSession()).data.session
+
+        if (activeSession) {
+          const token = activeSession.access_token
+          const data = await fetchSessionWithToken(token)
+          setSession({ ...data, accessToken: token })
           setPlan(data.plan || 'guest')
-        } catch {
-          setSession({ authenticated: true })
+        } else {
+          setSession(null)
           setPlan('guest')
         }
+      } catch (err) {
+        console.error('Session load error:', err)
+        setSession(null)
+        setPlan('guest')
+      } finally {
+        setLoading(false)
       }
     }
     load()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sessionData) => {
-      if (event === 'SIGNED_IN' && sessionData) {
-        const token = sessionData.access_token
-        try {
-          const r = await fetch('/api/billing/session', {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          const data = await r.json()
-          setSession(data)
-          setPlan(data.plan || 'guest')
-        } catch {
-          setSession({ authenticated: true })
-          setPlan('guest')
-        }
-      }
-    })
-    return () => subscription.unsubscribe()
   }, [])
 
   async function handleInitiateCheckout() {
-    // Always check session directly at click time — never trust stale state
-    const { data: sessionData } = await supabase.auth.getSession()
-    if (!sessionData?.session) {
-      window.location.href = '/signup?redirect=/oracle/plans'
-      return
-    }
-    const accessToken = sessionData.session.access_token
+    setError('')
     setCheckingOut(true)
     try {
+      // Always get fresh session at click time
+      const { data: { session: freshSession } } = await supabase.auth.refreshSession()
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      const activeSession = freshSession || currentSession
+
+      if (!activeSession) {
+        window.location.href = '/signup'
+        return
+      }
+
+      const token = activeSession.access_token
       const r = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       })
@@ -134,14 +139,18 @@ export default function OraclePlansPage() {
       if (d.url) {
         window.location.href = d.url
       } else {
-        alert(d.error || 'Could not start checkout. Please try again.')
+        setError(d.error || 'Could not start checkout.')
       }
-    } catch {
-      alert('Checkout failed. Please try again.')
+    } catch (err) {
+      setError('Checkout failed. Please try again.')
     } finally {
       setCheckingOut(false)
     }
   }
+
+  const isLoggedIn = !!session?.authenticated
+  const isInitiate = plan === 'initiate'
+  const isFree = plan === 'free'
 
   return (
     <>
@@ -154,14 +163,23 @@ export default function OraclePlansPage() {
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', padding: '0 24px 80px' }}>
 
+          {/* Loading */}
+          {loading && (
+            <div className="text-center py-8" style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(212,168,71,0.4)' }}>
+              Loading...
+            </div>
+          )}
+
           {/* Logged-in status */}
-          {session && (
+          {!loading && isLoggedIn && (
             <div className="mb-8 text-center" style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(212,168,71,0.5)' }}>
               Signed in as {session.email} · <Link href="/account" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>Account</Link>
+              {isInitiate && ' · '}<Link href="/account" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>{isInitiate ? 'Initiate Member' : ''}</Link>
             </div>
           )}
 
           {/* Header */}
+          {!loading && (
           <div className="text-center mb-16">
             <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.3em', color: 'rgba(212,168,71,0.5)', marginBottom: 16 }}>[ CODEX ORACLE ]</div>
             <h1 style={{
@@ -177,41 +195,22 @@ export default function OraclePlansPage() {
               Oracle Access
             </h1>
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(237,233,246,0.45)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
-              {session
-                ? plan === 'initiate'
-                  ? 'Your Initiate membership is active. Unlimited questions, all modes.'
-                  : 'Choose your level of access to the Codex Oracle.'
-                : 'Choose your level of access to the Codex Oracle. From exploration to mastery — all paths begin with a single question.'}
+              {isInitiate
+                ? 'Your Initiate membership is active. Unlimited questions, all modes.'
+                : isLoggedIn
+                  ? 'Choose your level of access to the Codex Oracle.'
+                  : 'Choose your level of access to the Codex Oracle. From exploration to mastery — all paths begin with a single question.'}
             </p>
             <div style={{ width: 260, height: 1, margin: '32px auto 0', background: 'linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), transparent)' }} />
           </div>
-
-          {/* Current plan status — logged in non-initiate */}
-          {session && plan !== 'initiate' && (
-            <div className="mb-8 p-4 text-center" style={{
-              border: '1px solid rgba(34,211,238,0.2)',
-              background: 'rgba(34,211,238,0.03)',
-              maxWidth: 600, margin: '0 auto 32px',
-            }}>
-              <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.2em', color: '#22d3ee', marginBottom: 8 }}>
-                Current Plan: {plan === 'guest' ? 'Guest' : 'Free Account'}
-              </div>
-              {plan === 'free' && (
-                <div style={{ marginTop: 12 }}>
-                  <button onClick={handleInitiateCheckout} className="btn-primary text-xs px-6 py-2" style={{ cursor: 'pointer' }}>
-                    Upgrade to Initiate — $3.99/mo
-                  </button>
-                </div>
-              )}
-            </div>
           )}
 
           {/* Plan cards */}
+          {!loading && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 60 }}>
             {TIERS.map((t) => {
               const Icon = t.icon
               const isCurrentTier = (plan === t.id) || (plan === 'guest' && t.id === 'guest') || (plan === 'free' && t.id === 'free')
-              const isLoading = checkingOut
 
               return (
                 <div
@@ -287,18 +286,18 @@ export default function OraclePlansPage() {
                     <button
                       id="subscribe"
                       onClick={handleInitiateCheckout}
-                      disabled={isLoading || plan === 'initiate'}
+                      disabled={checkingOut || isInitiate}
                       style={{
                         width: '100%', padding: '14px 20px',
                         border: '1px solid rgba(212,168,71,0.4)',
-                        background: isLoading ? 'rgba(212,168,71,0.05)' : plan === 'initiate' ? 'rgba(212,168,71,0.02)' : 'rgba(212,168,71,0.06)',
-                        color: plan === 'initiate' ? 'rgba(212,168,71,0.4)' : '#d4a847',
+                        background: checkingOut ? 'rgba(212,168,71,0.05)' : isInitiate ? 'rgba(212,168,71,0.02)' : 'rgba(212,168,71,0.06)',
+                        color: isInitiate ? 'rgba(212,168,71,0.4)' : '#d4a847',
                         fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.25em',
-                        textTransform: 'uppercase', cursor: isLoading || plan === 'initiate' ? 'not-allowed' : 'pointer',
+                        textTransform: 'uppercase', cursor: checkingOut || isInitiate ? 'not-allowed' : 'pointer',
                         transition: 'all 0.3s',
                       }}
                     >
-                      {plan === 'initiate' ? 'Active — Initiate' : isLoading ? 'Redirecting...' : t.cta}
+                      {isInitiate ? 'Active — Initiate' : checkingOut ? 'Redirecting...' : t.cta}
                     </button>
                   ) : (
                     <Link
@@ -318,8 +317,37 @@ export default function OraclePlansPage() {
               )
             })}
           </div>
+          )}
+
+          {/* Error display */}
+          {error && (
+            <div className="text-center mb-6" style={{ fontFamily: 'Cinzel, serif', fontSize: 11, color: '#ef4444', letterSpacing: '0.1em' }}>
+              {error}
+            </div>
+          )}
+
+          {/* Current plan status for logged-in non-initiate */}
+          {!loading && isLoggedIn && !isInitiate && (
+            <div className="mb-8 p-4 text-center" style={{
+              border: '1px solid rgba(34,211,238,0.2)',
+              background: 'rgba(34,211,238,0.03)',
+              maxWidth: 600, margin: '0 auto 32px',
+            }}>
+              <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.2em', color: '#22d3ee', marginBottom: 8 }}>
+                Current Plan: {isFree ? 'Free Account — 25 questions/day' : 'Guest — 10 questions total'}
+              </div>
+              {isFree && (
+                <div style={{ marginTop: 12 }}>
+                  <button onClick={handleInitiateCheckout} disabled={checkingOut} className="btn-primary text-xs px-6 py-2" style={{ cursor: checkingOut ? 'not-allowed' : 'pointer', opacity: checkingOut ? 0.6 : 1 }}>
+                    {checkingOut ? 'Redirecting to Stripe...' : 'Upgrade to Initiate — $3.99/mo'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* FAQ */}
+          {!loading && (
           <div style={{ maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
             <div style={{ width: 200, height: 1, margin: '0 auto 40px', background: 'linear-gradient(90deg, transparent, rgba(217,70,239,0.2), transparent)' }} />
             <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 18, letterSpacing: '0.15em', color: 'rgba(237,233,246,0.5)', marginBottom: 28 }}>Frequently Asked</h2>
@@ -335,8 +363,10 @@ export default function OraclePlansPage() {
               </div>
             ))}
           </div>
+          )}
 
           {/* Vault of Arcana cross-sell */}
+          {!loading && (
           <div style={{ marginTop: 80, textAlign: 'center', padding: '40px 24px', border: '1px solid rgba(147,51,234,0.12)', background: 'rgba(147,51,234,0.02)' }}>
             <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(147,51,234,0.5)', marginBottom: 12 }}>Beyond the Codex</div>
             <h3 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 20, letterSpacing: '0.08em', color: '#ede9f6', marginBottom: 12 }}>Vault of Arcana</h3>
@@ -347,6 +377,7 @@ export default function OraclePlansPage() {
               Explore Vault of Arcana
             </a>
           </div>
+          )}
 
         </div>
       </main>
