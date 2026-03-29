@@ -75,18 +75,44 @@ export default function OraclePlansPage() {
   const [checkingOut, setCheckingOut] = useState(false)
 
   useEffect(() => {
-    fetch('/api/billing/session')
-      .then(r => r.json())
-      .then(data => {
-        if (data.authenticated) {
+    // Check session both ways — supabase client (instant, client-side) + API (for plan data)
+    async function load() {
+      // First check the Supabase client session directly
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (sessionData?.session) {
+        // We know the user is logged in — now fetch plan data from API
+        try {
+          const r = await fetch('/api/billing/session')
+          const data = await r.json()
           setSession(data)
           setPlan(data.plan || 'guest')
+        } catch {
+          setSession({ authenticated: true })
+          setPlan('guest')
         }
-      })
+      }
+    }
+    load()
+
+    // Also listen for auth changes (fires after magic link callback completes)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sessionData) => {
+      if (event === 'SIGNED_IN' && sessionData) {
+        try {
+          const r = await fetch('/api/billing/session')
+          const data = await r.json()
+          setSession(data)
+          setPlan(data.plan || 'guest')
+        } catch {
+          setSession({ authenticated: true })
+          setPlan('guest')
+        }
+      }
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
   async function handleInitiateCheckout() {
-    // Check session directly via supabase client (not via API — avoids race conditions)
+    // Always check session directly at click time — never trust stale state
     const { data: sessionData } = await supabase.auth.getSession()
     if (!sessionData?.session) {
       window.location.href = '/signup?redirect=/oracle/plans'
