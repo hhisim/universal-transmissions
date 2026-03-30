@@ -20,7 +20,6 @@ const HERO_IMAGES: Record<string, string> = {
   "codex-stream-01-compilation-capture-02": "/journal/codex-stream-01-compilation-capture-02-1.jpg",
   "the-universal-transmissions-codex-s-first-100-page-test-print": "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1665665489882-R07CAKBG2F1EFLAEXDPQ/codex+mockup.jpg?format=2500w",
   "the-universal-transmissions-codex-vol-1-kickstarter-campaign-is-live-within-72-hours": "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1692354961663-D0J7IGHQWCDYD8NTTF9X/12+-+web.jpg?format=2500w",
-  "funded-in-24-hours-codex-vol-1-off-to-the-printers": "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/64a4a2fc-a051-4c9b-be23-676ab9c53d08/funded.jpg",
   "immaculate-conception-2021": "/journal/immaculate-conception-2021-1.jpg",
   "incoming-transmission-wip": "/journal/incoming-transmission-wip-1.jpg",
   "making-of-universal-transmissions-codex-cc03": "/journal/making-of-universal-transmissions-codex-cc03-1.jpg",
