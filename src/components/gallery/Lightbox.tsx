@@ -75,7 +75,6 @@ export default function Lightbox({ images, title }: LightboxProps) {
 export function ImageThumb({ src, alt }: ImageThumbProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-
   useEffect(() => { setMounted(true); }, []);
 
   return (
@@ -88,12 +87,11 @@ export function ImageThumb({ src, alt }: ImageThumbProps) {
         tabIndex={0}
         aria-label={`View ${alt} fullscreen`}
       >
-        <Image
+        <img
           src={src}
           alt={alt}
-          fill
-          className="object-cover transition-transform duration-500 hover:scale-105"
-          sizes="144px"
+          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          loading="lazy"
         />
       </div>
       {mounted && open && createPortal(
