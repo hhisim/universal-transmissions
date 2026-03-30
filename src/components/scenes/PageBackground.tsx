@@ -878,23 +878,165 @@ function sceneResearch(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
 }
 
 // ============================================================
-// SCENE: ORACLE — Stars + glyph rain + nebula
-// (Same as what's in the oracle page already)
+// SCENE: ORACLE — Void Tendrils + Levitating Runes + Sanctuary Aura
+// Heavy chromatic aberration, mystical rising energy
 // ============================================================
 function sceneOracle(cx: CanvasRenderingContext2D, W: number, H: number, t: number, state: any) {
-  if (!state.init) { state.init = true; state.drops = makeDrops(W); state.stars = makeStars(W, H, 100); }
+  if (!state.init) {
+    state.init = true;
+    state.drops = makeDrops(W);
+
+    // VOID TENDRILS - Mystical energy rising from below
+    state.tendrils = Array.from({ length: 7 }, (_, i) => ({
+      x: (W / 8) * (i + 1) + (Math.random() - 0.5) * 60,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.3 + Math.random() * 0.4,
+      amplitude: 20 + Math.random() * 30,
+      hue: i % 2 === 0 ? 280 : 180
+    }));
+
+    // LEVITATING RUNES - Ancient glyphs with heavy aberration
+    state.runes = Array.from({ length: 12 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      dy: -0.3 - Math.random() * 0.4,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.02,
+      size: 14 + Math.random() * 12,
+      symbol: ['⧗','⧖','⬟','◉','⧫','⌘','⭓','✦','◈','⧊'][Math.floor(Math.random()*10)],
+      pulse: Math.random() * Math.PI * 2
+    }));
+
+    // SANCTUARY AURA - Background breathing nodes
+    state.aura = Array.from({ length: 5 }, (_, i) => ({
+      x: W/2 + (Math.random()-0.5)*W*0.8,
+      y: H/2 + (Math.random()-0.5)*H*0.6,
+      r: 30 + Math.random() * 50,
+      phase: i * 1.2
+    }));
+  }
 
   drawRain(cx, state.drops, H);
-  drawStars(cx, state.stars, t, 0.12);
 
-  // Nebula clouds
-  const n1 = cx.createRadialGradient(W * 0.7, H * 0.25, 0, W * 0.7, H * 0.25, W * 0.4);
-  n1.addColorStop(0, "rgba(147,51,234,0.025)"); n1.addColorStop(1, "rgba(0,0,0,0)");
-  cx.fillStyle = n1; cx.fillRect(0, 0, W, H);
+  // SANCTUARY AURA - Breathing void pools
+  for (const a of state.aura) {
+    const breath = Math.sin(t * 0.8 + a.phase) * 0.5 + 0.5;
+    const g = cx.createRadialGradient(a.x, a.y, 0, a.x, a.y, a.r * (1 + breath*0.3));
+    g.addColorStop(0, `rgba(100,50,150,${0.03 * breath})`);
+    g.addColorStop(0.5, `rgba(50,20,80,${0.02 * breath})`);
+    g.addColorStop(1, 'transparent');
+    cx.fillStyle = g;
+    cx.fillRect(a.x - a.r, a.y - a.r, a.r*2, a.r*2);
+  }
 
-  const n2 = cx.createRadialGradient(W * 0.2, H * 0.75, 0, W * 0.2, H * 0.75, W * 0.3);
-  n2.addColorStop(0, "rgba(34,211,238,0.015)"); n2.addColorStop(1, "rgba(0,0,0,0)");
-  cx.fillStyle = n2; cx.fillRect(0, 0, W, H);
+  // VOID TENDRILS - Rising with velocity-based RGB split
+  for (const tdl of state.tendrils) {
+    const points = [];
+    const segments = 25;
+
+    for (let i = 0; i <= segments; i++) {
+      const y = H + 20 - (i / segments) * (H + 100);
+      const wave = Math.sin(y * 0.02 + t * tdl.speed + tdl.phase) * tdl.amplitude * (i/segments);
+      points.push({x: tdl.x + wave, y: y});
+    }
+
+    // RED channel (lags behind)
+    cx.beginPath();
+    cx.moveTo(points[0].x + 3, points[0].y + 5);
+    for (let i = 1; i < points.length; i++) {
+      cx.lineTo(points[i].x + 3 + Math.sin(i*0.3)*2, points[i].y + 5);
+    }
+    cx.strokeStyle = 'rgba(255,40,80,0.25)';
+    cx.lineWidth = 6;
+    cx.lineCap = 'round';
+    cx.stroke();
+
+    // BLUE channel (leads ahead)
+    cx.beginPath();
+    cx.moveTo(points[0].x - 3, points[0].y - 5);
+    for (let i = 1; i < points.length; i++) {
+      cx.lineTo(points[i].x - 3 - Math.sin(i*0.3)*2, points[i].y - 5);
+    }
+    cx.strokeStyle = 'rgba(40,200,255,0.25)';
+    cx.lineWidth = 6;
+    cx.stroke();
+
+    // CYAN core (center sharp)
+    cx.beginPath();
+    cx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      cx.lineTo(points[i].x, points[i].y);
+    }
+    const grad = cx.createLinearGradient(0, H, 0, 0);
+    grad.addColorStop(0, `hsla(${tdl.hue},90%,60%,0.6)`);
+    grad.addColorStop(1, `hsla(${tdl.hue + 40},90%,80%,0.1)`);
+    cx.strokeStyle = grad;
+    cx.lineWidth = 2;
+    cx.stroke();
+
+    // Particle tips (glowing heads)
+    const tip = points[points.length-1];
+    cx.beginPath();
+    cx.arc(tip.x - 2, tip.y, 3, 0, Math.PI*2);
+    cx.fillStyle = 'rgba(255,100,100,0.6)';
+    cx.fill();
+    cx.beginPath();
+    cx.arc(tip.x + 2, tip.y, 3, 0, Math.PI*2);
+    cx.fillStyle = 'rgba(100,200,255,0.6)';
+    cx.fill();
+  }
+
+  // LEVITATING RUNES - Heavy chromatic aberration glyphs
+  for (const r of state.runes) {
+    r.y += r.dy;
+    r.rot += r.rotSpeed;
+    r.pulse += 0.05;
+
+    if (r.y < -50) {
+      r.y = H + 50;
+      r.x = Math.random() * W;
+    }
+
+    const pulseSize = r.size * (1 + Math.sin(r.pulse) * 0.1);
+    const ab = 3.5;
+
+    cx.save();
+    cx.translate(r.x, r.y);
+    cx.rotate(r.rot);
+    cx.font = `${pulseSize}px serif`;
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+
+    // Red channel
+    cx.fillStyle = 'rgba(255,50,80,0.5)';
+    cx.fillText(r.symbol, ab, ab);
+
+    // Blue channel
+    cx.fillStyle = 'rgba(80,180,255,0.5)';
+    cx.fillText(r.symbol, -ab, -ab);
+
+    // Sharp white center
+    cx.fillStyle = 'rgba(255,255,255,0.9)';
+    cx.fillText(r.symbol, 0, 0);
+
+    // Glow effect
+    cx.shadowColor = `hsla(${280 + Math.sin(r.pulse)*40},80%,60%,0.8)`;
+    cx.shadowBlur = 15;
+    cx.fillStyle = `hsla(${280 + Math.sin(r.pulse)*40},80%,60%,0.3)`;
+    cx.fillText(r.symbol, 0, 0);
+    cx.shadowBlur = 0;
+
+    cx.restore();
+  }
+
+  // Mystical scan line (slower, more ethereal)
+  const scanY = (t * 0.15) % (H * 1.5) - H * 0.25;
+  const scanGrad = cx.createLinearGradient(0, scanY - 10, 0, scanY + 10);
+  scanGrad.addColorStop(0, 'transparent');
+  scanGrad.addColorStop(0.5, 'rgba(212,168,71,0.04)');
+  scanGrad.addColorStop(1, 'transparent');
+  cx.fillStyle = scanGrad;
+  cx.fillRect(0, scanY - 10, W, 20);
 
   drawScanCRT(cx, W, H, t);
 }

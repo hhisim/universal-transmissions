@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function LinguisticsPage() {
   return (
     <>
-      <PageBackground variant="research" />
+      <PageBackground variant="oracle" />
       <Navigation />
 <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
