@@ -32,7 +32,9 @@ const HERO_IMAGES: Record<string, string> = {
   "revealing-ethera-24": "/journal/revealing-ethera-24-1.png",
   "the-ethera-nft-is-now-available": "/journal/the-ethera-nft-is-now-available-1.jpg",
   
-  "the-trivium-method-sketch": "/journal/the-trivium-method-sketch-1.jpg",
+  "funded-in-24-hours-codex-vol-1-off-to-the-printers": "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/64a4a2fc-a051-4c9b-be23-676ab9c53d08/funded.jpg",
+  "the-universal-transmissions-codex-s-first-100-page-test-print": "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1665665489882-R07CAKBG2F1EFLAEXDPQ/codex+mockup.jpg?format=2500w",
+  "the-universal-transmissions-codex-vol-1-kickstarter-campaign-is-live-within-72-hours": "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1692354961663-D0J7IGHQWCDYD8NTTF9X/12+-+web.jpg?format=2500w",
   "third-vortex-the-power": "/journal/third-vortex-the-power-1.jpg",
   "toroidal-tantra": "/journal/toroidal-tantra-1.jpg",
   "transmission-honorarium": "/journal/transmission-honorarium-1.jpg",
