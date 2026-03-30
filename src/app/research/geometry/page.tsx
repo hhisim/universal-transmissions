@@ -483,9 +483,8 @@ export default function ResearchGeometryPage() {
           <SectionReveal delay={0.1}>
             <PinterestGrid
               boardSlug="hakanhisim/geometrika"
-              fallbackUrl="https://www.pinterest.com/hakanhisim/geometrika/"
               title="Visual Reference Archive"
-              subtitle="Geometrika"
+              subtitle="Geometry & Sacred Patterns"
             />
           </SectionReveal>
         </div>

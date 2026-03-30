@@ -364,7 +364,6 @@ export default function ResearchCymaticsPage() {
           <SectionReveal delay={0.1}>
             <PinterestGrid
               boardSlug="hakanhisim/frequencies"
-              fallbackUrl="https://www.pinterest.com/hakanhisim/frequencies/"
               title="Visual Reference Archive"
               subtitle="Cymatics & Frequencies"
             />

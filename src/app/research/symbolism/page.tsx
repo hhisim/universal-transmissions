@@ -380,9 +380,8 @@ export default function ResearchSymbolismPage() {
           <SectionReveal delay={0.1}>
             <PinterestGrid
               boardSlug="hakanhisim/inspired-esoterica"
-              fallbackUrl="https://www.pinterest.com/hakanhisim/inspired-esoterica/"
               title="Visual Reference Archive"
-              subtitle="Inspired Esoterica"
+              subtitle="Esoterica & Symbolism"
             />
           </SectionReveal>
         </div>
