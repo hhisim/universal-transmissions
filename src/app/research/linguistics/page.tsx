@@ -35,12 +35,14 @@ const linguisticsConcepts = [
   },
 ];
 
+export const dynamic = 'force-dynamic';
+
 export default function ResearchLinguisticsPage() {
   return (
     <>
+      <PageBackground variant="oracle" />
       <Navigation />
-     
-      <PageBackground variant="research" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
