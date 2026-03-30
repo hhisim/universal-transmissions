@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 
-// NOTE: Drive API keys are broken/invalid. Need a fresh Google API key:
-// 1. Go to https://console.cloud.google.com/apis/credentials
-// 2. Create new API key with NO referrer restrictions
-// 3. Enable Google Drive API
-// 4. Set NEXT_PUBLIC_DRIVE_API_KEY in Vercel env vars
+// Drive API key configured via Vercel env vars
+// Key must have NO referrer restrictions on Google Cloud Console
 
 const DRIVE_FOLDER_ID = "1eUgyNtZdFBykgUi8HWl1CIFLOPO79hxj";
 const DRIVE_API_KEY=process.env.DRIVE_API_KEY || process.env.NEXT_PUBLIC_DRIVE_API_KEY || "AIzaSyCHYh-1nR1-k6c-ymz0rLFf6QaCTFxQUiw";
