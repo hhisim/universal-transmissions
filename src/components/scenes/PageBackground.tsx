@@ -687,9 +687,10 @@ export type SceneVariant = keyof typeof SCENES;
 interface PageBackgroundProps {
   variant: SceneVariant;
   className?: string;
+  opacity?: number;
 }
 
-export default function PageBackground({ variant, className = "" }: PageBackgroundProps) {
+export default function PageBackground({ variant, className = "", opacity = 1 }: PageBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -738,6 +739,7 @@ export default function PageBackground({ variant, className = "" }: PageBackgrou
         height: "100%",
         pointerEvents: "none",
         zIndex: 0,
+        opacity,
       }}
     />
   );
