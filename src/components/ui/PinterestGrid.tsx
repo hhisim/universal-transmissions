@@ -29,18 +29,22 @@ export default function PinterestGrid({
 
   useEffect(() => {
     const rssUrl = `https://www.pinterest.com/${config.username}/${config.board}.rss`;
+    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`;
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
 
-    // Try direct RSS first (full results, no 10-item cap)
-    fetch(rssUrl)
+    // Try codetabs proxy (full RSS with CORS support)
+    fetch(proxyUrl)
       .then((res) => {
-        if (!res.ok) throw new Error("direct failed");
+        if (!res.ok) throw new Error("proxy failed");
         return res.text();
       })
       .then((xml) => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(xml, "application/xml");
+        const parseError = doc.querySelector("parsererror");
+        if (parseError) throw new Error("xml parse error");
         const items = doc.querySelectorAll("item");
+        if (items.length === 0) throw new Error("no items");
         const imgs: { src: string; link: string }[] = [];
         items.forEach((item) => {
           const description = item.querySelector("description")?.textContent ?? "";
@@ -53,7 +57,7 @@ export default function PinterestGrid({
         setLoading(false);
       })
       .catch(() => {
-        // Fallback to rss2json if CORS blocks direct RSS
+        // Fallback to rss2json if proxy fails (limited to 10 items)
         fetch(apiUrl)
           .then((res) => res.json())
           .then((data) => {
