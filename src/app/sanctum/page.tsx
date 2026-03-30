@@ -34,7 +34,7 @@ export default function SanctumPage() {
           {/* Product grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, i) => (
-              <div key={product.id} delay={i * 0.1}>
+              <div key={product.id} >
                 <div className="ut-card-gold overflow-hidden group">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
@@ -77,7 +77,7 @@ export default function SanctumPage() {
           </div>
 
           {/* Payment badges */}
-          <div delay={0.3}>
+          <div>
             <div className="mt-16 text-center">
               <p className="font-mono text-[9px] tracking-[0.3em] uppercase mb-4" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
                 Secure payments via Stripe & PayPal
