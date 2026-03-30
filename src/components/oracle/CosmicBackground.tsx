@@ -36,7 +36,7 @@ export default function CosmicBackground() {
 
     // Comet (rare)
     const comet: Comet = { x: 0, y: 0, angle: 0, speed: 0, length: 0, life: 0, maxLife: 0, active: false };
-    let cometTimer = Math.random() * 600 + 400; // frames until next comet
+    let cometTimer = Math.random() * 200 + 133; // frames until next comet (3x frequency)
 
     const spawnComet = () => {
       comet.x = Math.random() * w * 0.3;
@@ -105,7 +105,7 @@ export default function CosmicBackground() {
       cometTimer--;
       if (cometTimer <= 0 && !comet.active) {
         spawnComet();
-        cometTimer = Math.random() * 900 + 500;
+        cometTimer = Math.random() * 300 + 167; // 3x frequency
       }
       if (comet.active) {
         comet.life++;

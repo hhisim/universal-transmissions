@@ -15,8 +15,8 @@ export const metadata: Metadata = {
     "The Universal Transmissions Codex — 150 pages of symbolic art, sacred geometry, and visionary experience. A book unlike any other. Available in physical and digital editions.",
 };
 
-// Video data extracted from /memory/01-Projects/ut-website/video/Codex Videos/
-// 12 .md files scanned; 4 contain unique YouTube embeds
+// Video data extracted from YouTube playlist: https://www.youtube.com/playlist?list=PLCWmbE92exfkQgYC4phTXoRKyJ-ACXVem
+// 28 unique videos found in playlist; 13 are Codex process/documentation videos for "Behind the Codex" section
 const videos = [
   {
     youtubeId: "ECAFuxZpyK0",
@@ -25,16 +25,70 @@ const videos = [
       "Workflow time lapse recorded at 3AM under red monitor light. The creation process of the Universal Transmissions Codex in its earliest form.",
   },
   {
+    youtubeId: "vC_UYkb3l0c",
+    title: "Making of Universal Transmissions Codex // CC02",
+    description:
+      "Codex Stream 01 // Compilation Capture 02. Workflow timelapse and creation process of the Universal Transmissions Codex — documenting the encoding sessions and symbolic rendering.",
+  },
+  {
     youtubeId: "gSqdxDWO278",
     title: "Codex Stream 01 — Compilation Capture 03",
     description:
       "Workflow time lapse and creation process of the Universal Transmissions Codex — documenting the encoding sessions and symbolic rendering.",
   },
   {
+    youtubeId: "Owi-ooswzMM",
+    title: "Making of Universal Transmissions Codex // CC04",
+    description:
+      "Workflow timelapse and creation process of the Universal Transmissions Codex — Pages 17-20 in this compilation capture series.",
+  },
+  {
+    youtubeId: "BbO1VgyZq9M",
+    title: "Making of Universal Transmissions Codex // CC05",
+    description:
+      "Codex Stream 01 // Compilation Capture 05. Workflow timelapse and creation process of the Universal Transmissions Codex — documenting the encoding sessions and symbolic rendering.",
+  },
+  {
+    youtubeId: "au9mPzB1dVM",
+    title: "Making of Universal Transmissions Codex // CC06",
+    description:
+      "Codex Stream 01 // Compilation Capture 06. Workflow timelapse and creation process of the Universal Transmissions Codex — documenting the encoding sessions and symbolic rendering.",
+  },
+  {
     youtubeId: "N0p65Q3dz4Y",
     title: "Codex Stream 01 — Compilation Capture 07",
     description:
       "Further documentation of the Codex creation process — timelapse recordings of the symbol encoding and sacred geometry rendering.",
+  },
+  {
+    youtubeId: "figkoXZA7i8",
+    title: "Codex Stream 01 — Compilation Capture 08",
+    description:
+      "Codex Stream 01 // Compilation Capture 08. Workflow timelapse and creation process of the Universal Transmissions Codex — further documentation of the symbol encoding and sacred geometry rendering.",
+  },
+  {
+    youtubeId: "atXSIFfr8KY",
+    title: "What is the Universal Transmissions Codex?",
+    description:
+      "Codex Stream 01 // Compilation Capture 09. An in-depth exploration of the Universal Transmissions Codex — the philosophy, the process, and the vision behind this pan-dimensional manuscript.",
+  },
+  {
+    youtubeId: "0ipNIO02Y3Y",
+    title: "Codex Stream 02 — Compilation Capture 01",
+    description:
+      "Workflow time lapse and creation process of the Universal Transmissions Codex Volume II. Special thanks to @omnigeometry for creating cool toys to create with.",
+  },
+  {
+    youtubeId: "E1yhN3FueSs",
+    title: "Universal Transmissions Codex — 100 Page Test Print!",
+    description:
+      "The Universal Transmissions Codex's first 100-page test print! An important milestone — documenting the quality and evolution of the project after 9 years.",
+  },
+  {
+    youtubeId: "VoDB_OWbaNs",
+    title: "The Codex is out now!",
+    description:
+      "The Universal Transmissions Codex Vol. 1 is funded and heading to the printers! Thank you all for your patience and support — the physical copies are being printed now.",
   },
   {
     youtubeId: "r7nvYvklpYE",

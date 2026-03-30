@@ -39,7 +39,7 @@ function PasswordInput({ placeholder, value, onChange }: { placeholder: string; 
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        autoComplete="new-password"
+        autoComplete="current-password"
       />
       <button
         type="button"
@@ -53,11 +53,9 @@ function PasswordInput({ placeholder, value, onChange }: { placeholder: string; 
   )
 }
 
-function SignupPageContent() {
-  const [name, setName] = useState('')
+function SignInPageContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -65,34 +63,24 @@ function SignupPageContent() {
     e.preventDefault()
     setError('')
 
-    if (!name.trim()) { setError('Please enter your name.'); return }
     if (!email.trim()) { setError('Please enter your email.'); return }
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return }
-    if (password !== confirmPassword) { setError('Passwords do not match.'); return }
+    if (!password) { setError('Please enter your password.'); return }
 
     setLoading(true)
 
-    const { error: signUpError, data } = await supabase.auth.signUp({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
-      options: {
-        data: { full_name: name.trim() },
-      },
     })
 
     setLoading(false)
 
-    if (signUpError) {
-      setError(signUpError.message)
+    if (signInError) {
+      setError(signInError.message)
       return
     }
 
-    // Session is returned immediately since mailer_autoconfirm = true
-    if (data.session) {
-      window.location.href = '/oracle/plans'
-    } else {
-      window.location.href = '/login'
-    }
+    window.location.href = '/oracle/plans'
   }
 
   return (
@@ -119,18 +107,6 @@ function SignupPageContent() {
             <div className="p-8 border" style={{ borderColor: 'rgba(217,70,239,0.12)', background: 'rgba(17,15,26,0.6)', backdropFilter: 'blur(12px)', borderRadius: '12px' }}>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <p className="font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(212,168,71,0.6)' }}>Full Name</p>
-                  <input
-                    className="w-full px-4 py-3 bg-transparent border font-mono text-sm"
-                    style={{ borderColor: 'rgba(217,70,239,0.2)', color: '#ede9f6', borderRadius: '8px' }}
-                    placeholder="Hermes Thoth"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    autoComplete="name"
-                  />
-                </div>
-
-                <div>
                   <p className="font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(212,168,71,0.6)' }}>Email Address</p>
                   <input
                     className="w-full px-4 py-3 bg-transparent border font-mono text-sm"
@@ -152,18 +128,6 @@ function SignupPageContent() {
                   />
                 </div>
 
-                <div>
-                  <p className="font-mono text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(212,168,71,0.6)' }}>Confirm Password</p>
-                  <PasswordInput
-                    placeholder="Repeat password"
-                    value={confirmPassword}
-                    onChange={setConfirmPassword}
-                  />
-                  {confirmPassword && password !== confirmPassword && (
-                    <p className="font-mono text-xs mt-2" style={{ color: '#ef4444' }}>Passwords do not match</p>
-                  )}
-                </div>
-
                 {error && (
                   <div className="font-mono text-xs p-3" style={{ border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', background: 'rgba(239,68,68,0.04)', borderRadius: '8px' }}>
                     {error}
@@ -172,7 +136,7 @@ function SignupPageContent() {
 
                 <button
                   type="submit"
-                  disabled={loading || (!!confirmPassword && password !== confirmPassword)}
+                  disabled={loading}
                   className="w-full py-4 font-mono text-xs tracking-[0.2em] uppercase transition-opacity disabled:opacity-40"
                   style={{
                     background: 'rgba(217,70,239,0.08)',
@@ -182,15 +146,15 @@ function SignupPageContent() {
                     cursor: loading ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {loading ? 'Creating account...' : 'Create Account'}
+                  {loading ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
 
               <div className="mt-6 pt-6 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="font-body text-sm" style={{ color: 'rgba(237,233,246,0.4)' }}>
-                  Already have an account?{' '}
-                  <Link href="/login" className="underline underline-offset-2" style={{ color: 'rgba(217,70,239,0.7)' }}>
-                    Sign in
+                  No account yet?{' '}
+                  <Link href="/signup" className="underline underline-offset-2" style={{ color: 'rgba(217,70,239,0.7)' }}>
+                    Create one
                   </Link>
                 </p>
               </div>
@@ -212,7 +176,7 @@ function SignupPageContent() {
   )
 }
 
-export default function SignupPage() {
+export default function SignInPage() {
   return (
     <Suspense fallback={
       <>
@@ -223,7 +187,7 @@ export default function SignupPage() {
         <Footer />
       </>
     }>
-      <SignupPageContent />
+      <SignInPageContent />
     </Suspense>
   )
 }

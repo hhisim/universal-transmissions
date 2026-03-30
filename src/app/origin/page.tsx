@@ -12,37 +12,27 @@ export const metadata: Metadata = {
     "The origin story of Universal Transmissions — the Apex Being, Adam Kadmon artwork series, xenolinguistics research, and the narrative essence of the project.",
 };
 
-// Apex Being artwork slugs — match actual data/artworks.ts
+// Apex Being artwork slugs — Adam Kadmon / Kosmic Man / Light Body / Apex Being series
+// Includes Bio-Energetic Vortexes (apex beings & hyper-dimensional alien lifeforms) + core UT series
 const APEX_BEING_SLUGS = [
-  "vitruvian-spirit",
+  // Bio-Energetic Vortexes Series (7) — apex beings & hyper-dimensional
+  "root-chakra",
+  "sacral-chakra",
+  "solar-plexus-chakra",
+  "heart-chakra",
+  "throat-chakra",
+  "third-eye-chakra",
+  "crown-chakra",
+  // Universal Transmissions Core Series (8) — Adam Kadmon themes
+  "tesseract",
+  "merkaba",
+  "tetra",
+  "higher-access",
   "vehicular-dynamics",
   "indras-net",
-  "tetra",
-  "merkaba",
-  "higher-access",
-  "tesseract",
   "recursive-pantheism",
+  "vitruvian-spirit",
 ];
-
-// Real Squarespace CDN image URLs from the-apex-being.md project file
-const APEX_BEING_IMAGES: Record<string, string> = {
-  "vitruvian-spirit":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1612357755661-7YHJVR605210UHRZELOB/Vitr%C4%B1vian+Spirit+2021+-+Seeding+the+new+rennaisiance+FINAL+-+web3.jpg",
-  "vehicular-dynamics":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485381131655-RU1JVC1WS5BJZHQ4JIIA/MANUSCRIPT+6+-+Vehicular+Dynamics+print+-+web.jpg",
-  "indras-net":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380342047-EDZO847LGTR8Y41D646L/347f5557d700f80c7cf5f6778e1539f5.jpg",
-  "tetra":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380341979-ZPYYME478YGA8350NBIE/216ed5edb0cf582a7dc6e55845c0615d.jpg",
-  "merkaba":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485381886747-QPO5J5M7EYZL9M7CXE43/leomerkaba_6442216903_o.jpg",
-  "higher-access":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380374448-HPIFSQT3ZHHVWW0JL64C/DEW.jpg",
-  "tesseract":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380427317-4FPZTUS9F88JK9SQ7N70/NW6eItbg.png",
-  "recursive-pantheism":
-    "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1485380393944-S47XPODE1LAU7DN1UUUT/b22KRKr.png",
-};
 
 export default function OriginPage() {
   return (
@@ -281,17 +271,16 @@ export default function OriginPage() {
                 </div>
               </SectionReveal>
 
-              {/* Visual reference images — 4 per row from actual project */}
+              {/* Visual reference images — 3-4 per row from artworks data */}
               <SectionReveal>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {APEX_BEING_SLUGS.map((slug) => {
                     const artwork = artworks.find((a) => a.slug === slug);
-                    const imageUrl = APEX_BEING_IMAGES[slug];
-                    if (!imageUrl) return null;
+                    if (!artwork || !artwork.images[0]) return null;
                     return (
                       <a
                         key={slug}
-                        href={artwork ? `/gallery/${slug}` : "#"}
+                        href={`/gallery/${slug}`}
                         className="group block"
                         style={{ textDecoration: "none" }}
                       >
@@ -300,8 +289,8 @@ export default function OriginPage() {
                           style={{ background: "rgba(0,0,0,0.4)" }}
                         >
                           <img
-                            src={imageUrl}
-                            alt={artwork?.title ?? slug}
+                            src={artwork.images[0]}
+                            alt={artwork.title}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                           <div
@@ -312,7 +301,7 @@ export default function OriginPage() {
                               className="font-mono text-[8px] tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                               style={{ color: "var(--ut-cyan)" }}
                             >
-                              {artwork?.title.split("—")[1]?.trim() ?? slug}
+                              {artwork.title.split("—")[1]?.trim() ?? slug}
                             </span>
                           </div>
                         </div>
