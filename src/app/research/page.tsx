@@ -88,7 +88,7 @@ export default function ResearchPage() {
     <>
       <PageBackground variant="research" />
       <Navigation />
-<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-24 md:py-32 relative overflow-hidden">

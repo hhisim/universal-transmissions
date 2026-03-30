@@ -90,7 +90,7 @@ export default function JournalPage() {
     <>
       <PageBackground variant="journal" />
       <Navigation />
-<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Hero Header */}
           <SectionReveal>
