@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
+import PageBackground from "@/components/scenes/PageBackground";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
 
@@ -46,6 +47,7 @@ const APEX_BEING_IMAGES: Record<string, string> = {
 export default function OriginPage() {
   return (
     <>
+      <PageBackground variant="about" />
       <Navigation />
       <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 

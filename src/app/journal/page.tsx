@@ -7,6 +7,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import PageBackground from "@/components/scenes/PageBackground";
 import { blogPosts, getAllTags } from "@/data/blog-posts";
 
 const POSTS_PER_PAGE = 12;
@@ -87,6 +88,7 @@ export default function JournalPage() {
 
   return (
     <>
+      <PageBackground variant="journal" />
       <Navigation />
 <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
