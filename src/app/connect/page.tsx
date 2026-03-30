@@ -43,6 +43,7 @@ export default function ConnectPage() {
       <PageBackground variant="connect" opacity={0.65} />
 
       <Navigation />
+      <PageBackground variant="connect" />
 
       <main
         className="min-h-screen flex flex-col items-center justify-center px-4 py-24 relative"

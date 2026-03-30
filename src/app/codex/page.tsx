@@ -46,6 +46,7 @@ export default function CodexPage() {
   return (
     <>
       <Navigation />
+      <PageBackground variant="codex" />
 <main style={{ background: "var(--ut-black)" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}
