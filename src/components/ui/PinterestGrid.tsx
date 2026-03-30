@@ -28,9 +28,9 @@ export default function PinterestGrid({
   const config = BOARD_CONFIG[boardSlug] ?? { username: "hakanhisim", board: boardSlug };
 
   useEffect(() => {
-    // Use Pinterest's RSS feed + corsiso proxy to avoid 10-item limit
+    // Use Pinterest's RSS feed + allorigins proxy to avoid 10-item limit
     const rssUrl = `https://www.pinterest.com/${config.username}/${config.board}.rss`;
-    const proxyUrl = `https://corsiso.com/?url=${encodeURIComponent(rssUrl)}`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
 
     fetch(proxyUrl)
       .then((res) => res.text())
@@ -74,7 +74,7 @@ export default function PinterestGrid({
         <div className="text-center py-8 text-red-400 text-sm">
           Unable to load board.{" "}
           <a
-            href={`https://www.pinterest.com/${config.username}/${config.board}/`}
+            href={`https://tr.pinterest.com/${config.username}/${config.board}/`}
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:text-white"
