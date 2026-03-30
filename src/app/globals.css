@@ -135,7 +135,7 @@ body {
 /* Firefox — use magenta thumb */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3);
+  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3);
 }
 
 /* Gallery horizontal carousel scrollbar — horizontal gradient like spectrum dividers */
