@@ -106,23 +106,20 @@ export default function PinterestGrid({
       )}
 
       {!loading && !error && (
-        <div
-          className="gap-4 space-y-4"
-          style={{ columnCount: 10, columnFill: "auto" }}
-        >
+        <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
           {images.map((img, idx) => (
             <a
               key={idx}
               href={img.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="block break-inside-avoid overflow-hidden rounded-lg transition-transform duration-300 hover:-translate-y-1"
+              className="block overflow-hidden rounded-md transition-transform duration-300 hover:-translate-y-1"
             >
               <img
                 src={img.src}
                 alt=""
                 loading="lazy"
-                className="w-full h-auto object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-md"
               />
             </a>
           ))}
