@@ -12,48 +12,7 @@ export const metadata: Metadata = {
     "The origin story of Universal Transmissions — the Apex Being, Adam Kadmon artwork series, xenolinguistics research, and the narrative essence of the project.",
 };
 
-// All artwork slugs for Adam Kadmon / Origin page grid
-// Includes all 35 Universal Transmissions artworks
-const APEX_BEING_SLUGS = [
-  // Bio-Energetic Vortexes Series (7)
-  "root-chakra",
-  "sacral-chakra",
-  "solar-plexus-chakra",
-  "heart-chakra",
-  "throat-chakra",
-  "third-eye-chakra",
-  "crown-chakra",
-  // Universal Transmissions Main Series (12)
-  "tetragrammaton",
-  "tesseract",
-  "merkaba",
-  "tetra",
-  "higher-access",
-  "vehicular-dynamics",
-  "external-womb",
-  "recursive-pantheism",
-  "cosmic-egg",
-  "vortex-dynamics",
-  "vitruvian-spirit",
-  // Twilight Transmissions Series (6)
-  "prismatic-equation",
-  "trinary-transcendence",
-  "hyperdimensional-harmonics",
-  "translinguistic-equation",
-  "immaculate-conception",
-  "twilight-pantheism",
-  // Standalone Works (10)
-  "caelestis-lupus",
-  "enchanted-essence",
-  "ethera-24",
-  "frequency-tuner",
-  "reversible-ratio",
-  "torroidal-tantra",
-  "trivium-method",
-  "linguistic-mystic",
-  "polarity-modulation",
-  "innerstellar-telemetry",
-];
+
 
 export default function OriginPage() {
   return (
@@ -292,43 +251,26 @@ export default function OriginPage() {
                 </div>
               </SectionReveal>
 
-              {/* Visual reference images — 3-4 per row from artworks data */}
+              {/* Visual reference images — Adam Kadmon research reference gallery */}
               <SectionReveal>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {APEX_BEING_SLUGS.map((slug) => {
-                    const artwork = artworks.find((a) => a.slug === slug);
-                    if (!artwork || !artwork.images[0]) return null;
-                    return (
-                      <a
-                        key={slug}
-                        href={`/gallery/${slug}`}
-                        className="group block"
-                        style={{ textDecoration: "none" }}
+                  {(() => {
+                    const adamKadmon = artworks.find((a) => a.slug === "adam-kadmon");
+                    if (!adamKadmon) return null;
+                    return adamKadmon.images.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="aspect-square overflow-hidden ut-card relative"
+                        style={{ background: "rgba(0,0,0,0.4)" }}
                       >
-                        <div
-                          className="aspect-square overflow-hidden ut-card relative"
-                          style={{ background: "rgba(0,0,0,0.4)" }}
-                        >
-                          <img
-                            src={artwork.images[0]}
-                            alt={artwork.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                          <div
-                            className="absolute inset-0 flex items-end p-2"
-                            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)" }}
-                          >
-                            <span
-                              className="font-mono text-[8px] tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                              style={{ color: "var(--ut-cyan)" }}
-                            >
-                              {artwork.title.split("—")[1]?.trim() ?? slug}
-                            </span>
-                          </div>
-                        </div>
-                      </a>
-                    );
-                  })}
+                        <img
+                          src={img}
+                          alt={`Adam Kadmon reference ${idx + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        />
+                      </div>
+                    ));
+                  })()}
                 </div>
               </SectionReveal>
 
