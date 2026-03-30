@@ -28,21 +28,24 @@ export default function PinterestGrid({
   const config = BOARD_CONFIG[boardSlug] ?? { username: "hakanhisim", board: boardSlug };
 
   useEffect(() => {
+    // Use Pinterest's RSS feed + corsiso proxy to avoid 10-item limit
     const rssUrl = `https://www.pinterest.com/${config.username}/${config.board}.rss`;
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+    const proxyUrl = `https://corsiso.com/?url=${encodeURIComponent(rssUrl)}`;
 
-    fetch(apiUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status !== "ok" || !data.items) throw new Error();
-        const imgs = data.items
-          .map((item: { description: string; link: string }) => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(item.description, "text/html");
-            const img = doc.querySelector("img");
-            return img?.src ? { src: img.src, link: item.link } : null;
-          })
-          .filter(Boolean) as { src: string; link: string }[];
+    fetch(proxyUrl)
+      .then((res) => res.text())
+      .then((xml) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xml, "application/xml");
+        const items = doc.querySelectorAll("item");
+        const imgs: { src: string; link: string }[] = [];
+        items.forEach((item) => {
+          const description = item.querySelector("description")?.textContent ?? "";
+          const link = item.querySelector("link")?.textContent ?? "";
+          const imgDoc = new DOMParser().parseFromString(description, "text/html");
+          const img = imgDoc.querySelector("img");
+          if (img?.src) imgs.push({ src: img.src, link });
+        });
         setImages(imgs);
         setLoading(false);
       })
@@ -83,8 +86,8 @@ export default function PinterestGrid({
 
       {!loading && !error && (
         <div
-          className="columns-2 sm:columns-4 md:columns-6 lg:columns-8 xl:columns-10 gap-4 space-y-4"
-          style={{ columnFill: "auto" }}
+          className="gap-4 space-y-4"
+          style={{ columnCount: 10, columnFill: "auto" }}
         >
           {images.map((img, idx) => (
             <a

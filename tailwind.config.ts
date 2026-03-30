@@ -117,6 +117,18 @@ const config: Config = {
         "ut-spectrum":
           "linear-gradient(135deg, #d946ef 0%, #9333ea 35%, #6366f1 65%, #22d3ee 100%)",
       },
+      columns: {
+        DEFAULT: "1fr",
+        "2": "2fr",
+        "3": "3fr",
+        "4": "4fr",
+        "5": "5fr",
+        "6": "6fr",
+        "7": "7fr",
+        "8": "8fr",
+        "9": "9fr",
+        "10": "10fr",
+      },
       boxShadow: {
         "glow-magenta": "0 0 20px rgba(217, 70, 239, 0.3), 0 0 60px rgba(217, 70, 239, 0.1)",
         "glow-purple": "0 0 20px rgba(147, 51, 234, 0.3), 0 0 60px rgba(147, 51, 234, 0.1)",
