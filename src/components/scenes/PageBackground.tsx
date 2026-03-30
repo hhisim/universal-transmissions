@@ -1128,7 +1128,7 @@ export default function PageBackground({ variant, className = "", opacity = 1 }:
 
     let W = 0, H = 0, t = 0, af = 0;
     const state: any = {};
-    const sceneFn = SCENES[variant] || sceneOracle;
+    const sceneFn = SCENES[variant] || sceneXenolinguistics;
 
     function resize() {
       const r = devicePixelRatio || 1;
