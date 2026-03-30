@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 
 const DRIVE_FOLDER_ID = "1eUgyNtZdFBykgUi8HWl1CIFLOPO79hxj";
-const DRIVE_API_KEY = "AIzaSyCHYh-1nR1-k6c-ymz0rLFf6QaCTFxQUiw";
 
 interface DriveFile {
   id: string;
@@ -21,15 +20,12 @@ interface DriveFile {
 }
 
 async function listDriveFiles(): Promise<DriveFile[]> {
-  const fields = "files(id,name,mimeType,thumbnailLink,webContentLink,webViewLink,description,imageMediaMetadata)";
-  const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+trashed=false&fields=${encodeURIComponent(fields)}&key=${DRIVE_API_KEY}`;
-
-  const res = await fetch(url);
+  // Use internal API proxy to avoid CORS/referrer restrictions from browser
+  const res = await fetch("/api/drive");
   if (!res.ok) throw new Error(`Drive API error: ${res.status}`);
   const data = await res.json();
-  return (data.files || []).filter((f: DriveFile) =>
-    f.mimeType.startsWith("image/")
-  );
+  if (data.error) throw new Error(data.error);
+  return data.files || [];
 }
 
 function DriveCard({ file, index }: { file: DriveFile; index: number }) {
