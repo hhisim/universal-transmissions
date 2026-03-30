@@ -878,6 +878,100 @@ function sceneResearch(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
 }
 
 // ============================================================
+
+// ============================================================
+// SCENE: CYMATICS — "The Living Wave Field"
+// Harmonic emitters, standing waves, Lissajous particle interference
+// ============================================================
+function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: number, state: any) {
+  if (!state.init) {
+    state.init = true;
+    state.drops = makeDrops(W);
+    state.stars = makeStars(W, H, 30);
+
+    state.emitters = [
+      { x: W * 0.25, y: H * 0.35, freq: 1.0, hue: 180 },
+      { x: W * 0.75, y: H * 0.65, freq: 1.25, hue: 280 },
+      { x: W * 0.5, y: H * 0.5, freq: 0.8, hue: 60 }
+    ];
+
+    state.grains = Array.from({ length: 50 }, (_, i) => ({
+      baseX: W / 2 + (Math.random() - 0.5) * W * 0.8,
+      baseY: H / 2 + (Math.random() - 0.5) * H * 0.8,
+      ratioX: [3, 4, 5, 6][i % 4],
+      ratioY: [2, 3, 4, 5][(i + 1) % 4],
+      phase: (i / 50) * Math.PI * 2,
+      size: 1 + Math.random() * 1.5,
+      orbit: 30 + Math.random() * 80
+    }));
+
+    state.strings = Array.from({ length: 6 }, (_, i) => ({
+      y: (H / 7) * (i + 1),
+      harmonics: 2 + i,
+      amp: 6 + i * 2
+    }));
+  }
+
+  drawRain(cx, state.drops, H, "rgba(212,168,71,1)");
+  drawStars(cx, state.stars, t, 0.25);
+
+  for (const s of state.strings) {
+    const samples = 80;
+    for (const [off, col, lw] of [[-0.4,"rgba(255,60,80,0.18)",3],[0.4,"rgba(60,180,255,0.18)",3],[0,"rgba(100,255,220,0.12)",1]]) {
+      cx.beginPath();
+      for (let i = 0; i <= samples; i++) {
+        const x = (i / samples) * W;
+        const y = s.y + Math.sin((x * 0.02 * s.harmonics) + (t * 2) + off) * s.amp;
+        if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+      }
+      cx.strokeStyle = col; cx.lineWidth = lw; cx.stroke();
+    }
+  }
+
+  for (const em of state.emitters) {
+    const interval = 5 / em.freq;
+    const progress = (t % interval) / interval;
+    for (let i = 0; i < 3; i++) {
+      const rp = (progress + i) / 3;
+      if (rp > 1) continue;
+      const r = rp * 100, a = 1 - rp;
+      cx.beginPath(); cx.arc(em.x, em.y, r - 4, 0, Math.PI * 2);
+      cx.strokeStyle = `rgba(255,40,60,${a*0.3})`; cx.lineWidth = 4; cx.stroke();
+      cx.beginPath(); cx.arc(em.x, em.y, r + 4, 0, Math.PI * 2);
+      cx.strokeStyle = `rgba(40,180,255,${a*0.3})`; cx.lineWidth = 4; cx.stroke();
+      cx.beginPath(); cx.arc(em.x, em.y, r, 0, Math.PI * 2);
+      cx.strokeStyle = `hsla(${em.hue},90%,60%,${a*0.5})`; cx.lineWidth = 2; cx.stroke();
+    }
+    for (const [ox, col] of [[-2,"rgba(255,100,100,0.6)"],[2,"rgba(100,200,255,0.6)"]]) {
+      const g = cx.createRadialGradient(em.x+ox, em.y, 0, em.x+ox, em.y, 12);
+      g.addColorStop(0, col); g.addColorStop(1, "transparent");
+      cx.fillStyle = g; cx.fillRect(em.x+ox-12, em.y-12, 24, 24);
+    }
+  }
+
+  for (const p of state.grains) {
+    const ft = t * 0.4 + p.phase;
+    const x = p.baseX + Math.sin(ft*p.ratioX*0.3)*Math.cos(ft*0.2)*p.orbit;
+    const y = p.baseY + Math.cos(ft*p.ratioY*0.3)*Math.sin(ft*0.25)*p.orbit;
+    const pft = (ft - 0.05);
+    const px = p.baseX + Math.sin(pft*p.ratioX*0.3)*Math.cos(pft*0.2)*p.orbit;
+    const py = p.baseY + Math.cos(pft*p.ratioY*0.3)*Math.sin(pft*0.25)*p.orbit;
+    const vx = x-px, vy = y-py;
+    cx.beginPath(); cx.arc(x-vx*3-1, y-vy*3, p.size, 0, Math.PI*2);
+    cx.fillStyle = "rgba(255,60,90,0.5)"; cx.fill();
+    cx.beginPath(); cx.arc(x+vx*2+1, y+vy*2, p.size, 0, Math.PI*2);
+    cx.fillStyle = "rgba(70,200,255,0.5)"; cx.fill();
+    cx.beginPath(); cx.arc(x, y, p.size*0.7, 0, Math.PI*2);
+    cx.fillStyle = "rgba(255,255,255,0.95)"; cx.fill();
+  }
+
+  const scanY = (t * 0.08) % (H * 1.2) - H * 0.1;
+  cx.fillStyle = "rgba(212,168,71,0.015)";
+  cx.fillRect(0, scanY - 2, W, 4);
+
+  drawScanCRT(cx, W, H, t);
+}
+
 // SCENE: ORACLE — Void Tendrils + Levitating Runes + Sanctuary Aura
 // Heavy chromatic aberration, mystical rising energy
 // ============================================================
@@ -1103,6 +1197,7 @@ const SCENES: Record<string, (cx: CanvasRenderingContext2D, W: number, H: number
   research: sceneResearch,
   oracle: sceneXenolinguistics,
   xenolinguistics: sceneXenolinguistics,
+  cymatics: sceneCymatics,
 };
 
 

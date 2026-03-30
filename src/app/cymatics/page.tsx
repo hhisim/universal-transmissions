@@ -65,7 +65,7 @@ const cymaticImages = [
 export default function CymaticsPage() {
   return (
     <>
-      <PageBackground variant="research" />
+      <PageBackground variant="cymatics" />
       <Navigation />
 <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
