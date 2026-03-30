@@ -82,7 +82,7 @@ body {
    ============================================================ */
 .gallery-carousel {
   scrollbar-width: thin !important;
-  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
 }
 .gallery-carousel::-webkit-scrollbar {
   height: 5px !important;
@@ -141,7 +141,7 @@ body {
 /* Gallery horizontal carousel scrollbar — horizontal gradient like spectrum dividers */
 .gallery-carousel {
   scrollbar-width: thin !important;
-  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
 }
 .gallery-carousel::-webkit-scrollbar {
   height: 6px !important;
@@ -165,7 +165,7 @@ body {
 .overflow-x-auto,
 .overflow-x-auto > * {
   scrollbar-width: thin !important;
-  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
 }
 
 .overflow-x-auto::-webkit-scrollbar,
@@ -194,7 +194,7 @@ body {
 [overflow-x="auto"],
 [style*="overflow-x"] {
   scrollbar-width: thin !important;
-  scrollbar-color: var(--ut-magenta) rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ============================================================
