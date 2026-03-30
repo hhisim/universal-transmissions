@@ -22,8 +22,9 @@ interface DriveFile {
 const DRIVE_API_KEY = "AIzaSyCHYh-1nR1-k6c-ymz0rLFf6QaCTFxQUiw";
 
 async function listDriveFiles(): Promise<DriveFile[]> {
-  // Pass key as query param — bypasses referrer restrictions
-  const res = await fetch(`/api/drive?key=${DRIVE_API_KEY}`);
+  // Pass key as query param so the server-side route can use it for the Drive API
+  const keyParam = process.env.NEXT_PUBLIC_DRIVE_API_KEY ? `?key=${process.env.NEXT_PUBLIC_DRIVE_API_KEY}` : "";
+  const res = await fetch(`/api/drive${keyParam}`);
   if (!res.ok) throw new Error(`Drive API error: ${res.status}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
