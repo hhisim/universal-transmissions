@@ -248,10 +248,6 @@ export default function CodexPage() {
                   style={{ borderColor: "rgba(34,211,238,0.2)" }}
                 >
                   <HomeVideo />
-                  <div
-                    className="absolute inset-0"
-                    style={{ background: "rgba(34,211,238,0.05)" }}
-                  />
                 </div>
               </SectionReveal>
 
