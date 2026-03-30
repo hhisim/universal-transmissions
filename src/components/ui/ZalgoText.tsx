@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 /* ────────────────────────────────────────────────────────────
    ZalgoText — corrupts text with combining diacritical marks
+   Deterministic (seeded) — safe for SSR/hydration
    ──────────────────────────────────────────────────────────── */
 
 const ZALGO_UP = [
@@ -27,11 +28,20 @@ const ZALGO_MID = [
 
 type Intensity = "subtle" | "moderate" | "heavy";
 
-function randomOf(arr: string[]) {
-  return arr[Math.floor(Math.random() * arr.length)];
+/** Seeded LCG — deterministic, no Math.random(), safe for SSR */
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
 }
 
-function zalgofy(char: string, intensity: Intensity): string {
+function seededOf(arr: string[], rng: () => number): string {
+  return arr[Math.floor(rng() * arr.length)];
+}
+
+function zalgofy(char: string, intensity: Intensity, rng: () => number): string {
   if (char === " ") return char;
 
   const counts: Record<Intensity, { up: number; down: number; mid: number }> = {
@@ -43,10 +53,10 @@ function zalgofy(char: string, intensity: Intensity): string {
   const { up, down, mid } = counts[intensity];
   let result = "";
 
-  for (let i = 0; i < up; i++) result += randomOf(ZALGO_UP);
-  for (let i = 0; i < mid; i++) result += randomOf(ZALGO_MID);
+  for (let i = 0; i < up; i++) result += seededOf(ZALGO_UP, rng);
+  for (let i = 0; i < mid; i++) result += seededOf(ZALGO_MID, rng);
   result += char;
-  for (let i = 0; i < down; i++) result += randomOf(ZALGO_DOWN);
+  for (let i = 0; i < down; i++) result += seededOf(ZALGO_DOWN, rng);
 
   return result;
 }
@@ -64,14 +74,13 @@ export default function ZalgoText({
   className = "",
   animate = false,
 }: ZalgoTextProps) {
-  const zalgod = useMemo(
-    () =>
-      text
-        .split("")
-        .map((char) => zalgofy(char, intensity))
-        .join(""),
-    [text, intensity]
-  );
+  const zalgod = useMemo(() => {
+    const rng = seededRandom(text.length * 31 + intensity.length * 17);
+    return text
+      .split("")
+      .map((char) => zalgofy(char, intensity, rng))
+      .join("");
+  }, [text, intensity]);
 
   if (animate) {
     return (
