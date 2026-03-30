@@ -290,15 +290,20 @@ export default function Navigation() {
                   <div className="p-1">
                     <Link
                       href="/sanctum/member/login"
-                      className="flex items-center gap-3 w-full text-left px-4 py-3 font-body text-[13px] transition-all hover:text-white"
-                      style={{ color: "rgba(237,233,246,0.6)" }}
+                      className="flex items-center gap-3 w-full text-left px-4 py-3 font-body text-[13px] transition-all hover:opacity-90"
+                      style={{
+                        color: "rgba(237,233,246,0.6)",
+                        background: "rgba(217,70,239,0.08)",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(217,70,239,0.15)",
+                      }}
                       onClick={() => setMemberOpen(false)}
                     >
                       <span
-                        className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold transition-all"
+                        className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold"
                         style={{
-                          background: "rgba(217,70,239,0.1)",
-                          border: "1px solid rgba(217,70,239,0.2)",
+                          background: "rgba(217,70,239,0.15)",
+                          border: "1px solid rgba(217,70,239,0.25)",
                           color: "var(--ut-magenta)",
                         }}
                       >
