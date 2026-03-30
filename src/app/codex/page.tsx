@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import HomeVideo from "@/components/ui/HomeVideo";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
@@ -242,17 +243,10 @@ export default function CodexPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <SectionReveal direction="right">
                 <div
-                  className="relative aspect-[3/4] overflow-hidden"
+                  className="relative overflow-hidden"
                   style={{ borderColor: "rgba(34,211,238,0.2)" }}
                 >
-                  <Image
-                    src="https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695718380540-INT53Y12EC86JNY3N7TP/Page+146.jpg"
-                    alt="Universal Transmissions Codex — Volume II preview"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    style={{ filter: "saturate(0.8) hue-rotate(180deg)" }}
-                  />
+                  <HomeVideo />
                   <div
                     className="absolute inset-0"
                     style={{ background: "rgba(34,211,238,0.05)" }}
