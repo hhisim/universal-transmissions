@@ -83,7 +83,7 @@ export default function PinterestGrid({
 
       {!loading && !error && (
         <div
-          className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4"
+          className="columns-2 sm:columns-4 md:columns-6 lg:columns-8 xl:columns-10 gap-4 space-y-4"
           style={{ columnFill: "auto" }}
         >
           {images.map((img, idx) => (
