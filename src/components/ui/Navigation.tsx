@@ -292,24 +292,47 @@ export default function Navigation() {
                       href="/sanctum/member/login"
                       className="flex items-center gap-3 w-full text-left px-4 py-3 font-body text-[13px] transition-all hover:opacity-90"
                       style={{
-                        color: "rgba(237,233,246,0.6)",
-                        background: "rgba(217,70,239,0.08)",
+                        color: "#22d3ee",
+                        background: "rgba(34,211,238,0.06)",
                         borderRadius: "8px",
-                        border: "1px solid rgba(217,70,239,0.15)",
+                        border: "1px solid rgba(34,211,238,0.25)",
                       }}
                       onClick={() => setMemberOpen(false)}
                     >
                       <span
                         className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold"
                         style={{
-                          background: "rgba(217,70,239,0.15)",
-                          border: "1px solid rgba(217,70,239,0.25)",
-                          color: "var(--ut-magenta)",
+                          background: "rgba(34,211,238,0.1)",
+                          border: "1px solid rgba(34,211,238,0.2)",
+                          color: "#22d3ee",
                         }}
                       >
                         →
                       </span>
                       Sign In
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="flex items-center gap-3 w-full text-left px-4 py-2.5 font-body text-[13px] transition-all hover:opacity-90"
+                      style={{
+                        color: "rgba(237,233,246,0.6)",
+                        background: "rgba(217,70,239,0.06)",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(217,70,239,0.18)",
+                      }}
+                      onClick={() => setMemberOpen(false)}
+                    >
+                      <span
+                        className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold"
+                        style={{
+                          background: "rgba(217,70,239,0.12)",
+                          border: "1px solid rgba(217,70,239,0.2)",
+                          color: "var(--ut-magenta)",
+                        }}
+                      >
+                        +
+                      </span>
+                      Create Account
                     </Link>
                     <div
                       className="h-px mx-3 my-1"

@@ -8,6 +8,7 @@ import Footer from '@/components/ui/Footer'
 import SectionReveal from '@/components/ui/SectionReveal'
 import ZalgoText from '@/components/ui/ZalgoText'
 import { supabase } from '@/lib/supabase-client'
+import PageBackground from '@/components/scenes/PageBackground'
 
 /* ── Password visibility toggle ── */
 function EyeIcon({ open }: { open: boolean }) {
@@ -178,16 +179,19 @@ function SignInPageContent() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={
-      <>
-        <Navigation />
-        <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
-          <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.3)' }}>Loading...</div>
-        </main>
-        <Footer />
-      </>
-    }>
-      <SignInPageContent />
-    </Suspense>
-  )
+    <>
+      <PageBackground variant="homepage" />
+      <Suspense fallback={
+        <>
+          <Navigation />
+          <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
+            <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.3)' }}>Loading...</div>
+          </main>
+          <Footer />
+        </>
+      }>
+        <SignInPageContent />
+      </Suspense>
+    </>
+  );
 }

@@ -12,10 +12,10 @@ export const metadata: Metadata = {
     "The origin story of Universal Transmissions — the Apex Being, Adam Kadmon artwork series, xenolinguistics research, and the narrative essence of the project.",
 };
 
-// Apex Being artwork slugs — Adam Kadmon / Kosmic Man / Light Body / Apex Being series
-// Includes Bio-Energetic Vortexes (apex beings & hyper-dimensional alien lifeforms) + core UT series
+// All artwork slugs for Adam Kadmon / Origin page grid
+// Includes all 35 Universal Transmissions artworks
 const APEX_BEING_SLUGS = [
-  // Bio-Energetic Vortexes Series (7) — apex beings & hyper-dimensional
+  // Bio-Energetic Vortexes Series (7)
   "root-chakra",
   "sacral-chakra",
   "solar-plexus-chakra",
@@ -23,15 +23,36 @@ const APEX_BEING_SLUGS = [
   "throat-chakra",
   "third-eye-chakra",
   "crown-chakra",
-  // Universal Transmissions Core Series (8) — Adam Kadmon themes
+  // Universal Transmissions Main Series (12)
+  "tetragrammaton",
   "tesseract",
   "merkaba",
   "tetra",
   "higher-access",
   "vehicular-dynamics",
-  "indras-net",
+  "external-womb",
   "recursive-pantheism",
+  "cosmic-egg",
+  "vortex-dynamics",
   "vitruvian-spirit",
+  // Twilight Transmissions Series (6)
+  "prismatic-equation",
+  "trinary-transcendence",
+  "hyperdimensional-harmonics",
+  "translinguistic-equation",
+  "immaculate-conception",
+  "twilight-pantheism",
+  // Standalone Works (10)
+  "caelestis-lupus",
+  "enchanted-essence",
+  "ethera-24",
+  "frequency-tuner",
+  "reversible-ratio",
+  "torroidal-tantra",
+  "trivium-method",
+  "linguistic-mystic",
+  "polarity-modulation",
+  "innerstellar-telemetry",
 ];
 
 export default function OriginPage() {

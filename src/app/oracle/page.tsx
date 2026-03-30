@@ -518,7 +518,7 @@ export default function OraclePage() {
         @keyframes oP{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:.8;transform:scale(1.1)}}
         .oracle-scroll::-webkit-scrollbar{width:5px}
         .oracle-scroll::-webkit-scrollbar-track{background:rgba(10,9,14,0.3)}
-        .oracle-scroll::-webkit-scrollbar-thumb{background:linear-gradient(to bottom,#581c87 0%,#9333ea 18%,#d946ef 36%,#d4a847 54%,#22d3ee 72%,#0891b2 100%);border-radius:3px}
+        .oracle-scroll::-webkit-scrollbar-thumb{background:linear-gradient(to bottom,#c026d3 0%,#9333ea 30%,#6366f1 50%,#22d3ee 75%,#0891b2 100%);border-radius:3px}
       `}</style>
     </>
   );

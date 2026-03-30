@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
+import PageBackground from "@/components/scenes/PageBackground";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Universal Transmissions",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <>
+      <PageBackground variant="homepage" />
       <Navigation />
 
       <main

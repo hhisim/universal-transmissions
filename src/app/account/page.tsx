@@ -8,6 +8,7 @@ import Navigation from '@/components/ui/Navigation'
 import Footer from '@/components/ui/Footer'
 import SectionReveal from '@/components/ui/SectionReveal'
 import ZalgoText from '@/components/ui/ZalgoText'
+import PageBackground from '@/components/scenes/PageBackground'
 import { PLAN_CONFIG, PlanId } from '@/lib/plans'
 import { Crown, User, CreditCard, CheckCircle, AlertCircle, Zap } from 'lucide-react'
 
@@ -18,20 +19,23 @@ function formatDate(iso: string | null | undefined) {
 
 export default function AccountPage() {
   return (
-    <Suspense fallback={
-      <>
-        <Navigation />
-        <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black)' }}>
-          <div className="text-center">
-            <div className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: 'var(--ut-gold)' }}>Loading...</div>
-          </div>
-        </main>
-        <Footer />
-      </>
-    }>
-      <AccountPageContent />
-    </Suspense>
-  )
+    <>
+      <PageBackground variant="homepage" />
+      <Suspense fallback={
+        <>
+          <Navigation />
+          <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black)' }}>
+            <div className="text-center">
+              <div className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: 'var(--ut-gold)' }}>Loading...</div>
+            </div>
+          </main>
+          <Footer />
+        </>
+      }>
+        <AccountPageContent />
+      </Suspense>
+    </>
+  );
 }
 
 function AccountPageContent() {

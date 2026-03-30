@@ -77,31 +77,7 @@ body {
 }
 
 /* ============================================================
-/* ============================================================
-   GALLERY CAROUSEL — custom scrollbar
-   ============================================================ */
-.gallery-carousel {
-  scrollbar-width: thin !important;
-  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
-}
-.gallery-carousel::-webkit-scrollbar {
-  height: 5px !important;
-}
-.gallery-carousel::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.25) !important;
-}
-.gallery-carousel::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    90deg,
-    var(--ut-purple) 0%,
-    var(--ut-magenta) 50%,
-    var(--ut-cyan) 100%
-  ) !important;
-  border-radius: 3px !important;
-}
-
-/* ============================================================
-   SCROLLBAR — UT spectrum (applied globally)
+   SCROLLBAR — UT spectrum magenta → cyan (applied globally)
    ============================================================ */
 
 /* Global — all scrollbars (html and body) */
@@ -119,8 +95,8 @@ body::-webkit-scrollbar-thumb {
   background: linear-gradient(
     to right,
     #c026d3 0%,
-    #d946ef 20%,
-    #f0c75e 45%,
+    #9333ea 25%,
+    #6366f1 50%,
     #22d3ee 75%,
     #22d3ee 100%
   ) !important;
@@ -131,8 +107,9 @@ body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     to right,
     #d946ef 0%,
-    #f0c75e 40%,
-    #22d3ee 100%
+    #9333ea 30%,
+    #22d3ee 70%,
+    #0891b2 100%
   ) !important;
 }
 
@@ -143,7 +120,7 @@ body {
   scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3);
 }
 
-/* Gallery horizontal carousel scrollbar — horizontal gradient like spectrum dividers */
+/* Gallery horizontal carousel scrollbar — UT spectrum gradient */
 .gallery-carousel {
   scrollbar-width: thin !important;
   scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
@@ -158,21 +135,20 @@ body {
   background: linear-gradient(
     to right,
     #c026d3 0%,
-    #d946ef 20%,
-    #f0c75e 45%,
+    #9333ea 25%,
+    #6366f1 50%,
     #22d3ee 75%,
     #22d3ee 100%
   ) !important;
   border-radius: 3px !important;
 }
 
-/* Horizontal overflow containers — UT spectrum gradient (left to right) */
+/* Horizontal overflow containers — UT spectrum gradient */
 .overflow-x-auto,
 .overflow-x-auto > * {
   scrollbar-width: thin !important;
   scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
 }
-
 .overflow-x-auto::-webkit-scrollbar,
 .overflow-x-auto > *::-webkit-scrollbar {
   width: 6px !important;
@@ -187,15 +163,36 @@ body {
   background: linear-gradient(
     to right,
     #c026d3 0%,
-    #d946ef 20%,
-    #f0c75e 45%,
+    #9333ea 25%,
+    #6366f1 50%,
     #22d3ee 75%,
     #22d3ee 100%
   ) !important;
   border-radius: 4px !important;
 }
 
-/* Gallery carousel horizontal scroll */
+/* All UT cards and major UI containers */
+.ut-card,
+.ut-card-gold,
+.artwork-card {
+  scrollbar-width: thin !important;
+  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
+}
+.ut-card::-webkit-scrollbar-thumb,
+.ut-card-gold::-webkit-scrollbar-thumb,
+.artwork-card::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to right,
+    #c026d3 0%,
+    #9333ea 25%,
+    #6366f1 50%,
+    #22d3ee 75%,
+    #22d3ee 100%
+  ) !important;
+  border-radius: 3px !important;
+}
+
+/* General overflow containers */
 [overflow-x="auto"],
 [style*="overflow-x"] {
   scrollbar-width: thin !important;

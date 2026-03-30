@@ -302,7 +302,11 @@ export default function ResearchLinguisticsPage() {
             </div>
           </SectionReveal>
           <SectionReveal delay={0.1}>
-            <PinterestGrid />
+            <PinterestGrid
+              boardSlug="hakanhisim/typography-symbols"
+              title="Visual Reference Archive"
+              subtitle="Typography & Symbols"
+            />
           </SectionReveal>
         </div>
       </section>

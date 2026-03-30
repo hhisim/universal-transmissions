@@ -3,6 +3,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import PageBackground from "@/components/scenes/PageBackground";
 
 export const metadata: Metadata = {
   title: "Xenolinguistics — Universal Transmissions",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 export default function LinguisticsPage() {
   return (
     <>
+      <PageBackground variant="research" />
       <Navigation />
 <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 

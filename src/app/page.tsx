@@ -6,6 +6,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import HomeVideo from "@/components/ui/HomeVideo";
+import PageBackground from "@/components/scenes/PageBackground";
 import { artworks } from "@/data/artworks";
 import Image from 'next/image';
 
@@ -30,6 +31,7 @@ const featuredArtworks = [
 export default function HomePage() {
   return (
     <>
+      <PageBackground variant="homepage" />
       <Navigation />
       <main style={{ background: "var(--ut-black)" }}>
 
@@ -233,13 +235,12 @@ export default function HomePage() {
         >
           <div className="container-ut">
             <SectionReveal>
-              <span style={{ color: "var(--ut-gold)" }}>
-                <ZalgoText
-                  text="The transmission never ends."
-                  intensity="moderate"
-                  className="font-display text-3xl md:text-5xl tracking-[0.08em] block mb-6"
-                />
-              </span>
+              <h2
+                className="font-display text-3xl md:text-5xl glow-gold mb-6"
+                style={{ color: "var(--ut-gold)" }}
+              >
+                <ZalgoText text="The transmission never ends." intensity="moderate" />
+              </h2>
               <p className="text-sm md:text-base text-white/60 max-w-xl mx-auto mb-8 leading-relaxed">
                 150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a 577-entry correspondence codex. The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.
               </p>

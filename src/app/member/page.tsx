@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import PageBackground from "@/components/scenes/PageBackground";
 import { Crown, Zap, Star, CreditCard, ExternalLink, LogOut, Check } from "lucide-react";
+import { supabase } from "@/lib/supabase-client";
 
 type Plan = "guest" | "free" | "initiate";
 
@@ -14,13 +15,24 @@ const PLAN_META: Record<Plan, { icon: typeof Star; color: string; label: string;
 };
 
 export default function MemberPage() {
+  return (
+    <>
+      <PageBackground variant="homepage" />
+      <MemberPageContent />
+    </>
+  );
+}
+
+function MemberPageContent() {
   const [email, setEmail] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan>("guest");
   const [status, setStatus] = useState<string>("inactive");
   const [periodEnd, setPeriodEnd] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [signingIn, setSigningIn] = useState(false);
   const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
+  const [signInError, setSignInError] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
@@ -40,21 +52,20 @@ export default function MemberPage() {
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
-    if (!signInEmail.trim()) return;
+    setSignInError("");
+    if (!signInEmail.trim()) { setSignInError("Please enter your email."); return; }
+    if (!signInPassword) { setSignInError("Please enter your password."); return; }
     setSigningIn(true);
     try {
-      const result = await signIn("email", {
+      const { error } = await supabase.auth.signInWithPassword({
         email: signInEmail.trim(),
-        redirect: false,
-        callbackUrl: "/member",
+        password: signInPassword,
       });
-      if (result?.error) {
-        alert("Sign-in failed. Please try again.");
-        setSigningIn(false);
-      }
-      // If ok, the page will reload with the session
+      if (error) { setSignInError(error.message); setSigningIn(false); return; }
+      // Reload to pick up new session
+      window.location.href = "/member";
     } catch {
-      alert("Sign-in failed. Please try again.");
+      setSignInError("Sign-in failed. Please try again.");
       setSigningIn(false);
     }
   }
@@ -101,26 +112,60 @@ export default function MemberPage() {
               onChange={e => setSignInEmail(e.target.value)}
               placeholder="your@email.com"
               required
+              autoComplete="email"
               style={{
                 width: "100%",
                 padding: "14px 16px",
                 background: "rgba(17,15,26,0.8)",
-                border: "1px solid rgba(217,70,239,0.15)",
+                border: "1px solid rgba(217,70,239,0.2)",
                 color: "#ede9f6",
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: 16,
                 outline: "none",
-                textAlign: "center",
+                borderRadius: "8px",
               }}
             />
+            <input
+              type="password"
+              value={signInPassword}
+              onChange={e => setSignInPassword(e.target.value)}
+              placeholder="Password"
+              required
+              autoComplete="current-password"
+              style={{
+                width: "100%",
+                padding: "14px 16px",
+                background: "rgba(17,15,26,0.8)",
+                border: "1px solid rgba(217,70,239,0.2)",
+                color: "#ede9f6",
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: 16,
+                outline: "none",
+                borderRadius: "8px",
+              }}
+            />
+            {signInError && (
+              <div style={{
+                padding: "10px 14px",
+                background: "rgba(220,38,38,0.08)",
+                border: "1px solid rgba(220,38,38,0.25)",
+                borderRadius: "8px",
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: 14,
+                color: "#fca5a5",
+                textAlign: "center",
+              }}>
+                {signInError}
+              </div>
+            )}
             <button
               type="submit"
               disabled={signingIn}
               style={{
                 width: "100%",
                 padding: "14px",
-                border: "1px solid rgba(217,70,239,0.3)",
-                background: signingIn ? "rgba(217,70,239,0.05)" : "rgba(217,70,239,0.06)",
+                border: "1px solid rgba(217,70,239,0.35)",
+                background: signingIn ? "rgba(217,70,239,0.05)" : "rgba(217,70,239,0.08)",
                 color: signingIn ? "rgba(217,70,239,0.5)" : "#d946ef",
                 fontFamily: "Cinzel, serif",
                 fontSize: 10,
@@ -128,14 +173,15 @@ export default function MemberPage() {
                 textTransform: "uppercase",
                 cursor: signingIn ? "wait" : "pointer",
                 transition: "all 0.3s",
+                borderRadius: "8px",
               }}
             >
-              {signingIn ? "Sending link..." : "Send magic link"}
+              {signingIn ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
-          <p style={{ marginTop: 16, fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: "rgba(237,233,246,0.2)", lineHeight: 1.6 }}>
-            A sign-in link will be sent to your email. No password needed.
+          <p style={{ marginTop: 16, fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: "rgba(237,233,246,0.25)", lineHeight: 1.6 }}>
+            No account yet? <Link href="/signup" style={{ color: "#22d3ee", textDecoration: "none" }}>Create one</Link> — free, no credit card.
           </p>
 
           <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
