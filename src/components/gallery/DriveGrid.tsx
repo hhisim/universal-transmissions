@@ -19,9 +19,11 @@ interface DriveFile {
   };
 }
 
+const DRIVE_API_KEY = "AIzaSyCHYh-1nR1-k6c-ymz0rLFf6QaCTFxQUiw";
+
 async function listDriveFiles(): Promise<DriveFile[]> {
-  // Use internal API proxy to avoid CORS/referrer restrictions from browser
-  const res = await fetch("/api/drive");
+  // Pass key as query param — bypasses referrer restrictions
+  const res = await fetch(`/api/drive?key=${DRIVE_API_KEY}`);
   if (!res.ok) throw new Error(`Drive API error: ${res.status}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
