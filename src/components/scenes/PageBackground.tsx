@@ -513,71 +513,210 @@ function sceneConnect(cx: CanvasRenderingContext2D, W: number, H: number, t: num
 }
 
 // ============================================================
-// SCENE: ABOUT — "The Apex Being"
-// Vitruvian geometry: circle + square + golden spirals
+// SCENE: ABOUT / ORIGIN — "Chromatic Resonance"
+// Rain + Luminous Columns + Chromatic Crystals + Streaming Comet
 // ============================================================
 function sceneAbout(cx: CanvasRenderingContext2D, W: number, H: number, t: number, state: any) {
-  if (!state.init) { state.init = true; state.drops = makeDrops(W); state.stars = makeStars(W, H, 50); }
+  if (!state.init) {
+    state.init = true;
+    state.drops = makeDrops(W);
+    state.columns = [];
+    const colCount = Math.floor(W / 20);
+    for (let i = 0; i < colCount; i++) {
+      state.columns.push({
+        x: (i / colCount) * W + Math.random() * 10,
+        particles: Array.from({ length: 8 + ~~(Math.random() * 12) }, () => ({
+          y: Math.random() * H,
+          sp: 0.5 + Math.random() * 1.5,
+          sz: 1 + Math.random() * 2,
+          brightness: 0.03 + Math.random() * 0.08,
+        })),
+        isCyan: Math.random() > 0.5,
+        baseAlpha: 0.02 + Math.random() * 0.06,
+      });
+    }
+
+    // CHROMATIC COMET SYSTEM
+    state.comet = {
+      active: false,
+      x: 0, y: 0, vx: 0, vy: 0,
+      tail: [],
+      nextSpawn: t + 2 + Math.random() * 3
+    };
+
+    // CHROMATIC CRYSTALS (Prismatic floating shards)
+    state.crystals = Array.from({ length: 6 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      s: 12 + Math.random() * 18,
+      r: Math.random() * Math.PI * 2,
+      rs: (Math.random() - 0.5) * 0.025,
+      dx: (Math.random() - 0.5) * 0.3,
+      dy: (Math.random() - 0.5) * 0.2,
+      hue: Math.random() * 80 + 140 // Teal to purple range
+    }));
+  }
 
   drawRain(cx, state.drops, H);
-  drawStars(cx, state.stars, t, 0.2);
 
-  const mx = W / 2, my = H / 2;
-  const sz = Math.min(W, H) * 0.2;
-  const rot = t * 0.02;
+  // CHROMATIC CRYSTALS - Floating with RGB split
+  for (const c of state.crystals) {
+    c.r += c.rs;
+    c.x += c.dx;
+    c.y += c.dy;
+    // Wrap screen
+    if (c.x < -40) c.x = W + 40;
+    if (c.x > W + 40) c.x = -40;
+    if (c.y < -40) c.y = H + 40;
+    if (c.y > H + 40) c.y = -40;
 
-  // Circle
-  cx.save(); cx.translate(mx, my); cx.rotate(rot * 0.5);
-  cx.beginPath(); cx.arc(0, 0, sz, 0, Math.PI * 2);
-  cx.strokeStyle = `rgba(212,168,71,${0.12 + Math.sin(t * 0.6) * 0.04})`;
-  cx.lineWidth = 0.8; cx.stroke();
+    const ab = 3; // Aberration offset
 
-  // Square inscribed
-  const sq = sz * 0.78;
-  cx.strokeStyle = `rgba(212,168,71,${0.08 + Math.sin(t * 0.4) * 0.03})`;
-  cx.lineWidth = 0.6;
-  cx.strokeRect(-sq, -sq, sq * 2, sq * 2);
+    cx.save();
+    cx.translate(c.x, c.y);
+    cx.rotate(c.r);
 
-  // Cross / axis lines
-  cx.strokeStyle = "rgba(217,70,239,0.06)";
-  cx.lineWidth = 0.3;
-  cx.beginPath(); cx.moveTo(0, -sz * 1.2); cx.lineTo(0, sz * 1.2); cx.stroke();
-  cx.beginPath(); cx.moveTo(-sz * 1.2, 0); cx.lineTo(sz * 1.2, 0); cx.stroke();
+    // Draw diamond shape with RGB split
+    const drawShard = (ox: number, oy: number, rgb: string, a: number) => {
+      cx.beginPath();
+      cx.moveTo(ox, oy - c.s);
+      cx.lineTo(ox + c.s * 0.7, oy);
+      cx.lineTo(ox, oy + c.s);
+      cx.lineTo(ox - c.s * 0.7, oy);
+      cx.closePath();
+      cx.strokeStyle = `rgba(${rgb},${a})`;
+      cx.lineWidth = 1.5;
+      cx.stroke();
+      cx.fillStyle = `rgba(${rgb},${a * 0.15})`;
+      cx.fill();
+    };
 
-  // Golden spiral (approximation with quarter circles)
-  cx.strokeStyle = `rgba(217,70,239,${0.08 + Math.sin(t * 0.7) * 0.03})`;
-  cx.lineWidth = 0.6;
-  let spiralR = sz * 0.05;
-  let spiralX = 0, spiralY = 0;
-  cx.beginPath();
-  for (let i = 0; i < 28; i++) {
-    const angle = i * Math.PI / 6 + rot;
-    const nextR = spiralR * 1.12;
-    cx.arc(spiralX, spiralY, spiralR, angle, angle + Math.PI / 6, false);
-    spiralR = nextR;
+    // Red channel (shifted left/back)
+    drawShard(-ab, 0, '255,60,80', 0.5);
+    // Blue channel (shifted right/forward)
+    drawShard(ab, 0, '60,150,255', 0.5);
+    // Green center (sharp)
+    drawShard(0, 0, '180,255,120', 0.9);
+
+    // Internal refractive line
+    cx.beginPath();
+    cx.moveTo(-ab, 0);
+    cx.lineTo(ab, 0);
+    cx.strokeStyle = 'rgba(255,255,255,0.3)';
+    cx.lineWidth = 0.5;
+    cx.stroke();
+
+    cx.restore();
   }
-  cx.stroke();
 
-  // Proportion lines (Vitruvian-style)
-  const armSpan = sz * 0.9;
-  cx.strokeStyle = "rgba(147,51,234,0.05)";
-  cx.lineWidth = 0.4;
-  // Head to navel
-  cx.beginPath(); cx.moveTo(0, -sz * 0.7); cx.lineTo(0, sz * 0.1); cx.stroke();
-  // Arms
-  cx.beginPath(); cx.moveTo(-armSpan, -sz * 0.15); cx.lineTo(armSpan, -sz * 0.15); cx.stroke();
-  // Legs
-  cx.beginPath(); cx.moveTo(-sz * 0.3, sz * 0.1); cx.lineTo(-sz * 0.5, sz * 0.8); cx.stroke();
-  cx.beginPath(); cx.moveTo(sz * 0.3, sz * 0.1); cx.lineTo(sz * 0.5, sz * 0.8); cx.stroke();
+  // Luminous columns (original)
+  for (const col of state.columns) {
+    const pulse = col.baseAlpha + Math.sin(t * 1.5 + col.x * 0.01) * 0.02;
+    const color = col.isCyan ? "34,211,238" : "217,70,239";
 
-  cx.restore();
+    cx.strokeStyle = `rgba(${color},${pulse * 0.3})`;
+    cx.lineWidth = 0.3;
+    cx.beginPath(); cx.moveTo(col.x, 0); cx.lineTo(col.x, H); cx.stroke();
 
-  // Center glow
-  const g = cx.createRadialGradient(mx, my, 0, mx, my, sz * 1.5);
-  g.addColorStop(0, "rgba(212,168,71,0.03)");
-  g.addColorStop(0.5, "rgba(217,70,239,0.015)");
-  g.addColorStop(1, "rgba(0,0,0,0)");
-  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    for (const p of col.particles) {
+      p.y += p.sp;
+      if (p.y > H + 10) p.y = -10;
+      cx.beginPath();
+      cx.arc(col.x, p.y, p.sz, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(${color},${p.brightness})`;
+      cx.fill();
+      cx.beginPath();
+      cx.arc(col.x, p.y - p.sp * 3, p.sz * 0.5, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(${color},${p.brightness * 0.3})`;
+      cx.fill();
+    }
+  }
+
+  // STREAMING COMET with heavy chromatic aberration
+  const comet = state.comet;
+  if (t > comet.nextSpawn && !comet.active) {
+    comet.active = true;
+    comet.y = Math.random() * (H * 0.6) + H * 0.2;
+    comet.x = -60;
+    comet.vx = 15 + Math.random() * 10; // Warp speed
+    comet.vy = (Math.random() - 0.5) * 4;
+    comet.tail = [];
+  }
+
+  if (comet.active) {
+    // Update physics
+    comet.tail.push({x: comet.x, y: comet.y, age: 0});
+    if (comet.tail.length > 30) comet.tail.shift();
+    comet.x += comet.vx;
+    comet.y += comet.vy;
+
+    // Draw tail - Aberration increases with particle age (older = more separated)
+    for (let i = 0; i < comet.tail.length; i++) {
+      const p = comet.tail[i];
+      p.age++;
+      const life = i / comet.tail.length; // 0 (old) to 1 (new)
+      const size = life * 5;
+      const ab = (1 - life) * 5; // More separation for older particles
+
+      // Red trails (velocity lag - behind)
+      cx.beginPath();
+      cx.arc(p.x - ab - 2, p.y, size, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(255,50,50,${life * 0.4})`;
+      cx.fill();
+
+      // Blue leads (velocity ahead)
+      cx.beginPath();
+      cx.arc(p.x + ab * 0.5, p.y, size * 0.9, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(80,150,255,${life * 0.5})`;
+      cx.fill();
+
+      // White hot core center
+      cx.beginPath();
+      cx.arc(p.x, p.y, size * 0.6, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(255,255,255,${life * 0.8})`;
+      cx.fill();
+    }
+
+    // Comet head - Intense RGB split glow
+    const cx_ = comet.x, cy = comet.y;
+
+    // Large red bloom (trails behind)
+    const gR = cx.createRadialGradient(cx_ - 6, cy, 0, cx_ - 6, cy, 25);
+    gR.addColorStop(0, 'rgba(255,80,80,0.6)');
+    gR.addColorStop(1, 'rgba(255,0,0,0)');
+    cx.fillStyle = gR;
+    cx.fillRect(cx_ - 30, cy - 30, 60, 60);
+
+    // Large blue bloom (leads ahead)
+    const gB = cx.createRadialGradient(cx_ + 6, cy, 0, cx_ + 6, cy, 25);
+    gB.addColorStop(0, 'rgba(80,180,255,0.6)');
+    gB.addColorStop(1, 'rgba(0,100,255,0)');
+    cx.fillStyle = gB;
+    cx.fillRect(cx_ - 30, cy - 30, 60, 60);
+
+    // Sharp white core
+    cx.beginPath();
+    cx.arc(cx_, cy, 5, 0, Math.PI * 2);
+    cx.fillStyle = 'rgba(255,255,255,1)';
+    cx.fill();
+    cx.beginPath();
+    cx.arc(cx_, cy, 2, 0, Math.PI * 2);
+    cx.fillStyle = 'rgba(200,255,255,1)';
+    cx.fill();
+
+    if (comet.x > W + 100) {
+      comet.active = false;
+      comet.nextSpawn = t + 4 + Math.random() * 6;
+    }
+  }
+
+  // Gold scan sweep (original)
+  const scanPhase = (t * 0.5) % 8;
+  if (scanPhase < 0.3) {
+    const scanY = (scanPhase / 0.3) * H;
+    cx.fillStyle = "rgba(212,168,71,0.015)";
+    cx.fillRect(0, scanY - 2, W, 4);
+  }
 
   drawScanCRT(cx, W, H, t);
 }
