@@ -107,10 +107,10 @@ function SignupPageContent() {
                 [ Oracle Access ]
               </p>
               <h1 className="font-display text-3xl md:text-4xl mb-4">
-                <ZalgoText text="Sign In" intensity="moderate" />
+                <ZalgoText text="Create Account" intensity="moderate" />
               </h1>
               <p className="font-body text-base" style={{ color: 'rgba(237,233,246,0.45)' }}>
-                Access your Codex Oracle account.
+                Join to access the Codex Oracle.
               </p>
             </div>
           </SectionReveal>
