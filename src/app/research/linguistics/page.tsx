@@ -40,7 +40,7 @@ export const dynamic = 'force-dynamic';
 export default function ResearchLinguisticsPage() {
   return (
     <>
-      <PageBackground variant="oracle" />
+      <PageBackground variant="xenolinguistics" />
       <Navigation />
       <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
