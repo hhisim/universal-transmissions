@@ -30,7 +30,7 @@ export default function PinterestGrid({
   useEffect(() => {
     const rssUrl = `https://www.pinterest.com/${config.username}/${config.board}.rss`;
     const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`;
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=100`;
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=20`;
 
     // Try codetabs proxy (full RSS with CORS support)
     fetch(proxyUrl)
