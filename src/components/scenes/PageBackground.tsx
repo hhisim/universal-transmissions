@@ -71,7 +71,7 @@ function drawStars(cx: CanvasRenderingContext2D, stars: Star[], t: number, goldC
 
 // ============================================================
 // SCENE: HOMEPAGE — "The Transmission Field"
-// Particle field forming sacred geometry patterns
+// Particle field forming sacred geometry patterns + Comet/Neural overlay
 // ============================================================
 function sceneHomepage(cx: CanvasRenderingContext2D, W: number, H: number, t: number, state: any) {
   if (!state.init) {
@@ -84,13 +84,33 @@ function sceneHomepage(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
       state.particles.push({
         x: W / 2 + Math.cos(a) * r,
         y: H / 2 + Math.sin(a) * r,
-        ox: Math.cos(a) * r, // original offset from center
+        ox: Math.cos(a) * r,
         oy: Math.sin(a) * r,
         a, r, sp: 0.0003 + Math.random() * 0.001,
         sz: 0.5 + Math.random() * 1.5,
         hue: 280 + Math.random() * 80,
       });
     }
+
+    // Streaming comets overlay
+    state.comets = Array.from({ length: 3 }, (_, i) => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 6,
+      vy: 2 + Math.random() * 3,
+      tail: [] as { x: number; y: number }[],
+      hue: i % 2 === 0 ? 180 : 280,
+    }));
+
+    // Neural constellation overlay
+    state.nodes = Array.from({ length: 15 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: 1.5 + Math.random() * 2.5,
+      pulse: Math.random() * Math.PI * 2,
+    }));
   }
 
   // Glyph rain
@@ -98,23 +118,21 @@ function sceneHomepage(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
 
   // Particles orbiting center, occasionally forming patterns
   const cx2 = W / 2, cy2 = H / 2;
-  const patternPhase = (Math.sin(t * 0.1) + 1) / 2; // 0-1, slow cycle
+  const patternPhase = (Math.sin(t * 0.1) + 1) / 2;
 
   for (const p of state.particles) {
     p.a += p.sp;
     const baseX = cx2 + Math.cos(p.a) * p.r;
     const baseY = cy2 + Math.sin(p.a) * p.r;
 
-    // Occasionally attract toward Flower of Life points
     let tx = baseX, ty = baseY;
     if (patternPhase > 0.7) {
-      // Flower of Life: 7 circles, 6 around 1
       const fIdx = ~~(p.a * 6 / (Math.PI * 2)) % 7;
       const fAngle = fIdx * Math.PI / 3;
       const fR = Math.min(W, H) * 0.12;
       const fx = cx2 + (fIdx === 0 ? 0 : Math.cos(fAngle) * fR);
       const fy = cy2 + (fIdx === 0 ? 0 : Math.sin(fAngle) * fR);
-      const blend = (patternPhase - 0.7) / 0.3; // 0-1
+      const blend = (patternPhase - 0.7) / 0.3;
       tx = baseX + (fx - baseX) * blend * 0.4;
       ty = baseY + (fy - baseY) * blend * 0.4;
     }
@@ -123,7 +141,7 @@ function sceneHomepage(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
     p.y += (ty - p.y) * 0.02;
 
     const hueShift = (Math.sin(t * 0.3 + p.a) + 1) / 2;
-    const h = 280 + hueShift * 80; // magenta to cyan
+    const h = 280 + hueShift * 80;
     cx.beginPath();
     cx.arc(p.x, p.y, p.sz, 0, Math.PI * 2);
     cx.fillStyle = `hsla(${h}, 80%, 65%, 0.3)`;
@@ -135,6 +153,107 @@ function sceneHomepage(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
   g.addColorStop(0, `rgba(217,70,239,${0.03 + Math.sin(t * 0.5) * 0.01})`);
   g.addColorStop(1, "rgba(0,0,0,0)");
   cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+
+  // Streaming comets overlay (semi-transparent over particle field)
+  for (const comet of state.comets) {
+    comet.x += comet.vx;
+    comet.y += comet.vy;
+
+    if (comet.y > H + 30) { comet.y = -30; comet.x = Math.random() * W; }
+    if (comet.y < -30) { comet.y = H + 30; comet.x = Math.random() * W; }
+    if (comet.x > W + 30) { comet.x = -30; }
+    if (comet.x < -30) { comet.x = W + 30; }
+
+    comet.tail.push({ x: comet.x, y: comet.y });
+    if (comet.tail.length > 20) comet.tail.shift();
+
+    cx.lineCap = "round";
+    for (let i = 0; i < comet.tail.length - 1; i++) {
+      const curr = comet.tail[i];
+      const next = comet.tail[i + 1];
+      const life = i / comet.tail.length;
+      const width = life * 3;
+      const ab = (1 - life) * 4;
+
+      cx.beginPath();
+      cx.moveTo(curr.x - comet.vx * ab * 0.15, curr.y - comet.vy * ab * 0.15);
+      cx.lineTo(next.x - comet.vx * ab * 0.15, next.y - comet.vy * ab * 0.15);
+      cx.strokeStyle = `rgba(255,40,60,${life * 0.35})`;
+      cx.lineWidth = width;
+      cx.stroke();
+
+      cx.beginPath();
+      cx.moveTo(curr.x + comet.vx * ab * 0.1, curr.y + comet.vy * ab * 0.1);
+      cx.lineTo(next.x + comet.vx * ab * 0.1, next.y + comet.vy * ab * 0.1);
+      cx.strokeStyle = `rgba(40,200,255,${life * 0.35})`;
+      cx.lineWidth = width * 0.7;
+      cx.stroke();
+    }
+
+    const g = cx.createRadialGradient(comet.x, comet.y, 0, comet.x, comet.y, 16);
+    g.addColorStop(0, `hsla(${comet.hue},90%,80%,0.7)`);
+    g.addColorStop(0.3, `hsla(${comet.hue},70%,50%,0.3)`);
+    g.addColorStop(1, "transparent");
+    cx.fillStyle = g;
+    cx.fillRect(comet.x - 16, comet.y - 16, 32, 32);
+
+    cx.beginPath();
+    cx.arc(comet.x, comet.y, 2, 0, Math.PI * 2);
+    cx.fillStyle = "rgba(255,255,255,0.9)";
+    cx.fill();
+  }
+
+  // Neural constellation overlay
+  for (const node of state.nodes) {
+    node.x += node.vx;
+    node.y += node.vy;
+    node.pulse += 0.03;
+
+    if (node.x < 50 || node.x > W - 50) node.vx *= -1;
+    if (node.y < 50 || node.y > H - 50) node.vy *= -1;
+
+    for (const other of state.nodes) {
+      const dx = other.x - node.x;
+      const dy = other.y - node.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 180 && dist > 10) {
+        const alpha = (1 - dist / 180) * 0.15;
+        const midX = (node.x + other.x) / 2;
+        const midY = (node.y + other.y) / 2;
+
+        cx.beginPath();
+        cx.moveTo(node.x - 1.5, node.y);
+        cx.quadraticCurveTo(midX - 1, midY, other.x - 1.5, other.y);
+        cx.strokeStyle = `rgba(255,60,80,${alpha})`;
+        cx.lineWidth = 0.6;
+        cx.stroke();
+
+        cx.beginPath();
+        cx.moveTo(node.x + 1.5, node.y);
+        cx.quadraticCurveTo(midX + 1, midY, other.x + 1.5, other.y);
+        cx.strokeStyle = `rgba(60,180,255,${alpha})`;
+        cx.stroke();
+      }
+    }
+
+    const pulseR = node.r * (1 + Math.sin(node.pulse) * 0.2);
+
+    cx.beginPath();
+    cx.arc(node.x - 1, node.y, pulseR, 0, Math.PI * 2);
+    cx.fillStyle = "rgba(255,80,100,0.4)";
+    cx.fill();
+
+    cx.beginPath();
+    cx.arc(node.x + 1, node.y, pulseR, 0, Math.PI * 2);
+    cx.fillStyle = "rgba(80,255,220,0.4)";
+    cx.fill();
+
+    cx.beginPath();
+    cx.arc(node.x, node.y, pulseR * 0.35, 0, Math.PI * 2);
+    cx.fillStyle = "rgba(255,255,255,0.8)";
+    cx.fill();
+  }
 
   drawScanCRT(cx, W, H, t);
 }
