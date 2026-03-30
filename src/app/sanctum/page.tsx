@@ -12,7 +12,7 @@ import { products } from "@/data/products";
 export default function SanctumPage() {
   return (
     <>
-      <PageBackground variant="sanctum" />
+      
       <Navigation />
       <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
