@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 
 interface PinterestPin {
   id: string;
-  images: {
-    "236x": { width: number; height: number; url: string };
-    "564x": { width: number; height: number; url: string };
-  };
+  images: { "236x": { url: string }; "564x": { url: string } };
   link: string | null;
   description: string;
 }
@@ -17,6 +14,72 @@ interface PinterestGridProps {
   fallbackUrl?: string;
   title?: string;
   subtitle?: string;
+}
+
+// Pinterest boards have an RSS feed at this URL format
+function getBoardRSSUrl(boardSlug: string): string {
+  return `https://www.pinterest.com/${boardSlug}/feed.rss`;
+}
+
+// Map board slugs to their RSS-friendly usernames
+const BOARD_USERNAME_MAP: Record<string, string> = {
+  "hakanhisim/typography-symbols": "hakanhisim",
+  "hakanhisim/frequencies": "hakanhisim",
+  "hakanhisim/geometrika": "hakanhisim",
+  "hakanhisim/inspired-esoterica": "hakanhisim",
+  "hakanhisim/radiolaria": "hakanhisim",
+  "hakanhisim/codex": "hakanhisim",
+  "hakanhisim/astronomy": "hakanhisim",
+};
+
+function parseRSSFeed(xmlText: string): PinterestPin[] {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, "text/xml");
+    const items = doc.querySelectorAll("item");
+    const pins: PinterestPin[] = [];
+
+    items.forEach((item) => {
+      const link = item.querySelector("link")?.textContent || "";
+      const description = item.querySelector("description")?.textContent || "";
+
+      // Extract image from media:content or enclosure
+      const mediaContent = item.querySelector("media\\:content, content");
+      const enclosure = item.querySelector("enclosure");
+
+      let imageUrl = "";
+      if (mediaContent?.getAttribute("url")) {
+        imageUrl = mediaContent.getAttribute("url") || "";
+      } else if (enclosure?.getAttribute("url")) {
+        imageUrl = enclosure.getAttribute("url") || "";
+      }
+
+      if (!imageUrl && description) {
+        // Try to extract from description HTML
+        const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
+        if (imgMatch) imageUrl = imgMatch[1];
+      }
+
+      if (imageUrl) {
+        // Pinterest CDN images - convert to small sizes
+        const largeUrl = imageUrl.replace(/\?.*$/, "");
+
+        pins.push({
+          id: link.split("/").pop() || Math.random().toString(),
+          images: {
+            "236x": { url: largeUrl + "?h=236&w=236&fit=crop" },
+            "564x": { url: largeUrl + "?h=564&w=564&fit=crop" },
+          },
+          link,
+          description: description.replace(/<[^>]+>/g, "").slice(0, 200),
+        });
+      }
+    });
+
+    return pins;
+  } catch {
+    return [];
+  }
 }
 
 export default function PinterestGrid({
@@ -34,14 +97,18 @@ export default function PinterestGrid({
     setLoading(true);
     setError(false);
 
-    fetch(`/api/pinterest-board?board=${encodeURIComponent(boardSlug)}`)
-      .then((r) => r.json())
-      .then((data: { pins?: PinterestPin[]; error?: string }) => {
-        if (data.error) {
-          setError(true);
-        } else {
-          setPins(data.pins ?? []);
-        }
+    const username = BOARD_USERNAME_MAP[boardSlug] || boardSlug.split("/")[0];
+    const rssUrl = `https://www.pinterest.com/${username}/${boardSlug.split("/")[1]}/feed.rss`;
+
+    fetch(rssUrl)
+      .then((r) => {
+        if (!r.ok) throw new Error("Feed not found");
+        return r.text();
+      })
+      .then((xmlText) => {
+        const parsed = parseRSSFeed(xmlText);
+        if (parsed.length === 0) throw new Error("No pins found");
+        setPins(parsed);
         setLoading(false);
       })
       .catch(() => {
@@ -85,7 +152,6 @@ export default function PinterestGrid({
 
   return (
     <div className="w-full">
-      {/* 8 columns, small images — shows all available pins */}
       <div className="columns-12 gap-2 space-y-2">
         {pins.map((pin) => (
           <a
@@ -105,8 +171,6 @@ export default function PinterestGrid({
           </a>
         ))}
       </div>
-
-      {/* Pin count */}
       <p
         className="font-mono text-[9px] text-center mt-6 tracking-widest uppercase"
         style={{ color: "var(--ut-white-dim)", opacity: 0.25 }}
