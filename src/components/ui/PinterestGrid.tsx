@@ -28,12 +28,15 @@ export default function PinterestGrid({
   const config = BOARD_CONFIG[boardSlug] ?? { username: "hakanhisim", board: boardSlug };
 
   useEffect(() => {
-    // Use Pinterest's RSS feed + allorigins proxy to avoid 10-item limit
     const rssUrl = `https://www.pinterest.com/${config.username}/${config.board}.rss`;
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
 
-    fetch(proxyUrl)
-      .then((res) => res.text())
+    // Try direct RSS first (full results, no 10-item cap)
+    fetch(rssUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error("direct failed");
+        return res.text();
+      })
       .then((xml) => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(xml, "application/xml");
@@ -50,8 +53,26 @@ export default function PinterestGrid({
         setLoading(false);
       })
       .catch(() => {
-        setError(true);
-        setLoading(false);
+        // Fallback to rss2json if CORS blocks direct RSS
+        fetch(apiUrl)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status !== "ok" || !data.items) throw new Error();
+            const imgs = data.items
+              .map((item: { description: string; link: string }) => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(item.description, "text/html");
+                const img = doc.querySelector("img");
+                return img?.src ? { src: img.src, link: item.link } : null;
+              })
+              .filter(Boolean) as { src: string; link: string }[];
+            setImages(imgs);
+            setLoading(false);
+          })
+          .catch(() => {
+            setError(true);
+            setLoading(false);
+          });
       });
   }, [boardSlug]);
 
