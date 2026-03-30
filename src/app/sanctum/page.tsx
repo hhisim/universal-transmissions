@@ -17,7 +17,7 @@ export default function SanctumPage() {
       <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Header */}
-          <SectionReveal>
+          <div>
             <div className="text-center mb-16 pt-8">
               <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: "var(--ut-gold)" }}>
                 [ Sacred Objects & Physical Transmissions ]
@@ -29,12 +29,12 @@ export default function SanctumPage() {
                 Physical manifestations of the Universal Transmissions project. Archival prints, the Codex, and limited edition artifacts — each hand-signed by the artist.
               </p>
             </div>
-          </SectionReveal>
+          </div>
 
           {/* Product grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, i) => (
-              <SectionReveal key={product.id} delay={i * 0.1}>
+              <div key={product.id} delay={i * 0.1}>
                 <div className="ut-card-gold overflow-hidden group">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
@@ -72,12 +72,12 @@ export default function SanctumPage() {
                     </div>
                   </div>
                 </div>
-              </SectionReveal>
+              </div>
             ))}
           </div>
 
           {/* Payment badges */}
-          <SectionReveal delay={0.3}>
+          <div delay={0.3}>
             <div className="mt-16 text-center">
               <p className="font-mono text-[9px] tracking-[0.3em] uppercase mb-4" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
                 Secure payments via Stripe & PayPal
@@ -91,7 +91,7 @@ export default function SanctumPage() {
                 </div>
               </div>
             </div>
-          </SectionReveal>
+          </div>
         </div>
       </main>
       <Footer />
