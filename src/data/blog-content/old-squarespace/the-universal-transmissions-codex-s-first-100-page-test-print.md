@@ -28,3 +28,7 @@ After 9 years and a lifetime of experience, the Codex is finally coming to fruit
 Be love,
 
 Hakan.
+
+![Codex 100-page test print mockup](https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1665665489882-R07CAKBG2F1EFLAEXDPQ/codex+mockup.jpg)
+
+https://youtu.be/E1yhN3FueSs

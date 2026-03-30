@@ -31,4 +31,6 @@ Be Love,
 
 Hakan
 
-![](/journal/funded-in-24-hours-codex-vol-1-off-to-the-printers-1.jpg)
+![Funded in 24 hours — Kickstarter success](https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/64a4a2fc-a051-4c9b-be23-676ab9c53d08/funded.jpg)
+
+https://youtu.be/VoDB_OWbaNs

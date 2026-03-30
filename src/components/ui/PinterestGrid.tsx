@@ -1,7 +1,5 @@
 "use client";
 
-import Script from "next/script";
-
 interface PinterestGridProps {
   boardSlug?: string;
   title?: string;
@@ -13,7 +11,7 @@ export default function PinterestGrid({
   title,
   subtitle,
 }: PinterestGridProps) {
-  const boardUrl = `https://www.pinterest.com/${boardSlug}/`;
+  const boardUrl = `https://www.pinterest.com/${boardSlug}/embed/`;
 
   return (
     <div className="w-full">
@@ -24,18 +22,15 @@ export default function PinterestGrid({
         </div>
       )}
 
-      <a
+      <iframe
         data-pin-do="embedBoard"
-        data-pin-board-width="1400"
-        data-pin-board-scale="1.6"
-        href={boardUrl}
-      />
-
-      <Script
-        async
-        defer
-        strategy="lazyOnload"
-        src="//assets.pinterest.com/js/pinit.js"
+        src={boardUrl}
+        width="1400"
+        height="800"
+        frameBorder="0"
+        scrolling="no"
+        allowFullScreen
+        className="w-full max-w-full"
       />
     </div>
   );

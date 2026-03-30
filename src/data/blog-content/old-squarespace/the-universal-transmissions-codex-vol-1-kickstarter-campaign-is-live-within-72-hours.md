@@ -3,7 +3,7 @@ slug: the-universal-transmissions-codex-vol-1-kickstarter-campaign-is-live-withi
 title: The Universal Transmissions Codex Vol. 1 Kickstarter campaign is live within 72 hours!
 publishedAt: "2023-08-18"
 author: "Hakan Hisim"
-excerpt: "Finally, "The Book" will be available to purchase at a discounted price for the duration of the Kickstarter campaign. On top of that, there will also…"
+excerpt: "Finally, 'The Book' will be available to purchase at a discounted price for the duration of the Kickstarter campaign. On top of that, there will also be an additional early bird discount available for the first 3 days of the campaign!"
 readTime: "1 min"
 hero_gradient: "from-purple-950 via-fuchsia-900 to-black"
 tags: ['process', 'art', 'kickstarter', 'journal', 'codex']
@@ -18,3 +18,7 @@ I am super excited to finally have the first part of this complete and ship them
 Thank you all for your patience and love,
 
 Hakan
+
+![Codex Vol. 1 Kickstarter — 12 web](https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1692354961663-D0J7IGHQWCDYD8NTTF9X/12+-+web.jpg?format=2500w)
+
+https://youtu.be/e841xiYE6Rg
