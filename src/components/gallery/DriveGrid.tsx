@@ -35,11 +35,10 @@ function DriveCard({ file, index }: { file: DriveFile; index: number }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
-  const thumbUrl = file.thumbnailLink
-    ? file.thumbnailLink.replace("=d", "=w800")
-    : null;
-
-  const displayUrl = thumbUrl || file.webContentLink || "";
+  // thumbnailLink from Drive API has referrer restrictions — construct our own thumbnail URL
+  const displayUrl = file.id
+    ? `https://drive.google.com/thumbnail?id=${file.id}&sz=w800`
+    : file.webContentLink || "";
 
   return (
     <div
