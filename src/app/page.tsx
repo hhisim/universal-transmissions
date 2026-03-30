@@ -233,11 +233,11 @@ export default function HomePage() {
         >
           <div className="container-ut">
             <SectionReveal>
-              <span style={{ color: "var(--ut-magenta)" }}>
+              <span style={{ color: "var(--ut-gold)" }}>
                 <ZalgoText
                   text="The transmission never ends."
                   intensity="moderate"
-                  className="font-display text-2xl md:text-4xl block mb-4"
+                  className="font-display text-3xl md:text-5xl tracking-[0.08em] block mb-6"
                 />
               </span>
               <p className="text-sm md:text-base text-white/60 max-w-xl mx-auto mb-8 leading-relaxed">
