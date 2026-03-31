@@ -238,83 +238,39 @@ export default function Navigation() {
               aria-expanded={memberOpen}
               aria-label="Member account"
             >
+              {/* UT Trinary Logo — spinning */}
               <svg
                 width="32"
                 height="32"
                 viewBox="0 0 100 100"
                 xmlns="http://www.w3.org/2000/svg"
-                style={{ filter: 'drop-shadow(0 0 4px rgba(139,92,246,0.7)) drop-shadow(0 0 8px rgba(59,130,246,0.4))' }}
+                style={{ filter: 'drop-shadow(0 0 6px rgba(0,229,255,0.6)) drop-shadow(0 0 12px rgba(212,168,71,0.4))' }}
                 className="transition-all duration-300 group-hover:opacity-100 opacity-70"
               >
                 <style>{`
-                  @keyframes iconColorCycle {
-                    0%   { stop-color: #3B82F6; }
-                    33%  { stop-color: #8B5CF6; }
-                    66%  { stop-color: #EAB308; }
-                    100% { stop-color: #3B82F6; }
-                  }
-                  @keyframes iconPulse {
-                    0%, 100% { opacity: 0.18; transform: scale(1); }
-                    50%       { opacity: 0.30; transform: scale(1.06); }
-                  }
-                  @keyframes iconSpin {
+                  @keyframes logoSpin {
                     0%   { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                   }
                 `}</style>
-                <defs>
-                  <linearGradient id="triskelionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%"   stopColor="#3B82F6">
-                      <animate attributeName="stopColor" values="#3B82F6;#8B5CF6;#EAB308;#3B82F6" dur="4s" repeatCount="indefinite" />
-                    </stop>
-                    <stop offset="50%"  stopColor="#8B5CF6">
-                      <animate attributeName="stopColor" values="#8B5CF6;#EAB308;#3B82F6;#8B5CF6" dur="4s" repeatCount="indefinite" />
-                    </stop>
-                    <stop offset="100%" stopColor="#EAB308">
-                      <animate attributeName="stopColor" values="#EAB308;#3B82F6;#8B5CF6;#EAB308" dur="4s" repeatCount="indefinite" />
-                    </stop>
-                  </linearGradient>
-                  <filter id="iconGlow" x="-60%" y="-60%" width="220%" height="220%">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
 
-                {/* Outer pulse ring */}
-                <circle cx="50" cy="50" r="44"
-                  fill="url(#triskelionGrad)"
-                  style={{ animation: 'iconPulse 2.5s ease-in-out infinite', transformOrigin: '50px 50px' }}
-                />
-
-                {/* Triskelion — three comma arms */}
-                <g filter="url(#iconGlow)" style={{ animation: 'iconSpin 20s linear infinite', transformOrigin: '50px 50px' }}>
-                  {/* Arm 1 (top) */}
-                  <path d="M50 50 Q58 38 66 28 Q72 20 78 16 Q84 12 86 10 Q88 8 88 6 Q88 4 86 6 Q84 8 80 14 Q74 22 66 32 Q58 42 50 50 Z"
-                    fill="url(#triskelionGrad)" />
-                  <circle cx="82" cy="10" r="5" fill="url(#triskelionGrad)" />
-                  <circle cx="76" cy="18" r="3.5" fill="url(#triskelionGrad)" />
-                  <circle cx="70" cy="26" r="2.5" fill="url(#triskelionGrad)" />
-
-                  {/* Arm 2 (bottom-right) */}
-                  <path d="M50 50 Q62 58 72 68 Q80 76 84 80 Q88 84 90 86 Q92 88 90 90 Q88 92 84 88 Q78 82 68 72 Q58 62 50 50 Z"
-                    fill="url(#triskelionGrad)" />
-                  <circle cx="90" cy="88" r="5" fill="url(#triskelionGrad)" />
-                  <circle cx="84" cy="82" r="3.5" fill="url(#triskelionGrad)" />
-                  <circle cx="76" cy="74" r="2.5" fill="url(#triskelionGrad)" />
-
-                  {/* Arm 3 (bottom-left) */}
-                  <path d="M50 50 Q38 58 28 68 Q20 76 16 80 Q12 84 10 86 Q8 88 10 90 Q12 92 16 88 Q22 82 32 72 Q42 62 50 50 Z"
-                    fill="url(#triskelionGrad)" />
-                  <circle cx="10" cy="88" r="5" fill="url(#triskelionGrad)" />
-                  <circle cx="16" cy="82" r="3.5" fill="url(#triskelionGrad)" />
-                  <circle cx="24" cy="74" r="2.5" fill="url(#triskelionGrad)" />
-
-                  {/* Center jewel */}
-                  <circle cx="50" cy="50" r="8" fill="url(#triskelionGrad)" />
-                  <circle cx="50" cy="50" r="5" fill="rgba(255,255,255,0.4)" />
+                {/* Spinning logo group */}
+                <g style={{ animation: 'logoSpin 20s linear infinite', transformOrigin: '50px 50px' }}>
+                  {/* Cyan outer ring */}
+                  <circle cx="50" cy="28" r="22" stroke="#00e5ff" strokeWidth="1.5" fill="none" opacity="0.9"/>
+                  {/* Gold outer ring (rotated 60 deg) */}
+                  <circle cx="50" cy="28" r="22" stroke="#d4a847" strokeWidth="1.5" fill="none" opacity="0.6" transform="rotate(60 50 50)"/>
+                  {/* Central unified core */}
+                  <circle cx="50" cy="50" r="12" stroke="#00e5ff" strokeWidth="1" fill="none" opacity="0.8"/>
+                  {/* Trinary dots */}
+                  <circle cx="50" cy="28" r="3" fill="#00e5ff" opacity="0.9"/>
+                  <circle cx="69" cy="39" r="3" fill="#d4a847" opacity="0.9"/>
+                  <circle cx="69" cy="61" r="3" fill="#00e5ff" opacity="0.9"/>
+                  <circle cx="50" cy="72" r="3" fill="#d4a847" opacity="0.9"/>
+                  <circle cx="31" cy="61" r="3" fill="#00e5ff" opacity="0.9"/>
+                  <circle cx="31" cy="39" r="3" fill="#d4a847" opacity="0.9"/>
+                  {/* Inner hexagon geometry */}
+                  <polygon points="50,38 62,44 62,56 50,62 38,56 38,44" stroke="#00e5ff" strokeWidth="0.75" fill="none" opacity="0.4"/>
                 </g>
               </svg>
             </button>
