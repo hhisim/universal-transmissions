@@ -200,8 +200,8 @@ function SignupPageContent() {
 
           <SectionReveal delay={0.2}>
             <div className="mt-8 text-center">
-              <Link href="/sanctum/member/login" className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.25)' }}>
-                ← Store Member Login
+              <Link href="/signup" className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.25)' }}>
+                ← Member Sign In
               </Link>
             </div>
           </SectionReveal>

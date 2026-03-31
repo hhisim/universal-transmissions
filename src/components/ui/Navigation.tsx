@@ -292,7 +292,7 @@ export default function Navigation() {
                 >
                   <div className="p-1">
                     <Link
-                      href="/sanctum/member/login"
+                      href="/signup"
                       className="flex items-center gap-3 w-full text-left px-4 py-3 font-body text-[13px] transition-all hover:opacity-90"
                       style={{
                         color: "#22d3ee",

@@ -65,8 +65,8 @@ export const config = {
   adapter: stubAdapter,
   session: { strategy: "jwt" },
   pages: {
-    signIn: "/sanctum/member/login",
-    error: "/sanctum/member/login",
+    signIn: "/signup",
+    error: "/signup",
   },
   callbacks: {
     async jwt({ token, user }: { token: any; user: any }) {

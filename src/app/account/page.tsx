@@ -55,7 +55,7 @@ function AccountPageContent() {
       .then(r => r.json())
       .then(async (data) => {
         if (!data.authenticated) {
-          router.push('/sanctum/member/login?returnTo=/account')
+          router.push('/signup')
           return
         }
         setSession(data)
