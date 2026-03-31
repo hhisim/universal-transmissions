@@ -1220,7 +1220,7 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
 
   for (const s of state.strings) {
     const samples = 80;
-    for (const [off, col, lw] of [[-0.4,"rgba(255,60,80,0.18)",3],[0.4,"rgba(60,180,255,0.18)",3],[0,"rgba(100,255,220,0.12)",1]]) {
+    for (const [off, col, lw] of [[-0.4,"rgba(255,60,80,0.18)",3],[0.4,"rgba(60,180,255,0.18)",3],[0,"rgba(100,255,220,0.12)",1]] as [number, string, number][]) {
       cx.beginPath();
       for (let i = 0; i <= samples; i++) {
         const x = (i / samples) * W;
@@ -1245,7 +1245,7 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
       cx.beginPath(); cx.arc(em.x, em.y, r, 0, Math.PI * 2);
       cx.strokeStyle = `hsla(${em.hue},90%,60%,${a*0.5})`; cx.lineWidth = 2; cx.stroke();
     }
-    for (const [ox, col] of [[-2,"rgba(255,100,100,0.6)"],[2,"rgba(100,200,255,0.6)"]]) {
+    for (const [ox, col] of [[-2,"rgba(255,100,100,0.6)"],[2,"rgba(100,200,255,0.6)"]] as [number, string][]) {
       const g = cx.createRadialGradient(em.x+ox, em.y, 0, em.x+ox, em.y, 12);
       g.addColorStop(0, col); g.addColorStop(1, "transparent");
       cx.fillStyle = g; cx.fillRect(em.x+ox-12, em.y-12, 24, 24);
