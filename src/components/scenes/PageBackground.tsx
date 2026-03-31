@@ -1409,26 +1409,26 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
       const ringProg = (progress + i) / 3; // 0 to 1
       if (ringProg > 1) continue;
       
-      const r = ringProg * 100; // Max radius
+      const r = Math.max(0.1, ringProg * 100); // Clamp radius to prevent negative arc()
       const alpha = 1 - ringProg;
       
       // Outer RED ring (slower velocity - lags behind)
       cx.beginPath();
-      cx.arc(em.x, em.y, r - 4, 0, Math.PI*2);
+      cx.arc(em.x, em.y, Math.max(0.1, r - 4), 0, Math.PI*2);
       cx.strokeStyle = `rgba(255,40,60,${alpha * 0.3})`;
       cx.lineWidth = 4;
       cx.stroke();
       
       // Inner BLUE ring (faster velocity - leads ahead)
       cx.beginPath();
-      cx.arc(em.x, em.y, r + 4, 0, Math.PI*2);
+      cx.arc(em.x, em.y, Math.max(0.1, r + 4), 0, Math.PI*2);
       cx.strokeStyle = `rgba(40,180,255,${alpha * 0.3})`;
       cx.lineWidth = 4;
       cx.stroke();
       
       // Sharp center ring (hued)
       cx.beginPath();
-      cx.arc(em.x, em.y, r, 0, Math.PI*2);
+      cx.arc(em.x, em.y, Math.max(0.1, r), 0, Math.PI*2);
       cx.strokeStyle = `hsla(${em.hue},90%,60%,${alpha * 0.5})`;
       cx.lineWidth = 2;
       cx.stroke();
