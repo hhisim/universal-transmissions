@@ -1224,7 +1224,7 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
       cx.beginPath();
       for (let i = 0; i <= samples; i++) {
         const x = (i / samples) * W;
-        const y = s.y + Math.sin((x * 0.02 * s.harmonics) + (t * 2) + off) * s.amp;
+        const y = s.y + Math.sin((x * 0.02 * Number(s.harmonics)) + (t * 2) + off) * Number(s.amp);
         if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
       }
       cx.strokeStyle = col; cx.lineWidth = lw; cx.stroke();
