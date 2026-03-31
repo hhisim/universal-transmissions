@@ -13,6 +13,8 @@
 // ============================================================
 
 import { useEffect, useRef } from "react";
+// Suppress the generic layout canvas when a scene variant is active
+import { layoutBgSuppressed } from "@/lib/sceneFlag";
 
 // --- Shared glyph set for Zalgo rain (used on ALL pages) ---
 const RAIN_GLYPHS = [
@@ -1190,7 +1192,6 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
   if (!state.init) {
     state.init = true;
     state.drops = makeDrops(W);
-    state.stars = makeStars(W, H, 30);
 
     state.emitters = [
       { x: W * 0.25, y: H * 0.35, freq: 1.0, hue: 180 },
@@ -1215,59 +1216,128 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
     }));
   }
 
-  drawRain(cx, state.drops, H, "rgba(212,168,71,1)");
-  drawStars(cx, state.stars, t, 0.25);
+  drawRain(cx, state.drops, H);
 
+  // STANDING WAVES - Phase-shifted RGB showing wave propagation
   for (const s of state.strings) {
     const samples = 80;
-    for (const [off, col, lw] of [[-0.4,"rgba(255,60,80,0.18)",3],[0.4,"rgba(60,180,255,0.18)",3],[0,"rgba(100,255,220,0.12)",1]] as [number, string, number][]) {
-      cx.beginPath();
-      for (let i = 0; i <= samples; i++) {
-        const x = (i / samples) * W;
-        const y = s.y + Math.sin((x * 0.02 * Number(s.harmonics)) + (t * 2) + off) * Number(s.amp);
-        if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
-      }
-      cx.strokeStyle = col; cx.lineWidth = lw; cx.stroke();
+
+    // RED channel (trails - phase lag)
+    cx.beginPath();
+    for (let i = 0; i <= samples; i++) {
+      const x = (i / samples) * W;
+      const phase = (x * 0.02 * s.harmonics) + (t * 2);
+      const y = s.y + Math.sin(phase - 0.4) * s.amp;
+      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
     }
+    cx.strokeStyle = 'rgba(255,60,80,0.18)';
+    cx.lineWidth = 3;
+    cx.stroke();
+
+    // BLUE channel (leads - phase advance)
+    cx.beginPath();
+    for (let i = 0; i <= samples; i++) {
+      const x = (i / samples) * W;
+      const phase = (x * 0.02 * s.harmonics) + (t * 2);
+      const y = s.y + Math.sin(phase + 0.4) * s.amp;
+      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+    }
+    cx.strokeStyle = 'rgba(60,180,255,0.18)';
+    cx.lineWidth = 3;
+    cx.stroke();
+
+    // Sharp center wave (green/cyan)
+    cx.beginPath();
+    for (let i = 0; i <= samples; i++) {
+      const x = (i / samples) * W;
+      const phase = (x * 0.02 * s.harmonics) + (t * 2);
+      const y = s.y + Math.sin(phase) * s.amp * 0.8;
+      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+    }
+    cx.strokeStyle = 'rgba(100,255,220,0.12)';
+    cx.lineWidth = 1;
+    cx.stroke();
   }
 
+  // HARMONIC EMITTERS - Expanding rings with extreme chromatic aberration
   for (const em of state.emitters) {
     const interval = 5 / em.freq;
     const progress = (t % interval) / interval;
+
     for (let i = 0; i < 3; i++) {
-      const rp = (progress + i) / 3;
-      if (rp > 1) continue;
-      const r = rp * 100, a = 1 - rp;
-      cx.beginPath(); cx.arc(em.x, em.y, r - 4, 0, Math.PI * 2);
-      cx.strokeStyle = `rgba(255,40,60,${a*0.3})`; cx.lineWidth = 4; cx.stroke();
-      cx.beginPath(); cx.arc(em.x, em.y, r + 4, 0, Math.PI * 2);
-      cx.strokeStyle = `rgba(40,180,255,${a*0.3})`; cx.lineWidth = 4; cx.stroke();
-      cx.beginPath(); cx.arc(em.x, em.y, r, 0, Math.PI * 2);
-      cx.strokeStyle = `hsla(${em.hue},90%,60%,${a*0.5})`; cx.lineWidth = 2; cx.stroke();
+      const ringProg = (progress + i) / 3;
+      if (ringProg > 1) continue;
+
+      const r = ringProg * 100;
+      const alpha = 1 - ringProg;
+
+      // Outer RED ring (slower velocity - lags behind)
+      cx.beginPath();
+      cx.arc(em.x, em.y, r - 4, 0, Math.PI * 2);
+      cx.strokeStyle = `rgba(255,40,60,${alpha * 0.3})`;
+      cx.lineWidth = 4;
+      cx.stroke();
+
+      // Inner BLUE ring (faster velocity - leads ahead)
+      cx.beginPath();
+      cx.arc(em.x, em.y, r + 4, 0, Math.PI * 2);
+      cx.strokeStyle = `rgba(40,180,255,${alpha * 0.3})`;
+      cx.lineWidth = 4;
+      cx.stroke();
+
+      // Sharp center ring (hued)
+      cx.beginPath();
+      cx.arc(em.x, em.y, r, 0, Math.PI * 2);
+      cx.strokeStyle = `hsla(${em.hue},90%,60%,${alpha * 0.5})`;
+      cx.lineWidth = 2;
+      cx.stroke();
     }
-    for (const [ox, col] of [[-2,"rgba(255,100,100,0.6)"],[2,"rgba(100,200,255,0.6)"]] as [number, string][]) {
-      const g = cx.createRadialGradient(em.x+ox, em.y, 0, em.x+ox, em.y, 12);
-      g.addColorStop(0, col); g.addColorStop(1, "transparent");
-      cx.fillStyle = g; cx.fillRect(em.x+ox-12, em.y-12, 24, 24);
-    }
+
+    // Center node glow with RGB bloom
+    const g = cx.createRadialGradient(em.x - 2, em.y, 0, em.x - 2, em.y, 12);
+    g.addColorStop(0, 'rgba(255,100,100,0.6)');
+    g.addColorStop(1, 'transparent');
+    cx.fillStyle = g;
+    cx.fillRect(em.x - 14, em.y - 14, 28, 28);
+
+    const g2 = cx.createRadialGradient(em.x + 2, em.y, 0, em.x + 2, em.y, 12);
+    g2.addColorStop(0, 'rgba(100,200,255,0.6)');
+    g2.addColorStop(1, 'transparent');
+    cx.fillStyle = g2;
+    cx.fillRect(em.x - 14, em.y - 14, 28, 28);
   }
 
+  // CYMATIC PARTICLES - Sacred geometry via harmonic interference
   for (const p of state.grains) {
     const ft = t * 0.4 + p.phase;
-    const x = p.baseX + Math.sin(ft*p.ratioX*0.3)*Math.cos(ft*0.2)*p.orbit;
-    const y = p.baseY + Math.cos(ft*p.ratioY*0.3)*Math.sin(ft*0.25)*p.orbit;
-    const pft = (ft - 0.05);
-    const px = p.baseX + Math.sin(pft*p.ratioX*0.3)*Math.cos(pft*0.2)*p.orbit;
-    const py = p.baseY + Math.cos(pft*p.ratioY*0.3)*Math.sin(pft*0.25)*p.orbit;
-    const vx = x-px, vy = y-py;
-    cx.beginPath(); cx.arc(x-vx*3-1, y-vy*3, p.size, 0, Math.PI*2);
-    cx.fillStyle = "rgba(255,60,90,0.5)"; cx.fill();
-    cx.beginPath(); cx.arc(x+vx*2+1, y+vy*2, p.size, 0, Math.PI*2);
-    cx.fillStyle = "rgba(70,200,255,0.5)"; cx.fill();
-    cx.beginPath(); cx.arc(x, y, p.size*0.7, 0, Math.PI*2);
-    cx.fillStyle = "rgba(255,255,255,0.95)"; cx.fill();
+    const x = p.baseX + Math.sin(ft * p.ratioX * 0.3) * Math.cos(ft * 0.2) * p.orbit;
+    const y = p.baseY + Math.cos(ft * p.ratioY * 0.3) * Math.sin(ft * 0.25) * p.orbit;
+
+    const prevX = p.baseX + Math.sin((ft - 0.05) * p.ratioX * 0.3) * Math.cos((ft - 0.05) * 0.2) * p.orbit;
+    const prevY = p.baseY + Math.cos((ft - 0.05) * p.ratioY * 0.3) * Math.sin((ft - 0.05) * 0.25) * p.orbit;
+    const vx = x - prevX;
+    const vy = y - prevY;
+
+    // Red ghost (trails behind motion)
+    cx.beginPath();
+    cx.arc(x - vx * 3 - 1, y - vy * 3, p.size, 0, Math.PI * 2);
+    cx.fillStyle = 'rgba(255,60,90,0.5)';
+    cx.fill();
+
+    // Blue ghost (leads ahead)
+    cx.beginPath();
+    cx.arc(x + vx * 2 + 1, y + vy * 2, p.size, 0, Math.PI * 2);
+    cx.fillStyle = 'rgba(70,200,255,0.5)';
+    cx.fill();
+
+    // Sharp white core (the "sand" grain)
+    cx.beginPath();
+    cx.arc(x, y, p.size * 0.7, 0, Math.PI * 2);
+    cx.fillStyle = 'rgba(255,255,255,0.95)';
+    cx.fill();
   }
 
+  // Slow golden scan (research/scanning vibe)
   const scanY = (t * 0.08) % (H * 1.2) - H * 0.1;
   cx.fillStyle = "rgba(212,168,71,0.015)";
   cx.fillRect(0, scanY - 2, W, 4);
@@ -1520,6 +1590,8 @@ export default function PageBackground({ variant, className = "", opacity = 1 }:
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // Suppress the ambient layout canvas so only the scene renders
+    layoutBgSuppressed.value = true;
     const cv = canvasRef.current;
     if (!cv) return;
     const cx = cv.getContext("2d");

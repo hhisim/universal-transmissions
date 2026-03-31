@@ -26,7 +26,7 @@ export default function ResearchCymaticsPage() {
     <>
       <Navigation />
      
-      <PageBackground variant="research" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <PageBackground variant="cymatics" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">

@@ -30,12 +30,16 @@ interface Star {
   speed: number;
 }
 
+
+import { layoutBgSuppressed } from "@/lib/sceneFlag";
+
+
 export default function PageBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || layoutBgSuppressed.value) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
