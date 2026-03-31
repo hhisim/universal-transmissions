@@ -1050,6 +1050,142 @@ function sceneSymbolism(cx: CanvasRenderingContext2D, W: number, H: number, t: n
   cx.fillStyle = "rgba(200,180,255,0.015)";
   cx.fillRect(0, scanY - 4, W, 8);
 
+  // ── JOURNAL OVERLAY ────────────────────────────────────────
+  // (Keeps existing symbolism BG, adds: comets + neural constellation + gold sweep)
+
+  if (!state._journalInit) {
+    state._journalInit = true;
+    // Streaming comets (always visible, 3 at once)
+    state.comets = Array.from({ length: 3 }, (_, i) => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 6,
+      vy: 2 + Math.random() * 3,
+      tail: [] as { x: number; y: number }[],
+      hue: i % 2 === 0 ? 180 : 280,
+      offset: i * 2,
+    }));
+    // Neural Constellation (cosmic web)
+    state.nodes = Array.from({ length: 15 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: 1.5 + Math.random() * 2.5,
+      pulse: Math.random() * Math.PI * 2,
+      phase: Math.random() * Math.PI * 2,
+    }));
+  }
+
+  // 1. STREAMING COMETS with Heavy Chromatic Aberration
+  for (const comet of state.comets) {
+    comet.x += comet.vx;
+    comet.y += comet.vy;
+
+    if (comet.y > H + 30) { comet.y = -30; comet.x = Math.random() * W; }
+    if (comet.y < -30) { comet.y = H + 30; comet.x = Math.random() * W; }
+    if (comet.x > W + 30) { comet.x = -30; }
+    if (comet.x < -30) { comet.x = W + 30; }
+
+    comet.tail.push({ x: comet.x, y: comet.y });
+    if (comet.tail.length > 20) comet.tail.shift();
+
+    cx.lineCap = "round";
+    for (let i = 0; i < comet.tail.length - 1; i++) {
+      const curr = comet.tail[i];
+      const next = comet.tail[i + 1];
+      const life = i / comet.tail.length;
+      const width = life * 4;
+      const ab = (1 - life) * 5;
+
+      cx.beginPath();
+      cx.moveTo(curr.x - comet.vx * ab * 0.2, curr.y - comet.vy * ab * 0.2);
+      cx.lineTo(next.x - comet.vx * ab * 0.2, next.y - comet.vy * ab * 0.2);
+      cx.strokeStyle = `rgba(255,40,60,${life * 0.5})`;
+      cx.lineWidth = width;
+      cx.stroke();
+
+      cx.beginPath();
+      cx.moveTo(curr.x + comet.vx * ab * 0.15, curr.y + comet.vy * ab * 0.15);
+      cx.lineTo(next.x + comet.vx * ab * 0.15, next.y + comet.vy * ab * 0.15);
+      cx.strokeStyle = `rgba(40,200,255,${life * 0.5})`;
+      cx.lineWidth = width * 0.8;
+      cx.stroke();
+    }
+
+    const g = cx.createRadialGradient(comet.x, comet.y, 0, comet.x, comet.y, 20);
+    g.addColorStop(0, `hsla(${comet.hue},90%,80%,0.9)`);
+    g.addColorStop(0.3, `hsla(${comet.hue},70%,50%,0.4)`);
+    g.addColorStop(1, "transparent");
+    cx.fillStyle = g;
+    cx.fillRect(comet.x - 20, comet.y - 20, 40, 40);
+
+    cx.beginPath();
+    cx.arc(comet.x, comet.y, 2.5, 0, Math.PI * 2);
+    cx.fillStyle = "#fff";
+    cx.fill();
+  }
+
+  // 2. NEURAL CONSTELLATION (Grok's cosmic web aesthetic)
+  for (const node of state.nodes) {
+    node.x += node.vx;
+    node.y += node.vy;
+    node.pulse += 0.03;
+
+    if (node.x < 50 || node.x > W - 50) node.vx *= -1;
+    if (node.y < 50 || node.y > H - 50) node.vy *= -1;
+
+    for (const other of state.nodes) {
+      const dx = other.x - node.x;
+      const dy = other.y - node.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 180 && dist > 10) {
+        const alpha = (1 - dist / 180) * 0.2;
+        const midX = (node.x + other.x) / 2;
+        const midY = (node.y + other.y) / 2;
+
+        cx.beginPath();
+        cx.moveTo(node.x - 2, node.y);
+        cx.quadraticCurveTo(midX - 1, midY, other.x - 2, other.y);
+        cx.strokeStyle = `rgba(255,60,80,${alpha})`;
+        cx.lineWidth = 0.8;
+        cx.stroke();
+
+        cx.beginPath();
+        cx.moveTo(node.x + 2, node.y);
+        cx.quadraticCurveTo(midX + 1, midY, other.x + 2, other.y);
+        cx.strokeStyle = `rgba(60,180,255,${alpha})`;
+        cx.stroke();
+      }
+    }
+
+    const pulseR = node.r * (1 + Math.sin(node.pulse) * 0.2);
+
+    cx.beginPath();
+    cx.arc(node.x - 1.2, node.y, pulseR, 0, Math.PI * 2);
+    cx.fillStyle = "rgba(255,80,100,0.5)";
+    cx.fill();
+
+    cx.beginPath();
+    cx.arc(node.x + 1.2, node.y, pulseR, 0, Math.PI * 2);
+    cx.fillStyle = "rgba(80,255,220,0.5)";
+    cx.fill();
+
+    cx.beginPath();
+    cx.arc(node.x, node.y, pulseR * 0.4, 0, Math.PI * 2);
+    cx.fillStyle = "rgba(255,255,255,0.9)";
+    cx.fill();
+  }
+
+  // 3. Gold scan sweep (journal style — slower, wider)
+  const scanPhase = (t * 0.5) % 8;
+  if (scanPhase < 0.3) {
+    const scanY2 = (scanPhase / 0.3) * H;
+    cx.fillStyle = "rgba(212,168,71,0.015)";
+    cx.fillRect(0, scanY2 - 2, W, 4);
+  }
+
   drawScanCRT(cx, W, H, t);
 
   // Helper for drawing symbol rings
@@ -1192,27 +1328,31 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
   if (!state.init) {
     state.init = true;
     state.drops = makeDrops(W);
-
+    
+    // HARMONIC EMITTERS - Sound sources emitting wave rings
     state.emitters = [
-      { x: W * 0.25, y: H * 0.35, freq: 1.0, hue: 180 },
-      { x: W * 0.75, y: H * 0.65, freq: 1.25, hue: 280 },
-      { x: W * 0.5, y: H * 0.5, freq: 0.8, hue: 60 }
+      { x: W*0.25, y: H*0.35, freq: 1.0, hue: 180 }, // Cyan
+      { x: W*0.75, y: H*0.65, freq: 1.25, hue: 280 }, // Purple  
+      { x: W*0.5, y: H*0.5, freq: 0.8, hue: 60 }   // Gold
     ];
-
+    
+    // CYMATIC GRAINS - Particles forming nodal patterns via interference
     state.grains = Array.from({ length: 50 }, (_, i) => ({
-      baseX: W / 2 + (Math.random() - 0.5) * W * 0.8,
-      baseY: H / 2 + (Math.random() - 0.5) * H * 0.8,
-      ratioX: [3, 4, 5, 6][i % 4],
-      ratioY: [2, 3, 4, 5][(i + 1) % 4],
-      phase: (i / 50) * Math.PI * 2,
+      baseX: W/2 + (Math.random()-0.5)*W*0.8,
+      baseY: H/2 + (Math.random()-0.5)*H*0.8,
+      // Sacred geometry ratios: 3, 4, 5, 6 (cymatic harmonics)
+      ratioX: [3,4,5,6][i%4], 
+      ratioY: [2,3,4,5][(i+1)%4],
+      phase: (i/50) * Math.PI * 2,
       size: 1 + Math.random() * 1.5,
       orbit: 30 + Math.random() * 80
     }));
-
+    
+    // STANDING WAVES - Horizontal resonance lines
     state.strings = Array.from({ length: 6 }, (_, i) => ({
-      y: (H / 7) * (i + 1),
+      y: (H/7) * (i+1),
       harmonics: 2 + i,
-      amp: 6 + i * 2
+      amp: 6 + i*2
     }));
   }
 
@@ -1221,126 +1361,414 @@ function sceneCymatics(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
   // STANDING WAVES - Phase-shifted RGB showing wave propagation
   for (const s of state.strings) {
     const samples = 80;
-
+    
     // RED channel (trails - phase lag)
     cx.beginPath();
-    for (let i = 0; i <= samples; i++) {
-      const x = (i / samples) * W;
+    for (let i=0; i<=samples; i++) {
+      const x = (i/samples) * W;
       const phase = (x * 0.02 * s.harmonics) + (t * 2);
       const y = s.y + Math.sin(phase - 0.4) * s.amp;
-      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+      if (i===0) cx.moveTo(x,y); else cx.lineTo(x,y);
     }
     cx.strokeStyle = 'rgba(255,60,80,0.18)';
     cx.lineWidth = 3;
     cx.stroke();
-
+    
     // BLUE channel (leads - phase advance)
     cx.beginPath();
-    for (let i = 0; i <= samples; i++) {
-      const x = (i / samples) * W;
+    for (let i=0; i<=samples; i++) {
+      const x = (i/samples) * W;
       const phase = (x * 0.02 * s.harmonics) + (t * 2);
       const y = s.y + Math.sin(phase + 0.4) * s.amp;
-      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+      if (i===0) cx.moveTo(x,y); else cx.lineTo(x,y);
     }
     cx.strokeStyle = 'rgba(60,180,255,0.18)';
     cx.lineWidth = 3;
     cx.stroke();
-
+    
     // Sharp center wave (green/cyan)
     cx.beginPath();
-    for (let i = 0; i <= samples; i++) {
-      const x = (i / samples) * W;
+    for (let i=0; i<=samples; i++) {
+      const x = (i/samples) * W;
       const phase = (x * 0.02 * s.harmonics) + (t * 2);
       const y = s.y + Math.sin(phase) * s.amp * 0.8;
-      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+      if (i===0) cx.moveTo(x,y); else cx.lineTo(x,y);
     }
     cx.strokeStyle = 'rgba(100,255,220,0.12)';
     cx.lineWidth = 1;
     cx.stroke();
   }
 
-  // HARMONIC EMITTERS - Expanding rings with extreme chromatic aberration
+  // HARMONIC CONVERGENCE - Expanding rings with extreme chromatic aberration
   for (const em of state.emitters) {
     const interval = 5 / em.freq;
     const progress = (t % interval) / interval;
-
-    for (let i = 0; i < 3; i++) {
-      const ringProg = (progress + i) / 3;
+    
+    // Draw 3 expanding rings per emitter
+    for (let i=0; i<3; i++) {
+      const ringProg = (progress + i) / 3; // 0 to 1
       if (ringProg > 1) continue;
-
-      const r = ringProg * 100;
+      
+      const r = ringProg * 100; // Max radius
       const alpha = 1 - ringProg;
-
+      
       // Outer RED ring (slower velocity - lags behind)
       cx.beginPath();
-      cx.arc(em.x, em.y, r - 4, 0, Math.PI * 2);
+      cx.arc(em.x, em.y, r - 4, 0, Math.PI*2);
       cx.strokeStyle = `rgba(255,40,60,${alpha * 0.3})`;
       cx.lineWidth = 4;
       cx.stroke();
-
+      
       // Inner BLUE ring (faster velocity - leads ahead)
       cx.beginPath();
-      cx.arc(em.x, em.y, r + 4, 0, Math.PI * 2);
+      cx.arc(em.x, em.y, r + 4, 0, Math.PI*2);
       cx.strokeStyle = `rgba(40,180,255,${alpha * 0.3})`;
       cx.lineWidth = 4;
       cx.stroke();
-
+      
       // Sharp center ring (hued)
       cx.beginPath();
-      cx.arc(em.x, em.y, r, 0, Math.PI * 2);
+      cx.arc(em.x, em.y, r, 0, Math.PI*2);
       cx.strokeStyle = `hsla(${em.hue},90%,60%,${alpha * 0.5})`;
       cx.lineWidth = 2;
       cx.stroke();
     }
-
+    
     // Center node glow with RGB bloom
-    const g = cx.createRadialGradient(em.x - 2, em.y, 0, em.x - 2, em.y, 12);
+    const g = cx.createRadialGradient(em.x-2, em.y, 0, em.x-2, em.y, 12);
     g.addColorStop(0, 'rgba(255,100,100,0.6)');
     g.addColorStop(1, 'transparent');
-    cx.fillStyle = g;
-    cx.fillRect(em.x - 14, em.y - 14, 28, 28);
-
-    const g2 = cx.createRadialGradient(em.x + 2, em.y, 0, em.x + 2, em.y, 12);
+    cx.fillStyle = g; cx.fillRect(em.x-12, em.y-12, 24, 24);
+    
+    const g2 = cx.createRadialGradient(em.x+2, em.y, 0, em.x+2, em.y, 12);
     g2.addColorStop(0, 'rgba(100,200,255,0.6)');
     g2.addColorStop(1, 'transparent');
-    cx.fillStyle = g2;
-    cx.fillRect(em.x - 14, em.y - 14, 28, 28);
+    cx.fillStyle = g2; cx.fillRect(em.x-12, em.y-12, 24, 24);
   }
 
   // CYMATIC PARTICLES - Sacred geometry via harmonic interference
   for (const p of state.grains) {
+    // Lissajous/Cymatics math: interference of two frequencies creates nodal patterns
     const ft = t * 0.4 + p.phase;
     const x = p.baseX + Math.sin(ft * p.ratioX * 0.3) * Math.cos(ft * 0.2) * p.orbit;
     const y = p.baseY + Math.cos(ft * p.ratioY * 0.3) * Math.sin(ft * 0.25) * p.orbit;
-
-    const prevX = p.baseX + Math.sin((ft - 0.05) * p.ratioX * 0.3) * Math.cos((ft - 0.05) * 0.2) * p.orbit;
-    const prevY = p.baseY + Math.cos((ft - 0.05) * p.ratioY * 0.3) * Math.sin((ft - 0.05) * 0.25) * p.orbit;
+    
+    // Calculate velocity for motion blur aberration
+    const prevX = p.baseX + Math.sin((ft-0.05) * p.ratioX * 0.3) * Math.cos((ft-0.05) * 0.2) * p.orbit;
+    const prevY = p.baseY + Math.cos((ft-0.05) * p.ratioY * 0.3) * Math.sin((ft-0.05) * 0.25) * p.orbit;
     const vx = x - prevX;
     const vy = y - prevY;
-
+    
+    // Extreme chromatic trail based on velocity vector
     // Red ghost (trails behind motion)
     cx.beginPath();
-    cx.arc(x - vx * 3 - 1, y - vy * 3, p.size, 0, Math.PI * 2);
+    cx.arc(x - vx*3 - 1, y - vy*3, p.size, 0, Math.PI*2);
     cx.fillStyle = 'rgba(255,60,90,0.5)';
     cx.fill();
-
+    
     // Blue ghost (leads ahead)
     cx.beginPath();
-    cx.arc(x + vx * 2 + 1, y + vy * 2, p.size, 0, Math.PI * 2);
+    cx.arc(x + vx*2 + 1, y + vy*2, p.size, 0, Math.PI*2);
     cx.fillStyle = 'rgba(70,200,255,0.5)';
     cx.fill();
-
+    
     // Sharp white core (the "sand" grain)
     cx.beginPath();
-    cx.arc(x, y, p.size * 0.7, 0, Math.PI * 2);
+    cx.arc(x, y, p.size*0.7, 0, Math.PI*2);
     cx.fillStyle = 'rgba(255,255,255,0.95)';
     cx.fill();
   }
 
   // Slow golden scan (research/scanning vibe)
-  const scanY = (t * 0.08) % (H * 1.2) - H * 0.1;
+  const scanY = (t * 0.08) % (H * 1.2) - H*0.1;
   cx.fillStyle = "rgba(212,168,71,0.015)";
   cx.fillRect(0, scanY - 2, W, 4);
+
+  drawScanCRT(cx, W, H, t);
+}
+
+// ============================================================
+// SCENE: GEOMETRY — Infinite Grid + Platonic Solids + Metatron
+// Perspective geometry with depth aberration, 3D wireframes
+// ============================================================
+function sceneGeometry(cx: CanvasRenderingContext2D, W: number, H: number, t: number, state: any) {
+  if (!state.init) {
+    state.init = true;
+    state.drops = makeDrops(W);
+    
+    // INFINITE GRID - Perspective geometry with depth aberration
+    state.gridOffset = 0;
+    
+    // PLATONIC SOLIDS - 3D wireframe sacred geometry
+    state.solids = Array.from({ length: 5 }, (_, i) => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      z: Math.random() * 300 - 150,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      vz: 0.3 + Math.random() * 0.4, // Moving through depth
+      rotX: Math.random() * Math.PI * 2,
+      rotY: Math.random() * Math.PI * 2,
+      rotZ: Math.random() * Math.PI * 2,
+      rotSpeedX: (Math.random() - 0.5) * 0.025,
+      rotSpeedY: (Math.random() - 0.5) * 0.025,
+      rotSpeedZ: (Math.random() - 0.5) * 0.025,
+      type: i % 3, // 0: tetrahedron, 1: cube, 2: octahedron
+      size: 30 + Math.random() * 25
+    }));
+    
+    // METATRON IMPLICATION - Concentric rotating circles (2D representation of cube)
+    state.metatron = {
+      rings: Array.from({ length: 4 }, (_, i) => ({
+        radius: 60 + i * 45,
+        speed: 0.05 * (i % 2 === 0 ? 1 : -1),
+        offset: i * 0.5
+      }))
+    };
+  }
+
+  drawRain(cx, state.drops, H);
+
+  // INFINITE GRID - Perspective tunnel with chromatic depth
+  const vanishX = W/2;
+  const vanishY = H/2;
+  state.gridOffset = (state.gridOffset + 0.8) % 60;
+  
+  // Vertical perspective lines with RGB split
+  for (let i = -8; i <= 8; i++) {
+    const spread = i * 80;
+    
+    // Calculate line endpoints
+    const xNear = vanishX + spread * 3;
+    const yNear = H + 100;
+    const xFar = vanishX + spread * 0.2;
+    const yFar = vanishY;
+    
+    // Aberration increases toward bottom (closer to viewer)
+    const abNear = 8;
+    const abFar = 1;
+    
+    // Red channel (shifted toward bottom-right, "closer")
+    cx.beginPath();
+    cx.moveTo(xNear + abNear, yNear + abNear);
+    cx.lineTo(xFar + abFar, yFar + abFar);
+    cx.strokeStyle = 'rgba(255,60,80,0.15)';
+    cx.lineWidth = 1.5;
+    cx.stroke();
+    
+    // Blue channel (shifted toward top-left, "farther")
+    cx.beginPath();
+    cx.moveTo(xNear - abNear, yNear - abNear * 0.5);
+    cx.lineTo(xFar - abFar, yFar - abFar);
+    cx.strokeStyle = 'rgba(60,180,255,0.15)';
+    cx.stroke();
+    
+    // Sharp center (cyan/white)
+    cx.beginPath();
+    cx.moveTo(xNear, yNear);
+    cx.lineTo(xFar, yFar);
+    cx.strokeStyle = 'rgba(200,230,255,0.08)';
+    cx.lineWidth = 0.8;
+    cx.stroke();
+  }
+  
+  // Horizontal grid lines (moving toward viewer)
+  for (let i = 0; i < 8; i++) {
+    const dist = i / 8; // 0 to 1 (far to near)
+    const yBase = vanishY + (dist * (H - vanishY + 100));
+    const yPos = yBase + state.gridOffset * ((yBase - vanishY) / 200);
+    if (yPos > H + 50 || yPos < vanishY) continue;
+    
+    const width = (yPos - vanishY) * 5;
+    const xStart = vanishX - width/2;
+    const ab = dist * 6; // More aberration when closer
+    
+    // Red (bottom offset)
+    cx.fillStyle = 'rgba(255,60,80,0.12)';
+    cx.fillRect(xStart, yPos + ab - 1, width, 2);
+    
+    // Blue (top offset)
+    cx.fillStyle = 'rgba(60,180,255,0.12)';
+    cx.fillRect(xStart, yPos - ab - 1, width, 2);
+    
+    // Center
+    cx.fillStyle = `rgba(255,255,255,${0.03 + dist * 0.08})`;
+    cx.fillRect(xStart, yPos - 0.5, width, 1);
+  }
+
+  // METATRON'S CUBE IMPLICATION - Rotating concentric circles
+  cx.save();
+  cx.translate(vanishX, vanishY);
+  for (const ring of state.metatron.rings) {
+    const rot = t * ring.speed + ring.offset;
+    const ab = 3; // Aberration for circles
+    
+    // Red (rotates slightly slower)
+    cx.save();
+    cx.rotate(rot - 0.02);
+    cx.translate(ab, 0);
+    cx.beginPath();
+    cx.arc(0, 0, ring.radius, 0, Math.PI*2);
+    cx.strokeStyle = 'rgba(255,60,80,0.2)';
+    cx.lineWidth = 1;
+    cx.stroke();
+    cx.restore();
+    
+    // Blue (rotates slightly faster)
+    cx.save();
+    cx.rotate(rot + 0.02);
+    cx.translate(-ab, 0);
+    cx.beginPath();
+    cx.arc(0, 0, ring.radius, 0, Math.PI*2);
+    cx.strokeStyle = 'rgba(60,180,255,0.2)';
+    cx.stroke();
+    cx.restore();
+    
+    // Sharp center
+    cx.save();
+    cx.rotate(rot);
+    cx.beginPath();
+    cx.arc(0, 0, ring.radius, 0, Math.PI*2);
+    cx.strokeStyle = 'rgba(255,255,255,0.25)';
+    cx.lineWidth = 0.8;
+    cx.stroke();
+    cx.restore();
+    
+    // Radial lines (seed of life pattern)
+    if (state.metatron.rings.indexOf(ring) % 2 === 0) {
+      for (let j=0; j<6; j++) {
+        const angle = (j/6) * Math.PI*2 + rot;
+        cx.beginPath();
+        cx.moveTo(0,0);
+        cx.lineTo(Math.cos(angle)*ring.radius, Math.sin(angle)*ring.radius);
+        cx.strokeStyle = 'rgba(255,255,255,0.05)';
+        cx.stroke();
+      }
+    }
+  }
+  cx.restore();
+
+  // PLATONIC SOLIDS - Wireframes with 3D projection
+  for (const s of state.solids) {
+    // Update
+    s.x += s.vx;
+    s.y += s.vy;
+    s.z -= s.vz; // Toward viewer
+    
+    // Wrap depth
+    if (s.z < -200) {
+      s.z = 300;
+      s.x = Math.random() * W;
+      s.y = Math.random() * H;
+    }
+    if (s.x < -150) s.x = W + 150;
+    if (s.x > W + 150) s.x = -150;
+    if (s.y < -150) s.y = H + 150;
+    if (s.y > H + 150) s.y = -150;
+    
+    s.rotX += s.rotSpeedX;
+    s.rotY += s.rotSpeedY;
+    s.rotZ += s.rotSpeedZ;
+    
+    // 3D projection
+    const project = (x: number, y: number, z: number) => {
+      const scale = 300 / (300 + s.z + z);
+      return {
+        x: s.x + x * scale,
+        y: s.y + y * scale,
+        z: z // Keep Z for edge sorting if needed
+      };
+    };
+    
+    // Vertices for platonic solids
+    let vertices: {x:number,y:number,z:number}[] = [];
+    let edges: number[][] = [];
+    
+    if (s.type === 0) { // Tetrahedron (fire)
+      const r = 20;
+      vertices = [
+        {x:r,y:r,z:r}, {x:r,y:-r,z:-r}, {x:-r,y:r,z:-r}, {x:-r,y:-r,z:r}
+      ];
+      edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+    } else if (s.type === 1) { // Cube (earth)
+      const r = 18;
+      vertices = [
+        {x:-r,y:-r,z:-r}, {x:r,y:-r,z:-r}, {x:r,y:r,z:-r}, {x:-r,y:r,z:-r},
+        {x:-r,y:-r,z:r}, {x:r,y:-r,z:r}, {x:r,y:r,z:r}, {x:-r,y:r,z:r}
+      ];
+      edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+    } else { // Octahedron (air)
+      const r = 25;
+      vertices = [
+        {x:r,y:0,z:0}, {x:-r,y:0,z:0}, {x:0,y:r,z:0}, {x:0,y:-r,z:0}, 
+        {x:0,y:0,z:r}, {x:0,y:0,z:-r}
+      ];
+      edges = [[0,2],[0,3],[0,4],[0,5],[1,2],[1,3],[1,4],[1,5],[2,4],[2,5],[3,4],[3,5]];
+    }
+    
+    // Rotate and project
+    const projVerts = vertices.map(v => {
+      // Rotation matrix applications
+      let x = v.x, y = v.y, z = v.z;
+      
+      // Rotate Y
+      let x1 = x * Math.cos(s.rotY) - z * Math.sin(s.rotY);
+      let z1 = x * Math.sin(s.rotY) + z * Math.cos(s.rotY);
+      x = x1; z = z1;
+      
+      // Rotate X
+      let y1 = y * Math.cos(s.rotX) - z * Math.sin(s.rotX);
+      let z2 = y * Math.sin(s.rotX) + z * Math.cos(s.rotX);
+      y = y1; z = z2;
+      
+      // Rotate Z
+      let x2 = x * Math.cos(s.rotZ) - y * Math.sin(s.rotZ);
+      let y2 = x * Math.sin(s.rotZ) + y * Math.cos(s.rotZ);
+      x = x2; y = y2;
+      
+      return project(x, y, z);
+    });
+    
+    // Draw with chromatic aberration based on depth
+    const depthFactor = Math.max(0, Math.min(1, (s.z + 200) / 400));
+    const ab = depthFactor * 5; // Closer = more separation
+    
+    const drawSolid = (offsetX: number, offsetY: number, color: string, width: number) => {
+      cx.strokeStyle = color;
+      cx.lineWidth = width;
+      cx.beginPath();
+      for (const [i, j] of edges) {
+        const v1 = projVerts[i];
+        const v2 = projVerts[j];
+        if (v1 && v2) {
+          cx.moveTo(v1.x + offsetX, v1.y + offsetY);
+          cx.lineTo(v2.x + offsetX, v2.y + offsetY);
+        }
+      }
+      cx.stroke();
+    };
+    
+    // Red (lags behind rotation, offset)
+    drawSolid(ab, ab, 'rgba(255,60,80,0.35)', 1.5);
+    
+    // Blue (leads rotation, offset)
+    drawSolid(-ab, -ab, 'rgba(60,180,255,0.35)', 1.5);
+    
+    // Sharp center (gold/white)
+    const hue = s.type === 0 ? 40 : (s.type === 1 ? 60 : 180); // Gold, Yellow, Cyan
+    drawSolid(0, 0, `hsla(${hue},90%,70%,0.9)`, 1);
+    
+    // Vertices
+    for (const v of projVerts) {
+      cx.fillStyle = 'rgba(255,255,255,0.9)';
+      cx.fillRect(v.x-1, v.y-1, 2, 2);
+    }
+  }
+
+  // Precision scan line
+  const scanY = (t * 0.06) % (H * 1.2) - H*0.1;
+  cx.fillStyle = "rgba(220,230,255,0.02)";
+  cx.fillRect(0, scanY - 4, W, 8);
 
   drawScanCRT(cx, W, H, t);
 }
@@ -1572,6 +2000,7 @@ const SCENES: Record<string, (cx: CanvasRenderingContext2D, W: number, H: number
   oracle: sceneXenolinguistics,
   xenolinguistics: sceneXenolinguistics,
   cymatics: sceneCymatics,
+  geometry: sceneGeometry,
 };
 
 
