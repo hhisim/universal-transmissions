@@ -54,34 +54,10 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
   const isMobileRef = useRef(false);
   const autoPulseTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Trigger starburst at canvas center
+  // Trigger starburst at canvas center — DISABLED: removed click trigger
   const triggerStarburst = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-    const s = { current: { pulseTime: timeRef.current } };
-    pulseTimeRef.current = timeRef.current;
-    pulseRef.current = true;
-
-    // 80 particles — 30% gold, 70% magenta/cyan
-    for (let i = 0; i < 80; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 6;
-      const isGold = Math.random() > 0.7;
-      particlesRef.current.push({
-        x: cx,
-        y: cy,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1,
-        hue: isGold ? 45 : (280 + Math.random() * 80),
-        size: 1 + Math.random() * 4,
-      });
-    }
-
-    // Screen flash
-    flashAlphaRef.current = 0.25;
+    // Starburst removed from click — homepage no longer triggers on interaction
+    // Kept as no-op to avoid breaking existing call sites
   }, []);
 
   // Init glyph drops
@@ -310,11 +286,10 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       setMouse({ x: (t.clientX - r.left) / r.width, y: (t.clientY - r.top) / r.height });
     }
     function onClick(e: MouseEvent) {
-      // Only trigger if not a drag
-      triggerStarburst();
+      // Click starburst disabled — removed
     }
     function onTouchStart(e: TouchEvent) {
-      triggerStarburst();
+      // Touch starburst disabled — removed
     }
 
     window.addEventListener("mousemove", onMouseMove);
@@ -322,12 +297,12 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     window.addEventListener("click", onClick);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
 
-    // Auto-pulse on mobile every 8s
-    if (isMobileRef.current) {
-      autoPulseTimerRef.current = setInterval(() => {
-        triggerStarburst();
-      }, 8000);
-    }
+    // Auto-pulse removed — no longer using starburst
+    // if (isMobileRef.current) {
+    //   autoPulseTimerRef.current = setInterval(() => {
+    //     triggerStarburst();
+    //   }, 8000);
+    // }
 
     return () => {
       window.removeEventListener("mousemove", onMouseMove);

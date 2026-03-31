@@ -157,6 +157,7 @@ function SignInPageContent() {
                   <Link href="/signup" className="underline underline-offset-2" style={{ color: 'rgba(217,70,239,0.7)' }}>
                     Create one
                   </Link>
+                  {' '}— access the Oracle and member portal.
                 </p>
               </div>
             </div>
@@ -164,8 +165,8 @@ function SignInPageContent() {
 
           <SectionReveal delay={0.2}>
             <div className="mt-8 text-center">
-              <Link href="/sanctum/member/login" className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.25)' }}>
-                ← Store Member Login
+              <Link href="/signup" className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.25)' }}>
+                ← Member Sign In
               </Link>
             </div>
           </SectionReveal>

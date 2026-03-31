@@ -103,6 +103,7 @@ export default function CodexPage() {
     <>
       <Navigation />
       <PageBackground variant="codex" />
+      <PageBackground variant="homepage" opacity={0.4} />
 <main style={{ background: "var(--ut-black)" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}

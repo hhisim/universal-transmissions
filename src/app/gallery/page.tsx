@@ -15,7 +15,8 @@ export default function GalleryPage() {
     <>
       <Navigation />
      
-      <PageBackground variant="gallery" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <PageBackground variant="gallery" />
+      <PageBackground variant="homepage" opacity={0.4} /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           <GalleryClient />
         </div>

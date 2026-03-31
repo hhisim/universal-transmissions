@@ -87,6 +87,7 @@ export default function ResearchPage() {
   return (
     <>
       <PageBackground variant="research" />
+      <PageBackground variant="homepage" opacity={0.4} />
       <Navigation />
       <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
