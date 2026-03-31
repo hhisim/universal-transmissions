@@ -30,12 +30,19 @@ interface Star {
   speed: number;
 }
 
+interface PageBackgroundProps {
+  suppress?: boolean;
+}
+
+// Shared flag: set true by scene PageBackground to kill the ambient layout canvas
+export let layoutBgSuppressed = false;
+
 export default function PageBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || layoutBgSuppressed) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 

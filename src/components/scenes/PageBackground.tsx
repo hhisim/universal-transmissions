@@ -13,6 +13,8 @@
 // ============================================================
 
 import { useEffect, useRef } from "react";
+// Suppress the generic layout canvas when a scene variant is active
+import { layoutBgSuppressed } from "@/components/ui/PageBackground";
 
 // --- Shared glyph set for Zalgo rain (used on ALL pages) ---
 const RAIN_GLYPHS = [
@@ -1588,6 +1590,8 @@ export default function PageBackground({ variant, className = "", opacity = 1 }:
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // Suppress the ambient layout canvas so only the scene renders
+    layoutBgSuppressed = true;
     const cv = canvasRef.current;
     if (!cv) return;
     const cx = cv.getContext("2d");
