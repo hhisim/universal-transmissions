@@ -878,6 +878,309 @@ function sceneResearch(cx: CanvasRenderingContext2D, W: number, H: number, t: nu
 }
 
 // ============================================================
+// SCENE: SYMBOLISM — The Grimoire: Rotating Rings + Manifesting Sigils
+// Concentric symbol rings with RGB chromatic aberration,
+// sacred geometry emerging from chaos, astral particle drift
+// ============================================================
+function sceneSymbolism(cx: CanvasRenderingContext2D, W: number, H: number, t: number, state: any) {
+  if (!state.init) {
+    state.init = true;
+    state.drops = makeDrops(W);
+
+    // THE GRIMOIRE — Concentric rotating symbol rings
+    state.rings = [
+      {
+        radius: 120,
+        speed: 0.2,
+        dir: 1,
+        symbols: ['☉','☽','☿','♀','♂','♃','♄','♅','♆','♇'],
+        hue: 45 // Gold
+      },
+      {
+        radius: 180,
+        speed: 0.15,
+        dir: -1,
+        symbols: ['🜁','🜂','🜃','🜄','🜀','🜁','🜂','🜃'],
+        hue: 280 // Purple
+      },
+      {
+        radius: 240,
+        speed: 0.1,
+        dir: 1,
+        symbols: ['⚫','⚪','⯐','⯑','⯒','⯓','⯔','⯕','⯖','⯗','⯘','⯙'],
+        hue: 180 // Cyan
+      }
+    ];
+
+    // MANIFESTING SIGILS — Emerging sacred geometry
+    state.sigils = Array.from({ length: 5 }, (_, i) => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.008,
+      type: i % 3, // 0: pentacle, 1: hexagram, 2: vesica piscis
+      size: 40 + Math.random() * 30,
+      manifest: Math.random() * Math.PI * 2, // Manifestation phase
+      hue: [280, 200, 60][i % 3]
+    }));
+
+    // ASTRAL DRIFT — Floating particles following symbolic paths
+    state.dust = Array.from({ length: 40 }, () => ({
+      angle: Math.random() * Math.PI * 2,
+      radius: 50 + Math.random() * 250,
+      speed: 0.2 + Math.random() * 0.5,
+      offset: Math.random() * Math.PI * 2
+    }));
+  }
+
+  drawRain(cx, state.drops, H);
+
+  // ASTRAL DRIFT — Background particles on symbol paths
+  cx.fillStyle = 'rgba(255,255,255,0.4)';
+  for (const d of state.dust) {
+    const spin = t * d.speed + d.offset;
+    const x = W/2 + Math.cos(d.angle + spin*0.5) * d.radius;
+    const y = H/2 + Math.sin(d.angle + spin*0.5) * d.radius * 0.6; // Elliptical
+
+    cx.fillStyle = 'rgba(255,100,100,0.2)';
+    cx.fillRect(x-1, y-1, 2, 2);
+    cx.fillStyle = 'rgba(100,200,255,0.2)';
+    cx.fillRect(x+1, y-1, 2, 2);
+    cx.fillStyle = 'rgba(255,255,255,0.6)';
+    cx.fillRect(x, y, 1.5, 1.5);
+  }
+
+  // THE ROTATING GRIMOIRE — Concentric rings with extreme RGB separation
+  cx.save();
+  cx.translate(W/2, H/2);
+
+  for (const ring of state.rings) {
+    const baseRot = t * ring.speed * ring.dir;
+    const abAngle = 0.02;
+
+    // RED channel (rotates slower — trails behind)
+    cx.save();
+    cx.rotate(baseRot - abAngle);
+    drawSymbolRing(cx, ring, 'rgba(255,60,80,0.35)', 2);
+    cx.restore();
+
+    // BLUE channel (rotates faster — leads ahead)
+    cx.save();
+    cx.rotate(baseRot + abAngle);
+    drawSymbolRing(cx, ring, 'rgba(60,180,255,0.35)', 2);
+    cx.restore();
+
+    // SHARP CENTER (true rotation, full opacity)
+    cx.save();
+    cx.rotate(baseRot);
+    drawSymbolRing(cx, ring, `hsla(${ring.hue},90%,70%,0.9)`, 1.5);
+    cx.restore();
+
+    // Connector lines between symbols (interference pattern)
+    cx.strokeStyle = `hsla(${ring.hue},70%,50%,0.05)`;
+    cx.lineWidth = 0.5;
+    for (let i=0; i<ring.symbols.length; i++) {
+      const angle1 = (i/ring.symbols.length) * Math.PI*2 + baseRot;
+      const angle2 = ((i+1)/ring.symbols.length) * Math.PI*2 + baseRot;
+      const x1 = Math.cos(angle1) * ring.radius;
+      const y1 = Math.sin(angle1) * ring.radius;
+      const x2 = Math.cos(angle2) * ring.radius;
+      const y2 = Math.sin(angle2) * ring.radius;
+
+      if (i % 2 === 0) {
+        const chordTarget = ((i+3)%ring.symbols.length)/ring.symbols.length * Math.PI*2 + baseRot;
+        cx.beginPath();
+        cx.moveTo(x1, y1);
+        cx.lineTo(Math.cos(chordTarget)*ring.radius, Math.sin(chordTarget)*ring.radius);
+        cx.stroke();
+      }
+    }
+  }
+
+  // Central bind rune (static with RGB bloom)
+  const centralPulse = 1 + Math.sin(t*2)*0.1;
+
+  cx.fillStyle = 'rgba(255,50,80,0.3)';
+  cx.font = `bold ${60*centralPulse}px serif`;
+  cx.textAlign = 'center';
+  cx.textBaseline = 'middle';
+  cx.fillText('⯝', -3, 0);
+
+  cx.fillStyle = 'rgba(50,180,255,0.3)';
+  cx.fillText('⯝', 3, 0);
+
+  cx.fillStyle = 'rgba(255,255,255,0.95)';
+  cx.shadowColor = 'rgba(255,255,255,0.8)';
+  cx.shadowBlur = 20;
+  cx.fillText('⯝', 0, 0);
+  cx.shadowBlur = 0;
+
+  cx.restore();
+
+  // MANIFESTING SIGILS — Sacred geometry converging from RGB chaos
+  for (const sig of state.sigils) {
+    sig.x += sig.vx;
+    sig.y += sig.vy;
+    sig.rot += sig.rotSpeed;
+    sig.manifest += 0.03;
+
+    if (sig.x < -100) sig.x = W+100;
+    if (sig.x > W+100) sig.x = -100;
+    if (sig.y < -100) sig.y = H+100;
+    if (sig.y > H+100) sig.y = -100;
+
+    const converge = (Math.sin(sig.manifest) + 1) / 2;
+    const maxAb = 15 * (1-converge);
+
+    cx.save();
+    cx.translate(sig.x, sig.y);
+
+    if (sig.type === 0) drawPentacle(cx, sig, maxAb, converge);
+    else if (sig.type === 1) drawHexagram(cx, sig, maxAb, converge);
+    else drawVesica(cx, sig, maxAb, converge);
+
+    cx.restore();
+  }
+
+  const scanY = (t * 0.06) % (H * 1.1) - H*0.05;
+  cx.fillStyle = "rgba(200,180,255,0.015)";
+  cx.fillRect(0, scanY - 4, W, 8);
+
+  drawScanCRT(cx, W, H, t);
+
+  // Helper for drawing symbol rings
+  function drawSymbolRing(cx: CanvasRenderingContext2D, ring: any, color: string, lineWidth: number) {
+    cx.font = `16px serif`;
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillStyle = color;
+
+    for (let i=0; i<ring.symbols.length; i++) {
+      const angle = (i/ring.symbols.length) * Math.PI*2;
+      const x = Math.cos(angle) * ring.radius;
+      const y = Math.sin(angle) * ring.radius;
+
+      cx.save();
+      cx.translate(x, y);
+      cx.rotate(angle + Math.PI/2);
+      cx.fillText(ring.symbols[i], 0, 0);
+      cx.restore();
+    }
+
+    cx.strokeStyle = color;
+    cx.lineWidth = lineWidth;
+    cx.beginPath();
+    cx.arc(0, 0, ring.radius, 0, Math.PI*2);
+    cx.stroke();
+  }
+
+  function drawPentacle(cx: CanvasRenderingContext2D, sig: any, ab: number, converge: number) {
+    const r = sig.size;
+    const rot = sig.rot;
+
+    cx.save();
+    cx.rotate(rot - 0.05*(1-converge));
+    cx.translate(-ab, 0);
+    cx.strokeStyle = `rgba(255,60,80,${0.3 * (1-converge*0.5)})`;
+    cx.lineWidth = 2;
+    drawStar(cx, r, 5);
+    cx.restore();
+
+    cx.save();
+    cx.rotate(rot + 0.05*(1-converge));
+    cx.translate(ab, 0);
+    cx.strokeStyle = `rgba(60,180,255,${0.3 * (1-converge*0.5)})`;
+    drawStar(cx, r, 5);
+    cx.restore();
+
+    cx.rotate(rot);
+    cx.strokeStyle = `hsla(${sig.hue},90%,70%,${0.8 + converge*0.2})`;
+    cx.lineWidth = 1.5;
+    cx.shadowColor = `hsla(${sig.hue},80%,60%,0.6)`;
+    cx.shadowBlur = 10 * converge;
+    drawStar(cx, r, 5);
+    cx.shadowBlur = 0;
+
+    cx.fillStyle = `hsla(${sig.hue},70%,50%,${0.1 + converge*0.2})`;
+    cx.fill();
+  }
+
+  function drawHexagram(cx: CanvasRenderingContext2D, sig: any, ab: number, converge: number) {
+    const r = sig.size * 0.8;
+    const rot = sig.rot;
+
+    for (let i=0; i<2; i++) {
+      const offset = i===0 ? -ab : ab;
+      const color = i===0 ? `rgba(255,60,80,${0.3*(1-converge*0.5)})` : `rgba(60,180,255,${0.3*(1-converge*0.5)})`;
+      const rotOff = i===0 ? -0.04*(1-converge) : 0.04*(1-converge);
+
+      cx.save();
+      cx.rotate(rot + rotOff);
+      cx.translate(offset, 0);
+      cx.strokeStyle = color;
+      cx.lineWidth = 2;
+      drawStar(cx, r, 6);
+      cx.restore();
+    }
+
+    cx.rotate(rot);
+    cx.strokeStyle = `hsla(${sig.hue},90%,75%,0.9)`;
+    cx.lineWidth = 1.5;
+    cx.shadowColor = `hsla(${sig.hue},80%,60%,0.8)`;
+    cx.shadowBlur = 12 * converge;
+    drawStar(cx, r, 6);
+  }
+
+  function drawVesica(cx: CanvasRenderingContext2D, sig: any, ab: number, converge: number) {
+    const r = sig.size * 0.6;
+
+    cx.beginPath();
+    cx.arc(-r/2 - ab, 0, r, 0, Math.PI*2);
+    cx.strokeStyle = `rgba(255,60,80,${0.3*(1-converge*0.5)})`;
+    cx.lineWidth = 2;
+    cx.stroke();
+
+    cx.beginPath();
+    cx.arc(r/2 + ab, 0, r, 0, Math.PI*2);
+    cx.strokeStyle = `rgba(60,180,255,${0.3*(1-converge*0.5)})`;
+    cx.stroke();
+
+    cx.save();
+    cx.rotate(sig.rot);
+    cx.beginPath();
+    cx.arc(-r/2, 0, r, 0, Math.PI*2);
+    cx.strokeStyle = `hsla(${sig.hue},90%,70%,0.6)`;
+    cx.lineWidth = 1;
+    cx.stroke();
+
+    cx.beginPath();
+    cx.arc(r/2, 0, r, 0, Math.PI*2);
+    cx.stroke();
+
+    cx.shadowColor = `hsla(${sig.hue},80%,60%,0.8)`;
+    cx.shadowBlur = 15 * converge;
+    cx.fillStyle = `hsla(${sig.hue},90%,80%,${0.3*converge})`;
+    cx.fill();
+    cx.restore();
+  }
+
+  function drawStar(cx: CanvasRenderingContext2D, r: number, points: number) {
+    cx.beginPath();
+    for (let i=0; i<points*2; i++) {
+      const angle = (i/(points*2)) * Math.PI*2 - Math.PI/2;
+      const radius = i%2===0 ? r : r*0.4;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      if (i===0) cx.moveTo(x,y); else cx.lineTo(x,y);
+    }
+    cx.closePath();
+    cx.stroke();
+  }
+}
+
+// ============================================================
 
 // ============================================================
 // SCENE: CYMATICS — "The Living Wave Field"
@@ -1195,6 +1498,7 @@ const SCENES: Record<string, (cx: CanvasRenderingContext2D, W: number, H: number
   connect: sceneConnect,
   about: sceneAbout,
   research: sceneResearch,
+  symbolism: sceneSymbolism,
   oracle: sceneXenolinguistics,
   xenolinguistics: sceneXenolinguistics,
   cymatics: sceneCymatics,
