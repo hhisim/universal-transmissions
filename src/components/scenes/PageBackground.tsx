@@ -1571,7 +1571,7 @@ const SCENES: Record<string, (cx: CanvasRenderingContext2D, W: number, H: number
   symbolism: sceneSymbolism,
   oracle: sceneXenolinguistics,
   xenolinguistics: sceneXenolinguistics,
-  // cymatics: sceneCymatics, // TEMP: removed for clean build
+  cymatics: sceneCymatics,
 };
 
 
