@@ -83,6 +83,7 @@ function StreamCard({ file, index }: { file: DriveFile; index: number }) {
             src={displayUrl}
             alt={file.name}
             fill
+            unoptimized={true}
             className={`object-cover transition-all duration-700 ${loaded ? "opacity-100 scale-100" : "opacity-0 scale-105"}`}
             onLoad={() => setLoaded(true)}
             onError={() => setError(true)}

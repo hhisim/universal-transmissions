@@ -139,6 +139,7 @@ export default function ProductDetailPage({ params }: Props) {
                     src={p.images[currentImageIndex]}
                     alt={`${p.title} — image ${currentImageIndex + 1}`}
                     fill
+                    unoptimized={true}
                     className="object-cover"
                     priority
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -197,7 +198,7 @@ export default function ProductDetailPage({ params }: Props) {
                           borderColor: idx === currentImageIndex ? "var(--ut-gold)" : "rgba(212,168,71,0.15)",
                         }}
                       >
-                        <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                        <Image src={img} alt="" fill unoptimized={true} className="object-cover" sizes="80px" />
                       </button>
                     ))}
                   </div>

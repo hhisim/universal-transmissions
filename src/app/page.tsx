@@ -143,6 +143,7 @@ export default function HomePage() {
                         src={artwork.images[0]}
                         alt={artwork.title}
                         fill
+                        unoptimized={true}
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 50vw"
                       />
@@ -187,6 +188,7 @@ export default function HomePage() {
                         src={artwork.images[0]}
                         alt={artwork.title}
                         fill
+                        unoptimized={true}
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 50vw"
                       />

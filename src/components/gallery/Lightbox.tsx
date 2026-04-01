@@ -44,6 +44,7 @@ export default function Lightbox({ images, title }: LightboxProps) {
           src={images[0]}
           alt={title}
           fill
+          unoptimized={true}
           className="object-cover chromatic-hover"
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"

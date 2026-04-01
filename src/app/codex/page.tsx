@@ -234,6 +234,7 @@ export default function CodexPage() {
                     src="https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716030627-DA8VQAVV957PCTDR65HG/07+-+web.jpg"
                     alt="Universal Transmissions Codex — Volume I"
                     fill
+                    unoptimized={true}
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
@@ -280,6 +281,7 @@ export default function CodexPage() {
                       src={src}
                       alt={`Codex spread ${i + 1}`}
                       fill
+                      unoptimized={true}
                       className="object-cover"
                       sizes="25vw"
                     />

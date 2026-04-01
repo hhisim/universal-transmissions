@@ -78,7 +78,7 @@ export default function ProductDetailPage({ params }: Props) {
             {/* Image */}
             <SectionReveal direction="left">
               <div className="relative aspect-square glow-border-gold" style={{ borderColor: "rgba(212,168,71,0.2)" }}>
-                <Image src={product.images[0]} alt={product.title} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
+                <Image src={product.images[0]} alt={product.title} fill unoptimized={true} className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
               </div>
             </SectionReveal>
 
