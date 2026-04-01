@@ -59,6 +59,12 @@ const HERO_IMAGES: Record<string, string> = {
   "work-in-progress": "/journal/work-in-progress-1.jpg",
   "working-on-the-5th-chakra": "/journal/working-on-the-5th-chakra-1.jpg",
   "xl-tapestries-now-added-to-the-store": "/journal/xl-tapestries-now-added-to-the-store-1.jpg",
+  "five-tibetans-ancient-rites-of-rejuvenation": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074434/voa/heroes/five-tibetans-hero.png",
+  "dreamwalker-lucid-dreaming-astral-projection": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074439/voa/heroes/dreamwalker-hero.png",
+  "i-ching-ancient-oracle-of-change": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074444/voa/heroes/i-ching-hero.png",
+  "the-kybalion-7-principles-hermetic-philosophy": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074449/voa/heroes/kybalion-hero.png",
+  "kundalini-shakti-serpent-power-western-science": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074455/voa/heroes/kundalini-hero.png",
+  "ra-material-law-of-one-channeled-cosmology": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074487/voa/heroes/ra-material-hero.png",
 };
 
 const ALL_YEARS = ['2026', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017'];
