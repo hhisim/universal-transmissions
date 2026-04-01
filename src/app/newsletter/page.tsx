@@ -78,7 +78,7 @@ function NewsletterPageContent() {
               {status === 'success' ? (
                 <div className="text-center py-8">
                   <div className="font-display text-2xl mb-4" style={{ color: 'var(--ut-cyan)' }}>
-                    <ZalgoText text="You're in the signal." intensity="light" />
+                    <ZalgoText text="You're in the signal." intensity="moderate" />
                   </div>
                   <p className="font-body text-sm" style={{ color: 'rgba(237,233,246,0.6)' }}>
                     Welcome. The frequency is strong with this one.
