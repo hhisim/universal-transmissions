@@ -154,7 +154,7 @@ function NewsletterPageContent() {
                 {[
                   { label: 'New Work', desc: 'Artwork reveals, Codex pages, behind the process' },
                   { label: 'Knowledge', desc: 'Journal articles, esoteric research, oracle insights' },
-                  { label: 'First Access', desc: 'Early notice of drops, collaborations, and what's next' },
+                  { label: 'First Access', desc: "Early notice of drops, collaborations, and what's next" },
                 ].map(item => (
                   <div key={item.label} className="p-4 text-center" style={{ border: '1px solid rgba(217,70,239,0.08)', borderRadius: '8px' }}>
                     <p className="font-mono text-xs mb-1" style={{ color: 'var(--ut-gold)' }}>{item.label}</p>
