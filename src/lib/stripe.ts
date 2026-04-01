@@ -15,5 +15,4 @@ export function getStripe(): Stripe {
   return stripeClient
 }
 
-// Alias for existing code that imports `stripe`
-export const stripe = getStripe()
+
