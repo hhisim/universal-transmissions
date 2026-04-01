@@ -65,6 +65,16 @@ const HERO_IMAGES: Record<string, string> = {
   "the-kybalion-7-principles-hermetic-philosophy": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074449/voa/heroes/kybalion-hero.png",
   "kundalini-shakti-serpent-power-western-science": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074455/voa/heroes/kundalini-hero.png",
   "ra-material-law-of-one-channeled-cosmology": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074487/voa/heroes/ra-material-hero.png",
+  "2026-03-19-dmt-as-the-orthogonal-api-key": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075645/voa/heroes/dmt-orthogonal-key.png",
+  "2026-03-19-the-cosmic-sandbox": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075649/voa/heroes/cosmic-sandbox.png",
+  "linguistics-2026-03-19-reality-as-syntax": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075406/voa/heroes/reality-as-syntax.png",
+  "gnosticism-archive-of-light-architecture-divine-spark": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075657/voa/heroes/gnosticism-hero.png",
+  "sufism-the-path-of-divine-love": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075660/voa/heroes/sufism-hero.png",
+  "tarot-symbolic-machine-for-fate": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075665/voa/heroes/tarot-hero.png",
+  "alchemy-of-soul-magnum-opus": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075671/voa/heroes/alchemy-soul-hero.png",
+  "enochian-angelic-language-modern-occultism": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075675/voa/heroes/enochian-hero.png",
+  "sexual-alchemy-taoist-tradition": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075679/voa/heroes/sexual-alchemy-hero.png",
+  "taoism-quantum-physics-controversy": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075684/voa/heroes/taoism-quantum-hero.png",
 };
 
 const ALL_YEARS = ['2026', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017'];
@@ -267,6 +277,7 @@ export default function JournalPage() {
 // ─── Post Card ─────────────────────────────────────────────────────────────────
 
 function PostCard({ post, heroImage }: { post: (typeof blogPosts)[0]; heroImage?: string }) {
+  const [imgError, setImgError] = useState(false);
   const gradientMap: Record<string, string> = {
     "from-fuchsia-900 via-violet-900 to-black": "from-fuchsia-900/60 via-violet-900/40 to-transparent",
     "from-cyan-950 via-blue-950 to-black": "from-cyan-950/60 via-blue-950/40 to-transparent",
@@ -298,13 +309,15 @@ function PostCard({ post, heroImage }: { post: (typeof blogPosts)[0]; heroImage?
     <Link href={`/journal/${post.slug}`} className="ut-card block overflow-hidden group" style={{ padding: 0 }}>
       {/* Hero image or gradient band */}
       <div className="h-40 relative overflow-hidden">
-        {heroImage ? (
+        {heroImage && !imgError ? (
           <Image
             src={heroImage}
             alt={post.title}
             fill
             className="object-cover object-center"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            unoptimized={true}
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className={`absolute inset-0 bg-gradient-to-br ${cardGradient}`} />

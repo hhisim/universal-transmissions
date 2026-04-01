@@ -125,7 +125,7 @@ export default function PostClient({ slug }: { slug: string }) {
 
   const related = getRelatedPosts(post.slug, 3);
   const headings = extractHeadings(post.content);
-  const heroImage = extractFirstImage(post.content);
+  const heroImage = post.heroImage ?? extractFirstImage(post.content);
 
   const idx = blogPosts.findIndex((p) => p.slug === post.slug);
   const prevPost = idx > 0 ? blogPosts[idx - 1] : null;
@@ -171,6 +171,7 @@ export default function PostClient({ slug }: { slug: string }) {
                 src={heroImage}
                 alt=""
                 fill
+                unoptimized={true}
                 className="object-cover object-center"
                 sizes="100vw"
                 priority

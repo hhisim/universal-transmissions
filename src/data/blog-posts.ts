@@ -10,6 +10,7 @@ export interface BlogPost {
   hero_gradient: string;
   tags: string[];
   tradition?: string;
+  heroImage?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   content: any;
 }
@@ -634,6 +635,7 @@ export const blogPosts: BlogPost[] = [
   // ── 2026 New Transmissions ───────────────────────────────────────────────────────
   {
     slug: "2026-03-19-dmt-as-the-orthogonal-api-key",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075645/voa/heroes/dmt-orthogonal-key.png",
     title: "DMT as the Orthogonal API Key",
     publishedAt: "2026-03-19",
     author: "Prime + Hakan",
@@ -646,6 +648,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "2026-03-19-the-cosmic-sandbox",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075649/voa/heroes/cosmic-sandbox.png",
     title: "The Cosmic Sandbox: Reality's Undefined Behavior",
     publishedAt: "2026-03-19",
     author: "Prime + Hakan",
@@ -658,6 +661,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "linguistics-2026-03-19-reality-as-syntax",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075406/voa/heroes/reality-as-syntax.png",
     title: "Reality as Syntax: When Language Becomes the Architecture of Perception",
     publishedAt: "2026-03-19",
     author: "Prime + Hakan",
@@ -682,6 +686,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "gnosticism-archive-of-light-architecture-divine-spark",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075657/voa/heroes/gnosticism-hero.png",
     title: "Gnosticism: The Archive of Light and the Architecture of the Divine Spark",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
@@ -718,6 +723,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "sufism-the-path-of-divine-love",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075660/voa/heroes/sufism-hero.png",
     title: "Sufism: The Path of Divine Love - From Rumi to the Whirling Dervishes",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
@@ -742,6 +748,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "tarot-symbolic-machine-for-fate",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075665/voa/heroes/tarot-hero.png",
     title: "Tarot: The Symbolic Machine for Fate and Self-Discovery",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
@@ -754,6 +761,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "alchemy-of-soul-magnum-opus",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075671/voa/heroes/alchemy-soul-hero.png",
     title: "Alchemy of the Soul: The Magnum Opus from Nigredo to Rubedo",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
@@ -778,6 +786,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "enochian-angelic-language-modern-occultism",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075675/voa/heroes/enochian-hero.png",
     title: "Enochian: Angelic Language and the Modern Occult Revival",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
@@ -790,7 +799,8 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "sexual-alchemy-taoist-tradition",
-    title: "Sexual Alchemy in Taoist Tradition: A Comprehensive Guide to Nei Dan",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075679/voa/heroes/sexual-alchemy-hero.png",
+    title: "Sexual Alchemy: The Taoist Art of Cultivating Sexual Energy",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
     excerpt: "Nei Dan - the internal elixir. The Three Treasures (Jing, Qi, Shen), the Microcosmic Orbit, and the Dragon-Tiger Copulation. Forbidden knowledge of the Orient.",
@@ -802,7 +812,8 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "taoism-quantum-physics-controversy",
-    title: "Taoism and Quantum Physics: The Real Parallels and Where Pop-Spirituality Gets It Wrong",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075684/voa/heroes/taoism-quantum-hero.png",
+    title: "Taoism and Quantum Physics: The Controversy of a Deeper Reality",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
     excerpt: "Fritjof Capra's 'Tao of Physics' - where the genuine parallels between Wu and quantum vacuum truly lie, and why 'Capraism' is intellectually reckless.",
