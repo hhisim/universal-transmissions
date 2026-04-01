@@ -64,7 +64,7 @@ function NewsletterPageContent() {
                 [ The Signal ]
               </p>
               <h1 className="font-display text-3xl md:text-4xl mb-4">
-                <ZalgoText text="Join the Transmission" intensity="light" />
+                <ZalgoText text="Join the Transmission" intensity="moderate" />
               </h1>
               <p className="font-body text-base" style={{ color: 'rgba(237,233,246,0.45)' }}>
                 Occasional dispatches from Universal Transmissions.<br />
