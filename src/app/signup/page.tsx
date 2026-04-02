@@ -194,6 +194,12 @@ function SignupPageContent() {
                     Sign in
                   </Link>
                 </p>
+                <p className="font-body text-xs mt-4" style={{ color: 'rgba(237,233,246,0.25)' }}>
+                  Not sure what to ask?{' '}
+                  <Link href="/inquiry" className="underline underline-offset-2" style={{ color: 'rgba(212,168,71,0.55)' }}>
+                    See example prompts
+                  </Link>
+                </p>
               </div>
             </div>
           </SectionReveal>
