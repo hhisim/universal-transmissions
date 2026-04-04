@@ -8,6 +8,8 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import UTTVPlayer from "@/components/gallery/UTTVPlayer";
 import TransmissionStream from "@/components/gallery/TransmissionStream";
 import DriveGrid from "@/components/gallery/DriveGrid";
+import LikeButton from "@/components/ui/LikeButton";
+import CommentSection from "@/components/ui/CommentSection";
 import { artworks } from "@/data/artworks";
 
 const FILTERS = [
@@ -144,11 +146,9 @@ export default function GalleryClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredArtworks.map((artwork, i) => (
               <SectionReveal key={artwork.id} delay={i * 0.08}>
-                <Link
-                  href={`/gallery/${artwork.slug}`}
-                  className="artwork-card ut-card block overflow-hidden group"
-                >
-                  <div className="relative aspect-[4/5] overflow-hidden">
+                <div className="artwork-card ut-card overflow-hidden group">
+                  {/* Image wrapped in Link */}
+                  <Link href={`/gallery/${artwork.slug}`} className="block relative aspect-[4/5] overflow-hidden">
                     <Image
                       src={artwork.images[0]}
                       alt={artwork.title}
@@ -164,21 +164,28 @@ export default function GalleryClient() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </Link>
+                  {/* Card content + like */}
                   <div className="p-5">
-                    <h2 className="font-heading text-base tracking-wider mb-1" style={{ color: "var(--ut-white)" }}>
-                      {artwork.title}
-                    </h2>
-                    <p className="font-mono text-[10px] mb-2" style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h2 className="font-heading text-base tracking-wider leading-snug" style={{ color: "var(--ut-white)" }}>
+                        <Link href={`/gallery/${artwork.slug}`} className="hover:text-[var(--ut-magenta)] transition-colors">
+                          {artwork.title}
+                        </Link>
+                      </h2>
+                      <LikeButton itemId={`gallery-${artwork.slug}`} />
+                      <CommentSection itemId={`gallery-${artwork.slug}`} itemType="gallery" />
+                    </div>
+                    <p className="font-mono text-[10px]" style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}>
                       {artwork.medium} · {artwork.year}
                     </p>
                     {artwork.available && artwork.price && (
-                      <p className="font-mono text-xs" style={{ color: "var(--ut-gold)" }}>
+                      <p className="font-mono text-xs mt-2" style={{ color: "var(--ut-gold)" }}>
                         From ${artwork.price}
                       </p>
                     )}
                   </div>
-                </Link>
+                </div>
               </SectionReveal>
             ))}
           </div>

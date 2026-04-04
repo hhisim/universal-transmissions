@@ -8,6 +8,8 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
+import LikeButton from "@/components/ui/LikeButton";
+import CommentSection from "@/components/ui/CommentSection";
 import { blogPosts, getAllTags } from "@/data/blog-posts";
 
 const POSTS_PER_PAGE = 12;
@@ -357,11 +359,15 @@ function PostCard({ post, heroImage }: { post: (typeof blogPosts)[0]; heroImage?
             </span>
           ))}
         </div>
-        {/* Arrow */}
-        <div className="mt-3 text-right">
+        {/* Arrow + Like */}
+        <div className="mt-3 flex items-center justify-between">
           <span className="font-mono text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--ut-cyan)" }}>
             Read →
           </span>
+          <div onClick={(e) => e.preventDefault()}>
+            <LikeButton itemId={`journal-${post.slug}`} />
+            <CommentSection itemId={`journal-${post.slug}`} itemType="journal" />
+          </div>
         </div>
       </div>
     </Link>
