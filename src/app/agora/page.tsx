@@ -198,8 +198,9 @@ export default function AgoraPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {CATEGORIES.map((cat, i) => (
                   <SectionReveal key={cat.slug} delay={i * 0.05}>
-                    <div
-                      className="ut-card p-6 cursor-pointer group"
+                    <Link
+                      href={`/agora/${cat.slug}`}
+                      className="ut-card p-6 cursor-pointer group block"
                       style={{ border: "1px solid rgba(217,70,239,0.08)" }}
                     >
                       <div className="flex items-start gap-4">
@@ -230,7 +231,7 @@ export default function AgoraPage() {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </SectionReveal>
                 ))}
               </div>
