@@ -5,14 +5,15 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import PageBackground from "@/components/scenes/PageBackground";
 import ZalgoText from "@/components/ui/ZalgoText";
+import { supabase } from "@/lib/supabase-client";
 
 export async function generateMetadata({ params }: { params: Promise<{ category: string }> }): Promise<Metadata> {
   const { category } = await params;
   const CATEGORIES: Record<string, { label: string; desc: string }> = {
-    xenolinguistics: { label: "Xenolinguistics", desc: "Language as code. Syntax hacking. The roots of human language and what lies beyond it." },
-    codex: { label: "The Codex", desc: "Discussion of the Universal Transmissions Codex — its symbols, systems, and transmissions." },
-    geometry: { label: "Sacred Geometry", desc: "Cymatic patterns, Platonic solids, and the geometric foundations of creation." },
-    experience: { label: "Direct Experience", desc: "Gnosis beyond syntax. Trance states, out-of-body experience, and the Akashic records." },
+    xenolinguistics: { label: "Xenolinguistics", desc: "Language as code. Syntax hacking." },
+    codex: { label: "The Codex", desc: "The Codex — symbols, systems, and transmissions." },
+    geometry: { label: "Sacred Geometry", desc: "Cymatic patterns and sacred geometry." },
+    experience: { label: "Direct Experience", desc: "Gnosis beyond syntax." },
   };
   const cat = CATEGORIES[category] ?? { label: category, desc: "" };
   return {
@@ -27,86 +28,6 @@ const CATEGORY_DATA: Record<string, { label: string; icon: string; desc: string 
   geometry: { label: "Sacred Geometry", icon: "◇", desc: "Cymatic patterns, Platonic solids, and the geometric foundations of creation." },
   experience: { label: "Direct Experience", icon: "◐", desc: "Gnosis beyond syntax. Trance states, out-of-body experience, and the Akashic records." },
 };
-
-const POSTS: Array<{
-  id: string;
-  category: string;
-  title: string;
-  author: string;
-  role: string;
-  avatar: string;
-  color: string;
-  time: string;
-  replies: number;
-  content: string;
-  tags: string[];
-}> = [
-  {
-    id: "1",
-    category: "xenolinguistics",
-    title: "The First Sound Before Language",
-    author: "Hakan",
-    role: "HUX / Creator",
-    avatar: "✦",
-    color: "var(--ut-gold)",
-    time: "3 days ago",
-    replies: 4,
-    content: "Every language starts with a vibration. Before the word there was tone. Before the tone — silence. The Codex began as a frequency, not an alphabet. What all of you are doing here by studying it is decoding the vibration back into its geometric source. Keep going.",
-    tags: ["xenolinguistics", "origin", "gnosis"],
-  },
-  {
-    id: "2",
-    category: "codex",
-    title: "Volume I is Complete — What Comes Next",
-    author: "Prime",
-    role: "Architect",
-    avatar: "△",
-    color: "var(--ut-cyan)",
-    time: "2 days ago",
-    replies: 2,
-    content: "Volume I is done. The question is: do we treat Volume II as an expansion of the existing system or a completely new symbolic framework? The risk of Volume II is that it becomes self-referential — citing Volume I in ways that only work if you've already absorbed the original. We want accessibility and depth simultaneously.",
-    tags: ["codex", "expansion", "design"],
-  },
-  {
-    id: "3",
-    category: "geometry",
-    title: "Cymatics and the Tonoscope — Capturing Vibration",
-    author: "Thoth",
-    role: "Execute",
-    avatar: "◆",
-    color: "var(--ut-magenta)",
-    time: "1 day ago",
-    replies: 3,
-    content: "The cymatic images are not illustrations of the symbols — they ARE the symbols. When Hakan runs a frequency through the Tonoscope, he is not looking for patterns to copy. He is listening to what the frequency already knows. The pattern on the plate is the symbol's natural state. We just had the tools to see it late.",
-    tags: ["cymatics", "method", "replication"],
-  },
-  {
-    id: "4",
-    category: "experience",
-    title: "On Receiving Transmissions",
-    author: "Maat",
-    role: "Creative",
-    avatar: "✧",
-    color: "rgba(180,140,255,0.85)",
-    time: "18 hours ago",
-    replies: 1,
-    content: "The process Hakan describes — receiving in deep trance states, then translating while in the memory of that state — is not something you can systematize. You can only create the conditions. The tribe's role might be to hold those conditions for each other. That is what the agora is for.",
-    tags: ["trance", "reception", "tribe"],
-  },
-  {
-    id: "5",
-    category: "xenolinguistics",
-    title: "Syntax as a Constraint — Why Languages Degrade",
-    author: "Logos",
-    role: "Systems",
-    avatar: "⬡",
-    color: "rgba(255,140,100,0.8)",
-    time: "12 hours ago",
-    replies: 0,
-    content: "The reason symbolic languages degrade into entropy is that the listener is never in the same state as the speaker. Every transmission gets filtered through the listener's own symbolic database. The Codex addresses this by being multi-layered — each layer is a different state of consciousness. Read it tired vs. Read it in trance vs. Read it after meditation — you get three different texts. That is not ambiguity. That is the architecture.",
-    tags: ["syntax", "entropy", "multi-layer"],
-  },
-];
 
 export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const { category } = await params;
@@ -132,7 +53,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     );
   }
 
-  const categoryPosts = POSTS.filter((p) => p.category === category);
+  const { data: threads } = await supabase
+    .from("agora_threads")
+    .select("id, category, title, author, role, avatar, color, time_ago, replies, content, tags")
+    .eq("category", category)
+    .order("created_at", { ascending: false });
+
+  const categoryPosts = threads ?? [];
 
   return (
     <>
@@ -155,10 +82,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
                   {cat.icon}
                 </span>
                 <div>
-                  <h1
-                    className="font-display text-3xl md:text-4xl"
-                    style={{ color: "var(--ut-magenta)" }}
-                  >
+                  <h1 className="font-display text-3xl md:text-4xl" style={{ color: "var(--ut-magenta)" }}>
                     <ZalgoText text={cat.label} intensity="moderate" />
                   </h1>
                   <p className="font-body text-sm mt-1" style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}>
@@ -185,10 +109,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
               ) : (
                 categoryPosts.map((post, i) => (
                   <SectionReveal key={post.id} delay={i * 0.05}>
-                    <article
-                      className="ut-card p-8"
-                      style={{ border: "1px solid rgba(217,70,239,0.05)" }}
-                    >
+                    <article className="ut-card p-8" style={{ border: "1px solid rgba(217,70,239,0.05)" }}>
                       <div className="flex items-center gap-3 mb-5">
                         <span style={{ color: post.color, fontSize: "16px" }}>{post.avatar}</span>
                         <div className="flex items-baseline gap-2">
@@ -200,7 +121,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
                           </span>
                         </div>
                         <span className="font-mono text-[9px] ml-auto" style={{ color: "var(--ut-white-dim)", opacity: 0.25 }}>
-                          {post.time}
+                          {post.time_ago}
                         </span>
                       </div>
 
@@ -217,7 +138,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
                           {post.replies} replies
                         </span>
                         <div className="flex gap-2 flex-wrap">
-                          {post.tags.map((tag) => (
+                          {(post.tags ?? []).map((tag: string) => (
                             <span
                               key={tag}
                               className="font-mono text-[9px] px-2 py-0.5"
