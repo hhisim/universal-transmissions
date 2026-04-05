@@ -11,15 +11,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing item_type or item_id" }, { status: 400 });
   }
 
-  // Get total like count
-  const { data: countData, error: countError } = await supabaseAdmin
-    .from("ut_likes_count")
-    .select("like_count")
+  // Get total like count — use direct count query (view may not be in PostgREST schema cache)
+  const { count: likeCount } = await supabaseAdmin
+    .from("ut_likes")
+    .select("*", { count: "exact", head: true })
     .eq("item_type", itemType)
-    .eq("item_id", itemId)
-    .single();
-
-  const likeCount = countData?.like_count ?? 0;
+    .eq("item_id", itemId);
 
   // Check if this visitor has liked
   let userLiked = false;
