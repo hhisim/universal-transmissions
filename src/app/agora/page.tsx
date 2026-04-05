@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
