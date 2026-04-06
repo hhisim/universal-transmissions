@@ -30,6 +30,7 @@ import tarot_raw from "./blog-content/2026-03-21/tarot-symbolic-machine-for-fate
 import alchemy_raw from "./blog-content/2026-03-21/alchemy-of-soul-magnum-opus.md";
 import tibetans_raw from "./blog-content/2026-03-21/five-tibetans-ancient-rites-of-rejuvenation.md";
 import enochian_raw from "./blog-content/2026-03-21/enochian-angelic-language-modern-occultism.md";
+import yugen_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
 import sexualAlchemy_raw from "./blog-content/Tao/sexual-alchemy-taoist-tradition.md";
 import taoQuantum_raw from "./blog-content/Tao/taoism-quantum-physics-controversy.md";
 import adding_new_transmissions_soon_raw from "./blog-content/old-squarespace/adding-new-transmissions-soon.md";
@@ -683,6 +684,17 @@ export const blogPosts: BlogPost[] = [
     tags: ["lucid-dreaming", "astral-projection", "dream-yoga", "consciousness", "monroe"],
     tradition: "dream-yoga",
     content: stripFrontmatter(dreamwalker_raw),
+  },
+  {
+    slug: "yugen-kolm-album-artwork",
+    title: "YÜGEN — Album Artwork for Kolm",
+    publishedAt: "2026-04-06",
+    author: "Hakan Hisim",
+    readTime: "1 min",
+    heroImage: "https://www.universal-transmissions.com/email/yugen-kolm.jpg",
+    tags: ["kolm", "yugen", "art", "album"],
+    tradition: "artwork",
+    content: stripFrontmatter(yugen_raw),
   },
   {
     slug: "gnosticism-archive-of-light-architecture-divine-spark",
