@@ -22,10 +22,10 @@ export const metadata: Metadata = {
 };
 
 const featuredArtworks = [
+  artworks.find((a) => a.slug === "yugen")!,
   artworks.find((a) => a.slug === "crown-chakra")!,
   artworks.find((a) => a.slug === "prismatic-equation")!,
   artworks.find((a) => a.slug === "twilight-pantheism")!,
-  artworks.find((a) => a.slug === "vitruvian-spirit")!,
 ]
 
 export default function HomePage() {

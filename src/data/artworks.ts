@@ -589,6 +589,21 @@ export const artworks: Artwork[] = [
     tags: ["prismatic", "innerstellar", "telemetry", "consciousness", "cartography", "psyche"],
     featured: false,
   },
+  {
+    id: 'kolm-001',
+    slug: 'yugen',
+    title: 'YUGEN — Album Artwork for Kolm',
+    year: 2025,
+    medium: 'Digital Art',
+    description: 'Cover artwork for Kolms album Yugen. Translating their unique sound into a visual transmission.',
+    images: ["/yugen/main.jpg"],
+    detailImages: [],
+    available: true,
+    prints: false,
+    tags: ['kolm', 'yugen', 'album'],
+    featured: true,
+  },
+
 
 ];
 
