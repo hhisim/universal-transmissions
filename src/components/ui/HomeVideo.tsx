@@ -41,7 +41,7 @@ export default function HomeVideo() {
     <div className="video-wrapper">
       <a href="https://kolm.bandcamp.com/album/yugen" target="_blank" rel="noopener noreferrer" style={{ display: "block", width: "100%", height: "100%" }}>
         <img
-          src="https://res.cloudinary.com/dvkxsh4ve/image/upload/w_1200,h_1200,c_fill/v1774508909/KOLM_Yugen_Artwork_-_HAKAN_HISIM_newsletter.jpg"
+          src="https://www.universal-transmissions.com/email/yugen-kolm.jpg"
           alt="YUGEN — Album Artwork for Kolm"
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
