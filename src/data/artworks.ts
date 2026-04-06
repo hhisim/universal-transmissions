@@ -596,7 +596,7 @@ export const artworks: Artwork[] = [
     year: 2025,
     medium: 'Digital Art',
     description: 'Cover artwork for Kolms album Yugen. Translating their unique sound into a visual transmission.',
-    images: [/yugen/main.jpg],
+    images: [`${BASE}/yugen/main.jpg`],
     detailImages: [],
     available: true,
     prints: false,
