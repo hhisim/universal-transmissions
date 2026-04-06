@@ -694,6 +694,8 @@ export const blogPosts: BlogPost[] = [
     heroImage: "https://www.universal-transmissions.com/artworks/yugen/main.jpg",
     tags: ["kolm", "yugen", "art", "album"],
     tradition: "artwork",
+    excerpt: "The cover artwork for Kolm's new album Yügen — translating their unique sound into a visual representation and motion was incredibly inspiring.",
+    hero_gradient: "from-purple-950 via-fuchsia-900 to-black",
     content: stripFrontmatter(yugen_raw),
   },
   {
