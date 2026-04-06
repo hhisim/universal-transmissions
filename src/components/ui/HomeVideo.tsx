@@ -39,13 +39,16 @@ export default function HomeVideo() {
 
   return (
     <div className="video-wrapper">
-      <a href="https://kolm.bandcamp.com/album/yugen" target="_blank" rel="noopener noreferrer" style={{ display: "block", width: "100%", height: "100%" }}>
-        <img
-          src="https://res.cloudinary.com/dvkxsh4ve/image/upload/w_1200,h_1200,c_fill/v1774508909/KOLM_Yugen_Artwork_-_HAKAN_HISIM_newsletter.jpg"
-          alt="YUGEN — Album Artwork for Kolm"
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-      </a>
+      <video
+        ref={videoRef}
+        src="https://res.cloudinary.com/dvkxsh4ve/video/upload/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        onClick={togglePlay}
+      />
       <div
         style={{
           position: "absolute",
