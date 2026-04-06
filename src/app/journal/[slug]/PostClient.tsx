@@ -8,6 +8,8 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
+import LikeButton from "@/components/ui/LikeButton";
+import CommentSection from "@/components/ui/CommentSection";
 import { blogPosts, getPostBySlug, getRelatedPosts, type BlogPost } from "@/data/blog-posts";
 import { extractFirstImage } from "@/data/blog-posts";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -310,6 +312,14 @@ export default function PostClient({ slug }: { slug: string }) {
                     {copied ? "Copied!" : "Copy Link"}
                   </button>
                 </div>
+              </SectionReveal>
+
+              {/* Like + Comments */}
+              <SectionReveal delay={0.25}>
+                <div className="flex items-center gap-4 mt-8">
+                  <LikeButton itemId={`journal-${post.slug}`} />
+                </div>
+                <CommentSection itemId={`journal-${post.slug}`} />
               </SectionReveal>
 
               {/* Prev / Next */}

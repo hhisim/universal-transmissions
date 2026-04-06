@@ -8,6 +8,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks, getArtwork } from "@/data/artworks";
 import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
+import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import PageBackground from "@/components/scenes/PageBackground";
 
 interface Props {
@@ -127,7 +128,7 @@ export default function ArtworkDetailPage({ params }: Props) {
                 </p>
 
                 {/* Series link */}
-                <div className="mb-8">
+                <div className="mb-6">
                   <p
                     className="font-mono text-[10px] tracking-widest uppercase mb-2"
                     style={{ color: "var(--ut-white-faint)" }}
@@ -149,6 +150,9 @@ export default function ArtworkDetailPage({ params }: Props) {
                     ))}
                   </div>
                 </div>
+
+                {/* Like button */}
+                <GalleryItemActions slug={artwork.slug} />
               </div>
             </SectionReveal>
 
