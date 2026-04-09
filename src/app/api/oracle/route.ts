@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.ORACLE_BACKEND_URL || 'https://oracle.hakanhisim.net';
+const BACKEND_URL = process.env.ORACLE_BACKEND_URL || 'http://204.168.154.237:8001';
 
 export async function POST(req: Request) {
   try {
