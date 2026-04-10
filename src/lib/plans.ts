@@ -3,7 +3,7 @@
 // Free: 25 questions/day (Supabase per-user counter, account required)
 // Initiate: $3.99/month, unlimited questions
 
-export type PlanId = 'guest' | 'free' | 'initiate'
+export type PlanId = 'guest' | 'free' | 'initiate' | 'master'
 
 export type PlanConfig = {
   id: PlanId
@@ -40,6 +40,13 @@ export const PLAN_CONFIG: Record<PlanId, PlanConfig> = {
     dailyLimit: 'unlimited',
     priceMonthly: 3.99,
     stripePriceId: INITIATE_PRICE_ID,
+  },
+  master: {
+    id: 'master',
+    name: 'Master',
+    description: 'Full access. All traditions, archives, and Codex features.',
+    dailyLimit: 'unlimited',
+    priceMonthly: 0,
   },
 }
 
