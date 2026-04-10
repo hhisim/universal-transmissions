@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universal Transmissions — Xenolinguistic Cymatic Engine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@100;300;400;700&display=swap');
+
+@font-face {
+  font-family: 'Hylian64';
+  src: url('/fonts/HYLIAN64.TTF') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AncientHylian';
+  src: url('/fonts/Ancient%20Hylian%20-%20English.otf') format('opentype');
+  font-display: swap;
+}
+
+:root {
+  --bg:        #020204;
+  --bg2:       #05050a;
+  --cyan:      #00d4ff;
+  --cyan-dim:  rgba(0,212,255,0.12);
+  --cyan-glow: rgba(0,212,255,0.4);
+  --gold:      #d4af37;
+  --gold-dim:  rgba(212,175,55,0.15);
+  --magenta:   #ff0055;
+  --purple:    #9d00ff;
+  --white:     #f0f2f5;
+  --muted:     rgba(240,242,245,0.45);
+  --border:    rgba(0,212,255,0.12);
+  --panel-bg:  rgba(3,3,8,0.78);
+  --radius:    2px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ─── SACRED GEOMETRY BACKGROUND ─── */
+.sacred-geometry {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.04;
+  background-image: 
+    radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,212,255,0.1) 70%),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(212,175,55,0.08) 15deg, transparent 30deg);
+  animation: sacredRotate 180s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes sacredRotate {
+  from { transform: rotate(0deg) scale(1.2); }
+  to { transform: rotate(360deg) scale(1.2); }
+}
+
+/* ─── CHROMATIC ABERRATION ─── */
+.chromatic {
+  text-shadow: 2px 0 0 rgba(255,0,85,0.7), -2px 0 0 rgba(0,212,255,0.7);
+}
+.chromatic-subtle {
+  text-shadow: 1px 0 0 rgba(255,0,85,0.5), -1px 0 0 rgba(0,212,255,0.5);
+}
+
+/* ─── XENOLINGUISTIC SYSTEM ─── */
+.xeno-text {
+  font-family: 'AncientHylian', 'Hylian64', sans-serif;
+  background: linear-gradient(90deg, var(--cyan), var(--gold), var(--magenta), var(--cyan));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: xenoFlow 8s ease-in-out infinite, xenoBreathe 4s ease-in-out infinite alternate;
+  display: inline-block;
+  letter-spacing: 0.2em;
+}
+
+.xeno-morph {
+  font-family: 'AncientHylian', sans-serif;
+  color: rgba(0,212,255,0.6);
+  display: inline-block;
+  animation: xenoMorph 12s ease-in-out infinite;
+  letter-spacing: 0.15em;
+}
+
+.xeno-label {
+  font-family: 'Hylian64', sans-serif;
+  font-size: 0.6rem;
+  color: rgba(212,175,55,0.5);
+  letter-spacing: 0.25em;
+  display: block;
+  margin-top: 3px;
+  animation: xenoPulse 6s ease-in-out infinite;
+}
+
+.xeno-glyph {
+  font-family: 'AncientHylian', sans-serif;
+  font-size: 0.75rem;
+  opacity: 0.4;
+  animation: glyphFloat 8s ease-in-out infinite;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+@keyframes xenoFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes xenoBreathe {
+  0% { letter-spacing: 0.1em; filter: drop-shadow(0 0 5px rgba(0,212,255,0.3)); transform: scale(1); }
+  100% { letter-spacing: 0.25em; filter: drop-shadow(0 0 15px rgba(255,0,85,0.5)); transform: scale(1.02); }
+}
+@keyframes xenoMorph {
+  0%, 100% { opacity: 0.5; transform: translateY(0) scale(1); }
+  25% { opacity: 0.8; transform: translateY(-2px) scale(1.01); }
+  50% { opacity: 0.4; transform: translateY(1px) scale(0.99); }
+  75% { opacity: 0.9; transform: translateY(-1px) scale(1.005); }
+}
+@keyframes xenoPulse {
+  0%, 100% { opacity: 0.4; letter-spacing: 0.2em; }
+  50% { opacity: 0.7; letter-spacing: 0.3em; }
+}
+@keyframes glyphFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-3px); opacity: 0.6; }
+}
+
+/* ─── HERO START SCREEN ─── */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,40,60,0.3) 0%, var(--bg) 100%);
+  backdrop-filter: blur(20px);
+  transition: opacity 1.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+.hero-logo-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 3rem;
+}
+
+.hero-logo {
+  width: 100%;
+  height: 100%;
+  animation: slowSpin 30s linear infinite;
+  filter: invert(1) drop-shadow(0 0 30px rgba(0,212,255,0.5));
+}
+
+.logo-ring {
+  position: absolute;
+  inset: -15px;
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 50%;
+  animation: ringPulse 4s ease-in-out infinite;
+}
+.logo-ring:nth-child(2) {
+  inset: -30px;
+  border-color: rgba(212,175,55,0.15);
+  animation-delay: 2s;
+}
+
+@keyframes slowSpin { to { transform: rotate(360deg); } }
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.05); opacity: 0.6; }
+}
+
+.hero-title {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.hero-title h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.hero-title .xeno-text {
+  font-size: 1.3rem;
+  letter-spacing: 0.5em;
+  margin: 0.5rem 0;
+}
+.hero-subtitle {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-top: 1rem;
+}
+
+#btn-enter {
+  position: relative;
+  background: transparent;
+  border: 1px solid rgba(0,212,255,0.4);
+  color: var(--cyan);
+  padding: 1.2rem 4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: inset 0 0 20px rgba(0,212,255,0.1), 0 0 30px rgba(0,212,255,0.1);
+}
+#btn-enter::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), transparent);
+  transition: left 0.6s;
+}
+#btn-enter:hover {
+  background: rgba(0,212,255,0.1);
+  border-color: var(--cyan);
+  color: #fff;
+  box-shadow: 0 0 50px rgba(0,212,255,0.3), inset 0 0 30px rgba(0,212,255,0.2);
+  letter-spacing: 0.45em;
+}
+#btn-enter:hover::before { left: 100%; }
+
+/* ─── MAIN UI LAYER ─── */
+#ui-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: 360px 1fr auto;
+  padding: 2rem;
+  gap: 2rem;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+/* ─── GLASS PANEL ─── */
+.panel {
+  pointer-events: auto;
+  background: var(--panel-bg);
+  backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.6rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  box-shadow: 
+    0 25px 80px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    inset 0 0 40px rgba(0,212,255,0.03);
+  position: relative;
+}
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.6;
+}
+.panel::-webkit-scrollbar { width: 3px; }
+.panel::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 2px; }
+
+/* ─── PANEL HEADER ─── */
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.menu-logo-container {
+  width: 50px; height: 50px;
+  position: relative;
+  flex-shrink: 0;
+}
+.menu-logo {
+  width: 100%; height: 100%;
+  animation: slowSpin 25s linear infinite;
+  filter: invert(1) drop-shadow(0 0 12px rgba(0,212,255,0.6));
+}
+.panel-titles { flex: 1; }
+.panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white);
+}
+.panel-xeno-title {
+  font-size: 0.9rem;
+  margin: 0.3rem 0;
+}
+.panel-subtitle {
+  font-size: 0.6rem;
+  color: rgba(0,212,255,0.6);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.panel-xeno-sub {
+  font-size: 0.55rem;
+  margin-top: 0.3rem;
+  letter-spacing: 0.15em;
+}
+
+/* ─── SECTION HEADERS ─── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.6rem 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.section-header span {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
+}
+
+/* ─── CONTROLS ─── */
+.control-group {
+  margin-bottom: 1.2rem;
+}
+.control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+}
+.control-label {
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+.control-value {
+  font-size: 0.85rem;
+  color: var(--white);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Range Slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0,212,255,0.3) var(--val,50%), rgba(255,255,255,0.1) var(--val,50%));
+  border-radius: 1px;
+  transition: all 0.3s;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  background: var(--bg);
+  border: 2px solid var(--cyan);
+  border-radius: 50%;
+  margin-top: -6px;
+  box-shadow: 0 0 15px rgba(0,212,255,0.6);
+  transition: all 0.3s ease;
+}
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.4);
+  background: var(--cyan);
+  box-shadow: 0 0 25px rgba(0,212,255,0.9);
+}
+
+/* ─── BUTTONS ─── */
+.btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.btn {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+  padding: 0.7rem;
+  font-family: inherit;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.4s;
+}
+.btn:hover::before { left: 100%; }
+.btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.btn.active {
+  background: rgba(0,212,255,0.12);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: inset 0 0 20px rgba(0,212,255,0.2), 0 0 15px rgba(0,212,255,0.2);
+}
+
+.btn-primary {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  padding: 1rem;
+  margin-top: 0.6rem;
+  font-family: inherit;
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  background: rgba(0,212,255,0.15);
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+  transition: width 0.6s, height 0.6s;
+}
+.btn-primary:hover::after { width: 400px; height: 400px; }
+.btn-primary:hover {
+  background: rgba(0,212,255,0.1);
+  box-shadow: 0 0 40px rgba(0,212,255,0.3);
+  color: #fff;
+  letter-spacing: 0.28em;
+}
+
+.btn-master { border-color: var(--cyan); color: var(--cyan); }
+.btn-master.silence { border-color: var(--magenta); color: var(--magenta); }
+.btn-master.silence:hover { background: rgba(255,0,85,0.1); box-shadow: 0 0 40px rgba(255,0,85,0.3); }
+
+.btn-gold { border-color: var(--gold); color: var(--gold); }
+.btn-gold:hover { background: rgba(212,175,55,0.1); box-shadow: 0 0 30px rgba(212,175,55,0.25); }
+
+.btn-mic { border-color: rgba(255,160,0,0.6); color: rgba(255,160,0,0.8); }
+.btn-mic.active { background: rgba(255,160,0,0.12); color: #fff; border-color: #ffa000; box-shadow: 0 0 20px rgba(255,160,0,0.3); }
+
+.btn-hue.active { background: rgba(157,0,255,0.12); border-color: var(--purple); color: var(--purple); box-shadow: 0 0 20px rgba(157,0,255,0.3); }
+
+.btn-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+.btn-row .btn-primary { margin-top: 0; flex: 1; font-size: 0.6rem; padding: 0.8rem; }
+
+.btn-record.recording {
+  border-color: var(--magenta);
+  background: rgba(255,0,85,0.25);
+  color: #fff;
+  animation: pulseRec 1.5s ease-in-out infinite;
+}
+@keyframes pulseRec {
+  0%,100% { box-shadow: 0 0 15px rgba(255,0,85,0.3); }
+  50% { box-shadow: 0 0 35px rgba(255,0,85,0.6); }
+}
+
+/* ─── INFO PANEL ─── */
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  pointer-events: none;
+  padding-bottom: 1rem;
+}
+.info-line {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 0.4rem;
+  text-align: right;
+}
+.info-line.accent { color: rgba(0,212,255,0.6); }
+.info-divider {
+  width: 30px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan));
+  margin: 1rem 0;
+  opacity: 0.5;
+}
+
+/* ─── MODAL ─── */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(20px);
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+#modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+.modal-content {
+  background: rgba(5,5,12,0.98);
+  border: 1px solid rgba(212,175,55,0.3);
+  width: min(90vw, 1000px);
+  height: 85vh;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 100px rgba(212,175,55,0.15), 0 40px 80px rgba(0,0,0,0.9);
+  overflow: hidden;
+}
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(212,175,55,0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.modal-xeno {
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+}
+.close-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 40px; height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); transform: rotate(90deg); }
+
+.modal-body {
+  padding: 2rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+.freq-category h4 {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0,212,255,0.2);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1rem;
+}
+.freq-item {
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.freq-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--cyan);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.freq-item:hover {
+  background: rgba(0,212,255,0.08);
+  border-color: rgba(0,212,255,0.3);
+  transform: translateX(8px);
+  box-shadow: -5px 0 20px rgba(0,212,255,0.15);
+}
+.freq-item:hover::before { opacity: 1; }
+.freq-hz {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  color: #fff;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.freq-desc {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.6;
+}
+
+/* ─── FLASH ─── */
+#capture-flash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease-out;
+}
+
+/* ─── SCANLINES ─── */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 4px,
+    rgba(0,0,0,0.08) 4px,
+    rgba(0,0,0,0.08) 5px
+  );
+  opacity: 0.3;
+}
+
+/* ─── FLOATING GLYPHS ─── */
+.floating-glyphs {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 5;
+  pointer-events: none;
+  font-family: 'AncientHylian', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(0,212,255,0.25);
+  letter-spacing: 0.4em;
+  animation: floatGlyph 20s ease-in-out infinite;
+}
+@keyframes floatGlyph {
+  0%,100% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+  50% { transform: translateY(-15px) rotate(2deg); opacity: 0.4; }
+}
+</style>
+</head>
+<body>
+
+<div class="sacred-geometry"></div>
+<div class="scanlines"></div>
+<div id="capture-flash"></div>
+<div class="floating-glyphs">◊ TRANSMISSION ACTIVE ◊</div>
+
+<!-- ═══════════════════ HERO SCREEN ═══════════════════ -->
+<div id="start-screen">
+  <div class="hero-logo-container">
+    <div class="logo-ring"></div>
+    <div class="logo-ring"></div>
+    <svg class="hero-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+      <circle cx="50" cy="50" r="35" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      <path d="M50 10 L50 90 M10 50 L90 50" stroke="currentColor" stroke-width="1"/>
+      <circle cx="50" cy="50" r="8" fill="currentColor"/>
+      <path d="M50 5 L55 15 L50 13 L45 15 Z" fill="currentColor"/>
+      <path d="M50 95 L55 85 L50 87 L45 85 Z" fill="currentColor"/>
+      <path d="M5 50 L15 55 L13 50 L15 45 Z" fill="currentColor"/>
+      <path d="M95 50 L85 55 L87 50 L85 45 Z" fill="currentColor"/>
+    </svg>
+  </div>
+  
+  <div class="hero-title">
+    <h1 class="chromatic">Universal Transmissions</h1>
+    <div class="xeno-text">UNIVERSAL TRANSMISSIONS</div>
+    <div class="hero-subtitle">Xenolinguistic Cymatic Engine v5.0</div>
+  </div>
+  
+  <button id="btn-enter" class="chromatic-subtle">
+    Establish Uplink
+    <span class="xeno-label" style="margin-top: 8px; font-size: 0.55rem;">ESTABLISH UPLINK</span>
+  </button>
+</div>
+
+<!-- ═══════════════════ MAIN UI ═══════════════════ -->
+<div id="ui-layer">
+
+  <!-- LEFT PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="menu-logo-container">
+        <svg class="menu-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+          <path d="M50 20 L50 80 M20 50 L80 50" stroke="currentColor" stroke-width="2"/>
+          <circle cx="50" cy="50" r="6" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="panel-titles">
+        <div class="panel-title chromatic-subtle">Tonoscope</div>
+        <div class="xeno-text panel-xeno-title">TONOSCOPE</div>
+        <div class="panel-subtitle">Chladni & Bessel Dynamics</div>
+        <div class="xeno-morph panel-xeno-sub">CHLADNI · BESSEL DYNAMICS</div>
+      </div>
+    </div>
+
+    <button id="btn-master" class="btn-primary btn-master silence">
+      Silence Field
+      <span class="xeno-glyph">SILENCE</span>
+    </button>
+    
+    <button id="btn-mic" class="btn-primary btn-mic" style="margin-top: 0.5rem;">
+      Link Audio / Mic
+      <span class="xeno-glyph">AUDIO</span>
+    </button>
+    
+    <button id="btn-manual" class="btn-primary btn-gold" style="margin-top: 0.5rem;">
+      Frequency Manual
+      <span class="xeno-glyph">FREQUENCY</span>
+    </button>
+
+    <div class="btn-row">
+      <button id="btn-drop" class="btn-primary" style="font-size: 0.6rem;">
+        ✦ Light Rain
+      </button>
+      <button id="btn-hue" class="btn-primary btn-hue" style="font-size: 0.6rem;">
+        Hue Shift
+      </button>
+    </div>
+
+    <!-- Plate Topology -->
+    <div class="section-header">
+      <span>Plate Topology <span class="xeno-label" style="display: inline; margin: 0 0 0 0.5rem;">PLATE</span></span>
+    </div>
+    <div class="btn-grid" id="shape-toggle">
+      <button class="btn" data-shape="square">Square</button>
+      <button class="btn active" data-shape="circle">Circle</button>
+      <button class="btn" data-shape="grid">Grid</button>
+      <button class="btn" data-shape="cube">Cube 3D</button>
+    </div>
+
+    <!-- Alpha Oscillator -->
+    <div class="section-header">
+      <span>Alpha Oscillator <span class="xeno-label" style="display: inline; margin: 0 0 0 0.5rem;">ALPHA</span></span>
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Frequency <span class="xeno-label" style="font-size: 0.5rem;">FREQUENCY</span></div>
+        <span class="control-value" id="val-f1">432 Hz</span>
+      </div>
+      <input type="range" id="f1" min="20" max="1000" value="432">
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Mode N — Complexity <span class="xeno-label" style="font-size: 0.5rem;">MODE N</span></div>
+        <span class="control-value" id="val-n1">3</span>
+      </div>
+      <input type="range" id="n1" min="1" max="12" value="3">
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Mode M — Radial <span class="xeno-label" style="font-size: 0.5rem;">MODE M</span></div>
+        <span class="control-value" id="val-m1">2</span>
+      </div>
+      <input type="range" id="m1" min="1" max="12" value="2">
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Amplitude <span class="xeno-label" style="font-size: 0.5rem;">AMPLITUDE</span></div>
+        <span class="control-value" id="val-v1">100%</span>
+      </div>
+      <input type="range" id="v1" min="0" max="100" value="100">
+    </div>
+
+    <!-- Beta Oscillator -->
+    <div class="section-header">
+      <span>Beta Oscillator <span class="xeno-label" style="display: inline; margin: 0 0 0 0.5rem;">BETA INTERFERENCE</span></span>
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Frequency <span class="xeno-label" style="font-size: 0.5rem;">FREQUENCY</span></div>
+        <span class="control-value" id="val-f2">528 Hz</span>
+      </div>
+      <input type="range" id="f2" min="20" max="1000" value="528">
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Mode N <span class="xeno-label" style="font-size: 0.5rem;">MODE N</span></div>
+        <span class="control-value" id="val-n2">4</span>
+      </div>
+      <input type="range" id="n2" min="1" max="12" value="4">
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Mode M <span class="xeno-label" style="font-size: 0.5rem;">MODE M</span></div>
+        <span class="control-value" id="val-m2">3</span>
+      </div>
+      <input type="range" id="m2" min="1" max="12" value="3">
+    </div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <div class="control-label">Amplitude <span class="xeno-label" style="font-size: 0.5rem;">AMPLITUDE</span></div>
+        <span class="control-value" id="val-v2">0%</span>
+      </div>
+      <input type="range" id="v2" min="0" max="100" value="0">
+    </div>
+
+    <!-- Data Capture -->
+    <div class="section-header">
+      <span>Data Capture <span class="xeno-label" style="display: inline; margin: 0 0 0 0.5rem;">CAPTURE</span></span>
+    </div>
+    <div class="btn-row">
+      <button id="btn-4k" class="btn" style="flex:1; border-color: rgba(255,255,255,0.2);">4K Snapshot</button>
+      <button id="btn-record" class="btn btn-record" style="flex:1; border-color: rgba(255,0,85,0.4);">Record 15s</button>
+    </div>
+  </div>
+
+  <!-- RIGHT INFO -->
+  <div class="info-panel">
+    <div class="info-line accent">System Active ◉</div>
+    <div class="info-line">Left Click + Drag: Orbit</div>
+    <div class="info-line">Right Click + Drag: Pan</div>
+    <div class="info-line">Scroll: Zoom</div>
+    <div class="info-divider"></div>
+    <div class="info-line accent">Engine: WebGL 2.0</div>
+    <div class="info-line">Physics: Fluid Dynamics</div>
+    <div class="info-line">Render: Bioluminescence</div>
+    <div style="margin-top: 1rem; font-size: 0.5rem; color: rgba(255,255,255,0.2);">
+      <span class="xeno-morph" style="font-size: 0.5rem;">TRANSMISSION RECEIVED</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ FREQUENCY MODAL ═══════════════════ -->
+<div id="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h2 class="chromatic-subtle">Universal Frequency Codex</h2>
+        <div class="xeno-text modal-xeno">UNIVERSAL FREQUENCY CODEX</div>
+      </div>
+      <button class="close-btn" id="close-modal">×</button>
+    </div>
+    <div class="modal-body">
+      
+      <div class="freq-category">
+        <h4>Solfeggio Scale</h4>
+        <div class="freq-item" data-f="396" data-n="2" data-m="2">
+          <span class="freq-hz">396 Hz</span>
+          <span class="freq-desc">UT — Liberating Guilt and Fear. Deep grounding resonance.</span>
+        </div>
+        <div class="freq-item" data-f="417" data-n="3" data-m="2">
+          <span class="freq-hz">417 Hz</span>
+          <span class="freq-desc">RE — Undoing Situations, Facilitating Change.</span>
+        </div>
+        <div class="freq-item" data-f="528" data-n="4" data-m="4">
+          <span class="freq-hz">528 Hz</span>
+          <span class="freq-desc">MI — Transformation and Miracles. DNA Repair frequency.</span>
+        </div>
+        <div class="freq-item" data-f="639" data-n="5" data-m="3">
+          <span class="freq-hz">639 Hz</span>
+          <span class="freq-desc">FA — Connecting / Relationships. Heart coherence.</span>
+        </div>
+        <div class="freq-item" data-f="741" data-n="6" data-m="4">
+          <span class="freq-hz">741 Hz</span>
+          <span class="freq-desc">SOL — Awakening Intuition. Cellular detoxification.</span>
+        </div>
+        <div class="freq-item" data-f="852" data-n="7" data-m="5">
+          <span class="freq-hz">852 Hz</span>
+          <span class="freq-desc">LA — Returning to Spiritual Order. Third eye activation.</span>
+        </div>
+      </div>
+
+      <div class="freq-category">
+        <h4>Planetary & Cosmic</h4>
+        <div class="freq-item" data-f="136.1" data-n="4" data-m="1">
+          <span class="freq-hz">136.1 Hz</span>
+          <span class="freq-desc">The Earth Year / OM Tone. Calming, centering, heart chakra.</span>
+        </div>
+        <div class="freq-item" data-f="194.18" data-n="3" data-m="1">
+          <span class="freq-hz">194.18 Hz</span>
+          <span class="freq-desc">Earth Day Tone. Dynamic, vitalizing, grounding force.</span>
+        </div>
+        <div class="freq-item" data-f="210.42" data-n="5" data-m="2">
+          <span class="freq-hz">210.42 Hz</span>
+          <span class="freq-desc">Synodic Moon. Stimulates creative and sacral energy.</span>
+        </div>
+        <div class="freq-item" data-f="126.22" data-n="2" data-m="1">
+          <span class="freq-hz">126.22 Hz</span>
+          <span class="freq-desc">The Sun Tone. State beyond space and time.</span>
+        </div>
+        <div class="freq-item" data-f="432" data-n="3" data-m="3">
+          <span class="freq-hz">432 Hz</span>
+          <span class="freq-desc">Cosmic Frequency. Natural harmony of the universe.</span>
+        </div>
+      </div>
+
+      <div class="freq-category">
+        <h4>Brainwave & Healing</h4>
+        <div class="freq-item" data-f="111" data-n="2" data-m="2">
+          <span class="freq-hz">111 Hz</span>
+          <span class="freq-desc">Beta endorphins, cell regeneration, divine healing.</span>
+        </div>
+        <div class="freq-item" data-f="360" data-n="6" data-m="2">
+          <span class="freq-hz">360 Hz</span>
+          <span class="freq-desc">Balance Frequency — derived from the Golden Section.</span>
+        </div>
+        <div class="freq-item" data-f="7.83" data-n="1" data-m="1">
+          <span class="freq-hz">7.83 Hz</span>
+          <span class="freq-desc">Schumann Resonance. Earth grounding, anti-jetlag.</span>
+        </div>
+        <div class="freq-item" data-f="40" data-n="3" data-m="2">
+          <span class="freq-hz">40 Hz</span>
+          <span class="freq-desc">Gamma. Information-rich processing and psi coherence.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   UNIVERSAL TRANSMISSIONS — XENOLINGUISTIC CYMATIC ENGINE v5.0
+   Production Grade — Sacred Geometry — Fluid Dynamics
+   ═══════════════════════════════════════════════════════════════ */
+
+const container = document.body;
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x020204, 0.008);
+
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 1000);
+camera.position.set(0, 14, 22);
+
+const renderer = new THREE.WebGLRenderer({ 
+  antialias: true, 
+  preserveDrawingBuffer: true, 
+  powerPreference: 'high-performance',
+  alpha: false 
+});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(0x020204, 1);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.maxPolarAngle = Math.PI * 0.5 - 0.02;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.6;
+controls.target.set(0, 0, 0);
+
+// Invisible plates
+const plateMat = new THREE.MeshBasicMaterial({ color: 0x020204, transparent: true, opacity: 0 });
+const squarePlate = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), plateMat);
+squarePlate.rotation.x = -Math.PI/2;
+squarePlate.position.y = -0.05;
+squarePlate.visible = false;
+scene.add(squarePlate);
+
+const circlePlate = new THREE.Mesh(new THREE.CircleGeometry(10, 64), plateMat);
+circlePlate.rotation.x = -Math.PI/2;
+circlePlate.position.y = -0.05;
+scene.add(circlePlate);
+
+// ── PARTICLE SYSTEM — FINER, SOFTER ───────────────────────────
+const PARTICLE_COUNT = 45000;
+let positions, velocities, phases, bases;
+let particlesMesh;
+let currentHue = 0.55;
+let isHueShifting = false;
+
+function createParticleTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.3, 'rgba(200,255,255,0.8)');
+  grad.addColorStop(0.7, 'rgba(100,220,255,0.3)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function initParticles() {
+  if (particlesMesh) {
+    scene.remove(particlesMesh);
+    particlesMesh.geometry.dispose();
+  }
+
+  const geo = new THREE.BufferGeometry();
+  positions = new Float32Array(PARTICLE_COUNT * 3);
+  velocities = new Float32Array(PARTICLE_COUNT * 3);
+  phases = new Float32Array(PARTICLE_COUNT);
+  bases = new Float32Array(PARTICLE_COUNT);
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const r = Math.random() * 9.5;
+    const theta = Math.random() * Math.PI * 2;
+    positions[i*3] = Math.cos(theta) * r;
+    positions[i*3+1] = 0;
+    positions[i*3+2] = Math.sin(theta) * r;
+    phases[i] = Math.random() * Math.PI * 2;
+    bases[i] = Math.random() * 0.05;
+  }
+
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const mat = new THREE.PointsMaterial({
+    size: 0.12,
+    map: createParticleTexture(),
+    transparent: true,
+    opacity: 0.9,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    color: 0xffffff
+  });
+  mat.color.setHSL(currentHue, 0.9, 0.6);
+
+  particlesMesh = new THREE.Points(geo, mat);
+  scene.add(particlesMesh);
+}
+initParticles();
+
+// ── GENTLE LIGHT RAIN ────────────────────────────────────────
+function triggerRain() {
+  const isCube = plateShape === 'cube';
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    if (isCube) {
+      positions[i*3] = (Math.random() - 0.5) * 18;
+      positions[i*3+1] = 8 + Math.random() * 10;
+      positions[i*3+2] = (Math.random() - 0.5) * 18;
+      velocities[i*3] = (Math.random() - 0.5) * 0.3;
+      velocities[i*3+1] = -0.2 - Math.random() * 0.4;
+      velocities[i*3+2] = (Math.random() - 0.5) * 0.3;
+    } else {
+      const r = Math.random() * 2.5;
+      const theta = Math.random() * Math.PI * 2;
+      positions[i*3] = Math.cos(theta) * r;
+      positions[i*3+2] = Math.sin(theta) * r;
+      positions[i*3+1] = 12 + Math.random() * 15;
+      velocities[i*3] = (Math.random() - 0.5) * 0.1;
+      velocities[i*3+1] = -0.1 - Math.random() * 0.2;
+      velocities[i*3+2] = (Math.random() - 0.5) * 0.1;
+    }
+  }
+}
+
+// ── MATH ─────────────────────────────────────────────────────
+let plateShape = 'circle';
+
+function besselJ(n, x) {
+  let term = 1;
+  for (let k = 1; k <= n; k++) term *= (x/2) / k;
+  let sum = term;
+  for (let m = 1; m < 15; m++) {
+    term = -term * (x*x/4) / (m * (m+n));
+    sum += term;
+    if (Math.abs(term) < 1e-6) break;
+  }
+  return sum;
+}
+
+function chladniZ(x, y, n, m, shape) {
+  if (shape === 'square') {
+    const nx = x/20, ny = y/20;
+    return Math.cos(n*Math.PI*nx)*Math.cos(m*Math.PI*ny) - 
+           Math.cos(m*Math.PI*nx)*Math.cos(n*Math.PI*ny);
+  }
+  if (shape === 'grid') {
+    const nx = x/20, ny = y/20;
+    return Math.sin(n*Math.PI*nx*2.5) * Math.sin(m*Math.PI*ny*2.5);
+  }
+  const r = Math.sqrt(x*x + y*y)/10;
+  if (r > 1.0) return 100;
+  const theta = Math.atan2(y, x);
+  const k = (m + n/2) * Math.PI;
+  return besselJ(n, k*r) * Math.cos(m*theta) * 5;
+}
+
+// ── AUDIO SYSTEM ─────────────────────────────────────────────
+let audioCtx, osc1, osc2, gain1, gain2, analyser, micStream, micSource;
+let isPlaying = true;
+let useMic = false;
+let dataArray;
+
+const P = { f1: 432, n1: 3, m1: 2, v1: 1.0, f2: 528, n2: 4, m2: 3, v2: 0.0 };
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  osc1 = audioCtx.createOscillator();
+  osc2 = audioCtx.createOscillator();
+  gain1 = audioCtx.createGain();
+  gain2 = audioCtx.createGain();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 64;
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  osc1.frequency.value = P.f1;
+  osc2.frequency.value = P.f2;
+  gain1.gain.value = P.v1;
+  gain2.gain.value = P.v2;
+
+  osc1.connect(gain1).connect(audioCtx.destination);
+  osc2.connect(gain2).connect(audioCtx.destination);
+  osc1.start();
+  osc2.start();
+}
+
+async function toggleMic() {
+  if (!audioCtx) initAudio();
+  const micBtn = document.getElementById('btn-mic');
+  const masterBtn = document.getElementById('btn-master');
+
+  if (useMic) {
+    if (micStream) micStream.getTracks().forEach(t => t.stop());
+    if (micSource) micSource.disconnect();
+    useMic = false;
+    micBtn.classList.remove('active');
+    micBtn.innerHTML = 'Link Audio / Mic <span class="xeno-glyph">AUDIO</span>';
+    if (isPlaying) {
+      gain1.gain.setTargetAtTime(P.v1, audioCtx.currentTime, 0.3);
+      gain2.gain.setTargetAtTime(P.v2, audioCtx.currentTime, 0.3);
+    }
+  } else {
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micSource = audioCtx.createMediaStreamSource(micStream);
+      micSource.connect(analyser);
+      gain1.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+      gain2.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+      useMic = true;
+      isPlaying = true;
+      masterBtn.classList.add('silence');
+      masterBtn.textContent = 'Silence Field';
+      micBtn.classList.add('active');
+      micBtn.innerHTML = 'Disconnect Mic <span class="xeno-glyph">DISCONNECT</span>';
+      triggerRain();
+    } catch (e) {
+      alert('Microphone access denied. Please allow microphone permissions.');
+    }
+  }
+}
+
+// ── MAIN LOOP ────────────────────────────────────────────────
+let time = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.02;
+
+  if (isHueShifting) {
+    currentHue = (currentHue + 0.001) % 1.0;
+    particlesMesh.material.color.setHSL(currentHue, 0.9, 0.6);
+  }
+
+  // Audio analysis
+  let totalVol = 0, micFFT = 0;
+  if (useMic && analyser) {
+    analyser.getByteFrequencyData(dataArray);
+    let sum = 0;
+    for (let d of dataArray) sum += d;
+    micFFT = sum / dataArray.length / 255;
+    totalVol = micFFT * 2;
+  } else if (isPlaying) {
+    totalVol = Math.max(P.v1, P.v2);
+  }
+
+  const vibe = isPlaying ? (0.3 + totalVol * 0.6) : 0.05;
+  const pos = particlesMesh.geometry.attributes.position.array;
+  const isCube = plateShape === 'cube';
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    let px = pos[i*3], py = pos[i*3+1], pz = pos[i*3+2];
+
+    // Soft boundaries
+    if (isCube) {
+      if (Math.abs(px) > 9.5) { pos[i*3] *= 0.97; velocities[i*3] *= -0.3; }
+      if (Math.abs(py) > 9.5) { pos[i*3+1] *= 0.97; velocities[i*3+1] *= -0.3; }
+      if (Math.abs(pz) > 9.5) { pos[i*3+2] *= 0.97; velocities[i*3+2] *= -0.3; }
+    } else if (plateShape === 'square' || plateShape === 'grid') {
+      if (Math.abs(px) > 9.8 || Math.abs(pz) > 9.8) {
+        pos[i*3] *= 0.96; pos[i*3+2] *= 0.96;
+        px = pos[i*3]; pz = pos[i*3+2];
+      }
+    } else {
+      const r = Math.sqrt(px*px + pz*pz);
+      if (r > 9.5) {
+        const a = Math.atan2(pz, px);
+        pos[i*3] = Math.cos(a) * 9.3;
+        pos[i*3+2] = Math.sin(a) * 9.3;
+        px = pos[i*3]; pz = pos[i*3+2];
+      }
+    }
+
+    if (isCube) {
+      // 3D standing wave
+      const fs = 0.25;
+      const zv = (Math.cos(px*P.n1*fs) + Math.cos(py*P.m1*fs) + Math.cos(pz*P.n2*fs)) * P.v1;
+      const h = 0.05;
+      const zx = (Math.cos((px+h)*P.n1*fs) + Math.cos(py*P.m1*fs) + Math.cos(pz*P.n2*fs)) * P.v1;
+      const zy = (Math.cos(px*P.n1*fs) + Math.cos((py+h)*P.m1*fs) + Math.cos(pz*P.n2*fs)) * P.v1;
+      const zz = (Math.cos(px*P.n1*fs) + Math.cos(py*P.m1*fs) + Math.cos((pz+h)*P.n2*fs)) * P.v1;
+      
+      const mag = Math.sqrt((zx-zv)**2 + (zy-zv)**2 + (zz-zv)**2) / h + 0.001;
+      let fx = -(zv*(zx-zv)/h) / mag * 0.5;
+      let fy = -(zv*(zy-zv)/h) / mag * 0.5;
+      let fz = -(zv*(zz-zv)/h) / mag * 0.5;
+      
+      fy -= 0.03; // gentle gravity
+      
+      velocities[i*3] += fx * vibe * 0.3;
+      velocities[i*3+1] += fy * vibe * 0.3;
+      velocities[i*3+2] += fz * vibe * 0.3;
+      
+      velocities[i*3] *= 0.88;
+      velocities[i*3+1] *= 0.88;
+      velocities[i*3+2] *= 0.88;
+      
+      if (totalVol > 0.05 && isPlaying) {
+        velocities[i*3] += (Math.random()-0.5) * 0.08 * vibe;
+        velocities[i*3+1] += (Math.random()-0.5) * 0.08 * vibe;
+        velocities[i*3+2] += (Math.random()-0.5) * 0.08 * vibe;
+      }
+      
+      pos[i*3] += velocities[i*3];
+      pos[i*3+1] += velocities[i*3+1];
+      pos[i*3+2] += velocities[i*3+2];
+      
+    } else {
+      // 2D plate physics
+      let zv = 0;
+      if (useMic) {
+        const r = Math.sqrt(px*px + pz*pz);
+        const bin = Math.floor((r/10) * (dataArray.length * 0.5));
+        const amp = (dataArray[bin] || 0) / 255;
+        zv = Math.sin(r*3 - time*6) * amp * 1.5;
+      } else {
+        const z1 = chladniZ(px, pz, P.n1, P.m1, plateShape) * P.v1;
+        const z2 = chladniZ(px, pz, P.n2, P.m2, plateShape) * P.v2;
+        zv = z1 + z2;
+      }
+
+      const absZ = Math.abs(zv);
+      const targetY = absZ * vibe * 0.5 + bases[i];
+
+      if (py > targetY + 0.1) {
+        velocities[i*3+1] -= 0.03 * (1 + Math.random() * 0.3);
+        velocities[i*3] *= 0.95;
+        velocities[i*3+2] *= 0.95;
+        pos[i*3+1] += velocities[i*3+1];
+        
+        if (pos[i*3+1] < targetY) {
+          pos[i*3+1] = targetY;
+          velocities[i*3+1] *= -0.2;
+          const ang = Math.atan2(pz, px);
+          const sf = 0.15 + Math.random() * 0.4;
+          velocities[i*3] += Math.cos(ang) * sf;
+          velocities[i*3+2] += Math.sin(ang) * sf;
+        }
+      } else {
+        const h = 0.05;
+        let zdx, zdz;
+        if (useMic) {
+          zdx = (px/10) * micFFT * 0.4;
+          zdz = (pz/10) * micFFT * 0.4;
+        } else {
+          const zx1 = chladniZ(px+h, pz, P.n1, P.m1, plateShape)*P.v1 + chladniZ(px+h, pz, P.n2, P.m2, plateShape)*P.v2;
+          const zz1 = chladniZ(px, pz+h, P.n1, P.m1, plateShape)*P.v1 + chladniZ(px, pz+h, P.n2, P.m2, plateShape)*P.v2;
+          zdx = (zx1 - zv) / h;
+          zdz = (zz1 - zv) / h;
+        }
+        
+        const mag = Math.sqrt(zdx*zdx + zdz*zdz) + 0.001;
+        let fx = -(zv*zdx) / mag * 0.4;
+        let fz = -(zv*zdz) / mag * 0.4;
+        
+        fx = Math.max(-0.5, Math.min(0.5, fx));
+        fz = Math.max(-0.5, Math.min(0.5, fz));
+        
+        velocities[i*3] += fx * vibe * 0.22;
+        velocities[i*3+2] += fz * vibe * 0.22;
+        velocities[i*3] *= 0.86;
+        velocities[i*3+2] *= 0.86;
+        
+        if (totalVol > 0.05 && isPlaying) {
+          velocities[i*3] += (Math.random()-0.5) * 0.06 * vibe;
+          velocities[i*3+2] += (Math.random()-0.5) * 0.06 * vibe;
+        }
+        
+        pos[i*3] += velocities[i*3];
+        pos[i*3+2] += velocities[i*3+2];
+        pos[i*3+1] += (targetY - pos[i*3+1]) * 0.1;
+        
+        if (isPlaying) {
+          pos[i*3+1] += Math.sin(time*8 + phases[i]) * absZ * 0.04;
+        }
+      }
+    }
+  }
+
+  particlesMesh.geometry.attributes.position.needsUpdate = true;
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ── UI INTERACTION ───────────────────────────────────────────
+
+// Enter button
+document.getElementById('btn-enter').addEventListener('click', () => {
+  const start = document.getElementById('start-screen');
+  const ui = document.getElementById('ui-layer');
+  start.style.opacity = '0';
+  ui.style.opacity = '1';
+  setTimeout(() => {
+    start.style.display = 'none';
+    controls.autoRotate = false;
+    triggerRain();
+  }, 1500);
+  initAudio();
+});
+
+// Master toggle
+const btnMaster = document.getElementById('btn-master');
+btnMaster.addEventListener('click', () => {
+  if (!audioCtx) initAudio();
+  if (useMic) toggleMic();
+  
+  isPlaying = !isPlaying;
+  if (isPlaying) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    gain1.gain.setTargetAtTime(P.v1, audioCtx.currentTime, 0.3);
+    gain2.gain.setTargetAtTime(P.v2, audioCtx.currentTime, 0.3);
+    btnMaster.classList.add('silence');
+    btnMaster.innerHTML = 'Silence Field <span class="xeno-glyph">SILENCE</span>';
+    triggerRain();
+  } else {
+    gain1.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
+    gain2.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
+    btnMaster.classList.remove('silence');
+    btnMaster.innerHTML = 'Activate Transmission <span class="xeno-glyph">ACTIVATE</span>';
+  }
+});
+
+// Mic toggle
+document.getElementById('btn-mic').addEventListener('click', toggleMic);
+
+// Light rain
+document.getElementById('btn-drop').addEventListener('click', triggerRain);
+
+// Hue shift
+const btnHue = document.getElementById('btn-hue');
+btnHue.addEventListener('click', () => {
+  isHueShifting = !isHueShifting;
+  if (isHueShifting) {
+    btnHue.classList.add('active');
+    btnHue.textContent = 'Hue Shift: ON';
+  } else {
+    btnHue.classList.remove('active');
+    btnHue.textContent = 'Hue Shift';
+    currentHue = 0.55;
+    particlesMesh.material.color.setHSL(currentHue, 0.9, 0.6);
+  }
+});
+
+// Update values and sync audio
+function updateDisplay() {
+  document.getElementById('val-f1').textContent = P.f1 + ' Hz';
+  document.getElementById('val-n1').textContent = P.n1;
+  document.getElementById('val-m1').textContent = P.m1;
+  document.getElementById('val-v1').textContent = Math.round(P.v1*100) + '%';
+  document.getElementById('val-f2').textContent = P.f2 + ' Hz';
+  document.getElementById('val-n2').textContent = P.n2;
+  document.getElementById('val-m2').textContent = P.m2;
+  document.getElementById('val-v2').textContent = Math.round(P.v2*100) + '%';
+
+  if (osc1) osc1.frequency.setTargetAtTime(P.f1, audioCtx.currentTime, 0.05);
+  if (osc2) osc2.frequency.setTargetAtTime(P.f2, audioCtx.currentTime, 0.05);
+  if (gain1 && !useMic && isPlaying) gain1.gain.setTargetAtTime(P.v1, audioCtx.currentTime, 0.05);
+  if (gain2 && !useMic && isPlaying) gain2.gain.setTargetAtTime(P.v2, audioCtx.currentTime, 0.05);
+  
+  if (!useMic && isPlaying) {
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      velocities[i*3] += (Math.random()-0.5) * 3;
+      velocities[i*3+2] += (Math.random()-0.5) * 3;
+      if (plateShape === 'cube') velocities[i*3+1] += (Math.random()-0.5) * 4;
+    }
+  }
+}
+
+// Slider setup
+['f1','n1','m1','v1','f2','n2','m2','v2'].forEach(key => {
+  const el = document.getElementById(key);
+  
+  // Initial track fill
+  const updateFill = () => {
+    const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+    el.style.setProperty('--val', pct + '%');
+  };
+  updateFill();
+  
+  el.addEventListener('input', () => {
+    updateFill();
+    let v = parseFloat(el.value);
+    if (key === 'v1' || key === 'v2') {
+      document.getElementById(`val-${key}`).textContent = Math.round(v) + '%';
+    } else if (key === 'f1' || key === 'f2') {
+      document.getElementById(`val-${key}`).textContent = v + ' Hz';
+    } else {
+      document.getElementById(`val-${key}`).textContent = v;
+    }
+  });
+  
+  el.addEventListener('change', () => {
+    let v = parseFloat(el.value);
+    if (key === 'v1' || key === 'v2') v /= 100;
+    P[key] = v;
+    updateDisplay();
+  });
+});
+
+// Shape toggle
+document.querySelectorAll('#shape-toggle .btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('#shape-toggle .btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    plateShape = e.target.dataset.shape;
+    squarePlate.visible = (plateShape === 'square' || plateShape === 'grid');
+    circlePlate.visible = (plateShape === 'circle');
+    triggerRain();
+  });
+});
+
+// Modal
+const modal = document.getElementById('modal-overlay');
+document.getElementById('btn-manual').addEventListener('click', () => modal.classList.add('open'));
+document.getElementById('close-modal').addEventListener('click', () => modal.classList.remove('open'));
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) modal.classList.remove('open');
+});
+
+// Frequency presets
+document.querySelectorAll('.freq-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (useMic) toggleMic();
+    
+    P.f1 = parseFloat(item.dataset.f);
+    P.n1 = parseInt(item.dataset.n);
+    P.m1 = parseInt(item.dataset.m);
+    P.v1 = 1.0;
+    P.v2 = 0.0;
+    
+    document.getElementById('f1').value = P.f1;
+    document.getElementById('n1').value = P.n1;
+    document.getElementById('m1').value = P.m1;
+    document.getElementById('v1').value = 100;
+    document.getElementById('v2').value = 0;
+    
+    // Update all track fills
+    ['f1','n1','m1','v1','v2'].forEach(k => {
+      const el = document.getElementById(k);
+      const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+      el.style.setProperty('--val', pct + '%');
+    });
+    
+    isPlaying = true;
+    btnMaster.classList.add('silence');
+    btnMaster.innerHTML = 'Silence Field <span class="xeno-glyph">SILENCE</span>';
+    
+    updateDisplay();
+    modal.classList.remove('open');
+    triggerRain();
+  });
+});
+
+// 4K Snapshot
+document.getElementById('btn-4k').addEventListener('click', () => {
+  const flash = document.getElementById('capture-flash');
+  flash.style.opacity = '0.8';
+  setTimeout(() => {
+    const w = innerWidth, h = innerHeight, pr = renderer.getPixelRatio();
+    renderer.setPixelRatio(1);
+    renderer.setSize(3840, 2160);
+    camera.aspect = 3840/2160;
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+    const url = renderer.domElement.toDataURL('image/png');
+    renderer.setPixelRatio(pr);
+    renderer.setSize(w, h);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    
+    flash.style.opacity = '0';
+    const a = document.createElement('a');
+    a.download = `UT_cymatic_${plateShape}_${P.f1}Hz_${Date.now()}.png`;
+    a.href = url;
+    a.click();
+  }, 100);
+});
+
+// Video record
+let mediaRecorder, chunks = [];
+const btnRec = document.getElementById('btn-record');
+
+btnRec.addEventListener('click', () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') return;
+  
+  const stream = renderer.domElement.captureStream(30);
+  chunks = [];
+  try {
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+  } catch(e) {
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+  }
+  
+  mediaRecorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
+  };
+  
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `UT_session_${P.f1}Hz_${Date.now()}.webm`;
+    a.click();
+    btnRec.classList.remove('recording');
+    btnRec.textContent = 'Record 15s';
+    btnRec.style.pointerEvents = 'auto';
+  };
+  
+  mediaRecorder.start();
+  btnRec.classList.add('recording');
+  btnRec.textContent = '● Recording...';
+  btnRec.style.pointerEvents = 'none';
+  setTimeout(() => {
+    if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+  }, 15000);
+});
+
+// Resize handler
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// Keyboard shortcuts
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    btnMaster.click();
+  } else if (e.code === 'KeyM') {
+    document.getElementById('btn-mic').click();
+  } else if (e.code === 'KeyR') {
+    triggerRain();
+  } else if (e.code === 'KeyF') {
+    document.getElementById('btn-manual').click();
+  }
+});
+</script>
+</body>
+</html>
