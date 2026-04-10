@@ -691,7 +691,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-04-06",
     author: "Hakan Hisim",
     readTime: "1 min",
-    heroImage: "https://www.universal-transmissions.com/artworks/yugen/main.jpg",
+    heroImage: "https://www.universal-transmissions.com/email/yugen-kolm.jpg",
     tags: ["kolm", "yugen", "art", "album"],
     tradition: "artwork",
     content: stripFrontmatter(yugen_raw),
