@@ -201,14 +201,7 @@ export default function OraclePlansPage() {
                   ? 'Choose your level of access to the Codex Oracle.'
                   : 'Choose your level of access to the Codex Oracle. From exploration to mastery — all paths begin with a single question.'}
             </p>
-            {!isInitiate && (
-              <p style={{ marginTop: 20, fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(237,233,246,0.28)' }}>
-                Not sure where to begin?{' '}
-                <Link href="/inquiry" style={{ color: 'rgba(212,168,71,0.5)', textDecoration: 'none', borderBottom: '1px solid rgba(212,168,71,0.2)' }}>
-                  See example prompts
-                </Link>
-              </p>
-            )}
+
             <div style={{ width: 260, height: 1, margin: '32px auto 0', background: 'linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), transparent)' }} />
           </div>
           )}

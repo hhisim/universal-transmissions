@@ -1,52 +1,35 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import PageBackground from "@/components/scenes/PageBackground";
 import CodexIIExclusiveClient from "./CodexIIExclusiveClient";
+import { supabaseAdmin } from "@/lib/supabase";
 
-const PLAN_CHECK = ["initiate", "adept", "master"];
+const PLAN_CHECK = ["initiate", "adept", "master", "full"];
 
 export default async function CodexIIExclusivePage() {
-  const cookieStore = await cookies();
+  // Use NextAuth session — UT uses NextAuth (magic link), NOT Supabase Auth directly
+  const { auth } = await import("@/lib/auth");
+  const session = await auth();
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Server component — cookies set in middleware
-          }
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session?.user?.email) {
     redirect("/sanctum/member/login?redirect=/sanctum/member/codex-ii/exclusive");
   }
 
-  const { data: member } = await supabase
-    .from("ut_members")
-    .select("plan")
-    .eq("email", user.email)
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("plan, subscription_status")
+    .eq("email", session.user.email)
     .maybeSingle();
 
-  const isPaid = member?.plan && PLAN_CHECK.includes(member.plan);
+  const { data: member } = await supabaseAdmin
+    .from("ut_members")
+    .select("plan")
+    .eq("email", session.user.email)
+    .maybeSingle();
+
+  const plan = profile?.plan || member?.plan;
+  const isPaid = plan && PLAN_CHECK.includes(plan);
 
   return (
     <>

@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      { source: "/journal/yugen", destination: "/gallery", permanent: false },
+      { source: "/journal/yugen-kolm-album-artwork", destination: "/gallery", permanent: false },
+    ];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
