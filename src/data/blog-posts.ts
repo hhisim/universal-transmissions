@@ -82,6 +82,8 @@ import what_is_the_universal_transmissions_codex_raw from "./blog-content/old-sq
 import work_in_progress_raw from "./blog-content/old-squarespace/work-in-progress.md";
 import working_on_the_5th_chakra_raw from "./blog-content/old-squarespace/working-on-the-5th-chakra.md";
 import xl_tapestries_now_added_to_the_store_raw from "./blog-content/old-squarespace/xl-tapestries-now-added-to-the-store.md";
+import yugen_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
+import yugen_kolm_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -833,7 +835,21 @@ export function getPostBySlug(slug: string): BlogPost | undefined {
 
 export function getRelatedPosts(currentSlug: string, maxCount = 3): BlogPost[] {
   const current = getPostBySlug(currentSlug);
-  if (!current) return [];
+  if (!current) return [
+  {
+    slug: "yugen-kolm-album-artwork",
+    title: "YÜGEN — Album Artwork for Kolm",
+    publishedAt: "2026-04-06",
+    author: "Hakan Hisim",
+    excerpt: "The cover artwork for Kolm's new album Yügen — and what a journey. Translating their unique sound into a visual representation and motion was incredibly inspiring. The music is absolutely breathtaking.",
+    readTime: "1 min",
+    hero_gradient: "from-fuchsia-900 via-purple-900 to-black",
+    tags: ["art", "journal", "kolm", "album"],
+    tradition: "artwork",
+    content: stripFrontmatter(yugen_kolm_raw),
+  },
+
+];
   return blogPosts
     .filter((p) => p.slug !== currentSlug)
     .filter((p) => p.tags.some((tag) => current.tags.includes(tag)))
