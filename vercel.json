@@ -1,10 +1,54 @@
 {
   "redirects": [
-    { "source": "/home", "destination": "/oracle", "permanent": true },
-    { "source": "/site", "destination": "/oracle", "permanent": true },
-    { "source": "/start", "destination": "/oracle", "permanent": true },
-    { "source": "/ask", "destination": "/oracle", "permanent": true },
-    { "source": "/chat", "destination": "/oracle", "permanent": true },
-    { "source": "/q/:q", "destination": "/oracle?q=:q", "permanent": true }
+    {
+      "source": "/home",
+      "destination": "/oracle",
+      "permanent": true
+    },
+    {
+      "source": "/site",
+      "destination": "/oracle",
+      "permanent": true
+    },
+    {
+      "source": "/start",
+      "destination": "/oracle",
+      "permanent": true
+    },
+    {
+      "source": "/ask",
+      "destination": "/oracle",
+      "permanent": true
+    },
+    {
+      "source": "/chat",
+      "destination": "/oracle",
+      "permanent": true
+    },
+    {
+      "source": "/q/:q",
+      "destination": "/oracle?q=:q",
+      "permanent": true
+    },
+    {
+      "source": "/gallery/yugen",
+      "destination": "/gallery",
+      "statusCode": 301
+    },
+    {
+      "source": "/gallery/yugen/",
+      "destination": "/gallery",
+      "statusCode": 301
+    },
+    {
+      "source": "/artworks/yugen",
+      "destination": "/404",
+      "statusCode": 404
+    },
+    {
+      "source": "/artworks/yugen/",
+      "destination": "/404",
+      "statusCode": 404
+    }
   ]
 }
