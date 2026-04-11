@@ -825,6 +825,18 @@ export const blogPosts: BlogPost[] = [
     tradition: "tao",
     content: stripFrontmatter(taoQuantum_raw),
   },
+  {
+    slug: "yugen-kolm-album-artwork",
+    title: "YÜGEN — Album Artwork for Kolm",
+    publishedAt: "2026-04-06",
+    author: "Hakan Hisim",
+    excerpt: "The cover artwork for Kolm's new album Yügen — and what a journey. Translating their unique sound into a visual representation and motion was incredibly inspiring. The music is absolutely breathtaking.",
+    readTime: "1 min",
+    hero_gradient: "from-fuchsia-900 via-purple-900 to-black",
+    tags: ["art", "journal", "kolm", "album"],
+    tradition: "artwork",
+    content: stripFrontmatter(yugen_raw),
+  },
 ];
 
 // === Utilities =====================================================================
