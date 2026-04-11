@@ -49,6 +49,11 @@
       "source": "/artworks/yugen/",
       "destination": "/404",
       "statusCode": 404
+    },
+    {
+      "source": "/journal/yugen",
+      "destination": "/journal/yugen-kolm-album-artwork",
+      "statusCode": 301
     }
   ]
 }
