@@ -36,3 +36,34 @@ yarn-error.log*
 next-env.d.ts
 .vercelrc
 .env.vercel
+
+# Sensitive files - NEVER commit
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Credentials and secrets
+*secret*
+*password*
+*.pem
+*.key
+credentials*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Built assets
+/public/build
+/public/dist
+*.min.js
