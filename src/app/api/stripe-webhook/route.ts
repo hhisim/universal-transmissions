@@ -1,6 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { supabaseAdmin } from "@/lib/supabase";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+
+// ── Telegram notification helper ────────────────────────────────────────────
+const TELEGRAM_BOT_TOKEN = process.env.AKASHA_BOT_TOKEN ?? "";
+const TELEGRAM_CHAT_ID   = process.env.TELEGRAM_HOME_CHANNEL ?? "5491669332";
+
+async function sendTelegram(html: string) {
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.warn("AKASHA_BOT_TOKEN not set — skipping Telegram notification");
+    return;
+  }
+  try {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: html,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
+    });
+  } catch (err) {
+    console.error("Telegram notification failed:", err);
+  }
+}
+
+function formatCurrency(amount: number | null | undefined, currency: string = "usd"): string {
+  if (amount == null) return "—";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(amount / 100);
+}
+
+// UT Supabase — the webhook writes to UT's database, not VOA's
+function getUtSupabaseAdmin(): SupabaseClient {
+  const url = process.env.UT_SUPABASE_URL;
+  const key = process.env.UT_SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("UT_SUPABASE_URL or UT_SUPABASE_SERVICE_ROLE_KEY is not set");
+  return createClient(url, key);
+}
+const utSupabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getUtSupabaseAdmin();
+    const val = (client as any)[prop];
+    return typeof val === "function" ? val.bind(client) : val;
+  },
+});
 import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -52,8 +97,9 @@ export async function POST(req: NextRequest) {
           : !!((session.line_items!.data[0].price!.product as Stripe.Product | null)?.description)
         : false;
 
+      let orderNote = "";
       try {
-        const { error } = await supabaseAdmin
+        const { error } = await utSupabaseAdmin
           .from("ut_orders")
           .update({
             status: isDigital ? "fulfilled" : "paid",
@@ -72,16 +118,42 @@ export async function POST(req: NextRequest) {
           .eq("stripe_session_id", session.id);
 
         if (error) console.error("Failed to update order status:", error);
-        else console.log(`Order updated to: ${isDigital ? "fulfilled" : "paid"}`);
+        else {
+          console.log(`Order updated to: ${isDigital ? "fulfilled" : "paid"}`);
+          orderNote = "✅ Order updated in UT DB";
+        }
       } catch (err) {
         console.error("Supabase update failed:", err);
       }
+
+      // ── Telegram notification ────────────────────────────────────────────
+      const amount = session.amount_total;
+      const productName = session.line_items?.data[0]?.description ?? "Order";
+      const customerName = session.customer_details?.name ?? session.customer_email ?? "Unknown";
+      const customerEmail = session.customer_email ?? "—";
+      const ts = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+
+      await sendTelegram(
+        `<b>🛒 NEW SALE — ${formatCurrency(amount, session.currency ?? "usd")}</b>\n` +
+        `Customer: ${customerName}\n` +
+        `Email: ${customerEmail}\n` +
+        `Product: ${productName}\n` +
+        `Time: ${ts}\n` +
+        `${orderNote}`
+      );
       break;
     }
 
     case "payment_intent.payment_failed": {
       const intent = event.data.object as Stripe.PaymentIntent;
+      const ts = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
       console.log(`❌ Payment failed: ${intent.id}`);
+      await sendTelegram(
+        `<b>⚠️ PAYMENT FAILED</b>\n` +
+        `Payment Intent: ${intent.id}\n` +
+        `Amount: ${formatCurrency(intent.amount, intent.currency)}\n` +
+        `Time: ${ts}`
+      );
       break;
     }
 
@@ -112,8 +184,9 @@ export async function POST(req: NextRequest) {
       const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString();
 
       // Update ut_members (existing store members)
+      let memberNote = "";
       try {
-        await supabaseAdmin
+        await utSupabaseAdmin
           .from("ut_members")
           .update({
             plan,
@@ -124,6 +197,7 @@ export async function POST(req: NextRequest) {
           })
           .eq("stripe_customer_id", customerId);
         console.log(`ut_members updated: plan=${plan}, status=${subscriptionStatus}`);
+        memberNote = "✅ Member record updated";
       } catch (err) {
         console.error("Failed to update ut_members subscription:", err);
       }
@@ -131,7 +205,7 @@ export async function POST(req: NextRequest) {
       // Update profiles table (Oracle members) — keyed by email
       if (email) {
         try {
-          await supabaseAdmin
+          await utSupabaseAdmin
             .from("profiles")
             .update({
               plan,
@@ -144,6 +218,19 @@ export async function POST(req: NextRequest) {
           console.error("Failed to update Oracle profile subscription:", err);
         }
       }
+
+      // ── Telegram notification ────────────────────────────────────────────
+      const isNew = event.type === "customer.subscription.created";
+      const ts = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+      await sendTelegram(
+        `<b>${isNew ? "✨ NEW MEMBERSHIP" : "🔄 MEMBERSHIP UPDATE"}</b>\n` +
+        `Email: ${email ?? "—"}\n` +
+        `Plan: ${plan}\n` +
+        `Status: ${subscriptionStatus}\n` +
+        `Customer ID: ${customerId}\n` +
+        `Time: ${ts}\n` +
+        `${memberNote}`
+      );
       break;
     }
 
@@ -155,7 +242,7 @@ export async function POST(req: NextRequest) {
 
       // Revert ut_members
       try {
-        await supabaseAdmin
+        await utSupabaseAdmin
           .from("ut_members")
           .update({
             plan: "guest",
@@ -171,13 +258,13 @@ export async function POST(req: NextRequest) {
 
       // Revert profiles (Oracle) — find by stripe_customer_id
       try {
-        const { data: profile } = await supabaseAdmin
+        const { data: profile } = await utSupabaseAdmin
           .from("profiles")
           .select("id")
           .eq("stripe_customer_id", customerId)
           .maybeSingle()
         if (profile) {
-          await supabaseAdmin
+          await utSupabaseAdmin
             .from("profiles")
             .update({ plan: "free" })
             .eq("id", profile.id)
@@ -186,6 +273,14 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("Failed to revert Oracle profile:", err);
       }
+
+      // ── Telegram notification ──────────────────────────────────────────────
+      const ts = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+      await sendTelegram(
+        `<b>❌ MEMBERSHIP CANCELLED</b>\n` +
+        `Customer ID: ${customerId}\n` +
+        `Time: ${ts}`
+      );
       break;
     }
 
@@ -196,7 +291,7 @@ export async function POST(req: NextRequest) {
       console.log(`Invoice payment failed for customer ${customerId}: ${invoice.id}`);
 
       try {
-        await supabaseAdmin
+        await utSupabaseAdmin
           .from("ut_members")
           .update({ subscription_status: "past_due" })
           .eq("stripe_customer_id", customerId);
@@ -217,7 +312,7 @@ export async function POST(req: NextRequest) {
         const customerEmail = invoice.customer_email;
 
         try {
-          await supabaseAdmin
+          await utSupabaseAdmin
             .from("ut_members")
             .upsert(
               {
@@ -231,13 +326,13 @@ export async function POST(req: NextRequest) {
             );
 
           // Also upsert profiles (Oracle) — look up UUID by email
-          const { data: authUser } = await supabaseAdmin
+          const { data: authUser } = await utSupabaseAdmin
             .from("auth.users")
             .select("id")
             .eq("email", customerEmail)
             .maybeSingle();
           if (authUser?.id) {
-            await supabaseAdmin
+            await utSupabaseAdmin
               .from("profiles")
               .upsert(
                 { id: authUser.id, email: customerEmail, stripe_customer_id: customerId, plan: "initiate" },

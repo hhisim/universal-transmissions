@@ -90,7 +90,10 @@ function SignupPageContent() {
 
     // Session is returned immediately since mailer_autoconfirm = true
     if (data.session) {
-      window.location.href = '/oracle/plans'
+      // Preserve ?redirect= through the full login/signup flow
+      const params = new URLSearchParams(window.location.search)
+      const redirectTo = params.get('redirect') || '/oracle/plans'
+      window.location.href = redirectTo
     } else {
       window.location.href = '/login'
     }

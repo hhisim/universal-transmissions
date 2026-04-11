@@ -62,7 +62,6 @@ const NAV_LINKS = [
   { href: "/research", label: "Research" },
   { href: "/oracle", label: "Oracle" },
   { href: "/sanctum", label: "Sanctum" },
-  { href: "/agora", label: "Agora" },
   { href: "/journal", label: "Journal" },
   { href: "/connect", label: "Connect" },
 ];
