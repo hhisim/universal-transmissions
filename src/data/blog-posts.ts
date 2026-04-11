@@ -864,3 +864,4 @@ export function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[.*?\]\(\/journal\/([^)]+)\)/);
   return match ? `/journal/${match[1]}` : null;
 }
+# dummy commit to force rebuild
