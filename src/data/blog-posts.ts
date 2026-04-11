@@ -30,7 +30,6 @@ import tarot_raw from "./blog-content/2026-03-21/tarot-symbolic-machine-for-fate
 import alchemy_raw from "./blog-content/2026-03-21/alchemy-of-soul-magnum-opus.md";
 import tibetans_raw from "./blog-content/2026-03-21/five-tibetans-ancient-rites-of-rejuvenation.md";
 import enochian_raw from "./blog-content/2026-03-21/enochian-angelic-language-modern-occultism.md";
-import yugen_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
 import sexualAlchemy_raw from "./blog-content/Tao/sexual-alchemy-taoist-tradition.md";
 import taoQuantum_raw from "./blog-content/Tao/taoism-quantum-physics-controversy.md";
 import adding_new_transmissions_soon_raw from "./blog-content/old-squarespace/adding-new-transmissions-soon.md";
@@ -864,4 +863,3 @@ export function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[.*?\]\(\/journal\/([^)]+)\)/);
   return match ? `/journal/${match[1]}` : null;
 }
-# dummy commit to force rebuild
