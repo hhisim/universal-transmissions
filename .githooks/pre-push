@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "Running UT security pre-push checks..."
+if git diff --cached --name-only | grep -q "src/middleware.ts"; then
+    echo "ERROR: Refusing to push src/middleware.ts - this file has been used to expose secrets!"
+    exit 1
+fi
+if git diff --cached --name-only | grep -q "public/artworks/yugen"; then
+    echo "ERROR: Refusing to push public/artworks/yugen - gallery was used to leak chat IDs!"
+    exit 1
+fi
+echo "OK: Pre-push security checks passed"
