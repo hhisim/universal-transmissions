@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const SUPABASE_URL = "https://opixpkquyapeqdceyczs.supabase.co";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 function decodeEmailFromToken(token: string): string | null {
@@ -18,7 +19,7 @@ async function queryUtMembers(email: string, userToken: string) {
   // Use the user's own token — ut_members RLS allows authenticated reads
   const r = await fetch(`${SUPABASE_URL}/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=plan,subscription_status,current_period_end`, {
     headers: {
-      "apikey": SUPABASE_URL.split("//")[1]?.split(".")[0] ?? "supabase",
+      "apikey": SUPABASE_ANON_KEY,
       "Authorization": `Bearer ${userToken}`,
     },
   });
