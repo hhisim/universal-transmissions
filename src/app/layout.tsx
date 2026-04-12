@@ -58,6 +58,17 @@ export default function RootLayout({
       <head>
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-793DRYHJP0" />
         <script dangerouslySetInnerHTML={{ __html: "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-793DRYHJP0');" }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+window.__utSetSession = function(email, plan) {
+  try {
+    if (email && plan) {
+      localStorage.setItem('ut_session', JSON.stringify({ email: email, plan: plan }));
+    } else {
+      localStorage.removeItem('ut_session');
+    }
+  } catch(e) {}
+};
+` }} />
       </head>
       <body className="antialiased">
         <PageBackground />
