@@ -265,9 +265,9 @@ function AudioPlayer({ src, color }: { src: string; color: string }) {
 /* ═══════════════════════════════════════════════════════════
    CHAT BUBBLE
    ═══════════════════════════════════════════════════════════ */
-interface Msg { role: "user" | "oracle"; text: string; mode?: string; audioUrl?: string }
+interface Msg { role: "user" | "oracle"; text: string; mode?: string; audioUrl?: string; index?: number }
 
-function ChatBubble({ msg, modeColor, lang }: { msg: Msg; modeColor: string; lang: string }) {
+function ChatBubble({ msg, modeColor, lang, isDecoding }: { msg: Msg; modeColor: string; lang: string; isDecoding?: boolean }) {
   const isOracle = msg.role === "oracle";
   const t = T[lang] || T.en;
   const ml = (MODES.find(m => m.id === msg.mode)?.label as Record<string, string>)?.[lang] || "ORACLE";
@@ -278,7 +278,13 @@ function ChatBubble({ msg, modeColor, lang }: { msg: Msg; modeColor: string; lan
         {isOracle ? `${t.oracleLabel} · ${ml}` : t.you}
       </div>
       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, lineHeight: 1.8, color: isOracle ? "var(--ut-white)" : "var(--ut-white-dim)" }}>
-        {isOracle ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown> : msg.text}
+        {isOracle ? (
+          isDecoding ? (
+            <DecodingText text={msg.text} speed={25} className="decoding-active" />
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+          )
+        ) : msg.text}
       </div>
       {isOracle && msg.audioUrl && <AudioPlayer src={msg.audioUrl} color={modeColor} />}
     </motion.div>
@@ -300,6 +306,7 @@ export default function OracleV2Page() {
   const [nameInput, setNameInput] = useState("");
   const [questionsUsed, setQuestionsUsed] = useState(0);
   const [tier] = useState<"guest" | "free" | "initiate">("guest");
+  const [decodingIdx, setDecodingIdx] = useState<number | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
   const t = T[lang] || T.en;
@@ -335,11 +342,14 @@ export default function OracleV2Page() {
       const data = await res.json();
       const answer = data.response || data.answer || "";
       const audioUrl = answer ? await fetchTTS(answer) : "";
-      setMsgs(p => [...p, { role: "oracle", text: answer || "This transmission has not yet entered the archive.", mode: useMode, audioUrl }]);
-      setQuestionsUsed(q => q + 1);
+      const newIdx = msgs.length; // index of the oracle message about to be added (at end of array)
+      const oracleMsg = { role: "oracle" as const, text: answer || "This transmission has not yet entered the archive.", mode: useMode, audioUrl, index: newIdx };
+      setMsgs(p => [...p, oracleMsg]);
+      setDecodingIdx(newIdx); // trigger decode animation on the new oracle message
     } catch {
-      setMsgs(p => [...p, { role: "oracle", text: "The transmission was interrupted.", mode: useMode }]);
-    } finally { setLoading(false); }
+      const errMsg = { role: "oracle" as const, text: "The transmission was interrupted.", mode: useMode, audioUrl: undefined, index: msgs.length + 1 };
+      setMsgs(p => [...p, errMsg]);
+    } finally { setLoading(false); setDecodingIdx(null); }
   }, [input, mode, lang, speed, loading, atLimit, fetchTTS]);
 
   const decodeName = () => {
@@ -435,7 +445,7 @@ export default function OracleV2Page() {
                     </div>
                   </div>
                 )}
-                {msgs.map((m, i) => <ChatBubble key={i} msg={m} modeColor={MODES.find(x => x.id === (m.mode || mode))?.c || currentMode.c} lang={lang} />)}
+                {msgs.map((m, i) => <ChatBubble key={i} msg={m} modeColor={MODES.find(x => x.id === (m.mode || mode))?.c || currentMode.c} lang={lang} isDecoding={decodingIdx === i} />)}
                 {loading && (
                   <div style={{ padding: "16px 20px", marginBottom: 16, borderLeft: `2px solid ${currentMode.c}33`, background: currentMode.c + "04" }}>
                     <div className="font-mono text-[9px] tracking-[0.2em] mb-3" style={{ color: currentMode.c + "55" }}>
