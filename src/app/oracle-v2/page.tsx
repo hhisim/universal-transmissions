@@ -6,6 +6,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion } from "framer-motion";
 import ZalgoText from "@/components/ui/ZalgoText";
+import NebulaCore from "@/components/oracle/NebulaCore";
+import HolographicChat from "@/components/oracle/HolographicChat";
+import DecodingText from "@/components/oracle/DecodingText";
+import OrbitalModes from "@/components/oracle/OrbitalModes";
 
 const CosmicBackground = dynamic(() => import("@/components/oracle/CosmicBackground"), { ssr: false });
 
@@ -353,7 +357,7 @@ export default function OracleV2Page() {
 
   return (
     <>
-      <CosmicBackground />
+      <NebulaCore />
       <main style={{ background: "transparent", position: "relative", zIndex: 1 }}>
 
         {/* Header */}
@@ -370,16 +374,12 @@ export default function OracleV2Page() {
 
         {/* Modes */}
         <div className="container-ut pb-4">
-          <div className="flex flex-wrap justify-center gap-2">
-            {MODES.map(mo => (
-              <button key={mo.id} onClick={() => setMode(mo.id)}
-                className="font-heading text-[9px] md:text-[10px] tracking-[0.16em] uppercase px-3 md:px-4 py-2 border transition-all duration-300"
-                style={{ borderColor: mode === mo.id ? mo.c + "66" : "rgba(255,255,255,0.06)", color: mode === mo.id ? mo.c : "var(--ut-white-faint)", background: mode === mo.id ? mo.c + "0a" : "transparent" }}>
-                <span style={{ marginRight: 5, fontSize: 11 }}>{mo.icon}</span>
-                {(mo.label as Record<string, string>)[lang] || (mo.label as Record<string, string>).en}
-              </button>
-            ))}
-          </div>
+          <OrbitalModes 
+            currentMode={mode} 
+            onModeChange={setMode} 
+            lang={lang}
+            modes={MODES}
+          />
         </div>
 
         {/* Name Decoder (Linguistics mode) */}
@@ -417,12 +417,8 @@ export default function OracleV2Page() {
             </div>
 
             {/* CENTER: Chat */}
-            <div className="flex-1 overflow-hidden" style={{
-              border: `1px solid ${currentMode.c}10`,
-              background: "rgba(10, 9, 14, 0.65)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-            }}>
+            <div className="flex-1 overflow-hidden">
+            <HolographicChat modeColor={currentMode.c}>
               <div ref={chatRef} className="oracle-scroll" style={{ minHeight: 420, maxHeight: 580, overflowY: "auto", padding: "24px 24px 16px" }}>
                 {!hasMessages && (
                   <div className="text-center py-16">
@@ -485,6 +481,7 @@ export default function OracleV2Page() {
                 </div>
                 <div className="mt-2 text-center font-mono text-[8px] tracking-widest" style={{ color: "rgba(237,233,246,0.08)" }}>{t.enterHint}</div>
               </div>
+            </HolographicChat>
             </div>
 
             {/* RIGHT: Follow-ups */}
