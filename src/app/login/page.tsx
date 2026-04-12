@@ -83,7 +83,7 @@ function SignInPageContent() {
 
     // Read redirect from URL only on form submit — avoids SSR dynamic-page overhead
     const params = new URLSearchParams(window.location.search)
-    const redirectTo = params.get('redirect') || '/member'
+    const redirectTo = params.get('redirect') || '/sanctum/member'
     window.location.href = redirectTo
   }
 

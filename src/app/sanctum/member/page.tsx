@@ -236,40 +236,41 @@ export default function MemberPage() {
 
   async function fetchProfile(email: string, token: string | null) {
     try {
-      // Get plan from profiles table — use REST API with user token for RLS
       const headers: Record<string, string> = {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waXhwa3F1eWFwZXFkY2V5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODM2NzgsImV4cCI6MjA5MDM1OTY3OH0.clqq-XAE7NgY7muFnNqQfhJcLv2i_CALK0d6Kg4P_eQ',
       };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
+      // Try ut_members first — confirmed working with user token
+      const memberRes = await fetch(
+        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=plan,subscription_status&limit=1`,
+        { headers }
+      );
+      if (memberRes.ok) {
+        const members = await memberRes.json();
+        if (Array.isArray(members) && members[0] && members[0].plan) {
+          setProfile({ email, plan: members[0].plan || 'free' });
+          return;
+        }
+      }
+
+      // Fallback: profiles table (no name column — only select plan)
       const profileRes = await fetch(
-        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=plan,name,created_at&limit=1`,
+        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=plan,created_at&limit=1`,
         { headers }
       );
       if (profileRes.ok) {
         const profiles = await profileRes.json();
-        if (Array.isArray(profiles) && profiles[0]) {
+        if (Array.isArray(profiles) && profiles[0] && profiles[0].plan) {
           setProfile({
             email,
             plan: profiles[0].plan || 'free',
-            name: profiles[0].name,
             joined_at: profiles[0].created_at,
           });
           return;
         }
       }
-      // Fallback: try ut_members
-      const memberRes = await fetch(
-        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=plan&limit=1`,
-        { headers }
-      );
-      if (memberRes.ok) {
-        const members = await memberRes.json();
-        if (Array.isArray(members) && members[0]) {
-          setProfile({ email, plan: members[0].plan || 'free' });
-          return;
-        }
-      }
+
       setProfile({ email, plan: 'free' });
     } catch (e) {
       console.error('Profile fetch error:', e);

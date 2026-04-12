@@ -11,6 +11,7 @@ import ZalgoText from '@/components/ui/ZalgoText'
 import PageBackground from '@/components/scenes/PageBackground'
 import { PLAN_CONFIG, PlanId } from '@/lib/plans'
 import { Crown, User, CreditCard, CheckCircle, AlertCircle, Zap } from 'lucide-react'
+import { supabase } from '@/lib/supabase-client'
 
 function formatDate(iso: string | null | undefined) {
   if (!iso) return '—'
@@ -51,9 +52,20 @@ function AccountPageContent() {
   const justUpgraded = searchParams.get('success') === '1'
 
   useEffect(() => {
-    fetch('/api/billing/session')
-      .then(r => r.json())
-      .then(async (data) => {
+    async function load() {
+      try {
+        // Get Supabase session first
+        const { data: { session: supabaseSession } } = await supabase.auth.getSession()
+        if (!supabaseSession?.access_token) {
+          router.push('/login')
+          return
+        }
+
+        // Pass Bearer token to /api/billing/session
+        const data = await fetch('/api/billing/session', {
+          headers: { Authorization: `Bearer ${supabaseSession.access_token}` },
+        }).then(r => r.json())
+
         if (!data.authenticated) {
           router.push('/signup')
           return
@@ -62,29 +74,33 @@ function AccountPageContent() {
 
         // Fetch today's Oracle usage
         try {
-          const tokenRes = await fetch('/api/auth/session')
-          const tokenData = await tokenRes.json()
-          const token = tokenData?.tokens?.access_token
-          if (token) {
-            const usageRes = await fetch('/api/oracle', {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            if (usageRes.ok) {
-              const usageData = await usageRes.json()
-              setTodayUsage(usageData.used ?? 0)
-            }
+          const usageRes = await fetch('/api/oracle', {
+            headers: { Authorization: `Bearer ${supabaseSession.access_token}` },
+          })
+          if (usageRes.ok) {
+            const usageData = await usageRes.json()
+            setTodayUsage(usageData.used ?? 0)
           }
         } catch {
           // ignore
         }
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [router])
 
   async function openBillingPortal() {
     setPortalLoading(true)
     try {
-      const r = await fetch('/api/billing/portal', { method: 'POST' })
+      const { data: { session: supabaseSession } } = await supabase.auth.getSession()
+      const token = supabaseSession?.access_token
+      if (!token) { alert('Not signed in.'); return }
+      const r = await fetch('/api/billing/portal', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
       const d = await r.json()
       if (d.url) window.location.href = d.url
       else alert('Could not open billing portal.')
