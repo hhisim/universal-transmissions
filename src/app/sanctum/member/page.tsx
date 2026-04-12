@@ -747,7 +747,7 @@ export default function MemberPage() {
               msgError={msgError}
               onMsgFormChange={setMsgForm}
               onSendMessage={handleSendMessage}
-              onRefresh={fetchMessages}
+              onRefresh={() => fetchMessages(userToken)}
               onResetMsgStatus={() => setMsgStatus('idle')}
             />
           )}
