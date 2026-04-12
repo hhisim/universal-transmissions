@@ -63,10 +63,19 @@ window.__utSetSession = function(email, plan) {
   try {
     if (email && plan) {
       localStorage.setItem('ut_session', JSON.stringify({ email: email, plan: plan }));
+      window.__utSession = { email: email, plan: plan };
     } else {
       localStorage.removeItem('ut_session');
+      window.__utSession = null;
     }
   } catch(e) {}
+};
+window.__utGetSession = function() {
+  try {
+    var raw = localStorage.getItem('ut_session');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
 };
 ` }} />
       </head>
