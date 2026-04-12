@@ -832,6 +832,7 @@ export const blogPosts: BlogPost[] = [
     author: "Hakan Hisim",
     excerpt: "The cover artwork for Kolm's new album Yügen — and what a journey. Translating their unique sound into a visual representation and motion was incredibly inspiring. The music is absolutely breathtaking.",
     readTime: "1 min",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775500259/sdcx4xtqoxhqqf7gnb2v.jpg",
     hero_gradient: "from-fuchsia-900 via-purple-900 to-black",
     tags: ["art", "journal", "kolm", "album"],
     tradition: "artwork",
@@ -856,9 +857,10 @@ export function getRelatedPosts(currentSlug: string, maxCount = 3): BlogPost[] {
     excerpt: "The cover artwork for Kolm's new album Yügen — and what a journey. Translating their unique sound into a visual representation and motion was incredibly inspiring. The music is absolutely breathtaking.",
     readTime: "1 min",
     hero_gradient: "from-fuchsia-900 via-purple-900 to-black",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775500259/sdcx4xtqoxhqqf7gnb2v.jpg",
     tags: ["art", "journal", "kolm", "album"],
     tradition: "artwork",
-    content: stripFrontmatter(yugen_kolm_raw),
+    content: stripFrontmatter(yugen_raw),
   },
 
 ];

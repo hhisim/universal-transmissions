@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
     await supabaseAdmin
       .from('profiles')
       .upsert(
-        { id: email, plan: 'free', created_at: new Date().toISOString() },
-        { onConflict: 'id' }
+        { email, plan: 'free' },
+        { onConflict: 'email' }
       )
 
     return NextResponse.json({ success: true, plan: 'free' })

@@ -6,12 +6,13 @@ import PageBackground from "@/components/scenes/PageBackground";
 import { Crown, Zap, Star, CreditCard, ExternalLink, LogOut, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 
-type Plan = "guest" | "free" | "initiate";
+type Plan = "guest" | "free" | "initiate" | "master";
 
 const PLAN_META: Record<Plan, { icon: typeof Star; color: string; label: string; sub: string }> = {
-  guest: { icon: Star, color: "rgba(107,101,128,0.5)", label: "Guest", sub: "No account" },
-  free:  { icon: Zap,  color: "#22d3ee", label: "Free Account", sub: "25 questions/day" },
-  initiate: { icon: Crown, color: "#d4a847", label: "Initiate", sub: "$3.99/month" },
+  guest:    { icon: Star,  color: "rgba(107,101,128,0.5)", label: "Guest",          sub: "No account" },
+  free:     { icon: Zap,   color: "#22d3ee",              label: "Free Account",    sub: "25 questions/day" },
+  initiate: { icon: Crown, color: "#d4a847",              label: "Initiate",       sub: "$3.99/month" },
+  master:   { icon: Crown, color: "#9333ea",              label: "Master Member",   sub: "Full access" },
 };
 
 export default function MemberPage() {
@@ -36,18 +37,25 @@ function MemberPageContent() {
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
-    fetch("/api/billing/session")
-      .then(r => r.json())
-      .then(d => {
+    async function loadSession() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return;
+
+        const d = await fetch("/api/billing/session", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }).then(r => r.json());
+
         if (d.authenticated) {
           setEmail(d.email ?? null);
-          setPlan(d.plan as Plan ?? "guest");
+          setPlan((d.plan as Plan) ?? "guest");
           setStatus(d.subscription_status ?? "inactive");
           setPeriodEnd(d.current_period_end ?? null);
           setSignedIn(true);
         }
-      })
-      .catch(() => {});
+      } catch {}
+    }
+    loadSession();
   }, []);
 
   async function handleSignIn(e: React.FormEvent) {
@@ -265,7 +273,7 @@ function MemberPageContent() {
 
           {/* Actions */}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {plan === "initiate" ? (
+            {(plan === "initiate" || plan === "master") ? (
               <button
                 onClick={handleManageBilling}
                 disabled={loading}
@@ -273,9 +281,9 @@ function MemberPageContent() {
                   flex: 1,
                   minWidth: 160,
                   padding: "12px 20px",
-                  border: "1px solid rgba(212,168,71,0.3)",
-                  background: "rgba(212,168,71,0.05)",
-                  color: "#d4a847",
+                  border: `1px solid ${meta.color}40`,
+                  background: `${meta.color}08`,
+                  color: meta.color,
                   fontFamily: "Cinzel, serif",
                   fontSize: 9,
                   letterSpacing: "0.2em",
@@ -294,7 +302,7 @@ function MemberPageContent() {
               </button>
             ) : (
               <Link
-                href="/sanctum/member/oracle#plans"
+                href="/oracle/plans"
                 style={{
                   flex: 1,
                   minWidth: 160,

@@ -1,15 +1,13 @@
 "use client";
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
-import { supabase } from "@/lib/supabase-client";
-import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import {
   Eye, Package, MessageCircle, Sparkles, Wand2, Hexagon,
@@ -21,7 +19,7 @@ import {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type TabId = 'dashboard' | 'codex' | 'experience' | 'messages';
-type PlanTier = 'free' | 'initiate' | 'master';
+type PlanTier = 'free' | 'initiate' | 'master' | 'full';
 
 interface MemberProfile {
   email: string;
@@ -197,32 +195,28 @@ export default function MemberPage() {
   const [msgError, setMsgError] = useState('');
 
   // ─── Auth & Profile ───────────────────────────────────────────────────────
+  // UT uses NextAuth magic link — check session via /api/session
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
+    fetch("/api/session")
+      .then(res => res.json())
+      .then(data => {
+        if (!data?.user?.email) {
+          router.push("/sanctum/member/login");
+        } else {
+          setSession(data);
+          fetchProfile(data.user.email || '');
+          fetchMessages();
+        }
+        setLoading(false);
+      })
+      .catch(() => {
         router.push("/sanctum/member/login");
-      } else {
-        setSession(data.session);
-        fetchProfile(data.session.user.email || '');
-        fetchMessages();
-      }
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) router.push("/sanctum/member/login");
-      else {
-        setSession(session);
-        fetchProfile(session.user.email || '');
-        fetchMessages();
-      }
-    });
-    return () => subscription.unsubscribe();
+      });
   }, [router]);
 
   async function fetchProfile(email: string) {
     try {
-      // Get plan from profiles table
+      // Get plan from profiles table (primary) — UT uses NextAuth magic link
       const { data: profileData } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -296,13 +290,13 @@ export default function MemberPage() {
   }
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/sanctum/member/login");
+    await fetch("/api/auth/signout", { method: "POST" });
+    router.push("/login");
   }
 
   // ─── Render Helpers ───────────────────────────────────────────────────────
-  const isPaid = profile?.plan === 'initiate' || profile?.plan === 'master';
-  const planLabel = profile?.plan === 'master' ? 'Master' : profile?.plan === 'initiate' ? 'Initiate' : 'Free';
+  const isPaid = profile?.plan === 'initiate' || profile?.plan === 'master' || profile?.plan === 'full';
+  const planLabel = profile?.plan === 'master' ? 'Master' : profile?.plan === 'full' ? 'Full' : profile?.plan === 'initiate' ? 'Initiate' : 'Free';
 
   if (loading) {
     return (

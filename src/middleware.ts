@@ -1,8 +1,10 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request)
+  const response = await updateSession(request)
+  // Preserve the original URL path — don't let Supabase SSR redirect
+  return NextResponse.next({ request })
 }
 
 export const config = {

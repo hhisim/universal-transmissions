@@ -95,7 +95,9 @@ function SignupPageContent() {
       const redirectTo = params.get('redirect') || '/oracle/plans'
       window.location.href = redirectTo
     } else {
-      window.location.href = '/login'
+      // Email confirmation required — tell user
+      setError('Confirmation email sent. Please check your inbox and click the link to activate your account.')
+      setLoading(false)
     }
   }
 

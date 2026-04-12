@@ -77,6 +77,7 @@ const HERO_IMAGES: Record<string, string> = {
   "enochian-angelic-language-modern-occultism": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075675/voa/heroes/enochian-hero.png",
   "sexual-alchemy-taoist-tradition": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075679/voa/heroes/sexual-alchemy-hero.png",
   "taoism-quantum-physics-controversy": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075684/voa/heroes/taoism-quantum-hero.png",
+  "yugen-kolm-album-artwork": "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775500259/sdcx4xtqoxhqqf7gnb2v.jpg",
 };
 
 const ALL_YEARS = ['2026', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017'];

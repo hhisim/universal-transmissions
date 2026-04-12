@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('plan, stripe_customer_id')
-      .eq('id', email) // id = email when using email as ID
+      .eq('email', email)
       .maybeSingle()
 
     return NextResponse.json({

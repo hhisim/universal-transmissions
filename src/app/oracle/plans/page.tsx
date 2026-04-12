@@ -87,13 +87,10 @@ export default function OraclePlansPage() {
     async function load() {
       setLoading(true)
       try {
-        // Force refresh to pick up any session set by signup/login
-        const { data: { session: localSession }, error: refreshError } = await supabase.auth.refreshSession()
-        if (refreshError) console.error('Refresh error:', refreshError)
-
+        const { data: { session: localSession } } = await supabase.auth.refreshSession()
         const activeSession = localSession || (await supabase.auth.getSession()).data.session
 
-        if (activeSession) {
+        if (activeSession?.access_token) {
           const token = activeSession.access_token
           const data = await fetchSessionWithToken(token)
           setSession({ ...data, accessToken: token })

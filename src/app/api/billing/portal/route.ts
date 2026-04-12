@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("stripe_customer_id")
-      .eq("id", session.user.email)
+      .eq("email", session.user.email)
       .maybeSingle();
 
     const { data: member } = profile?.stripe_customer_id

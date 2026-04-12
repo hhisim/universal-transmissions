@@ -325,20 +325,13 @@ export async function POST(req: NextRequest) {
               { onConflict: "email" }
             );
 
-          // Also upsert profiles (Oracle) — look up UUID by email
-          const { data: authUser } = await utSupabaseAdmin
-            .from("auth.users")
-            .select("id")
-            .eq("email", customerEmail)
-            .maybeSingle();
-          if (authUser?.id) {
-            await utSupabaseAdmin
-              .from("profiles")
-              .upsert(
-                { id: authUser.id, email: customerEmail, stripe_customer_id: customerId, plan: "initiate" },
-                { onConflict: "id" }
-              );
-          }
+          // Also upsert profiles (Oracle) — keyed by email
+          await utSupabaseAdmin
+            .from("profiles")
+            .upsert(
+              { email: customerEmail, stripe_customer_id: customerId, plan: "initiate" },
+              { onConflict: "email" }
+            );
         } catch (err) {
           console.error("Failed to upsert member on invoice.payment_succeeded:", err);
         }
