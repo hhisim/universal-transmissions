@@ -423,7 +423,7 @@ export default function OraclePage() {
                 {atLimit && (
                   <div className="text-center py-3">
                     <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{tier === "guest" ? "Daily limit reached. Create a free account for 25/day." : "Daily limit reached."}</span>
-                    {tier !== "initiate" && <a href="/pricing" className="ml-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "#d946ef" }}>{t.upgrade}</a>}
+                    {tier !== "initiate" && <a href="/oracle/plans" className="ml-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "#d946ef" }}>{t.upgrade}</a>}
                   </div>
                 )}
                 <div className="flex gap-3 items-end mt-4">

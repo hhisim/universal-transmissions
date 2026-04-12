@@ -170,8 +170,8 @@ export default function OraclePlansPage() {
           {/* Logged-in status */}
           {!loading && isLoggedIn && (
             <div className="mb-8 text-center" style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(212,168,71,0.5)' }}>
-              Signed in as {session.email} · <Link href="/account" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>Account</Link>
-              {isInitiate && ' · '}<Link href="/account" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>{isInitiate ? 'Initiate Member' : ''}</Link>
+              Signed in as {session.email} · <Link href="/member" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>Account</Link>
+              {isInitiate && ' · '}<Link href="/member" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>{isInitiate ? 'Initiate Member' : ''}</Link>
             </div>
           )}
 
