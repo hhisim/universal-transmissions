@@ -183,6 +183,7 @@ const CODEX_II_SECTIONS = [
 export default function MemberPage() {
   const router = useRouter();
   const [session, setSession] = useState<any>(null);
+  const [userToken, setUserToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -210,6 +211,7 @@ export default function MemberPage() {
           const data = await r.json();
           if (data?.user?.email) {
             setSession(data);
+            setUserToken(supabaseSession.access_token);
             fetchProfile(data.user.email || '', supabaseSession.access_token);
             fetchMessages(supabaseSession.access_token);
             setLoading(false);
@@ -321,7 +323,7 @@ export default function MemberPage() {
       if (res.ok) {
         setMsgStatus('success');
         setMsgForm({ subject: '', content: '' });
-        fetchMessages();
+        fetchMessages(userToken);
       } else {
         setMsgStatus('error');
         setMsgError('Failed to send message. Please try again.');
