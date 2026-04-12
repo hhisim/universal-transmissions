@@ -83,7 +83,7 @@ function SignInPageContent() {
 
     // Read redirect from URL only on form submit — avoids SSR dynamic-page overhead
     const params = new URLSearchParams(window.location.search)
-    const redirectTo = params.get('redirect') || '/oracle/plans'
+    const redirectTo = params.get('redirect') || '/member'
     window.location.href = redirectTo
   }
 

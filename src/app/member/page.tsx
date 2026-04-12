@@ -40,7 +40,16 @@ function MemberPageContent() {
     async function loadSession() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
+        if (!session?.access_token) {
+          // UT uses NextAuth magic link — also check NextAuth session
+          const nextAuthSession = await fetch("/api/session").then(r => r.json());
+          if (nextAuthSession?.user?.email) {
+            setEmail(nextAuthSession.user.email);
+            setPlan("master"); // NextAuth users with email are valid members
+            setSignedIn(true);
+          }
+          return;
+        }
 
         const d = await fetch("/api/billing/session", {
           headers: { Authorization: `Bearer ${session.access_token}` },

@@ -1,39 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+
+const SUPABASE_URL = "https://opixpkquyapeqdceyczs.supabase.co";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+function decodeEmailFromToken(token: string): string | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
+    return payload.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function queryUtMembers(email: string, userToken: string) {
+  // Use the user's own token — ut_members RLS allows authenticated reads
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=plan,subscription_status,current_period_end`, {
+    headers: {
+      "apikey": SUPABASE_URL.split("//")[1]?.split(".")[0] ?? "supabase",
+      "Authorization": `Bearer ${userToken}`,
+    },
+  });
+  if (!r.ok) return null;
+  const data = await r.json();
+  return Array.isArray(data) ? data[0] ?? null : null;
+}
+
+async function queryProfiles(email: string) {
+  // Requires service role key — only works if SUPABASE_SERVICE_ROLE_KEY is set
+  if (!SUPABASE_SERVICE_KEY) return null;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=plan,stripe_customer_id`, {
+    headers: {
+      "apikey": SUPABASE_SERVICE_KEY,
+      "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+    },
+  });
+  if (!r.ok) return null;
+  const data = await r.json();
+  return Array.isArray(data) ? data[0] ?? null : null;
+}
 
 export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  const token = authHeader?.replace("Bearer ", "");
+
+  if (!token) {
+    return NextResponse.json({ authenticated: false, plan: "guest" });
+  }
+
+  const email = decodeEmailFromToken(token);
+  if (!email) {
+    return NextResponse.json({ authenticated: false, plan: "guest" });
+  }
+
   try {
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ authenticated: false, plan: "guest" });
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !user?.email) {
-      return NextResponse.json({ authenticated: false, plan: "guest" });
-    }
-
-    const email = user.email;
-
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("plan, stripe_customer_id")
-      .eq("email", email)
-      .maybeSingle();
-
-    const { data: member } = await supabaseAdmin
-      .from("ut_members")
-      .select("plan, subscription_status, current_period_end")
-      .eq("email", email)
-      .maybeSingle();
+    const [profile, member] = await Promise.all([
+      queryProfiles(email),
+      queryUtMembers(email, token),
+    ]);
 
     return NextResponse.json({
       authenticated: true,
