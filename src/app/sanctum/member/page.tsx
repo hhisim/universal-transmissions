@@ -252,6 +252,8 @@ export default function MemberPage() {
         const members = await memberRes.json();
         if (Array.isArray(members) && members[0] && members[0].plan) {
           setProfile({ email, plan: members[0].plan || 'free' });
+          // Share session with all UT prototypes via window
+          window.__utSetSession?.(email, members[0].plan || 'free');
           return;
         }
       }
@@ -269,6 +271,7 @@ export default function MemberPage() {
             plan: profiles[0].plan || 'free',
             joined_at: profiles[0].created_at,
           });
+          window.__utSetSession?.(email, profiles[0].plan || 'free');
           return;
         }
       }
