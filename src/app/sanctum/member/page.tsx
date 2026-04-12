@@ -9,6 +9,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { supabaseAdmin } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-client";
 import {
   Eye, Package, MessageCircle, Sparkles, Wand2, Hexagon,
   Layers3, Aperture, Lock, Unlock, Zap, Radio, ChevronRight,
@@ -195,62 +196,103 @@ export default function MemberPage() {
   const [msgError, setMsgError] = useState('');
 
   // ─── Auth & Profile ───────────────────────────────────────────────────────
-  // UT uses NextAuth magic link — check session via /api/session
+  // Check both Supabase auth (email+password login) and NextAuth (magic link)
   useEffect(() => {
-    fetch("/api/session")
-      .then(res => res.json())
-      .then(data => {
-        if (!data?.user?.email) {
-          router.push("/sanctum/member/login");
-        } else {
-          setSession(data);
-          fetchProfile(data.user.email || '');
-          fetchMessages();
+    async function loadSession() {
+      try {
+        // First: get Supabase session (email+password login)
+        const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+        if (supabaseSession?.access_token) {
+          // Pass Supabase token to /api/session so it can decode the email
+          const r = await fetch("/api/session", {
+            headers: { Authorization: `Bearer ${supabaseSession.access_token}` },
+          });
+          const data = await r.json();
+          if (data?.user?.email) {
+            setSession(data);
+            fetchProfile(data.user.email || '', supabaseSession.access_token);
+            fetchMessages(supabaseSession.access_token);
+            setLoading(false);
+            return;
+          }
         }
-        setLoading(false);
-      })
-      .catch(() => {
+        // Fallback: try NextAuth session
+        const r = await fetch("/api/session");
+        const data = await r.json();
+        if (data?.user?.email) {
+          setSession(data);
+          fetchProfile(data.user.email || '', null);
+          fetchMessages(null);
+        } else {
+          router.push("/sanctum/member/login");
+        }
+      } catch {
         router.push("/sanctum/member/login");
-      });
+      }
+      setLoading(false);
+    }
+    loadSession();
   }, [router]);
 
-  async function fetchProfile(email: string) {
+  async function fetchProfile(email: string, token: string | null) {
     try {
-      // Get plan from profiles table (primary) — UT uses NextAuth magic link
-      const { data: profileData } = await supabaseAdmin
-        .from('profiles')
-        .select('*')
-        .eq('email', email)
-        .maybeSingle();
+      // Get plan from profiles table — use REST API with user token for RLS
+      const headers: Record<string, string> = {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waXhwa3F1eWFwZXFkY2V5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODM2NzgsImV4cCI6MjA5MDM1OTY3OH0.clqq-XAE7NgY7muFnNqQfhJcLv2i_CALK0d6Kg4P_eQ',
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      if (profileData) {
-        setProfile({
-          email,
-          plan: profileData.plan || 'free',
-          name: profileData.name,
-          joined_at: profileData.created_at,
-        });
-      } else {
-        setProfile({ email, plan: 'free' });
+      const profileRes = await fetch(
+        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=plan,name,created_at&limit=1`,
+        { headers }
+      );
+      if (profileRes.ok) {
+        const profiles = await profileRes.json();
+        if (Array.isArray(profiles) && profiles[0]) {
+          setProfile({
+            email,
+            plan: profiles[0].plan || 'free',
+            name: profiles[0].name,
+            joined_at: profiles[0].created_at,
+          });
+          return;
+        }
       }
+      // Fallback: try ut_members
+      const memberRes = await fetch(
+        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=plan&limit=1`,
+        { headers }
+      );
+      if (memberRes.ok) {
+        const members = await memberRes.json();
+        if (Array.isArray(members) && members[0]) {
+          setProfile({ email, plan: members[0].plan || 'free' });
+          return;
+        }
+      }
+      setProfile({ email, plan: 'free' });
     } catch (e) {
       console.error('Profile fetch error:', e);
       setProfile({ email, plan: 'free' });
     }
   }
 
-  async function fetchMessages() {
-    if (!session?.user?.email) return;
-    setMessagesLoading(true);
+  async function fetchMessages(token: string | null) {
+    if (!token) return;
     try {
-      const { data } = await supabaseAdmin
-        .from('ut_member_messages')
-        .select('*')
-        .eq('member_email', session.user.email)
-        .order('created_at', { ascending: false })
-        .limit(20);
-      setMessages(data || []);
-      setUnreadCount((data || []).filter((m: Message) => !m.is_read && !m.is_from_member).length);
+      const headers: Record<string, string> = {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waXhwa3F1eWFwZXFkY2V5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODM2NzgsImV4cCI6MjA5MDM1OTY3OH0.clqq-XAE7NgY7muFnNqQfhJcLv2i_CALK0d6Kg4P_eQ',
+        'Authorization': `Bearer ${token}`,
+      };
+      const res = await fetch(
+        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/ut_member_messages?member_email=eq.${encodeURIComponent(session?.user?.email || '')}&select=*&order=created_at.desc&limit=20`,
+        { headers }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(Array.isArray(data) ? data : []);
+        setUnreadCount(Array.isArray(data) ? data.filter((m: any) => !m.is_read && !m.is_from_member).length : 0);
+      }
     } catch (e) {
       console.error('Messages fetch error:', e);
     }
