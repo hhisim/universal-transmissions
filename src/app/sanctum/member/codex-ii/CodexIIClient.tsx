@@ -363,12 +363,12 @@ export default function CodexIIClient() {
                   className="flex items-center gap-3 mb-4 font-mono text-[10px] tracking-[0.25em] uppercase"
                   style={{ color: "var(--ut-white-faint)" }}
                 >
-                  <span>All Pages</span>
+                  <span>Detail Views</span>
                   <span style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>—</span>
                   <span>Scroll →</span>
                 </div>
                 <div
-                  className="flex gap-2 overflow-x-auto pb-4 snap-x snap-mandatory gallery-carousel"
+                  className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory gallery-carousel"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(217,70,239,0.2) transparent" }}
                 >
                   {GALLERY_ITEMS.map((item, i) => {
@@ -378,10 +378,11 @@ export default function CodexIIClient() {
                         key={item.id}
                         className="flex-shrink-0 w-24 h-24 md:w-28 md:h-28 relative overflow-hidden snap-start transition-all duration-200"
                         style={{
-                          border: `2px solid ${isActive ? "rgba(217,70,239,0.6)" : "rgba(217,70,239,0.12)"}`,
+                          border: `2px solid ${isActive ? "rgba(217,70,239,0.85)" : "rgba(217,70,239,0.12)"}`,
                           borderRadius: "2px",
                           cursor: "pointer",
                           opacity: isActive ? 1 : 0.55,
+                          boxShadow: isActive ? "0 0 12px rgba(217,70,239,0.4), 0 0 4px rgba(217,70,239,0.2)" : "none",
                         }}
                         onClick={() => setSelectedIndex(i)}
                       >
@@ -418,7 +419,7 @@ export default function CodexIIClient() {
                     className="font-display text-3xl md:text-4xl lg:text-5xl mb-6 leading-tight"
                     style={{ color: "var(--ut-white)" }}
                   >
-                    <ZalgoText text={current.title} intensity="moderate" />
+                    <ZalgoText text={current.title} intensity="subtle" />
                   </h1>
 
                   <div className="divider-spectrum mb-8" />
@@ -458,7 +459,7 @@ export default function CodexIIClient() {
                   <div className="space-y-5 mb-10">
                     <div className="flex flex-col gap-1">
                       <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
-                        Year
+                        YEAR
                       </p>
                       <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
                         2025
@@ -466,7 +467,7 @@ export default function CodexIIClient() {
                     </div>
                     <div className="flex flex-col gap-1">
                       <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
-                        Medium
+                        MEDIUM
                       </p>
                       <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
                         Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope
@@ -474,7 +475,7 @@ export default function CodexIIClient() {
                     </div>
                     <div className="flex flex-col gap-1">
                       <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
-                        Topic
+                        TOPIC
                       </p>
                       <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
                         {current.topic}
@@ -482,7 +483,7 @@ export default function CodexIIClient() {
                     </div>
                     <div className="flex flex-col gap-1">
                       <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
-                        Page
+                        PAGE
                       </p>
                       <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
                         {current.page} of 173
@@ -498,8 +499,7 @@ export default function CodexIIClient() {
                       href="https://universal-transmissions-gut8evxo4-hhisim-7214s-projects.vercel.app/sanctum/universal-transmissions-codex-vol1-physical"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full justify-center text-center font-mono text-[10px] uppercase tracking-widest px-6 py-4 border transition-all hover:bg-[rgba(217,70,239,0.08)]"
-                      style={{ borderColor: "rgba(212,168,71,0.5)", color: "var(--ut-gold)" }}
+                      className="btn-gold w-full justify-center text-center"
                     >
                       Acquire the Codex
                     </a>
@@ -507,8 +507,7 @@ export default function CodexIIClient() {
                       href="https://codex-deploy-phi.vercel.app/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full justify-center text-center font-mono text-[10px] uppercase tracking-widest px-6 py-4 border transition-all hover:bg-[rgba(217,70,239,0.08)]"
-                      style={{ borderColor: "rgba(217,70,239,0.25)", color: "var(--ut-magenta)" }}
+                      className="btn-primary w-full justify-center text-center"
                     >
                       Explore Correspondences
                     </a>
