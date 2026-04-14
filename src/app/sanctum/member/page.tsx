@@ -8,6 +8,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import CodexIIClient from "./codex-ii/CodexIIClient";
 import { supabaseAdmin } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase-client";
 import {
@@ -631,112 +632,8 @@ export default function MemberPage() {
                     </div>
                   </SectionReveal>
 
-                  {/* Codex II Sections */}
-                  <div className="space-y-6">
-                    {CODEX_II_SECTIONS.map((section, i) => (
-                      <SectionReveal key={section.id} delay={i * 0.06}>
-                        <div
-                          className="p-8 border ut-card"
-                          style={{ borderColor: "rgba(217,70,239,0.12)" }}
-                        >
-                          <div className="flex items-start gap-6">
-                            {/* Icon */}
-                            <div className="hidden md:flex flex-col items-center gap-2">
-                              <div
-                                className="w-14 h-14 border flex items-center justify-center"
-                                style={{ borderColor: "rgba(217,70,239,0.3)", background: "rgba(217,70,239,0.05)" }}
-                              >
-                                {section.type === 'video' ? <PlayCircle size={22} style={{ color: "var(--ut-magenta)" }} /> :
-                                 section.type === 'notes' ? <BookOpen size={22} style={{ color: "var(--ut-gold)" }} /> :
-                                 <Image size={22} style={{ color: "var(--ut-cyan)" }} />}
-                              </div>
-                              <span className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-white-dim)", opacity: 0.4 }}>
-                                {section.type}
-                              </span>
-                              {section.duration && (
-                                <span className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
-                                  {section.duration}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex-1">
-                              <p className="font-mono text-[9px] tracking-[0.3em] uppercase mb-1" style={{ color: "var(--ut-magenta)", opacity: 0.6 }}>
-                                {section.subtitle}
-                              </p>
-                              <h3 className="font-display text-xl mb-3" style={{ color: "var(--ut-white)" }}>
-                                <ZalgoText text={section.title} intensity="subtle" />
-                              </h3>
-                              <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "var(--ut-white-dim)" }}>
-                                {section.description}
-                              </p>
-
-                              {section.type === 'video' && (
-                                <div className="flex items-center gap-3">
-                                  {section.videoUrl ? (
-                                    <button className="btn-primary text-xs px-5 py-2 inline-flex items-center gap-2">
-                                      <Play size={12} />
-                                      Watch Now
-                                    </button>
-                                  ) : (
-                                    <span className="font-mono text-[10px] tracking-widest uppercase px-3 py-1 border" style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--ut-white-dim)", opacity: 0.4 }}>
-                                      Processing — Available Soon
-                                    </span>
-                                  )}
-                                  {section.count && (
-                                    <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
-                                      {section.count} pieces
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-
-                              {section.type === 'notes' && (
-                                <div className="flex items-center gap-3">
-                                  <Link href={section.galleryUrl || '#'} className="btn-primary text-xs px-5 py-2 inline-flex items-center gap-2">
-                                    <BookOpen size={12} />
-                                    Browse Notes
-                                  </Link>
-                                </div>
-                              )}
-
-                              {section.type === 'gallery' && (
-                                <div className="flex items-center gap-3">
-                                  <Link href={section.galleryUrl || '#'} className="btn-primary text-xs px-5 py-2 inline-flex items-center gap-2">
-                                    <Image size={12} />
-                                    View Gallery ({section.count})
-                                  </Link>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </SectionReveal>
-                    ))}
-                  </div>
-
-                  {/* Ask Hakan Prompt */}
-                  <SectionReveal delay={0.4}>
-                    <div
-                      className="p-8 border text-center"
-                      style={{ borderColor: "rgba(217,70,239,0.15)", background: "linear-gradient(135deg, rgba(217,70,239,0.04) 0%, rgba(0,0,0,0) 100%)" }}
-                    >
-                      <MessageCircle size={32} className="mx-auto mb-4" style={{ color: "var(--ut-magenta)" }} />
-                      <h3 className="font-display text-xl mb-2" style={{ color: "var(--ut-white)" }}>
-                        <ZalgoText text="Questions About Codex II?" intensity="subtle" />
-                      </h3>
-                      <p className="font-body text-sm max-w-md mx-auto mb-5" style={{ color: "var(--ut-white-dim)" }}>
-                        Have a question about a piece, a technique, or the process? Ask Hakan directly through the Messages tab. He responds at priority when not deep in making art.
-                      </p>
-                      <button
-                        onClick={() => setActiveTab('messages')}
-                        className="btn-primary text-xs px-6 py-2 inline-flex items-center gap-2"
-                      >
-                        <Send size={12} />
-                        Send a Message
-                      </button>
-                    </div>
-                  </SectionReveal>
+                  {/* Codex II Gallery Client */}
+                  <CodexIIClient />
                 </>
               )}
             </div>
