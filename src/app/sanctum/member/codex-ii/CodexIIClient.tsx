@@ -35,8 +35,8 @@ function getCodexImage(page: number): string {
   return map[page] ?? `/images/codex2/page-${page}.jpg`;
 }
 
-// ─── CODEX2 Gallery Data — from PAGE INFO.txt ─────────────────
-// EXACT text from PAGE INFO.txt — no additions, no hallucination
+// ─── CODEX2 Gallery Data — from PAGE INFO.txt (exact) ─────────
+// Topics extracted from TITLE field of PAGE INFO.txt
 const GALLERY_ITEMS = [
   {
     id: 1,
@@ -44,7 +44,7 @@ const GALLERY_ITEMS = [
     title: "Introduction to multi-planar navigation",
     description: "The continuation of an ineffable odyssey, 150 more dark theme pages of the twilight variation exploring themes of multi-dimensional navigation, Lucid realms, Astral bio-mechanics, Xeno-Tinctures, flora and near death cartography.\n\nExpect more updates very soon coupled with strange videos as usual.\n\nAlso more about Oracles and Card decks, so very soon!",
     tags: "#universaltransmissions #xenolinguistics #codex #mapping #navigation #codex2 #visionaryart #psychedelic",
-    topic: "Multi-planar navigation",
+    topic: "Introduction to multi-planar navigation",
   },
   {
     id: 2,
@@ -52,7 +52,7 @@ const GALLERY_ITEMS = [
     title: "Astral Cartography: Arching through spectrums of consciousness",
     description: "Anubis and the exploration of the Archontic path",
     tags: "#universaltransmissions #xenolinguistics #codex #mapping #navigation #codex2 #visionaryart #psychedelic #astralcartography #archon #anubis",
-    topic: "Astral Cartography",
+    topic: "Astral Cartography: Arching through spectrums of consciousness",
   },
   {
     id: 3,
@@ -60,7 +60,7 @@ const GALLERY_ITEMS = [
     title: "Navigation: Meta-molecular synthesis of trance states",
     description: "Imbibing hyperdimensional wave functions as consciousness altering phenomes",
     tags: "#codex #codex2.0 #universaltransmissions #kemet #molecular #metamaterial #ancientfuture",
-    topic: "Meta-molecular synthesis",
+    topic: "Navigation: Meta-molecular synthesis of trance states",
   },
   {
     id: 4,
@@ -68,7 +68,7 @@ const GALLERY_ITEMS = [
     title: "Navigation: Propagation of Parallel Projections through Hyperspace",
     description: "On navigating Multiverse modes with psycho-somatic probability engines",
     tags: "#universaltransmissions #xenolinguistics #codex #mapping #navigation #codex2 #visionaryart #psychedelic #astralcartography #multiverse #parallelreality #projection #hyperspace",
-    topic: "Parallel Projections",
+    topic: "Navigation: Propagation of Parallel Projections through Hyperspace",
   },
   {
     id: 5,
@@ -76,7 +76,7 @@ const GALLERY_ITEMS = [
     title: "Navigation (Exploratory): Probability steering via reality navigation networks",
     description: "On the impossible mechanics of dimension hopping",
     tags: "#Universaltransmissions #codex #codex2 #realitytransurfing #alternatereality #realitynavigation #visionaryart #psychedelic",
-    topic: "Probability steering",
+    topic: "Navigation (Exploratory): Probability steering via reality navigation networks",
   },
   {
     id: 6,
@@ -84,7 +84,7 @@ const GALLERY_ITEMS = [
     title: "Threshold Transformations & Evolutionary Portals",
     description: "Many thanks to Sakari @omnigeometry for creating such amazing software which was used to generate geometric structures on this page",
     tags: "#Universaltransmissions #codex #codex2 #portalevolution #realitynavigation #visionaryart #psychedelic #alphaandomega #xenolinguistics #spinratio #omnigeometry",
-    topic: "Threshold Transformations",
+    topic: "Threshold Transformations & Evolutionary Portals",
   },
   {
     id: 7,
@@ -92,7 +92,7 @@ const GALLERY_ITEMS = [
     title: "Navigation: Tangential Telemetry of Time Dilation",
     description: "The effects to time dilation on Euclidean and Non-Euclidean existential modalities",
     tags: "#codex #codex2 #universaltransmissions #xenolinguistics #telemetry #timedilation #psychedelic #visionaryart #alternatereality",
-    topic: "Time Dilation",
+    topic: "Navigation: Tangential Telemetry of Time Dilation",
   },
   {
     id: 8,
@@ -100,7 +100,7 @@ const GALLERY_ITEMS = [
     title: "Navigation: Exploration: Anatomical Structures & Cymatic correlations to hyperdimensional egregors",
     description: "Hyperdimensional entities and their cymatic expression patterns.",
     tags: "#codex #codex2 #universaltransmissions #hyperspacemanual #egregoreanatomy #cymatics #75hz #anatomyofthebodyofgod #visionaryart #psychedelic",
-    topic: "Anatomical Structures",
+    topic: "Navigation: Exploration: Anatomical Structures & Cymatic correlations to hyperdimensional egregors",
   },
   {
     id: 9,
@@ -108,7 +108,7 @@ const GALLERY_ITEMS = [
     title: "Hypernode: Celestial cradle",
     description: "Half a gram of starlit spice,\nHalf a drop of Tikal,\nThat's the way the visions flow,\nPop! Goes the weasel.",
     tags: "#celestialcradle #cosmicnursery #xenolinguistics #DMT #hyperspace #kundalini #cosmicbirth #visionaryart #psychedelic #popgoestheweasel",
-    topic: "Celestial cradle",
+    topic: "Hypernode: Celestial cradle",
   },
   {
     id: 10,
@@ -116,7 +116,7 @@ const GALLERY_ITEMS = [
     title: "Navigation: On steering the tornado between the portals of life and death",
     description: '"We created the end" - Death is a human invention.',
     tags: "#codex #codex2 #universaltransmissions #tornadosteering #life #death #birth #rebirth #portals #dmt #visionaryart #psychedelic",
-    topic: "Life & Death portals",
+    topic: "Navigation: On steering the tornado between the portals of life and death",
   },
   {
     id: 11,
@@ -124,7 +124,7 @@ const GALLERY_ITEMS = [
     title: "Calibration: On balancing the Archontic spectrum to design experiential modalities.",
     description: "The architects /// Frequency manipulation, correspondence mapping and reality creation dynamics",
     tags: "#CODEX #codex2 #universaltransmissions #theartchitects #spectrum #archons #hyperspace #dmt #tryptaminerealms #hyperspatialdesign #visionaryart #psychedelic #spinratio",
-    topic: "Archontic spectrum",
+    topic: "Calibration: On balancing the Archontic spectrum to design experiential modalities.",
   },
   {
     id: 12,
@@ -132,7 +132,7 @@ const GALLERY_ITEMS = [
     title: "Calibration: On balancing the Archontic spectrum to design experiential modalities.",
     description: "(Frequency patterns generated with a cymatic tonoscope oscillator)",
     tags: "#codex #codex2 #universaltransmissions #cymatics #frequencies #super-sentience #visionaryart #psychedelic #dmt #tryptaminevibrations #visiblesound #hiddendimension",
-    topic: "Cymatic frequencies",
+    topic: "Calibration: On balancing the Archontic spectrum to design experiential modalities.",
   },
   {
     id: 13,
@@ -140,7 +140,7 @@ const GALLERY_ITEMS = [
     title: "Calibration: Frequency mapping to translinguistic artifacts",
     description: "This happens all too often!",
     tags: "#codex #codex2 #universaltransmissions #cymatics #frequencies #super-sentience #visionaryart #psychedelic #dmt #tryptaminevibrations #visiblesound #hiddendimension",
-    topic: "Translinguistic artifacts",
+    topic: "Calibration: Frequency mapping to translinguistic artifacts",
   },
   {
     id: 14,
@@ -148,7 +148,7 @@ const GALLERY_ITEMS = [
     title: "Alchemical: Radiolaria",
     description: "Radiolarian re compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
     tags: "#codex #codex2 #universaltransmissions #radiolaria #xenobotanical #alchemy #xenolinguistics #psychotropic #dmt #psychedelic #visionaryart #trancestates",
-    topic: "Radiolaria",
+    topic: "Alchemical: Radiolaria",
   },
   {
     id: 15,
@@ -156,7 +156,7 @@ const GALLERY_ITEMS = [
     title: "Alchemical: Radiolaria II",
     description: "Radiolarian re compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
     tags: "#codex #codex2 #universaltransmissions #radiolaria #xenobotanical #alchemy #xenolinguistics #psychotropic #dmt #psychedelic #visionaryart #trancestates",
-    topic: "Radiolaria",
+    topic: "Alchemical: Radiolaria II",
   },
   {
     id: 16,
@@ -164,7 +164,7 @@ const GALLERY_ITEMS = [
     title: "Alchemical: Radiolaria III",
     description: "Radiolarian re compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
     tags: "#codex #codex2 #universaltransmissions #radiolaria #xenobotanical #alchemy #xenolinguistics #psychotropic #dmt #psychedelic #visionaryart #trancestates",
-    topic: "Radiolaria",
+    topic: "Alchemical: Radiolaria III",
   },
   {
     id: 17,
@@ -172,7 +172,7 @@ const GALLERY_ITEMS = [
     title: "Contact: The Gatekeepers",
     description: "As I pierced through the hyperbolic membrane of hyperspace, the gatekeepers stood ready, poised to test my resolve to venture further. Their silent voices resonated in shimmering cellophane frequencies, as it adjusted the cosmic dials with an otherworldly rhythm.",
     tags: "#codex #codex2 #breakthrough #universaltransmissions #dmt #hyperspace #tryptaminerealms #xenolinguistics #visiblelanguage #machineelf #cinema4d #rodin3d #magnific #zbrush #psychedelic #visionaryart",
-    topic: "The Gatekeepers",
+    topic: "Contact: The Gatekeepers",
   },
   {
     id: 18,
@@ -180,7 +180,7 @@ const GALLERY_ITEMS = [
     title: "Communication: Non-local transmissions - Telemetry of Translingual Minds.",
     description: "Communication as key communion",
     tags: "#codex #codex2 #universaltransmissions #xenolinguistics #translinguitics #telepathy #visionaryart #psychedelic #timedilation #wormhole #treeoflife #kaballah #temporalmapping",
-    topic: "Non-local transmissions",
+    topic: "Communication: Non-local transmissions - Telemetry of Translingual Minds.",
   },
   {
     id: 19,
@@ -188,7 +188,7 @@ const GALLERY_ITEMS = [
     title: "Cultivation: On the seeding of whirling worlds with woven words.",
     description: "On cultivating extraction methods from the Prima Materia",
     tags: "#codex #codex2 #universaltransmissions #worldseeding #worldweaving #xenolinguistics #visionaryart #psychedelic #esotericart #chickenoregg #cosmicegg #primamateria",
-    topic: "World seeding",
+    topic: "Cultivation: On the seeding of whirling worlds with woven words.",
   },
   {
     id: 20,
@@ -196,7 +196,7 @@ const GALLERY_ITEMS = [
     title: "Cultivation: Sowing seeds of...",
     description: "On cultivating extraction methods from the Prima Materia",
     tags: "#codex #codex2 #universaltransmissions #worldseeding #worldweaving #xenolinguistics #visionaryart #psychedelic #esotericart #chickenoregg #cosmicegg #primamateria",
-    topic: "Prima Materia",
+    topic: "Cultivation: Sowing seeds of...",
   },
   {
     id: 21,
@@ -204,7 +204,7 @@ const GALLERY_ITEMS = [
     title: "Transformation: Non-linear evolutionary applications of recursive pan-dimensional seeding practices",
     description: "Non-local transformation methods // using the Philosophers Stone",
     tags: "#codex #codex2 #universaltransmissions #xenolinguistics #theseeders #seedingreality #transformation #non-linear #dmt #visionaryart #psychedelic #esotericart #archonticspectrum",
-    topic: "Philosophers Stone",
+    topic: "Transformation: Non-linear evolutionary applications of recursive pan-dimensional seeding practices",
   },
   {
     id: 22,
@@ -212,7 +212,7 @@ const GALLERY_ITEMS = [
     title: "Simulation: Non-linear recursive mapping",
     description: "Non-linear recursive mapping points between translinguistic simulacra and pan-dimensional Usumgal breeding practices",
     tags: "#codex #codex2 #universaltransmissions #xenolinguistics #theseeders #seedingreality #transformation #non-linear #dmt #visionaryart #psychedelic #esotericart #archonticspectrum",
-    topic: "Non-linear recursive mapping",
+    topic: "Simulation: Non-linear recursive mapping",
   },
   {
     id: 23,
@@ -220,7 +220,7 @@ const GALLERY_ITEMS = [
     title: "Locomotion: Toplogical locomotion dynamics",
     description: "Topology of serpentine meridian pathways in relation to planetary spheres via portals of near improbability.",
     tags: "#codex #codex2 #universaltransmissions #xenolinguistics #meridians #dmt #visionaryart #psychedelic #kundalini #chakras #planetaryspheres",
-    topic: "Topological locomotion",
+    topic: "Locomotion: Toplogical locomotion dynamics",
   },
 ];
 
@@ -382,7 +382,7 @@ export default function CodexIIClient() {
                           borderRadius: "2px",
                           cursor: "pointer",
                           opacity: isActive ? 1 : 0.55,
-                          boxShadow: isActive ? "0 0 12px rgba(217,70,239,0.4), 0 0 4px rgba(217,70,239,0.2)" : "none",
+                          boxShadow: isActive ? "0 0 12px rgba(217,70,239,0.4)" : "none",
                         }}
                         onClick={() => setSelectedIndex(i)}
                       >
