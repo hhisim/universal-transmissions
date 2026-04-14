@@ -486,7 +486,7 @@ export default function CodexIIClient() {
                         PAGE
                       </p>
                       <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
-                        {current.page} of 173
+                        {current.page}
                       </p>
                     </div>
                   </div>
