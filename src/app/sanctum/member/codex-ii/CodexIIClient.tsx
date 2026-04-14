@@ -1,42 +1,40 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import ZalgoText from "@/components/ui/ZalgoText";
 import SectionReveal from "@/components/ui/SectionReveal";
-import { ChevronLeft, ChevronRight, X, ZoomIn, Calendar, ExternalLink } from "lucide-react";
 
 const ACQUIRE_LINK = "https://universal-transmissions-gut8evxo4-hhisim-7214s-projects.vercel.app/sanctum/universal-transmissions-codex-vol1-physical";
 const CORRESPONDENCES_LINK = "https://codex-deploy-phi.vercel.app/";
 
-// Maps page number -> actual image filename
 function getCodexImage(page: number): string {
   const map: Record<number, string> = {
-    151: "page-151.jpg",
-    152: "page-152---web.jpg",
-    153: "page-153---web.jpg",
-    154: "page-154---web.jpg",
-    155: "page-155---web.jpg",
-    156: "page-156---web.jpg",
-    157: "page-157---small.jpg",
-    158: "page-158---web.jpg",
-    159: "page-159---web.jpg",
-    160: "page-160---web3.jpg",
-    161: "page-161---web.jpg",
-    162: "page-162---web.jpg",
-    163: "page-163---web.jpg",
-    164: "page-164---web.jpg",
-    165: "page-165---web.jpg",
-    166: "page-166---web.jpg",
-    167: "page-167---web.jpg",
-    168: "page-168---web.jpg",
-    169: "page-169---web.jpg",
-    170: "page-170---web.jpg",
-    171: "page-171---web.jpg",
-    172: "page-172---web.jpg",
-    173: "page-173---web.jpg",
+    151: "/images/codex2/page-151.jpg",
+    152: "/images/codex2/page-152---web.jpg",
+    153: "/images/codex2/page-153---web.jpg",
+    154: "/images/codex2/page-154---web.jpg",
+    155: "/images/codex2/page-155---web.jpg",
+    156: "/images/codex2/page-156---web.jpg",
+    157: "/images/codex2/page-157---small.jpg",
+    158: "/images/codex2/page-158---web.jpg",
+    159: "/images/codex2/page-159---web.jpg",
+    160: "/images/codex2/page-160---web3.jpg",
+    161: "/images/codex2/page-161---web.jpg",
+    162: "/images/codex2/page-162---web.jpg",
+    163: "/images/codex2/page-163---web.jpg",
+    164: "/images/codex2/page-164---web.jpg",
+    165: "/images/codex2/page-165---web.jpg",
+    166: "/images/codex2/page-166---web.jpg",
+    167: "/images/codex2/page-167---web.jpg",
+    168: "/images/codex2/page-168---web.jpg",
+    169: "/images/codex2/page-169---web.jpg",
+    170: "/images/codex2/page-170---web.jpg",
+    171: "/images/codex2/page-171---web.jpg",
+    172: "/images/codex2/page-172---web.jpg",
+    173: "/images/codex2/page-173---web.jpg",
   };
-  return `/images/codex2/${map[page] ?? `page-${page}.jpg`}`;
+  return map[page] ?? `/images/codex2/page-${page}.jpg`;
 }
 
 // ─── CODEX2 Gallery Data — from PAGE_INFO.txt ─────────────────
@@ -61,7 +59,7 @@ const GALLERY_ITEMS = [
     id: 3, page: 153, glyph: "C",
     title: "Navigation: Meta-molecular synthesis of trance states",
     description: "Imbibing hyperdimensional wave functions as consciousness altering phenomes.",
-    tags: ["codex", "codex2.0", "universaltransmissions", "kemet", "molecular", "metamaterial", "ancientfuture"],
+    tags: ["codex", "codex2", "universaltransmissions", "kemet", "molecular", "metamaterial", "ancientfuture"],
     medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
     year: "2025",
   },
@@ -77,7 +75,7 @@ const GALLERY_ITEMS = [
     id: 5, page: 155, glyph: "E",
     title: "Navigation (Exploratory): Probability steering via reality navigation networks",
     description: "On the impossible mechanics of dimension hopping.",
-    tags: ["Universaltransmissions", "codex", "codex2", "realitytransurfing", "alternatereality", "realitynavigation", "visionaryart", "psychedelic"],
+    tags: ["universaltransmissions", "codex", "codex2", "realitytransurfing", "alternatereality", "realitynavigation", "visionaryart", "psychedelic"],
     medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
     year: "2025",
   },
@@ -85,7 +83,7 @@ const GALLERY_ITEMS = [
     id: 6, page: 156, glyph: "F",
     title: "Threshold Transformations & Evolutionary Portals",
     description: "Many thanks to Sakari @omnigeometry for creating such amazing software which was used to generate geometric structures on this page.",
-    tags: ["Universaltransmissions", "codex", "codex2", "portalevolution", "realitynavigation", "visionaryart", "psychedelic", "alphaandomega", "xenolinguistics", "spinratio", "omnigeometry"],
+    tags: ["universaltransmissions", "codex", "codex2", "portalevolution", "realitynavigation", "visionaryart", "psychedelic", "alphaandomega", "xenolinguistics", "spinratio", "omnigeometry"],
     medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
     year: "2025",
   },
@@ -227,7 +225,6 @@ const GALLERY_ITEMS = [
   },
 ];
 
-// Glyph character map
 const GLYPH_MAP: Record<string, string> = {
   A: "a-(10).png", B: "b-(10).png", C: "c-(10).png", D: "d-(10).png",
   E: "e-(10).png", F: "f-(10).png", G: "g-(10).png", H: "h-(10).png",
@@ -240,7 +237,6 @@ const GLYPH_MAP: Record<string, string> = {
 export default function CodexIIClient() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Keyboard navigation — only active when viewer is open
   useEffect(() => {
@@ -255,403 +251,324 @@ export default function CodexIIClient() {
   }, [selectedIndex]);
 
   const current  = selectedIndex !== null ? GALLERY_ITEMS[selectedIndex] : null;
-  const currentGlyphFile = current ? GLYPH_MAP[current.glyph] : null;
 
   return (
-    <>
-      <style>{`
-        @keyframes glyphFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(2deg); }
-        }
-        @keyframes glyphPulse {
-          0%, 100% { opacity: 0.06; }
-          50% { opacity: 0.12; }
-        }
-        @keyframes glyphDrift {
-          0% { transform: translateX(0px); }
-          100% { transform: translateX(40px); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .glyph-decor { animation: glyphPulse 4s ease-in-out infinite; }
-        .glyph-drift { animation: glyphDrift 20s linear infinite; }
-        .glyph-float { animation: glyphFloat 6s ease-in-out infinite; }
-        .codex-thumb-active {
-          border-color: rgba(217,70,239,0.6) !important;
-          box-shadow: 0 0 20px rgba(217,70,239,0.3);
-        }
-        .codex-thumb:hover {
-          border-color: rgba(217,70,239,0.35) !important;
-        }
-        .codex-tag:hover {
-          background: rgba(217,70,239,0.2) !important;
-          opacity: 1 !important;
-        }
-      `}</style>
+    <main className="pb-20">
 
-      <main className="pt-24 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
-
-        {/* ── BACKGROUND GLYPH GRID ─────────────────── */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-          {["A","B","C","D","E","F","G","H","I","J"].map((g, i) => (
-            <div key={g} className="absolute glyph-decor" style={{ left: `${5 + i * 10}%`, top: `${10 + (i % 3) * 30}%`, opacity: 0.05, animationDelay: `${i * 0.4}s` }}>
-              <img src={`/images/utglyphs/${GLYPH_MAP[g]}`} alt="" width={80} height={80} style={{ objectFit: "contain" }} />
+      {/* ── 4-COLUMN GRID (shown when no page is selected) ─── */}
+      {selectedIndex === null && (
+        <>
+          {/* Section label */}
+          <div className="container-ut pt-8 pb-4">
+            <div className="flex items-center gap-3 mb-0">
+              <span className="font-mono text-[10px] tracking-[0.25em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
+                {GALLERY_ITEMS.length} Pages — Click to Open
+              </span>
             </div>
-          ))}
-          {["K","L","M","N","O","P","Q","R","S","T"].map((g, i) => (
-            <div key={g} className="absolute glyph-drift" style={{ right: `${5 + i * 9}%`, top: `${15 + (i % 4) * 22}%`, opacity: 0.04, animationDelay: `${i * 0.6}s` }}>
-              <img src={`/images/utglyphs/${GLYPH_MAP[g]}`} alt="" width={100} height={100} style={{ objectFit: "contain" }} />
-            </div>
-          ))}
-        </div>
-
-        {/* ── HEADER ─────────────────────────────────── */}
-        <section className="py-16 relative" style={{ borderBottom: "1px solid rgba(217,70,239,0.08)", zIndex: 1 }}>
-          <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-5 glyph-float hidden lg:block">
-            <img src="/images/utglyphs/s-(10).png" alt="" width={200} height={200} style={{ objectFit: "contain" }} />
           </div>
+
+          {/* Grid */}
+          <div className="container-ut pb-16">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {GALLERY_ITEMS.map((item, i) => {
+                const glyphSrc = GLYPH_MAP[item.glyph];
+                const loaded   = !!imageLoaded[item.id];
+                const imgSrc   = getCodexImage(item.page);
+                return (
+                  <SectionReveal key={item.id} delay={i * 0.04}>
+                    <div
+                      className="ut-card overflow-hidden group cursor-pointer transition-all hover:-translate-y-1"
+                      style={{ borderColor: "rgba(217,70,239,0.12)" }}
+                      onClick={() => setSelectedIndex(i)}
+                    >
+                      {/* Image */}
+                      <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(217,70,239,0.06) 0%, rgba(34,211,238,0.02) 100%)" }}>
+                        {!loaded && (
+                          <div
+                            className="absolute inset-0 animate-pulse"
+                            style={{ background: "rgba(217,70,239,0.05)" }}
+                          />
+                        )}
+                        <Image
+                          src={imgSrc}
+                          alt={`Page ${item.page}`}
+                          fill
+                          unoptimized
+                          className="object-cover"
+                          style={{ opacity: loaded ? 1 : 0 }}
+                          onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        />
+                        {/* Glyph watermark */}
+                        {glyphSrc && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0 }}>
+                            <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={60} height={60} className="object-contain opacity-20 group-hover:opacity-30 transition-opacity" />
+                          </div>
+                        )}
+                        {/* Page badge */}
+                        <div
+                          className="absolute top-3 left-3 px-2 py-1 flex items-center gap-1.5"
+                          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(217,70,239,0.3)" }}
+                        >
+                          {glyphSrc && <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={10} height={10} style={{ objectFit: "contain", opacity: 0.7 }} />}
+                          <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--ut-magenta)" }}>
+                            {String(item.page).padStart(3, "0")}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Title */}
+                      <div className="p-3">
+                        <h3 className="font-body text-[11px] leading-snug" style={{ color: "var(--ut-white-dim)" }}>
+                          {item.title.length > 60 ? item.title.slice(0, 60) + "…" : item.title}
+                        </h3>
+                      </div>
+                    </div>
+                  </SectionReveal>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── INLINE VIEWER (when a page is selected) ─── */}
+      {current !== null && (
+        <>
+          {/* Back button */}
+          <div className="container-ut pt-8 pb-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedIndex(null)}
+                className="font-mono text-[10px] tracking-widest uppercase transition-colors hover:text-[var(--ut-magenta)]"
+                style={{ color: "var(--ut-white-faint)" }}
+              >
+                ← Back to Grid
+              </button>
+              <span style={{ color: "var(--ut-white-faint)", opacity: 0.3 }}>›</span>
+              <span className="font-mono text-[10px] tracking-widest uppercase truncate" style={{ color: "var(--ut-white-faint)" }}>
+                Page {current.page}
+              </span>
+            </div>
+          </div>
+
+          {/* ── MAIN IMAGE ──────────────────────────────────── */}
           <div className="container-ut">
             <SectionReveal>
-              <div className="flex items-center gap-3 mb-4">
-                <img src="/images/utglyphs/a-(10).png" alt="" width={24} height={24} style={{ opacity: 0.6, objectFit: "contain" }} />
-                <span className="font-mono text-[9px] tracking-[0.5em] uppercase" style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>
-                  [ Codex II · Process Archive ]
-                </span>
-                <span className="font-mono text-[9px] tracking-[0.3em] uppercase px-2 py-0.5 rounded-full border" style={{ borderColor: "rgba(212,168,71,0.4)", color: "var(--ut-gold)" }}>
-                  Initiate+
-                </span>
-              </div>
-              <h1 className="font-display text-4xl md:text-5xl mb-4" style={{ color: "var(--ut-magenta)" }}>
-                <ZalgoText text="Behind the Veil" intensity="moderate" />
-              </h1>
-              <p className="font-body text-base max-w-2xl leading-relaxed mb-4" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                The continuation of an ineffable odyssey — {GALLERY_ITEMS.length} pages of dark-theme exploration into multi-dimensional navigation, Lucid realms, Astral bio-mechanics, and beyond.
-              </p>
-              <div className="flex items-center gap-2">
-                <img src="/images/utglyphs/b-(10).png" alt="" width={16} height={16} style={{ opacity: 0.4, objectFit: "contain" }} />
-                <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
-                  {GALLERY_ITEMS.length} pages · Click any page to explore
-                </span>
-              </div>
-            </SectionReveal>
-          </div>
-        </section>
-
-        {/* ── LIGHTBOX VIEWER ───────────────────────── */}
-        {current !== null && (
-          <section className="py-8 relative" style={{ zIndex: 1 }}>
-            <div className="container-ut">
-
-              {/* ── MAIN IMAGE ────────────────────────── */}
               <div
-                className="relative overflow-hidden mb-0 cursor-pointer group"
-                style={{
-                  background: "linear-gradient(135deg, rgba(217,70,239,0.06) 0%, rgba(34,211,238,0.02) 100%)",
-                  border: "1px solid rgba(217,70,239,0.2)",
-                  borderBottom: "none",
-                }}
+                className="relative overflow-hidden cursor-pointer group"
+                style={{ border: "1px solid rgba(217,70,239,0.15)", borderRadius: "2px" }}
+                onClick={() => setSelectedIndex(null)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && setSelectedIndex(null)}
+                aria-label="Click to close"
               >
-                <img
-                  src={getCodexImage(current!.page)}
-                  alt={`Page ${current!.page} — ${current!.title}`}
+                <Image
+                  src={getCodexImage(current.page)}
+                  alt={`Page ${current.page} — ${current.title}`}
+                  width={1200}
+                  height={1200}
+                  unoptimized
                   className="w-full h-auto block"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  priority
                 />
-                {/* Decorative glyph corner */}
-                {currentGlyphFile && (
-                  <div className="absolute bottom-4 right-4 opacity-10 pointer-events-none">
-                    <img src={`/images/utglyphs/${currentGlyphFile}`} alt="" width={80} height={80} style={{ objectFit: "contain" }} />
-                  </div>
-                )}
                 {/* Page badge */}
                 <div
                   className="absolute top-4 left-4 px-3 py-1.5 flex items-center gap-2"
                   style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(217,70,239,0.3)" }}
                 >
-                  {currentGlyphFile && (
-                    <img src={`/images/utglyphs/${currentGlyphFile}`} alt="" width={14} height={14} style={{ objectFit: "contain", opacity: 0.7 }} />
-                  )}
                   <span className="font-mono text-[10px] tracking-widest" style={{ color: "var(--ut-magenta)" }}>
                     {String(current.page).padStart(3, "0")}
                   </span>
                 </div>
-                {/* Prev / Next arrows */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); setSelectedIndex(i => ((i ?? 0) - 1 + GALLERY_ITEMS.length) % GALLERY_ITEMS.length); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)", border: "1px solid rgba(217,70,239,0.2)", color: "var(--ut-magenta)" }}
+                {/* Click hint */}
+                <div
+                  className="absolute bottom-4 right-4 font-mono text-[9px] tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ color: "var(--ut-magenta)" }}
                 >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setSelectedIndex(i => ((i ?? 0) + 1) % GALLERY_ITEMS.length); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)", border: "1px solid rgba(217,70,239,0.2)", color: "var(--ut-magenta)" }}
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-
-              {/* ── THUMBNAIL STRIP (all pages) ─── */}
-              <div
-                className="overflow-x-auto"
-                style={{
-                  background: "rgba(0,0,0,0.85)",
-                  border: "1px solid rgba(217,70,239,0.2)",
-                  borderTop: "1px solid rgba(217,70,239,0.08)",
-                  borderBottom: "1px solid rgba(217,70,239,0.08)",
-                }}
-              >
-                <div className="flex gap-2 px-4 py-3 min-w-max" ref={scrollRef}>
-                  {GALLERY_ITEMS.map((item, i) => {
-                    const isActive = i === selectedIndex;
-                    const imgSrc   = getCodexImage(item.page);
-                    const glyphSrc = GLYPH_MAP[item.glyph];
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setSelectedIndex(i)}
-                        className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 relative overflow-hidden border-2 transition-all duration-200 codex-thumb ${isActive ? "codex-thumb-active" : ""}`}
-                        style={{
-                          borderColor: isActive ? "rgba(217,70,239,0.6)" : "rgba(217,70,239,0.12)",
-                          borderRadius: "2px",
-                          background: "linear-gradient(135deg, rgba(217,70,239,0.04) 0%, rgba(34,211,238,0.01) 100%)",
-                          padding: 0,
-                        }}
-                        title={`Page ${item.page}`}
-                      >
-                        <img
-                          src={imgSrc}
-                          alt=""
-                          className="w-full h-full object-cover"
-                          style={{ opacity: isActive ? 1 : 0.5 }}
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                        <div
-                          className="absolute bottom-1 left-1 right-1 flex items-center justify-between px-1 py-0.5"
-                          style={{ background: "rgba(0,0,0,0.75)" }}
-                        >
-                          {glyphSrc && (
-                            <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={10} height={10} style={{ objectFit: "contain", opacity: 0.6 }} />
-                          )}
-                          <span
-                            className="font-mono text-[8px] tracking-widest"
-                            style={{ color: isActive ? "var(--ut-magenta)" : "var(--ut-white-dim)", opacity: 0.9 }}
-                          >
-                            {String(item.page).padStart(3, "0")}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ── INFO PANEL ─────────────────────────── */}
-              <div
-                className="p-6 md:p-8 space-y-6"
-                style={{
-                  border: "1px solid rgba(217,70,239,0.2)",
-                  borderTop: "none",
-                  background: "rgba(0,0,0,0.7)",
-                }}
-              >
-                {/* Top row: glyph + title + page counter */}
-                <div className="flex items-start gap-4 flex-wrap">
-                  {currentGlyphFile && (
-                    <div className="flex-shrink-0 mt-1">
-                      <img src={`/images/utglyphs/${currentGlyphFile}`} alt="" width={28} height={28} style={{ objectFit: "contain", opacity: 0.5 }} />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
-                        {String(current.page).padStart(3, "0")} · {current.year}
-                      </span>
-                      <span className="font-mono text-[9px]" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
-                        {selectedIndex! + 1} / {GALLERY_ITEMS.length}
-                      </span>
-                    </div>
-                    <h2 className="font-display text-xl md:text-2xl leading-tight" style={{ color: "var(--ut-white)" }}>
-                      <ZalgoText text={current.title} intensity="subtle" />
-                    </h2>
-                  </div>
-                </div>
-
-                {/* Medium */}
-                <div>
-                  <p className="font-mono text-[9px] tracking-widest uppercase mb-1" style={{ color: "var(--ut-white-dim)", opacity: 0.35 }}>
-                    Medium
-                  </p>
-                  <p className="font-mono text-[10px] leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}>
-                    {current.medium}
-                  </p>
-                </div>
-
-                {/* Description text */}
-                <p
-                  className="font-body text-sm leading-relaxed"
-                  style={{ color: "var(--ut-white-dim)", opacity: 0.75, whiteSpace: "pre-line" }}
-                >
-                  {current.description}
-                </p>
-
-                {/* Tags */}
-                <div className="flex gap-2 flex-wrap">
-                  {current.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="font-mono text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-full codex-tag cursor-default transition-all"
-                      style={{
-                        background: "rgba(217,70,239,0.08)",
-                        color: "var(--ut-magenta)",
-                        opacity: 0.6,
-                        border: "1px solid rgba(217,70,239,0.15)",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* CTA Buttons */}
-                <div className="flex gap-3 pt-2 flex-wrap" style={{ borderTop: "1px solid rgba(217,70,239,0.08)" }}>
-                  <a
-                    href={ACQUIRE_LINK}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-primary px-6 py-3 font-mono text-[10px] uppercase tracking-widest flex items-center gap-2"
-                    style={{ background: "rgba(217,70,239,0.15)", border: "1px solid rgba(217,70,239,0.4)", color: "var(--ut-magenta)" }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    Acquire the Codex
-                    <ExternalLink size={10} />
-                  </a>
-                  <a
-                    href={CORRESPONDENCES_LINK}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ut-btn px-6 py-3 font-mono text-[10px] uppercase tracking-widest flex items-center gap-2"
-                    style={{ borderColor: "rgba(212,168,71,0.4)", color: "var(--ut-gold)" }}
-                  >
-                    Explore Correspondences
-                    <ExternalLink size={10} />
-                  </a>
-                </div>
-
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── GRID VIEW (when no page is selected) ───── */}
-        {selectedIndex === null && (
-          <section className="pb-16 relative" style={{ zIndex: 1 }}>
-            <div className="container-ut">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {GALLERY_ITEMS.map((item, i) => {
-                  const glyphSrc = GLYPH_MAP[item.glyph];
-                  const loaded  = imageLoaded[item.id];
-                  const imgSrc   = getCodexImage(item.page);
-                  return (
-                    <SectionReveal key={item.id} delay={i * 0.04}>
-                      <div
-                        className="ut-card overflow-hidden group cursor-pointer transition-all hover:-translate-y-2 relative"
-                        style={{ borderColor: "rgba(217,70,239,0.12)", transition: "all 0.3s ease" }}
-                        onClick={() => setSelectedIndex(i)}
-                      >
-                        {/* Image */}
-                        <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(217,70,239,0.06) 0%, rgba(34,211,238,0.02) 100%)" }}>
-                          {!loaded && (
-                            <div className="absolute inset-0 animate-pulse" style={{ background: "linear-gradient(90deg, rgba(217,70,239,0.04) 0%, rgba(217,70,239,0.08) 50%, rgba(217,70,239,0.04) 100%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s infinite" }} />
-                          )}
-                          <img
-                            src={imgSrc}
-                            alt=""
-                            className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-                            style={{ opacity: loaded ? 1 : 0 }}
-                            onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                          />
-                          {/* Glyph watermark */}
-                          {glyphSrc && (
-                            <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0, transition: "opacity 0.3s" }}
-                              onMouseEnter={() => {}} onMouseLeave={() => {}}>
-                              <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={80} height={80} className="object-contain opacity-20 group-hover:opacity-40 transition-opacity duration-300" />
-                            </div>
-                          )}
-                          {/* Page number badge */}
-                          <div className="absolute top-3 left-3 px-3 py-1 flex items-center gap-2" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(217,70,239,0.3)" }}>
-                            {glyphSrc && <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={12} height={12} style={{ objectFit: "contain", opacity: 0.7 }} />}
-                            <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--ut-magenta)" }}>{String(item.page).padStart(3, "0")}</span>
-                          </div>
-                          {/* Hover zoom hint */}
-                          <div className="absolute bottom-3 right-3 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)" }}>
-                            <ZoomIn size={14} style={{ color: "var(--ut-magenta)" }} />
-                          </div>
-                        </div>
-                        {/* Content */}
-                        <div className="p-4 space-y-2">
-                          <span className="font-mono text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-full block" style={{ background: "rgba(217,70,239,0.1)", color: "var(--ut-magenta)", opacity: 0.7 }}>
-                            {item.year}
-                          </span>
-                          <h3 className="font-display text-xs leading-snug" style={{ color: "var(--ut-white)" }}>
-                            <ZalgoText text={item.title} intensity="subtle" />
-                          </h3>
-                        </div>
-                      </div>
-                    </SectionReveal>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── CLOSE BUTTON (when viewer open) ──────── */}
-        {current !== null && (
-          <div className="container-ut pb-8" style={{ zIndex: 1 }}>
-            <button
-              onClick={() => setSelectedIndex(null)}
-              className="ut-btn px-6 py-3 font-mono text-[10px] uppercase tracking-widest flex items-center gap-2"
-              style={{ borderColor: "rgba(217,70,239,0.2)", color: "var(--ut-white-dim)" }}
-            >
-              <X size={12} />
-              Close Viewer
-            </button>
-          </div>
-        )}
-
-        {/* ── PROCESS QUOTE ────────────────────────── */}
-        <section className="py-16" style={{ borderTop: "1px solid rgba(217,70,239,0.06)", zIndex: 1, position: "relative" }}>
-          <div className="container-ut">
-            <SectionReveal>
-              <div className="max-w-2xl mx-auto text-center space-y-4">
-                <div className="flex items-center justify-center gap-3 opacity-20">
-                  <img src="/images/utglyphs/s-(10).png" alt="" width={20} height={20} style={{ objectFit: "contain" }} />
-                  <img src="/images/utglyphs/c-(10).png" alt="" width={16} height={16} style={{ objectFit: "contain" }} />
-                  <img src="/images/utglyphs/r-(10).png" alt="" width={14} height={14} style={{ objectFit: "contain" }} />
-                  <img src="/images/utglyphs/o-(10).png" alt="" width={12} height={12} style={{ objectFit: "contain" }} />
-                  <img src="/images/utglyphs/l-(10).png" alt="" width={10} height={10} style={{ objectFit: "contain" }} />
-                </div>
-                <div className="font-display text-xl leading-relaxed" style={{ color: "var(--ut-white)" }}>
-                  <ZalgoText text="Every piece I discard teaches me why the ones I keep are worth keeping." intensity="subtle" />
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  <img src="/images/utglyphs/h-(10).png" alt="" width={16} height={16} style={{ objectFit: "contain", opacity: 0.3 }} />
-                  <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: "var(--ut-gold)", opacity: 0.5 }}>
-                    — Hakan Hisim · Process Journal · Codex Vol. II
-                  </p>
+                  Click to close
                 </div>
               </div>
             </SectionReveal>
           </div>
-        </section>
-      </main>
-    </>
+
+          {/* ── THUMBNAIL STRIP (all codex pages) ──────────── */}
+          <div className="container-ut mt-6">
+            <SectionReveal>
+              <div>
+                <div
+                  className="flex items-center gap-3 mb-4 font-mono text-[10px] tracking-[0.25em] uppercase"
+                  style={{ color: "var(--ut-white-faint)" }}
+                >
+                  <span>Detail Views</span>
+                  <span style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>—</span>
+                  <span>Scroll →</span>
+                </div>
+                <div
+                  className="flex gap-2 overflow-x-auto pb-4 snap-x snap-mandatory gallery-carousel"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(217,70,239,0.2) transparent" }}
+                >
+                  {GALLERY_ITEMS.map((item, i) => {
+                    const isActive = i === selectedIndex;
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex-shrink-0 w-24 h-24 md:w-28 md:h-28 relative overflow-hidden snap-start transition-all duration-200"
+                        style={{
+                          border: `2px solid ${isActive ? "rgba(217,70,239,0.6)" : "rgba(217,70,239,0.12)"}`,
+                          borderRadius: "2px",
+                          cursor: "pointer",
+                          opacity: isActive ? 1 : 0.55,
+                        }}
+                        onClick={() => setSelectedIndex(i)}
+                      >
+                        <Image
+                          src={getCodexImage(item.page)}
+                          alt={`Page ${item.page}`}
+                          fill
+                          unoptimized
+                          className="object-cover"
+                          sizes="112px"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </SectionReveal>
+          </div>
+
+          {/* ── INFO SECTION (2-column, gallery-style) ─────── */}
+          <div className="container-ut mt-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+              {/* Left: Title + Description */}
+              <SectionReveal direction="left">
+                <div>
+                  <p
+                    className="font-mono text-[10px] tracking-[0.3em] uppercase mb-3"
+                    style={{ color: "var(--ut-magenta)", opacity: 0.6 }}
+                  >
+                    [{String(current.page).padStart(3, "0")}]
+                  </p>
+                  <h1
+                    className="font-display text-3xl md:text-4xl lg:text-5xl mb-6 leading-tight"
+                    style={{ color: "var(--ut-white)" }}
+                  >
+                    <ZalgoText text={current.title} intensity="moderate" />
+                  </h1>
+
+                  <div className="divider-spectrum mb-8" />
+
+                  <p
+                    className="font-body text-base leading-relaxed mb-8"
+                    style={{ color: "var(--ut-white-dim)", whiteSpace: "pre-line" }}
+                  >
+                    {current.description}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="mb-6">
+                    <p
+                      className="font-mono text-[10px] tracking-widest uppercase mb-2"
+                      style={{ color: "var(--ut-white-faint)" }}
+                    >
+                      Series
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {current.tags.slice(0, 4).map((tag) => (
+                        <span
+                          key={tag}
+                          className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border"
+                          style={{
+                            borderColor: "rgba(217,70,239,0.15)",
+                            color: "var(--ut-white-dim)",
+                          }}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </SectionReveal>
+
+              {/* Right: Metadata + CTA */}
+              <SectionReveal direction="right" delay={0.15}>
+                <div
+                  className="ut-card p-8"
+                  style={{ borderColor: "rgba(217,70,239,0.1)" }}
+                >
+                  {/* Metadata */}
+                  <div className="space-y-4 mb-10">
+                    {[
+                      { label: "Year",    value: current.year },
+                      { label: "Medium",  value: current.medium },
+                      { label: "Pages",   value: `Page ${current.page} of 173` },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex flex-col gap-1">
+                        <p
+                          className="font-mono text-[9px] tracking-[0.2em] uppercase"
+                          style={{ color: "var(--ut-white-faint)" }}
+                        >
+                          {label}
+                        </p>
+                        <p
+                          className="font-body text-sm"
+                          style={{ color: "var(--ut-white-dim)" }}
+                        >
+                          {value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="divider-spectrum mb-8" />
+
+                  {/* CTA Buttons */}
+                  <div className="flex flex-col gap-3">
+                    <a
+                      href={ACQUIRE_LINK}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full justify-center text-center font-mono text-[10px] uppercase tracking-widest px-6 py-4 border transition-all hover:bg-[rgba(217,70,239,0.08)]"
+                      style={{ borderColor: "rgba(212,168,71,0.5)", color: "var(--ut-gold)" }}
+                    >
+                      Acquire the Codex
+                    </a>
+                    <a
+                      href={CORRESPONDENCES_LINK}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full justify-center text-center font-mono text-[10px] uppercase tracking-widest px-6 py-4 border transition-all hover:bg-[rgba(217,70,239,0.08)]"
+                      style={{ borderColor: "rgba(217,70,239,0.25)", color: "var(--ut-magenta)" }}
+                    >
+                      Explore Correspondences
+                    </a>
+                  </div>
+                </div>
+              </SectionReveal>
+            </div>
+          </div>
+
+          {/* ── NAVIGATE BACK ────────────────────────────── */}
+          <div className="container-ut mt-12">
+            <SectionReveal>
+              <div
+                className="border-t flex justify-between items-center pt-8"
+                style={{ borderColor: "rgba(217,70,239,0.06)" }}
+              >
+                <button
+                  onClick={() => setSelectedIndex(null)}
+                  className="btn-secondary"
+                >
+                  ← Back to Grid
+                </button>
+              </div>
+            </SectionReveal>
+          </div>
+        </>
+      )}
+    </main>
   );
 }
