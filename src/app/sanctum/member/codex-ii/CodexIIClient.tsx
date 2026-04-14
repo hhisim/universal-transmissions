@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import ZalgoText from "@/components/ui/ZalgoText";
 import SectionReveal from "@/components/ui/SectionReveal";
 
-const ACQUIRE_LINK = "https://universal-transmissions-gut8evxo4-hhisim-7214s-projects.vercel.app/sanctum/universal-transmissions-codex-vol1-physical";
-const CORRESPONDENCES_LINK = "https://codex-deploy-phi.vercel.app/";
-
+// Maps page number -> actual image filename in public/images/codex2/
 function getCodexImage(page: number): string {
   const map: Record<number, string> = {
     151: "/images/codex2/page-151.jpg",
@@ -37,243 +35,220 @@ function getCodexImage(page: number): string {
   return map[page] ?? `/images/codex2/page-${page}.jpg`;
 }
 
-// ─── CODEX2 Gallery Data — from PAGE_INFO.txt ─────────────────
+// ─── CODEX2 Gallery Data — from PAGE INFO.txt ─────────────────
+// EXACT text from PAGE INFO.txt — no additions, no hallucination
 const GALLERY_ITEMS = [
   {
-    id: 1, page: 151, glyph: "A",
+    id: 1,
+    page: 151,
     title: "Introduction to multi-planar navigation",
-    description: "The continuation of an ineffable odyssey, 150 more dark theme pages of the twilight variation exploring themes of multi-dimensional navigation, Lucid realms, Astral bio-mechanics, Xeno-Tinctures, flora and near death cartography.\n\nExpect more updates very soon coupled with strange videos as usual.\n\nAlso more about Oracles and Card decks, so very soon!\n\nAugmented reality Inside...\n\nBe love,\nHakan.",
-    tags: ["universaltransmissions", "xenolinguistics", "codex", "mapping", "navigation", "codex2", "visionaryart", "psychedelic"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "The continuation of an ineffable odyssey, 150 more dark theme pages of the twilight variation exploring themes of multi-dimensional navigation, Lucid realms, Astral bio-mechanics, Xeno-Tinctures, flora and near death cartography.\n\nExpect more updates very soon coupled with strange videos as usual.\n\nAlso more about Oracles and Card decks, so very soon!",
+    tags: "#universaltransmissions #xenolinguistics #codex #mapping #navigation #codex2 #visionaryart #psychedelic",
+    topic: "Multi-planar navigation",
   },
   {
-    id: 2, page: 152, glyph: "B",
+    id: 2,
+    page: 152,
     title: "Astral Cartography: Arching through spectrums of consciousness",
-    description: "Anubis and the exploration of the Archontic path.",
-    tags: ["universaltransmissions", "xenolinguistics", "codex", "mapping", "navigation", "codex2", "visionaryart", "psychedelic", "astralcartography", "archon", "anubis"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Anubis and the exploration of the Archontic path",
+    tags: "#universaltransmissions #xenolinguistics #codex #mapping #navigation #codex2 #visionaryart #psychedelic #astralcartography #archon #anubis",
+    topic: "Astral Cartography",
   },
   {
-    id: 3, page: 153, glyph: "C",
+    id: 3,
+    page: 153,
     title: "Navigation: Meta-molecular synthesis of trance states",
-    description: "Imbibing hyperdimensional wave functions as consciousness altering phenomes.",
-    tags: ["codex", "codex2", "universaltransmissions", "kemet", "molecular", "metamaterial", "ancientfuture"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Imbibing hyperdimensional wave functions as consciousness altering phenomes",
+    tags: "#codex #codex2.0 #universaltransmissions #kemet #molecular #metamaterial #ancientfuture",
+    topic: "Meta-molecular synthesis",
   },
   {
-    id: 4, page: 154, glyph: "D",
+    id: 4,
+    page: 154,
     title: "Navigation: Propagation of Parallel Projections through Hyperspace",
-    description: "On navigating Multiverse modes with psycho-somatic probability engines.",
-    tags: ["universaltransmissions", "xenolinguistics", "codex", "mapping", "navigation", "codex2", "visionaryart", "psychedelic", "astralcartography", "multiverse", "parallelreality", "projection", "hyperspace"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "On navigating Multiverse modes with psycho-somatic probability engines",
+    tags: "#universaltransmissions #xenolinguistics #codex #mapping #navigation #codex2 #visionaryart #psychedelic #astralcartography #multiverse #parallelreality #projection #hyperspace",
+    topic: "Parallel Projections",
   },
   {
-    id: 5, page: 155, glyph: "E",
+    id: 5,
+    page: 155,
     title: "Navigation (Exploratory): Probability steering via reality navigation networks",
-    description: "On the impossible mechanics of dimension hopping.",
-    tags: ["universaltransmissions", "codex", "codex2", "realitytransurfing", "alternatereality", "realitynavigation", "visionaryart", "psychedelic"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "On the impossible mechanics of dimension hopping",
+    tags: "#Universaltransmissions #codex #codex2 #realitytransurfing #alternatereality #realitynavigation #visionaryart #psychedelic",
+    topic: "Probability steering",
   },
   {
-    id: 6, page: 156, glyph: "F",
+    id: 6,
+    page: 156,
     title: "Threshold Transformations & Evolutionary Portals",
-    description: "Many thanks to Sakari @omnigeometry for creating such amazing software which was used to generate geometric structures on this page.",
-    tags: ["universaltransmissions", "codex", "codex2", "portalevolution", "realitynavigation", "visionaryart", "psychedelic", "alphaandomega", "xenolinguistics", "spinratio", "omnigeometry"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Many thanks to Sakari @omnigeometry for creating such amazing software which was used to generate geometric structures on this page",
+    tags: "#Universaltransmissions #codex #codex2 #portalevolution #realitynavigation #visionaryart #psychedelic #alphaandomega #xenolinguistics #spinratio #omnigeometry",
+    topic: "Threshold Transformations",
   },
   {
-    id: 7, page: 157, glyph: "G",
+    id: 7,
+    page: 157,
     title: "Navigation: Tangential Telemetry of Time Dilation",
-    description: "The effects to time dilation on Euclidean and Non-Euclidean existential modalities.",
-    tags: ["codex", "codex2", "universaltransmissions", "xenolinguistics", "telemetry", "timedilation", "psychedelic", "visionaryart", "alternatereality"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "The effects to time dilation on Euclidean and Non-Euclidean existential modalities",
+    tags: "#codex #codex2 #universaltransmissions #xenolinguistics #telemetry #timedilation #psychedelic #visionaryart #alternatereality",
+    topic: "Time Dilation",
   },
   {
-    id: 8, page: 158, glyph: "H",
+    id: 8,
+    page: 158,
     title: "Navigation: Exploration: Anatomical Structures & Cymatic correlations to hyperdimensional egregors",
     description: "Hyperdimensional entities and their cymatic expression patterns.",
-    tags: ["codex", "codex2", "universaltransmissions", "hyperspacemanual", "egregoreanatomy", "cymatics", "75hz", "anatomyofthebodyofgod", "visionaryart", "psychedelic"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    tags: "#codex #codex2 #universaltransmissions #hyperspacemanual #egregoreanatomy #cymatics #75hz #anatomyofthebodyofgod #visionaryart #psychedelic",
+    topic: "Anatomical Structures",
   },
   {
-    id: 9, page: 159, glyph: "I",
+    id: 9,
+    page: 159,
     title: "Hypernode: Celestial cradle",
     description: "Half a gram of starlit spice,\nHalf a drop of Tikal,\nThat's the way the visions flow,\nPop! Goes the weasel.",
-    tags: ["celestialcradle", "cosmicnursery", "xenolinguistics", "DMT", "hyperspace", "kundalini", "cosmicbirth", "visionaryart", "psychedelic", "popgoestheweasel"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    tags: "#celestialcradle #cosmicnursery #xenolinguistics #DMT #hyperspace #kundalini #cosmicbirth #visionaryart #psychedelic #popgoestheweasel",
+    topic: "Celestial cradle",
   },
   {
-    id: 10, page: 160, glyph: "J",
+    id: 10,
+    page: 160,
     title: "Navigation: On steering the tornado between the portals of life and death",
-    description: '"We created the end" — Death is a human invention.',
-    tags: ["codex", "codex2", "universaltransmissions", "tornadosteering", "life", "death", "birth", "rebirth", "portals", "dmt", "visionaryart", "psychedelic"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: '"We created the end" - Death is a human invention.',
+    tags: "#codex #codex2 #universaltransmissions #tornadosteering #life #death #birth #rebirth #portals #dmt #visionaryart #psychedelic",
+    topic: "Life & Death portals",
   },
   {
-    id: 11, page: 161, glyph: "K",
+    id: 11,
+    page: 161,
     title: "Calibration: On balancing the Archontic spectrum to design experiential modalities.",
-    description: "The architects /// Frequency manipulation, correspondence mapping and reality creation dynamics.",
-    tags: ["CODEX", "codex2", "universaltransmissions", "theartchitects", "spectrum", "archons", "hyperspace", "dmt", "tryptaminerealms", "hyperspatialdesign", "visionaryart", "psychedelic", "spinratio"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "The architects /// Frequency manipulation, correspondence mapping and reality creation dynamics",
+    tags: "#CODEX #codex2 #universaltransmissions #theartchitects #spectrum #archons #hyperspace #dmt #tryptaminerealms #hyperspatialdesign #visionaryart #psychedelic #spinratio",
+    topic: "Archontic spectrum",
   },
   {
-    id: 12, page: 162, glyph: "L",
+    id: 12,
+    page: 162,
     title: "Calibration: On balancing the Archontic spectrum to design experiential modalities.",
     description: "(Frequency patterns generated with a cymatic tonoscope oscillator)",
-    tags: ["codex", "codex2", "universaltransmissions", "cymatics", "frequencies", "super-sentience", "visionaryart", "psychedelic", "dmt", "tryptaminevibrations", "visiblesound", "hiddendimension"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    tags: "#codex #codex2 #universaltransmissions #cymatics #frequencies #super-sentience #visionaryart #psychedelic #dmt #tryptaminevibrations #visiblesound #hiddendimension",
+    topic: "Cymatic frequencies",
   },
   {
-    id: 13, page: 163, glyph: "M",
+    id: 13,
+    page: 163,
     title: "Calibration: Frequency mapping to translinguistic artifacts",
     description: "This happens all too often!",
-    tags: ["codex", "codex2", "universaltransmissions", "cymatics", "frequencies", "super-sentience", "visionaryart", "psychedelic", "dmt", "tryptaminevibrations", "visiblesound", "hiddendimension"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    tags: "#codex #codex2 #universaltransmissions #cymatics #frequencies #super-sentience #visionaryart #psychedelic #dmt #tryptaminevibrations #visiblesound #hiddendimension",
+    topic: "Translinguistic artifacts",
   },
   {
-    id: 14, page: 164, glyph: "N",
+    id: 14,
+    page: 164,
     title: "Alchemical: Radiolaria",
-    description: "Radiolarian re-compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
-    tags: ["codex", "codex2", "universaltransmissions", "radiolaria", "xenobotanical", "alchemy", "xenolinguistics", "psychotropic", "dmt", "psychedelic", "visionaryart", "trancestates"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Radiolarian re compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
+    tags: "#codex #codex2 #universaltransmissions #radiolaria #xenobotanical #alchemy #xenolinguistics #psychotropic #dmt #psychedelic #visionaryart #trancestates",
+    topic: "Radiolaria",
   },
   {
-    id: 15, page: 165, glyph: "O",
+    id: 15,
+    page: 165,
     title: "Alchemical: Radiolaria II",
-    description: "Radiolarian re-compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
-    tags: ["codex", "codex2", "universaltransmissions", "radiolaria", "xenobotanical", "alchemy", "xenolinguistics", "psychotropic", "dmt", "psychedelic", "visionaryart", "trancestates"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Radiolarian re compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
+    tags: "#codex #codex2 #universaltransmissions #radiolaria #xenobotanical #alchemy #xenolinguistics #psychotropic #dmt #psychedelic #visionaryart #trancestates",
+    topic: "Radiolaria",
   },
   {
-    id: 16, page: 166, glyph: "P",
+    id: 16,
+    page: 166,
     title: "Alchemical: Radiolaria III",
-    description: "Radiolarian re-compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
-    tags: ["codex", "codex2", "universaltransmissions", "radiolaria", "xenobotanical", "alchemy", "xenolinguistics", "psychotropic", "dmt", "psychedelic", "visionaryart", "trancestates"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Radiolarian re compositions, compounded with xenobotanical psychotropic formulations for the purposes of non-ordinary excursions.",
+    tags: "#codex #codex2 #universaltransmissions #radiolaria #xenobotanical #alchemy #xenolinguistics #psychotropic #dmt #psychedelic #visionaryart #trancestates",
+    topic: "Radiolaria",
   },
   {
-    id: 17, page: 167, glyph: "Q",
+    id: 17,
+    page: 167,
     title: "Contact: The Gatekeepers",
     description: "As I pierced through the hyperbolic membrane of hyperspace, the gatekeepers stood ready, poised to test my resolve to venture further. Their silent voices resonated in shimmering cellophane frequencies, as it adjusted the cosmic dials with an otherworldly rhythm.",
-    tags: ["codex", "codex2", "breakthrough", "universaltransmissions", "dmt", "hyperspace", "tryptaminerealms", "xenolinguistics", "visiblelanguage", "machineelf", "cinema4d", "rodin3d", "magnific", "zbrush", "psychedelic", "visionaryart"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    tags: "#codex #codex2 #breakthrough #universaltransmissions #dmt #hyperspace #tryptaminerealms #xenolinguistics #visiblelanguage #machineelf #cinema4d #rodin3d #magnific #zbrush #psychedelic #visionaryart",
+    topic: "The Gatekeepers",
   },
   {
-    id: 18, page: 168, glyph: "R",
-    title: "Communication: Non-local transmissions — Telemetry of Translingual Minds.",
-    description: "Communication as key communion.",
-    tags: ["codex", "codex2", "universaltransmissions", "xenolinguistics", "translinguitics", "telepathy", "visionaryart", "psychedelic", "timedilation", "wormhole", "treeoflife", "kaballah", "temporalmapping"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    id: 18,
+    page: 168,
+    title: "Communication: Non-local transmissions - Telemetry of Translingual Minds.",
+    description: "Communication as key communion",
+    tags: "#codex #codex2 #universaltransmissions #xenolinguistics #translinguitics #telepathy #visionaryart #psychedelic #timedilation #wormhole #treeoflife #kaballah #temporalmapping",
+    topic: "Non-local transmissions",
   },
   {
-    id: 19, page: 169, glyph: "S",
+    id: 19,
+    page: 169,
     title: "Cultivation: On the seeding of whirling worlds with woven words.",
-    description: "On cultivating extraction methods from the Prima Materia.",
-    tags: ["codex", "codex2", "universaltransmissions", "worldseeding", "worldweaving", "xenolinguistics", "visionaryart", "psychedelic", "esotericart", "chickenoregg", "cosmicegg", "primamateria"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "On cultivating extraction methods from the Prima Materia",
+    tags: "#codex #codex2 #universaltransmissions #worldseeding #worldweaving #xenolinguistics #visionaryart #psychedelic #esotericart #chickenoregg #cosmicegg #primamateria",
+    topic: "World seeding",
   },
   {
-    id: 20, page: 170, glyph: "T",
+    id: 20,
+    page: 170,
     title: "Cultivation: Sowing seeds of...",
-    description: "On cultivating extraction methods from the Prima Materia.",
-    tags: ["codex", "codex2", "universaltransmissions", "worldseeding", "worldweaving", "xenolinguistics", "visionaryart", "psychedelic", "esotericart", "chickenoregg", "cosmicegg", "primamateria"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "On cultivating extraction methods from the Prima Materia",
+    tags: "#codex #codex2 #universaltransmissions #worldseeding #worldweaving #xenolinguistics #visionaryart #psychedelic #esotericart #chickenoregg #cosmicegg #primamateria",
+    topic: "Prima Materia",
   },
   {
-    id: 21, page: 171, glyph: "U",
+    id: 21,
+    page: 171,
     title: "Transformation: Non-linear evolutionary applications of recursive pan-dimensional seeding practices",
-    description: "Non-local transformation methods // using the Philosophers Stone.",
-    tags: ["codex", "codex2", "universaltransmissions", "xenolinguistics", "theseeders", "seedingreality", "transformation", "non-linear", "dmt", "visionaryart", "psychedelic", "esotericart", "archonticspectrum"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Non-local transformation methods // using the Philosophers Stone",
+    tags: "#codex #codex2 #universaltransmissions #xenolinguistics #theseeders #seedingreality #transformation #non-linear #dmt #visionaryart #psychedelic #esotericart #archonticspectrum",
+    topic: "Philosophers Stone",
   },
   {
-    id: 22, page: 172, glyph: "V",
+    id: 22,
+    page: 172,
     title: "Simulation: Non-linear recursive mapping",
-    description: "Non-linear recursive mapping points between translinguistic simulacra and pan-dimensional Usumgal breeding practices.",
-    tags: ["codex", "codex2", "universaltransmissions", "xenolinguistics", "theseeders", "seedingreality", "transformation", "non-linear", "dmt", "visionaryart", "psychedelic", "esotericart", "archonticspectrum"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    description: "Non-linear recursive mapping points between translinguistic simulacra and pan-dimensional Usumgal breeding practices",
+    tags: "#codex #codex2 #universaltransmissions #xenolinguistics #theseeders #seedingreality #transformation #non-linear #dmt #visionaryart #psychedelic #esotericart #archonticspectrum",
+    topic: "Non-linear recursive mapping",
   },
   {
-    id: 23, page: 173, glyph: "W",
-    title: "Locomotion: Topological locomotion dynamics",
+    id: 23,
+    page: 173,
+    title: "Locomotion: Toplogical locomotion dynamics",
     description: "Topology of serpentine meridian pathways in relation to planetary spheres via portals of near improbability.",
-    tags: ["codex", "codex2", "universaltransmissions", "xenolinguistics", "meridians", "dmt", "visionaryart", "psychedelic", "kundalini", "chakras", "planetaryspheres"],
-    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope",
-    year: "2025",
+    tags: "#codex #codex2 #universaltransmissions #xenolinguistics #meridians #dmt #visionaryart #psychedelic #kundalini #chakras #planetaryspheres",
+    topic: "Topological locomotion",
   },
 ];
-
-const GLYPH_MAP: Record<string, string> = {
-  A: "a-(10).png", B: "b-(10).png", C: "c-(10).png", D: "d-(10).png",
-  E: "e-(10).png", F: "f-(10).png", G: "g-(10).png", H: "h-(10).png",
-  I: "i-(10).png", J: "j-(10).png", K: "k-(10).png", L: "l-(10).png",
-  M: "m-(10).png", N: "n-(10).png", O: "o-(10).png", P: "p-(10).png",
-  Q: "q-(10).png", R: "r-(10).png", S: "s-(10).png", T: "t-(10).png",
-  U: "u-(10).png", V: "v-(10).png", W: "w-(10).png",
-};
 
 export default function CodexIIClient() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
 
-  // Keyboard navigation — only active when viewer is open
-  useEffect(() => {
-    if (selectedIndex === null) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") setSelectedIndex(i => ((i ?? 0) + 1) % GALLERY_ITEMS.length);
-      if (e.key === "ArrowLeft")  setSelectedIndex(i => ((i ?? 0) - 1 + GALLERY_ITEMS.length) % GALLERY_ITEMS.length);
-      if (e.key === "Escape")     setSelectedIndex(null);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [selectedIndex]);
-
-  const current  = selectedIndex !== null ? GALLERY_ITEMS[selectedIndex] : null;
+  const current = selectedIndex !== null ? GALLERY_ITEMS[selectedIndex] : null;
 
   return (
     <main className="pb-20">
 
-      {/* ── 4-COLUMN GRID (shown when no page is selected) ─── */}
+      {/* ── 4-COLUMN GRID ─────────────────────────────────────── */}
       {selectedIndex === null && (
         <>
-          {/* Section label */}
           <div className="container-ut pt-8 pb-4">
-            <div className="flex items-center gap-3 mb-0">
+            <div className="flex items-center gap-3">
               <span className="font-mono text-[10px] tracking-[0.25em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
                 {GALLERY_ITEMS.length} Pages — Click to Open
               </span>
             </div>
           </div>
 
-          {/* Grid */}
           <div className="container-ut pb-16">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {GALLERY_ITEMS.map((item, i) => {
-                const glyphSrc = GLYPH_MAP[item.glyph];
-                const loaded   = !!imageLoaded[item.id];
-                const imgSrc   = getCodexImage(item.page);
+                const loaded  = !!imageLoaded[item.id];
+                const imgSrc  = getCodexImage(item.page);
                 return (
                   <SectionReveal key={item.id} delay={i * 0.04}>
                     <div
@@ -284,10 +259,7 @@ export default function CodexIIClient() {
                       {/* Image */}
                       <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(217,70,239,0.06) 0%, rgba(34,211,238,0.02) 100%)" }}>
                         {!loaded && (
-                          <div
-                            className="absolute inset-0 animate-pulse"
-                            style={{ background: "rgba(217,70,239,0.05)" }}
-                          />
+                          <div className="absolute inset-0 animate-pulse" style={{ background: "rgba(217,70,239,0.05)" }} />
                         )}
                         <Image
                           src={imgSrc}
@@ -299,18 +271,11 @@ export default function CodexIIClient() {
                           onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         />
-                        {/* Glyph watermark */}
-                        {glyphSrc && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.12 }}>
-                            <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={60} height={60} className="object-contain opacity-20 group-hover:opacity-30 transition-opacity" />
-                          </div>
-                        )}
                         {/* Page badge */}
                         <div
-                          className="absolute top-3 left-3 px-2 py-1 flex items-center gap-1.5"
+                          className="absolute top-3 left-3 px-2 py-1"
                           style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(217,70,239,0.3)" }}
                         >
-                          {glyphSrc && <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={10} height={10} style={{ objectFit: "contain", opacity: 0.7 }} />}
                           <span className="font-mono text-[9px] tracking-widest" style={{ color: "var(--ut-magenta)" }}>
                             {String(item.page).padStart(3, "0")}
                           </span>
@@ -331,10 +296,10 @@ export default function CodexIIClient() {
         </>
       )}
 
-      {/* ── INLINE VIEWER (when a page is selected) ─── */}
+      {/* ── INLINE VIEWER ─────────────────────────────────────── */}
       {current !== null && (
         <>
-          {/* Back button */}
+          {/* Back breadcrumb */}
           <div className="container-ut pt-8 pb-4">
             <div className="flex items-center gap-2">
               <button
@@ -351,7 +316,7 @@ export default function CodexIIClient() {
             </div>
           </div>
 
-          {/* ── MAIN IMAGE ──────────────────────────────────── */}
+          {/* Main image */}
           <div className="container-ut">
             <SectionReveal>
               <div
@@ -372,16 +337,14 @@ export default function CodexIIClient() {
                   className="w-full h-auto block"
                   priority
                 />
-                {/* Page badge */}
                 <div
-                  className="absolute top-4 left-4 px-3 py-1.5 flex items-center gap-2"
+                  className="absolute top-4 left-4 px-3 py-1.5"
                   style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(217,70,239,0.3)" }}
                 >
                   <span className="font-mono text-[10px] tracking-widest" style={{ color: "var(--ut-magenta)" }}>
                     {String(current.page).padStart(3, "0")}
                   </span>
                 </div>
-                {/* Click hint */}
                 <div
                   className="absolute bottom-4 right-4 font-mono text-[9px] tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ color: "var(--ut-magenta)" }}
@@ -392,7 +355,7 @@ export default function CodexIIClient() {
             </SectionReveal>
           </div>
 
-          {/* ── THUMBNAIL STRIP (all codex pages) ──────────── */}
+          {/* Thumbnail strip — all 23 pages */}
           <div className="container-ut mt-6">
             <SectionReveal>
               <div>
@@ -400,7 +363,7 @@ export default function CodexIIClient() {
                   className="flex items-center gap-3 mb-4 font-mono text-[10px] tracking-[0.25em] uppercase"
                   style={{ color: "var(--ut-white-faint)" }}
                 >
-                  <span>Detail Views</span>
+                  <span>All Pages</span>
                   <span style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>—</span>
                   <span>Scroll →</span>
                 </div>
@@ -438,11 +401,11 @@ export default function CodexIIClient() {
             </SectionReveal>
           </div>
 
-          {/* ── INFO SECTION (2-column, gallery-style) ─────── */}
+          {/* ── INFO SECTION — matches PAGE INFO.txt RIGHT BOX ──── */}
           <div className="container-ut mt-16">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
-              {/* Left: Title + Description */}
+              {/* Left: Title + Description + Tags */}
               <SectionReveal direction="left">
                 <div>
                   <p
@@ -467,68 +430,72 @@ export default function CodexIIClient() {
                     {current.description}
                   </p>
 
-                  {/* Tags */}
-                  <div className="mb-6">
+                  {/* Tags — exact from PAGE INFO.txt */}
+                  <div>
                     <p
                       className="font-mono text-[10px] tracking-widest uppercase mb-2"
                       style={{ color: "var(--ut-white-faint)" }}
                     >
-                      Series
+                      Tags
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {current.tags.slice(0, 4).map((tag) => (
-                        <span
-                          key={tag}
-                          className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border"
-                          style={{
-                            borderColor: "rgba(217,70,239,0.15)",
-                            color: "var(--ut-white-dim)",
-                          }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                    <p
+                      className="font-mono text-[9px] leading-relaxed"
+                      style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}
+                    >
+                      {current.tags}
+                    </p>
                   </div>
                 </div>
               </SectionReveal>
 
-              {/* Right: Metadata + CTA */}
+              {/* Right: RIGHT BOX — exact from PAGE INFO.txt */}
               <SectionReveal direction="right" delay={0.15}>
                 <div
                   className="ut-card p-8"
                   style={{ borderColor: "rgba(217,70,239,0.1)" }}
                 >
-                  {/* Metadata */}
-                  <div className="space-y-4 mb-10">
-                    {[
-                      { label: "Year",    value: current.year },
-                      { label: "Medium",  value: current.medium },
-                      { label: "Pages",   value: `Page ${current.page} of 173` },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="flex flex-col gap-1">
-                        <p
-                          className="font-mono text-[9px] tracking-[0.2em] uppercase"
-                          style={{ color: "var(--ut-white-faint)" }}
-                        >
-                          {label}
-                        </p>
-                        <p
-                          className="font-body text-sm"
-                          style={{ color: "var(--ut-white-dim)" }}
-                        >
-                          {value}
-                        </p>
-                      </div>
-                    ))}
+                  {/* Metadata — exact fields from PAGE INFO.txt */}
+                  <div className="space-y-5 mb-10">
+                    <div className="flex flex-col gap-1">
+                      <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
+                        Year
+                      </p>
+                      <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
+                        2025
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
+                        Medium
+                      </p>
+                      <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
+                        Adobe Photoshop, Cinema 4D, Adobe Illustrator, Painter, Various Fractal Generators, Zbrush, Cymatic Tonoscope
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
+                        Topic
+                      </p>
+                      <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
+                        {current.topic}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
+                        Page
+                      </p>
+                      <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
+                        {current.page} of 173
+                      </p>
+                    </div>
                   </div>
 
                   <div className="divider-spectrum mb-8" />
 
-                  {/* CTA Buttons */}
+                  {/* CTA — exact from PAGE INFO.txt */}
                   <div className="flex flex-col gap-3">
                     <a
-                      href={ACQUIRE_LINK}
+                      href="https://universal-transmissions-gut8evxo4-hhisim-7214s-projects.vercel.app/sanctum/universal-transmissions-codex-vol1-physical"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full justify-center text-center font-mono text-[10px] uppercase tracking-widest px-6 py-4 border transition-all hover:bg-[rgba(217,70,239,0.08)]"
@@ -537,7 +504,7 @@ export default function CodexIIClient() {
                       Acquire the Codex
                     </a>
                     <a
-                      href={CORRESPONDENCES_LINK}
+                      href="https://codex-deploy-phi.vercel.app/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full justify-center text-center font-mono text-[10px] uppercase tracking-widest px-6 py-4 border transition-all hover:bg-[rgba(217,70,239,0.08)]"
@@ -551,17 +518,11 @@ export default function CodexIIClient() {
             </div>
           </div>
 
-          {/* ── NAVIGATE BACK ────────────────────────────── */}
+          {/* Back button */}
           <div className="container-ut mt-12">
             <SectionReveal>
-              <div
-                className="border-t flex justify-between items-center pt-8"
-                style={{ borderColor: "rgba(217,70,239,0.06)" }}
-              >
-                <button
-                  onClick={() => setSelectedIndex(null)}
-                  className="btn-secondary"
-                >
+              <div className="border-t flex justify-between items-center pt-8" style={{ borderColor: "rgba(217,70,239,0.06)" }}>
+                <button onClick={() => setSelectedIndex(null)} className="btn-secondary">
                   ← Back to Grid
                 </button>
               </div>
