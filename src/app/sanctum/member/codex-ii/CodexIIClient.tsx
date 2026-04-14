@@ -325,7 +325,7 @@ export default function CodexIIClient() {
                 }}
               >
                 <img
-                  src={`/images/codex2/page-${current.page}.jpg`}
+                  src={`/images/codex2/page-${current!.page}.webp`}
                   alt={`Page ${current.page} — ${current.title}`}
                   className="w-full h-auto block"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
@@ -378,7 +378,7 @@ export default function CodexIIClient() {
                 <div className="flex gap-2 px-4 py-3 min-w-max" ref={scrollRef}>
                   {GALLERY_ITEMS.map((item, i) => {
                     const isActive = i === selectedIndex;
-                    const imgSrc   = `/images/codex2/page-${item.page}.jpg`;
+                    const imgSrc   = `/images/codex2/page-${item.page}.webp`;
                     const glyphSrc = GLYPH_MAP[item.glyph];
                     return (
                       <button
@@ -526,7 +526,7 @@ export default function CodexIIClient() {
                 {GALLERY_ITEMS.map((item, i) => {
                   const glyphSrc = GLYPH_MAP[item.glyph];
                   const loaded  = imageLoaded[item.id];
-                  const imgSrc   = `/images/codex2/page-${item.page}.jpg`;
+                  const imgSrc   = `/images/codex2/page-${item.page}.webp`;
                   return (
                     <SectionReveal key={item.id} delay={i * 0.04}>
                       <div
