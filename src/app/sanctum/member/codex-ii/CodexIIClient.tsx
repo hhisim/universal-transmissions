@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import ZalgoText from "@/components/ui/ZalgoText";
 import SectionReveal from "@/components/ui/SectionReveal";
+import LikeButton from "@/components/ui/LikeButton";
+import CommentSection from "@/components/ui/CommentSection";
 
 // Maps page number -> actual image filename in public/images/codex2/
 function getCodexImage(page: number): string {
@@ -36,7 +38,7 @@ function getCodexImage(page: number): string {
 }
 
 // ─── CODEX2 Gallery Data — from PAGE INFO.txt (exact) ─────────
-// Topics extracted from TITLE field of PAGE INFO.txt
+// Topics = full TITLE text from PAGE INFO.txt
 const GALLERY_ITEMS = [
   {
     id: 1,
@@ -224,11 +226,19 @@ const GALLERY_ITEMS = [
   },
 ];
 
+// Convert space-separated tag string to array, split at first #
+function tagStringToArray(tagStr: string): string[] {
+  const tags = tagStr.split(/\s+/).filter(Boolean);
+  // Show at most 3 tags (same as gallery)
+  return tags.slice(0, 3);
+}
+
 export default function CodexIIClient() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
 
   const current = selectedIndex !== null ? GALLERY_ITEMS[selectedIndex] : null;
+  const itemId = current ? `codex2-page-${current.page}` : "";
 
   return (
     <main className="pb-20">
@@ -402,11 +412,11 @@ export default function CodexIIClient() {
             </SectionReveal>
           </div>
 
-          {/* ── INFO SECTION — matches PAGE INFO.txt RIGHT BOX ──── */}
+          {/* ── INFO SECTION — 2-column (gallery art detail style) */}
           <div className="container-ut mt-16">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
-              {/* Left: Title + Description + Tags */}
+              {/* Left: Page number + Title + Description + Tags + Like/Comment */}
               <SectionReveal direction="left">
                 <div>
                   <p
@@ -431,31 +441,37 @@ export default function CodexIIClient() {
                     {current.description}
                   </p>
 
-                  {/* Tags — exact from PAGE INFO.txt */}
-                  <div>
-                    <p
-                      className="font-mono text-[10px] tracking-widest uppercase mb-2"
-                      style={{ color: "var(--ut-white-faint)" }}
-                    >
-                      Tags
-                    </p>
-                    <p
-                      className="font-mono text-[9px] leading-relaxed"
-                      style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}
-                    >
-                      {current.tags}
-                    </p>
+                  {/* Tags — pill style matching gallery/[slug]/page.tsx */}
+                  <div className="flex flex-wrap gap-2 mb-8">
+                    {tagStringToArray(current.tags).map((tag) => (
+                      <span
+                        key={tag}
+                        className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border"
+                        style={{
+                          borderColor: "rgba(217,70,239,0.15)",
+                          color: "var(--ut-white-dim)",
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Like + Comment buttons — Supabase connected */}
+                  <div className="flex items-center gap-4">
+                    <LikeButton itemId={itemId} />
+                    <CommentSection itemId={itemId} itemType="codex2" />
                   </div>
                 </div>
               </SectionReveal>
 
-              {/* Right: RIGHT BOX — exact from PAGE INFO.txt */}
+              {/* Right: Metadata box + CTAs */}
               <SectionReveal direction="right" delay={0.15}>
                 <div
                   className="ut-card p-8"
                   style={{ borderColor: "rgba(217,70,239,0.1)" }}
                 >
-                  {/* Metadata — exact fields from PAGE INFO.txt */}
+                  {/* Metadata — YEAR / MEDIUM / TOPIC / PAGE */}
                   <div className="space-y-5 mb-10">
                     <div className="flex flex-col gap-1">
                       <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: "var(--ut-white-faint)" }}>
@@ -493,7 +509,7 @@ export default function CodexIIClient() {
 
                   <div className="divider-spectrum mb-8" />
 
-                  {/* CTA — exact from PAGE INFO.txt */}
+                  {/* CTA buttons */}
                   <div className="flex flex-col gap-3">
                     <a
                       href="https://universal-transmissions-gut8evxo4-hhisim-7214s-projects.vercel.app/sanctum/universal-transmissions-codex-vol1-physical"

@@ -12,7 +12,7 @@ interface Comment {
 
 interface CommentSectionProps {
   itemId: string;
-  itemType?: "gallery" | "journal" | "artwork";
+  itemType?: "gallery" | "journal" | "artwork" | "codex2";
 }
 
 function getVisitorId(): string {
