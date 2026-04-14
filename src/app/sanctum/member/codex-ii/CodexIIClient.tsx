@@ -301,7 +301,7 @@ export default function CodexIIClient() {
                         />
                         {/* Glyph watermark */}
                         {glyphSrc && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0 }}>
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.12 }}>
                             <img src={`/images/utglyphs/${glyphSrc}`} alt="" width={60} height={60} className="object-contain opacity-20 group-hover:opacity-30 transition-opacity" />
                           </div>
                         )}
