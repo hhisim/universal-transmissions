@@ -9,6 +9,36 @@ import { ChevronLeft, ChevronRight, X, ZoomIn, Calendar, ExternalLink } from "lu
 const ACQUIRE_LINK = "https://universal-transmissions-gut8evxo4-hhisim-7214s-projects.vercel.app/sanctum/universal-transmissions-codex-vol1-physical";
 const CORRESPONDENCES_LINK = "https://codex-deploy-phi.vercel.app/";
 
+// Maps page number -> actual image filename
+function getCodexImage(page: number): string {
+  const map: Record<number, string> = {
+    151: "page-151.jpg",
+    152: "page-152---web.jpg",
+    153: "page-153---web.jpg",
+    154: "page-154---web.jpg",
+    155: "page-155---web.jpg",
+    156: "page-156---web.jpg",
+    157: "page-157---small.jpg",
+    158: "page-158---web.jpg",
+    159: "page-159---web.jpg",
+    160: "page-160---web3.jpg",
+    161: "page-161---web.jpg",
+    162: "page-162---web.jpg",
+    163: "page-163---web.jpg",
+    164: "page-164---web.jpg",
+    165: "page-165---web.jpg",
+    166: "page-166---web.jpg",
+    167: "page-167---web.jpg",
+    168: "page-168---web.jpg",
+    169: "page-169---web.jpg",
+    170: "page-170---web.jpg",
+    171: "page-171---web.jpg",
+    172: "page-172---web.jpg",
+    173: "page-173---web.jpg",
+  };
+  return `/images/codex2/${map[page] ?? `page-${page}.jpg`}`;
+}
+
 // ─── CODEX2 Gallery Data — from PAGE_INFO.txt ─────────────────
 const GALLERY_ITEMS = [
   {
@@ -325,8 +355,8 @@ export default function CodexIIClient() {
                 }}
               >
                 <img
-                  src={`/images/codex2/page-${current!.page}.webp`}
-                  alt={`Page ${current.page} — ${current.title}`}
+                  src={getCodexImage(current!.page)}
+                  alt={`Page ${current!.page} — ${current!.title}`}
                   className="w-full h-auto block"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                 />
@@ -378,7 +408,7 @@ export default function CodexIIClient() {
                 <div className="flex gap-2 px-4 py-3 min-w-max" ref={scrollRef}>
                   {GALLERY_ITEMS.map((item, i) => {
                     const isActive = i === selectedIndex;
-                    const imgSrc   = `/images/codex2/page-${item.page}.webp`;
+                    const imgSrc   = getCodexImage(item.page);
                     const glyphSrc = GLYPH_MAP[item.glyph];
                     return (
                       <button
@@ -526,7 +556,7 @@ export default function CodexIIClient() {
                 {GALLERY_ITEMS.map((item, i) => {
                   const glyphSrc = GLYPH_MAP[item.glyph];
                   const loaded  = imageLoaded[item.id];
-                  const imgSrc   = `/images/codex2/page-${item.page}.webp`;
+                  const imgSrc   = getCodexImage(item.page);
                   return (
                     <SectionReveal key={item.id} delay={i * 0.04}>
                       <div
