@@ -246,7 +246,7 @@ export default function ProductDetailPage({ params }: Props) {
                     </p>
                   </div>
                 )}
-                {product.id === "hexahedron-cube" && (
+                {p.id === "hexahedron-cube" && (
                   <div className="mb-6 p-4 border" style={{ borderColor: "rgba(212,168,71,0.15)", background: "rgba(212,168,71,0.03)" }}>
                     <p className="font-mono text-[10px] tracking-widest uppercase mb-1" style={{ color: "var(--ut-gold)", opacity: 0.7 }}>
                       Shipping
@@ -281,10 +281,10 @@ export default function ProductDetailPage({ params }: Props) {
                 {/* Checkout button */}
                 <button
                   onClick={handleCheckout}
-                  disabled={loading || !product.available}
+                  disabled={loading || !p.available}
                   className="w-full btn-gold justify-center text-base py-4 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {!product.available ? "Out of Stock" : loading ? "Processing..." : `Purchase for $${product.price}`}
+                  {!p.available ? "Out of Stock" : loading ? "Processing..." : `Purchase for $${p.price}`}
                 </button>
 
                 <p className="font-mono text-[9px] text-center mt-3" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
