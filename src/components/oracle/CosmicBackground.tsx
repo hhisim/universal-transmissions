@@ -6,7 +6,12 @@ interface Star { x: number; y: number; r: number; phase: number; speed: number; 
 interface Comet { x: number; y: number; angle: number; speed: number; length: number; life: number; maxLife: number; active: boolean }
 interface Glyph { x: number; y: number; vx: number; vy: number; size: number; rotation: number; rotSpeed: number; type: number; opacity: number }
 
-export default function CosmicBackground() {
+interface CosmicBackgroundProps {
+  isProcessing?: boolean;
+  mousePos?: { x: number; y: number };
+}
+
+export default function CosmicBackground(_props: CosmicBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
