@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound, useSearchParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
-import SafeTranscriptionVideo from "@/components/ui/SafeTranscriptionVideo";
 import { getProduct } from "@/data/products";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -326,10 +325,8 @@ export default function ProductDetailPage({ params }: Props) {
           </div>
 
           {/* ── TRANSCRIPTION VIDEO ─────────────────── */}
-          {/* DISABLED: causes client-side crash on sanctum product pages — investigation pending */}
-          {/* TODO: re-enable once root cause of client-side crash is identified and fixed */}
-          {/* {p.transcriptionVideoId && (
-            <SafeTranscriptionVideo>
+          {p.transcriptionVideoId && (
+            <Suspense fallback={null}>
               <div className="container-ut mt-12">
                 <SectionReveal>
                   <TranscriptionVideo
@@ -338,8 +335,8 @@ export default function ProductDetailPage({ params }: Props) {
                   />
                 </SectionReveal>
               </div>
-            </SafeTranscriptionVideo>
-          )} */}
+            </Suspense>
+          )}
         </div>
       </main>
       <Footer />
