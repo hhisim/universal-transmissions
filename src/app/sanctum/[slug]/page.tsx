@@ -9,6 +9,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
+import SafeTranscriptionVideo from "@/components/ui/SafeTranscriptionVideo";
 import { getProduct } from "@/data/products";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -325,19 +326,18 @@ export default function ProductDetailPage({ params }: Props) {
           </div>
 
           {/* ── TRANSCRIPTION VIDEO ─────────────────── */}
-          {/*
-          TODO: re-enable once TranscriptionVideo crash on sanctum product pages is diagnosed
           {p.transcriptionVideoId && (
-            <div className="container-ut mt-12">
-              <SectionReveal>
-                <TranscriptionVideo
-                  videoId={p.transcriptionVideoId}
-                  title={p.title}
-                />
-              </SectionReveal>
-            </div>
+            <SafeTranscriptionVideo>
+              <div className="container-ut mt-12">
+                <SectionReveal>
+                  <TranscriptionVideo
+                    videoId={p.transcriptionVideoId}
+                    title={p.title}
+                  />
+                </SectionReveal>
+              </div>
+            </SafeTranscriptionVideo>
           )}
-          */}
         </div>
       </main>
       <Footer />
