@@ -476,7 +476,7 @@ function sceneSanctum(cx: CanvasRenderingContext2D, W: number, H: number, t: num
     const alpha = 0.05 + depth * 0.2;
 
     cx.beginPath();
-    cx.arc(px, py, p.sz * scale, 0, Math.PI * 2);
+    cx.arc(px, py, Math.max(0.1, p.sz * scale), 0, Math.PI * 2);
     const isGold = Math.sin(p.angle * 3 + t) > 0.3;
     cx.fillStyle = isGold ? `rgba(212,168,71,${alpha})` : `rgba(147,51,234,${alpha * 0.7})`;
     cx.fill();
