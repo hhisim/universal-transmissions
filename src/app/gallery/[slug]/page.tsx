@@ -10,6 +10,7 @@ import { artworks, getArtwork } from "@/data/artworks";
 import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import PageBackground from "@/components/scenes/PageBackground";
+import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 
 interface Props {
   params: { slug: string };
@@ -221,6 +222,55 @@ export default function ArtworkDetailPage({ params }: Props) {
             </SectionReveal>
           </div>
         </div>
+
+        {/* ── LOOP PACK LINKS (root-chakra & sacral-chakra) ── */}
+        {(artwork.slug === "root-chakra" || artwork.slug === "sacral-chakra") && (
+          <div className="container-ut mt-8">
+            <SectionReveal>
+              <div
+                className="ut-card p-6 border"
+                style={{ borderColor: "rgba(217,70,239,0.1)" }}
+              >
+                <p
+                  className="font-mono text-[9px] tracking-[0.2em] uppercase mb-3"
+                  style={{ color: "var(--ut-gold)" }}
+                >
+                  Related Transmission
+                </p>
+                <p
+                  className="font-body text-sm mb-4"
+                  style={{ color: "var(--ut-white-dim)" }}
+                >
+                  {artwork.slug === "root-chakra"
+                    ? "MEDITATION LOOP PACK — 4K Root Chakra Frequencies"
+                    : "MEDITATION LOOP PACK — 8K Sacral Chakra Frequencies"}
+                </p>
+                <Link
+                  href={
+                    artwork.slug === "root-chakra"
+                      ? "/sanctum/chakra-4k-loop-pack"
+                      : "/sanctum/chakra-8k-loop-pack"
+                  }
+                  className="btn-gold"
+                >
+                  Get the Loop Pack →
+                </Link>
+              </div>
+            </SectionReveal>
+          </div>
+        )}
+
+        {/* ── TRANSCRIPTION VIDEO ─────────────────── */}
+        {artwork.transcriptionVideoId && (
+          <div className="container-ut mt-12">
+            <SectionReveal>
+              <TranscriptionVideo
+                videoId={artwork.transcriptionVideoId}
+                title={artwork.title}
+              />
+            </SectionReveal>
+          </div>
+        )}
 
         {/* ── ASK THE ORACLE ─────────────────────────── */}
         <div className="container-ut mt-12">

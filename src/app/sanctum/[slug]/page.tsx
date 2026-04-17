@@ -8,6 +8,7 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
+import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 import { getProduct } from "@/data/products";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -289,9 +290,51 @@ export default function ProductDetailPage({ params }: Props) {
                 <p className="font-mono text-[9px] text-center mt-3" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
                   Secure checkout · Instant download or mail delivery
                 </p>
+
+                {/* Cross-links between related products */}
+                {p.slug === "chakra-4k-loop-pack" && (
+                  <div className="mt-6 pt-6 border-t" style={{ borderColor: "rgba(212,168,71,0.1)" }}>
+                    <Link href="/sanctum/chakra-8k-loop-pack" className="font-mono text-xs tracking-widest uppercase hover:text-[var(--ut-cyan)] transition-colors" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
+                      Want 8K? &rarr;
+                    </Link>
+                  </div>
+                )}
+                {p.slug === "chakra-8k-loop-pack" && (
+                  <div className="mt-6 pt-6 border-t" style={{ borderColor: "rgba(212,168,71,0.1)" }}>
+                    <Link href="/sanctum/chakra-4k-loop-pack" className="font-mono text-xs tracking-widest uppercase hover:text-[var(--ut-cyan)] transition-colors" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
+                      Want 4K? &rarr;
+                    </Link>
+                  </div>
+                )}
+                {p.slug === "universal-transmissions-codex-vol1-physical" && (
+                  <div className="mt-6 pt-6 border-t" style={{ borderColor: "rgba(212,168,71,0.1)" }}>
+                    <Link href="/sanctum/universal-transmissions-codex-vol1-digital" className="font-mono text-xs tracking-widest uppercase hover:text-[var(--ut-cyan)] transition-colors" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
+                      Digital Edition Available &rarr;
+                    </Link>
+                  </div>
+                )}
+                {p.slug === "universal-transmissions-codex-vol1-digital" && (
+                  <div className="mt-6 pt-6 border-t" style={{ borderColor: "rgba(212,168,71,0.1)" }}>
+                    <Link href="/sanctum/universal-transmissions-codex-vol1-physical" className="font-mono text-xs tracking-widest uppercase hover:text-[var(--ut-cyan)] transition-colors" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
+                      Physical Edition Available &rarr;
+                    </Link>
+                  </div>
+                )}
               </div>
             </SectionReveal>
           </div>
+
+          {/* ── TRANSCRIPTION VIDEO ─────────────────── */}
+          {p.transcriptionVideoId && (
+            <div className="container-ut mt-12">
+              <SectionReveal>
+                <TranscriptionVideo
+                  videoId={p.transcriptionVideoId}
+                  title={p.title}
+                />
+              </SectionReveal>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

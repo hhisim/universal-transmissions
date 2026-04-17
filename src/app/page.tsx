@@ -6,6 +6,7 @@ import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import HomeVideo from "@/components/ui/HomeVideo";
+import GlitchTagline from "@/components/ui/GlitchTagline";
 import PageBackground from "@/components/scenes/PageBackground";
 import { artworks } from "@/data/artworks";
 import Image from 'next/image';
@@ -47,12 +48,7 @@ export default function HomePage() {
             >
               <ZalgoText text="Universal Transmissions" intensity="moderate" />
             </h1>
-            <p
-              className="font-body text-base md:text-lg italic mb-8"
-              style={{ color: "var(--ut-gold)" }}
-            >
-              Language is a code — and it can be hacked
-            </p>
+            <GlitchTagline />
             <div className="flex items-center justify-center gap-6 flex-wrap">
               <Link href="/gallery" className="btn-primary">
                 ENTER THE GALLERY

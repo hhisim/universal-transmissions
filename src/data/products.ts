@@ -10,6 +10,7 @@ export interface Product {
   available: boolean;
   category: string;
   tags: string[];
+  transcriptionVideoId?: string;
 }
 
 export const products: Product[] = [
@@ -30,6 +31,7 @@ export const products: Product[] = [
     available: true,
     category: "Codex",
     tags: ["codex", "physical", "book", "limited-edition", "art-print"],
+    transcriptionVideoId: "e841xiYE6Rg",
   },
   {
     id: "codex-digital",
@@ -47,6 +49,7 @@ export const products: Product[] = [
     available: true,
     category: "Codex",
     tags: ["codex", "digital", "PDF", "download"],
+    transcriptionVideoId: "e841xiYE6Rg",
   },
   {
     id: "chakra-4k",
@@ -62,6 +65,7 @@ export const products: Product[] = [
     available: true,
     category: "Loop Packs",
     tags: ["loop-pack", "4K", "chakra", "video", "animation"],
+    transcriptionVideoId: "kNkqR8pQzw8",
   },
   {
     id: "chakra-8k",
@@ -77,6 +81,7 @@ export const products: Product[] = [
     available: true,
     category: "Loop Packs",
     tags: ["loop-pack", "8K", "chakra", "video", "animation"],
+    transcriptionVideoId: "kNkqR8pQzw8",
   },
   {
     id: "hexahedron-cube",

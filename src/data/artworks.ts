@@ -12,6 +12,7 @@ export interface Artwork {
   prints?: boolean;
   tags: string[];
   featured?: boolean;
+  transcriptionVideoId?: string;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -69,6 +70,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["bio-energetic-vortexes", "chakra", "solar-plexus", "manipura", "power", "willpower", "sacred-geometry"],
     featured: false,
+    transcriptionVideoId: "gYhaq6MKGXo",
+
   },
   {
     id: "bev-004",
@@ -84,6 +87,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["bio-energetic-vortexes", "chakra", "heart", "anahata", "love", "compassion", "sacred-geometry"],
     featured: false,
+    transcriptionVideoId: "e8YkDZsM7xs",
+
   },
   {
     id: "bev-005",
@@ -99,6 +104,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["bio-energetic-vortexes", "chakra", "throat", "vishuddha", "truth", "communication", "cymatics", "language"],
     featured: false,
+    transcriptionVideoId: "3Lh_hghINH0",
+
   },
   {
     id: "bev-006",
@@ -114,6 +121,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["bio-energetic-vortexes", "chakra", "third-eye", "ajna", "insight", "vision", "clarity", "sacred-geometry"],
     featured: false,
+    transcriptionVideoId: "iPyMMHwASlM",
+
   },
   {
     id: "bev-007",
@@ -129,6 +138,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["bio-energetic-vortexes", "chakra", "crown", "sahasrara", "spirit", "kundalini", "samadhi", "divine", "sacred-geometry"],
     featured: true,
+    transcriptionVideoId: "VybQIwW3bU0",
+
   },
 
   // ═══════════════════════════════════════════════════
@@ -163,6 +174,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["universal-transmissions", "tesseract", "fourth-dimension", "hypercube", "sacred-geometry"],
     featured: false,
+    transcriptionVideoId: "p66HMAqGaN8",
+
   },
   {
     id: "ut-003",
@@ -223,6 +236,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["universal-transmissions", "vehicular-dynamics", "azoth", "light-body", "akashic"],
     featured: false,
+    transcriptionVideoId: "BcYQgTRSXjQ",
+
   },
   {
     id: "ut-007",
@@ -238,6 +253,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["universal-transmissions", "external-womb", "artificial-matrix", "incubation", "technology"],
     featured: false,
+    transcriptionVideoId: "FuKldZFZek0",
+
   },
   {
     id: "ut-008",
@@ -253,6 +270,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["universal-transmissions", "recursive-pantheism", "kircher", "fludd", "zodiac", "chakra", "cymatics", "syncretism"],
     featured: true,
+    transcriptionVideoId: "bba_q9QmjvY",
+
   },
   {
     id: "ut-009",
@@ -268,6 +287,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["universal-transmissions", "cosmic-egg", "cosmology", "jung", "ancient-civilizations", "syncretism"],
     featured: false,
+    transcriptionVideoId: "OZ3JSRTgsgI",
+
   },
   {
     id: "ut-010",
@@ -283,13 +304,15 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["universal-transmissions", "vortex-dynamics", "sufism", "dervish", "spiral", "phase-conjugation", "gurdjieff"],
     featured: false,
+    transcriptionVideoId: "6LZ1m_29LeM",
+
   },
   {
     id: "ut-011",
     slug: "vitruvian-spirit",
     title: "Universal Transmissions XI — Vitruvian Spirit (Seeding the New Renaissance)",
     year: 2021,
-    medium: "Adobe Photoshop",
+    medium: "Adobe Photoshop, Cinema 4D, Adobe Illustrator, Zbrush",
     description:
       "A homage to the masters of antiquity who have inspired generations to create and innovate, a celebration of the human spirit and imagination. This piece is not about gender — it contains a message of balance, of the power of the divine feminine and masculine and of the balanced trinity within us all. 'We are the exemplar, the immaculate conception, the apex being, we are the Mercurial Bodhisattva.'",
     images: [`${BASE}/vitruvian-spirit/main.jpg`],
@@ -298,6 +321,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["universal-transmissions", "vitruvian", "renaissance", "balance", "divine-feminine", "divine-masculine", "androgen"],
     featured: true,
+    transcriptionVideoId: "JWDHHdX6Wpw",
+
   },
 
   // ═══════════════════════════════════════════════════
@@ -317,6 +342,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["twilight-transmissions", "prismatic", "spin-off", "sacred-geometry"],
     featured: false,
+    transcriptionVideoId: "T21i9WjkCt8",
+
   },
   {
     id: "tw-002",
@@ -347,6 +374,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["prismatic", "twilight-transmissions", "hyperdimensional", "harmonics", "frequency", "sacred-geometry"],
     featured: false,
+    transcriptionVideoId: "tL0_O-ti394",
+
   },
   {
     id: "tw-004",
@@ -362,6 +391,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["translinguistic", "DNA", "cymatics", "language", "quantum"],
     featured: false,
+    transcriptionVideoId: "T21i9WjkCt8",
+
   },
   {
     id: "tw-005",
@@ -377,6 +408,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["twilight-transmissions", "imprint", "ineffable", "language"],
     featured: false,
+    transcriptionVideoId: "JWDHHdX6Wpw",
+
   },
   {
     id: "tw-006",
@@ -419,6 +452,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["prismatic", "twilight-pantheism", "pantheism", "twilight-transmissions", "divine", "nature"],
     featured: false,
+    transcriptionVideoId: "bba_q9QmjvY",
+
   },
 
   // ═══════════════════════════════════════════════════
@@ -468,6 +503,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["ethera", "alchemy", "fifth-element", "ether", "consciousness"],
     featured: false,
+    transcriptionVideoId: "BcYQgTRSXjQ",
+
   },
   {
     id: "sw-004",
@@ -513,6 +550,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["toroidal-tantra", "torus", "tantra", "kundalini", "ida-pingala", "sushumna", "cosmic-serpent", "bio-energetic-vortexes"],
     featured: false,
+    transcriptionVideoId: "X56F8LQOZlc",
+
   },
   {
     id: "sw-007",
@@ -528,6 +567,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["trivium", "quadrivium", "grammar", "logic", "rhetoric", "antiquity", "sacred-geometry"],
     featured: false,
+    transcriptionVideoId: "Wuw5IlAg6gc",
+
   },
   {
     id: "sw-008",
@@ -558,6 +599,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["polarity-modulation", "alchemy", "polarity", "resonance", "energy"],
     featured: false,
+    transcriptionVideoId: "t5yiD0sxIug",
+
   },
   {
     id: "sw-010",
@@ -588,6 +631,8 @@ export const artworks: Artwork[] = [
     prints: true,
     tags: ["prismatic", "innerstellar", "telemetry", "consciousness", "cartography", "psyche"],
     featured: false,
+    transcriptionVideoId: "AEC8GLX8OEA",
+
   },
 
 
