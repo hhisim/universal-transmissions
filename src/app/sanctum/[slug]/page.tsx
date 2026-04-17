@@ -326,7 +326,9 @@ export default function ProductDetailPage({ params }: Props) {
           </div>
 
           {/* ── TRANSCRIPTION VIDEO ─────────────────── */}
-          {p.transcriptionVideoId && (
+          {/* DISABLED: causes client-side crash on sanctum product pages — investigation pending */}
+          {/* TODO: re-enable once root cause of client-side crash is identified and fixed */}
+          {/* {p.transcriptionVideoId && (
             <SafeTranscriptionVideo>
               <div className="container-ut mt-12">
                 <SectionReveal>
@@ -337,7 +339,7 @@ export default function ProductDetailPage({ params }: Props) {
                 </SectionReveal>
               </div>
             </SafeTranscriptionVideo>
-          )}
+          )} */}
         </div>
       </main>
       <Footer />
