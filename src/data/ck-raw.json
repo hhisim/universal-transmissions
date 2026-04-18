@@ -1,0 +1,109 @@
+{
+  'ROOT-MULADHARA':{l:'Root',s:'Muladhara',c:'#dc2626',cls:'t-root',e:'🔴',n:'1'},
+  'SACRAL-SVADHISTHANA':{l:'Sacral',s:'Svadhisthana',c:'#ea580c',cls:'t-sacral',e:'🟠',n:'2'},
+  'SOLAR-PLEXUS-MANIPURA':{l:'Solar Plexus',s:'Manipura',c:'#ca8a04',cls:'t-solar',e:'🟡',n:'3'},
+  'HEART-ANAHATA':{l:'Heart',s:'Anahata',c:'#16a34a',cls:'t-heart',e:'💚',n:'4'},
+  'THROAT-VISHUDDHA':{l:'Throat',s:'Vishuddha',c:'#2563eb',cls:'t-throat',e:'🔵',n:'5'},
+  'AJNA-THIRD-EYE':{l:'Third Eye',s:'Ajna',c:'#7c3aed',cls:'t-eye',e:'🟣',n:'6'},
+  'CROWN-SAHASRARA':{l:'Crown',s:'Sahasrara',c:'#a21caf',cls:'t-crown',e:'🔮',n:'7'}
+};
+// KEY MAP: short→long (for display labels)
+const KM={sys:'System',e:'Entry',al:'Alchemy',ar:'Archetypes',co:'Colors',cr:'Crystals',
+  de:'Deities',el:'Elements',fr:'Frequency',gm:'Geomancy',ge:'Geometry',ic:'I Ching',
+  ka:'Kabbalah',lh:'Hebrew',ll:'Latin',ma:'Major Arcana',my:'Mayan',me:'Metals',
+  mi:'Minor Arcana',no:'Note',nu:'Number',ph:'Physiology',pl:'Planets',pt:'Plants',
+  ps:'Platonic Solid',vi:'Shadow/Vices',vr:'Virtues',zo:'Zodiac',ch:'Chakras'};
+// Field order for display
+const FORDER=['el','pl','ch','ma','mi','ka','ge','ps','cr','pt','me','de','ar','co','fr','no','nu','zo','gm','ic','my','ph','al','lh','ll','vi','vr'];
+// Crystal colors
+const CRCOL={'AMETHYST':'#9f7aea','CLEAR-QUARTZ':'#e2e8f0','ROSE-QUARTZ':'#fbb6ce','CITRINE':'#f6e05e','LAPIS':'#3182ce','LAPIS-LAZULI':'#2b6cb0','MOONSTONE':'#bee3f8','CARNELIAN':'#fc8181','OBSIDIAN':'#1a202c','GARNET':'#9b2335','EMERALD':'#276749','SAPPHIRE':'#2b6cb0','DIAMOND':'#ebf8ff','RUBY':'#c53030','TURQUOISE':'#2c7a7b','HEMATITE':'#718096','LABRADORITE':'#6b46c1','MALACHITE':'#276749','SELENITE':'#f0fff4','MOLDAVITE':'#276749'};
+
+// ═══════════════════════════════════════════════════════════
+// GEO SVG
+// ═══════════════════════════════════════════════════════════
+function geoSVG(geomStr,col,sz=52){
+  const g=(geomStr||'').split(';')[0].trim().toLowerCase();
+  const c=sz/2,r=sz*.42;
+  let inner='';
+  if(g.includes('flower')||g.includes('life'))
+    inner=`<circle cx="${c}" cy="${c}" r="${r}" stroke="${col}" stroke-width=".7" fill="none"/>
+      ${[0,1,2,3,4,5].map(i=>{const a=Math.PI*i/3;return `<circle cx="${c+r*.6*Math.cos(a)}" cy="${c+r*.6*Math.sin(a)}" r="${r*.6}" stroke="${col}" stroke-width=".4" fill="none" opacity=".5"/>`}).join('')}`;
+  else if(g.includes('merkaba')||g.includes('star tetrahedron')){
+    const p1=[0,1,2].map(i=>{const a=Math.PI*2*i/3-Math.PI/2;return `${c+r*Math.cos(a)},${c+r*Math.sin(a)}`}).join(' ');
+    const p2=[0,1,2].map(i=>{const a=Math.PI*2*i/3+Math.PI/2;return `${c+r*Math.cos(a)},${c+r*Math.sin(a)}`}).join(' ');
+    inner=`<polygon points="${p1}" stroke="${col}" stroke-width="1" fill="none"/>
+      <polygon points="${p2}" stroke="#d4a847" stroke-width="1" fill="none"/>
+      <circle cx="${c}" cy="${c}" r="${r*.2}" stroke="${col}" stroke-width=".6" fill="none" opacity=".6"/>`;
+  } else if(g.includes('metatron')){
+    inner=`<circle cx="${c}" cy="${c}" r="${r}" stroke="${col}" stroke-width=".5" fill="none"/>
+      ${[0,1,2,3,4,5].map(i=>{const a=Math.PI*i/3;const x=c+r*.5*Math.cos(a),y=c+r*.5*Math.sin(a);return `<circle cx="${x}" cy="${y}" r="${r*.5}" stroke="${col}" stroke-width=".4" fill="none" opacity=".6"/>`}).join('')}
+      <circle cx="${c}" cy="${c}" r="${r*.5}" stroke="${col}" stroke-width=".5" fill="none"/>`;
+  } else if(g.includes('sri yantra')){
+    const t1=[0,1,2].map(i=>{const a=Math.PI*2*i/3-Math.PI/2;return `${c+r*Math.cos(a)},${c+r*Math.sin(a)}`}).join(' ');
+    const t2=[0,1,2].map(i=>{const a=Math.PI*2*i/3+Math.PI/2;return `${c+r*.8*Math.cos(a)},${c+r*.8*Math.sin(a)}`}).join(' ');
+    const t3=[0,1,2].map(i=>{const a=Math.PI*2*i/3-Math.PI/2;return `${c+r*.6*Math.cos(a)},${c+r*.6*Math.sin(a)}`}).join(' ');
+    inner=`<polygon points="${t1}" stroke="${col}" stroke-width=".8" fill="none"/>
+      <polygon points="${t2}" stroke="#d4a847" stroke-width=".8" fill="none"/>
+      <polygon points="${t3}" stroke="${col}" stroke-width=".6" fill="none" opacity=".6"/>
+      <circle cx="${c}" cy="${c}" r="${r}" stroke="${col}" stroke-width=".4" fill="none" opacity=".4"/>`;
+  } else if(g.includes('cube')||g.includes('hexahedron')){
+    const s=r*.75;
+    inner=`<rect x="${c-s}" y="${c-s}" width="${s*2}" height="${s*2}" stroke="${col}" stroke-width=".9" fill="none"/>
+      <line x1="${c-s}" y1="${c-s}" x2="${c-s*.5}" y2="${c-s*1.3}" stroke="${col}" stroke-width=".5" opacity=".5"/>
+      <line x1="${c+s}" y1="${c-s}" x2="${c+s*.5}" y2="${c-s*1.3}" stroke="${col}" stroke-width=".5" opacity=".5"/>
+      <line x1="${c+s*.5}" y1="${c-s*1.3}" x2="${c-s*.5}" y2="${c-s*1.3}" stroke="${col}" stroke-width=".5" opacity=".5"/>`;
+  } else if(g.includes('dodecahedron')){
+    const pts=[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;return `${c+r*Math.cos(a)},${c+r*Math.sin(a)}`}).join(' ');
+    const pts2=[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5+Math.PI/10;return `${c+r*.55*Math.cos(a)},${c+r*.55*Math.sin(a)}`}).join(' ');
+    inner=`<polygon points="${pts}" stroke="${col}" stroke-width=".9" fill="none"/>
+      <polygon points="${pts2}" stroke="${col}" stroke-width=".6" fill="none" opacity=".6"/>
+      <circle cx="${c}" cy="${c}" r="${r*.2}" stroke="${col}" stroke-width=".5" fill="none"/>`;
+  } else if(g.includes('tetrahedron')||g.includes('triangle')){
+    const pts=[0,1,2].map(i=>{const a=Math.PI*2*i/3-Math.PI/2;return `${c+r*Math.cos(a)},${c+r*Math.sin(a)}`}).join(' ');
+    inner=`<polygon points="${pts}" stroke="${col}" stroke-width="1" fill="none"/>
+      <circle cx="${c}" cy="${c}" r="${r*.2}" stroke="${col}" stroke-width=".5" fill="none" opacity=".6"/>`;
+  } else if(g.includes('octahedron')){
+    inner=`<polygon points="${c},${c-r} ${c+r*.75},${c} ${c},${c+r} ${c-r*.75},${c}" stroke="${col}" stroke-width="1" fill="none"/>
+      <line x1="${c-r*.75}" y1="${c}" x2="${c+r*.75}" y2="${c}" stroke="${col}" stroke-width=".4" opacity=".4"/>`;
+  } else if(g.includes('icosahedron')){
+    const pts=[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;return `${c+r*Math.cos(a)},${c+r*Math.sin(a)}`}).join(' ');
+    const pts2=[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5+Math.PI/5;return `${c+r*.6*Math.cos(a)},${c+r*.6*Math.sin(a)}`}).join(' ');
+    inner=`<polygon points="${pts}" stroke="${col}" stroke-width=".9" fill="none"/>
+      <polygon points="${pts2}" stroke="${col}" stroke-width=".7" fill="none" opacity=".7"/>`;
+  } else if(g.includes('circle')||g.includes('sphere')||g.includes('point')){
+    inner=`<circle cx="${c}" cy="${c}" r="${r}" stroke="${col}" stroke-width=".9" fill="none"/>
+      <circle cx="${c}" cy="${c}" r="${r*.5}" stroke="${col}" stroke-width=".5" fill="none" opacity=".5"/>
+      <circle cx="${c}" cy="${c}" r="${r*.1}" fill="${col}" opacity=".7"/>`;
+  } else if(g.includes('spiral')){
+    let d=`M${c} ${c}`;
+    for(let i=0;i<=720;i+=8){const a=i*Math.PI/180,rd=r*i/720;d+=` L${c+rd*Math.cos(a)} ${c+rd*Math.sin(a)}`}
+    inner=`<path d="${d}" stroke="${col}" stroke-width=".7" fill="none"/>`;
+  } else if(g.includes('vesica')){
+    inner=`<circle cx="${c-r*.4}" cy="${c}" r="${r*.75}" stroke="${col}" stroke-width=".7" fill="none"/>
+      <circle cx="${c+r*.4}" cy="${c}" r="${r*.75}" stroke="${col}" stroke-width=".7" fill="none"/>`;
+  } else if(g.includes('cross')){
+    inner=`<line x1="${c}" y1="${c-r}" x2="${c}" y2="${c+r}" stroke="${col}" stroke-width="1"/>
+      <line x1="${c-r}" y1="${c}" x2="${c+r}" y2="${c}" stroke="${col}" stroke-width="1"/>
+      <circle cx="${c}" cy="${c}" r="${r*.15}" fill="${col}" opacity=".8"/>`;
+  } else if(g.includes('square')){
+    const s=r*.85;
+    inner=`<rect x="${c-s}" y="${c-s}" width="${s*2}" height="${s*2}" stroke="${col}" stroke-width=".9" fill="none"/>
+      <line x1="${c-s}" y1="${c-s}" x2="${c+s}" y2="${c+s}" stroke="${col}" stroke-width=".4" opacity=".4"/>
+      <line x1="${c+s}" y1="${c-s}" x2="${c-s}" y2="${c+s}" stroke="${col}" stroke-width=".4" opacity=".4"/>`;
+  } else {
+    // Default: mandala rings
+    inner=`<circle cx="${c}" cy="${c}" r="${r}" stroke="${col}" stroke-width=".7" fill="none"/>
+      <circle cx="${c}" cy="${c}" r="${r*.65}" stroke="${col}" stroke-width=".5" fill="none" opacity=".6"/>
+      <circle cx="${c}" cy="${c}" r="${r*.3}" stroke="${col}" stroke-width=".5" fill="none" opacity=".5"/>
+      ${[0,1,2,3,4,5].map(i=>{const a=Math.PI*i/3;return `<line x1="${c}" y1="${c}" x2="${c+r*Math.cos(a)}" y2="${c+r*Math.sin(a)}" stroke="${col}" stroke-width=".3" opacity=".3"/>`}).join('')}`;
+  }
+  return `<svg viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}">${inner}</svg>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let curTab='home',curCk='',curSys='',curQ='',expanded=new Set();
+let curMode='oracle',oHistory=[];
+let audioOn=false,audioLoaded=false;
+const amb=document.getElementById('amb');

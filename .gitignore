@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.git/
+.chrome-revert-profile/
+.vercel/
+*.err
+*.log
+.DS_Store
+.env
+oracle-ui-visual-handoff-20260415-131120/
+oracle-ui-visual-handoff-20260415-131120.zip
+*.png
+*.jpg
+!public/oracle/glyphs/*.png

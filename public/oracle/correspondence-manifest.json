@@ -1,0 +1,8 @@
+{
+  "csv": "/oracle/correspondence.csv",
+  "load": "lazy",
+  "rows": 824,
+  "systems": 27,
+  "fields": 29,
+  "reason": "Correspondence data is fetched only when correspondence mode is opened or invoked."
+}

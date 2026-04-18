@@ -1,0 +1,12 @@
+{
+  "name": "Correspondence Codex",
+  "short_name": "Codex",
+  "description": "824-entry symbolic lattice — alchemy, archetypes, chakras, and beyond.",
+  "start_url": "/codex",
+  "display": "standalone",
+  "background_color": "#020103",
+  "theme_color": "#020103",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
