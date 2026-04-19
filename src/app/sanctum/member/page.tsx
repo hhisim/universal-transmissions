@@ -107,7 +107,7 @@ const EXPERIENCE_TOOLS = [
     name: 'The UT Correspondence Codex',
     description: 'The master index of all symbolic correspondences — frequencies, geometry, archetypes, and myth.',
     icon: <BookOpen size={20} />,
-    href: 'https://dist-vert-kappa-96.vercel.app',
+    href: '/experience/correspondence-codex',
     color: 'green',
     guest: { snapshots: 1, video: 0, mic: 0 },
     free: { snapshots: 'unlimited', video: 0, mic: 0 },
@@ -559,14 +559,8 @@ export default function MemberPage() {
                           className="p-6 border cursor-pointer transition-all hover:border-white/20 ut-card"
                           style={{ borderColor: `rgba(${tool.color === 'cyan' ? '34,211,238' : tool.color === 'gold' ? '212,168,71' : tool.color === 'magenta' ? '217,70,239' : '139,92,246'}, 0.2)` }}
                           onClick={() => {
-                            if (tool.id === 'correspondence-codex') {
-                              window.open(
-                                `https://codex-deploy-phi.vercel.app?utm_source=member&utm_email=${encodeURIComponent(profile.email)}&utm_plan=${encodeURIComponent(profile.plan || 'free')}`,
-                                '_blank'
-                              );
-                            } else {
-                              router.push(tool.href);
-                            }
+                            // correspondence-codex now lives at /experience/correspondence-codex
+                            router.push(tool.href);
                           }}
                         >
                           <div className="flex items-start gap-4">
