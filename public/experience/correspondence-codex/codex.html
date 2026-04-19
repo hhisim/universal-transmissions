@@ -1958,25 +1958,23 @@ async function requestOracleReply(systemPrompt,history){
   let passes=0;
   while(passes<3){
     const needsLongerReply = curMode==='etymology' || /every letter|letter by letter|alphabet ontology|decode the sacred name/i.test(working[working.length-1]?.content||'');
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const lastMsg=working[working.length-1]?.content||'';
+    const resp=await fetch('/api/oracle',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:needsLongerReply?2800:1500,
-        temperature: needsLongerReply ? 0.55 : 0.72,
-        system:systemPrompt,
-        messages:working
+        message:lastMsg,
+        pack:'codex',
+        mode:curMode,
+        lang:'en',
+        speed:needsLongerReply?0.7:1
       })
     });
     const data=await resp.json();
-    const part=(data?.content||[]).map(c=>c?.text||'').join('\n').trim();
+    const part=(typeof data?.response==='string'?data.response.trim():(data?.content||[]).map(c=>c?.text||'').join('
+').trim()||'');
     if(part) combined.push(part);
-    if(data?.stop_reason!=='max_tokens') break;
+    if(passes>=2) break;
     working=[
       ...working,
       {role:'assistant',content:part},
@@ -1984,7 +1982,9 @@ async function requestOracleReply(systemPrompt,history){
     ];
     passes++;
   }
-  return combined.join('\n\n').trim() || 'The transmission is unclear. Ask again.';
+  return combined.join('
+
+').trim() || 'The transmission is unclear. Ask again.';
 }
 async function sendOracle(){
   const inp=document.getElementById('oi');
