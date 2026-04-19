@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import PageBackground from "@/components/ui/PageBackground";
+import Navigation from "@/components/ui/Navigation";
+import Footer from "@/components/ui/Footer";
 
 export const metadata: Metadata = {
   verification: {
@@ -82,7 +84,11 @@ window.__utGetSession = function() {
       <body className="antialiased">
         <PageBackground />
         <Analytics />
-        {children}
+        <Navigation />
+        <div className="min-h-screen flex flex-col pt-16">
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
