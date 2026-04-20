@@ -234,8 +234,9 @@ export default function ResearchLinguisticsPage() {
             {
               href: "/forge/sigil",
               title: "Sigil Forge",
-              description: "Translate the linguistic and symbolic logic into a practical cipher-building surface.",
+              description: "The forge remains part of the roadmap, but for now it should appear as a locked coming-soon ritual tool.",
               label: "Creation Tool",
+              comingSoon: true,
             },
             {
               href: "/experience/correspondence-codex",

@@ -284,14 +284,16 @@ export default function ResearchCymaticsPage() {
             {
               href: "/experience/cymatic-tonoscope",
               title: "Cymatic Tonoscope",
-              description: "Move from theory into the live plate and frequency visualization tool.",
+              description: "This instrument remains part of the portal vision, but it is still locked as an unfinished coming-soon build.",
               label: "Interactive Tool",
+              comingSoon: true,
             },
             {
               href: "/experience/cymatic-3d",
               title: "3D Cymatic Engine",
-              description: "Explore standing waves and geometric resonance as immersive spatial form.",
+              description: "This volumetric engine is still under construction and should be treated as a coming-soon portal surface.",
               label: "Interactive Tool",
+              comingSoon: true,
             },
             {
               href: "/journal",

@@ -853,7 +853,7 @@ export default function OraclePage() {
         style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px)", backgroundSize: "100% 4px" }} />
       <div className="fixed inset-0 z-[5] pointer-events-none" style={{ boxShadow: "inset 0 0 150px rgba(0,0,0,0.8)" }} />
 
-      <main style={{ background: "transparent", position: "relative", zIndex: 1 }}>
+      <main style={{ background: "transparent", position: "relative", zIndex: 1, minHeight: "calc(100vh - 64px)" }}>
 
         {/* ═══ Header ═══ */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
@@ -1137,6 +1137,17 @@ export default function OraclePage() {
           </div>
         </div>
         </motion.div>
+
+        <div className="container-ut px-4 md:px-6 pb-14 pt-4">
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 18, textAlign: "center" }}>
+            <p className="font-mono text-[9px] tracking-[0.28em] uppercase" style={{ color: "rgba(212,168,71,0.55)" }}>
+              End of current transmission
+            </p>
+            <p className="font-body text-sm mt-3 max-w-2xl mx-auto" style={{ color: "rgba(237,233,246,0.55)", lineHeight: 1.7 }}>
+              Continue into the member portal, correspondence layers, or the wider archive below.
+            </p>
+          </div>
+        </div>
       </main>
 
       {/* ═══ Styles ═══ */}

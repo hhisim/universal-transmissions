@@ -59,7 +59,8 @@ const EXPERIENCE_TOOLS = [
   {
     id: 'cymatic-tonoscope',
     name: 'Cymatic Tonoscope',
-    description: 'Full cymatic field generator — Chladni plate patterns with sacred frequency mapping.',
+    description: 'Chladni plate / frequency instrument. Visible in the portal, but currently locked as a coming-soon build.',
+    status: 'coming-soon',
     icon: <Aperture size={20} />,
     href: '/experience/cymatic-tonoscope',
     color: 'cyan',
@@ -70,7 +71,8 @@ const EXPERIENCE_TOOLS = [
   {
     id: 'cymatic-3d',
     name: '3D Cymatic Engine',
-    description: 'Three.js volumetric cymatic visualization — standing waves in three-dimensional sacred geometry space.',
+    description: 'Volumetric standing-wave visualizer. Keep visible in the portal, but lock it clearly as coming soon.',
+    status: 'coming-soon',
     icon: <Layers3 size={20} />,
     href: '/experience/cymatic-3d',
     color: 'magenta',
@@ -81,7 +83,8 @@ const EXPERIENCE_TOOLS = [
   {
     id: 'correspondence-continuum',
     name: 'The Correspondence Continuum',
-    description: 'Map symbolic relationships across mythologies, frequencies, and geometric archetypes.',
+    description: 'A real interactive correspondence workspace. Guests browse the real surface with limited depth, free expands access across all systems, and Initiate unlocks the full matrix.',
+    status: 'live',
     icon: <Layers size={20} />,
     href: '/experience/correspondence-continuum',
     color: 'gold',
@@ -92,7 +95,8 @@ const EXPERIENCE_TOOLS = [
   {
     id: 'codex-dream-machine',
     name: 'The Codex Dream Machine',
-    description: 'Aleatoric composition engine using xenolinguistic glyph systems and cymatic feedback loops.',
+    description: 'Experimental symbolic engine still in development.',
+    status: 'coming-soon',
     icon: <Star size={20} />,
     href: '/experience/codex-dream-machine',
     color: 'purple',
@@ -103,7 +107,8 @@ const EXPERIENCE_TOOLS = [
   {
     id: 'correspondence-codex',
     name: 'The UT Correspondence Codex',
-    description: 'The master index of all symbolic correspondences — frequencies, geometry, archetypes, and myth.',
+    description: 'A visually complete but corpus-limited explorer. Guests sample the real Codex, free broadens access, and Initiate unlocks the full matrix.',
+    status: 'live',
     icon: <BookOpen size={20} />,
     href: '/experience/correspondence-codex',
     color: 'green',
@@ -114,7 +119,8 @@ const EXPERIENCE_TOOLS = [
   {
     id: 'oracle',
     name: 'The UT Codex Oracle',
-    description: 'Your personal divination system — xenolinguistic glyph casting with cymatic resonance mapping.',
+    description: 'Your personal divination system — the live ritual surface that anchors the wider membership experience.',
+    status: 'live',
     icon: <Eye size={20} />,
     href: '/sanctum/member/oracle',
     color: 'magenta',
@@ -487,18 +493,20 @@ export default function MemberPage() {
                     title="Cymatic Engine"
                     subtitle="3D Visualization"
                     color="cyan"
-                    href="/experience/cymatic-3d"
-                    locked={false}
-                    onClick={() => router.push('/experience/cymatic-3d')}
+                    href="#"
+                    locked={true}
+                    badge="Coming Soon"
+                    onClick={() => {}}
                   />
                   <QuickAccessCard
                     icon={<Wand2 size={22} />}
                     title="Sigil Forge"
                     subtitle="Xenolinguistic Cipher"
                     color="gold"
-                    href="/forge/sigil"
-                    locked={false}
-                    onClick={() => router.push('/forge/sigil')}
+                    href="#"
+                    locked={true}
+                    badge="Coming Soon"
+                    onClick={() => {}}
                   />
                   <QuickAccessCard
                     icon={<Package size={22} />}
@@ -552,7 +560,7 @@ export default function MemberPage() {
                           <ZalgoText text="UT Experience Portal" intensity="subtle" />
                         </h3>
                         <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "var(--ut-white-dim)" }}>
-                          Get unlimited access to the Cymatic Tonoscope, 3D Cymatic Engine, Correspondence Continuum, Codex Dream Machine, and more. Guests get 1 snapshot. Free members get 3 snapshots + 1 video. Paid members get everything, endlessly.
+                          Enter the full correspondence environment at different depths. Guests should feel the real world with limited reveals and compares. Free members keep all systems visible while gaining broader corpus access, bookmarks, and a few deeper actions. Initiate unlocks the full correspondence matrix, synthesis depth, and member archive.
                         </p>
                         <Link href="/sanctum/member?tab=experience" className="btn-primary text-xs px-6 py-2 inline-flex items-center gap-2">
                           <Zap size={12} />
@@ -623,7 +631,7 @@ export default function MemberPage() {
                     <ZalgoText text="Codex II — Paid Members Only" intensity="moderate" />
                   </h2>
                   <p className="font-body text-base max-w-lg mx-auto mb-8" style={{ color: "var(--ut-white-dim)" }}>
-                    Codex II exclusive content — long-form videos, behind-the-scenes process documentation, Hakan&apos;s personal notes, and unreleased material — is available to Initiate members.
+                    Codex II exclusive content — including full non-timelapse long-form recordings of the Codex creation process, other artwork process recordings, private notes, and unreleased making-of material not available anywhere on the internet — is available to Initiate members.
                   </p>
                   <Link href="/sanctum/member?tab=experience" className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
                     <Crown size={14} />
@@ -684,9 +692,9 @@ export default function MemberPage() {
 
 // ─── Sub-Components ────────────────────────────────────────────────────────────
 
-function QuickAccessCard({ icon, title, subtitle, color, href, locked, onClick }: {
+function QuickAccessCard({ icon, title, subtitle, color, href, locked, onClick, badge }: {
   icon: React.ReactNode; title: string; subtitle: string; color: string;
-  href: string; locked: boolean; onClick: () => void;
+  href: string; locked: boolean; onClick: () => void; badge?: string;
 }) {
   const colorMap: Record<string, string> = {
     cyan: 'var(--ut-cyan)', gold: 'var(--ut-gold)', magenta: 'var(--ut-magenta)',
@@ -710,6 +718,11 @@ function QuickAccessCard({ icon, title, subtitle, color, href, locked, onClick }
           <p className="font-mono text-[9px] tracking-widest uppercase mt-0.5" style={{ color: "var(--ut-white-dim)", opacity: 0.4 }}>
             {subtitle}
           </p>
+          {badge && (
+            <p className="font-mono text-[8px] tracking-[0.24em] uppercase mt-2" style={{ color: c, opacity: 0.8 }}>
+              {badge}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -826,6 +839,7 @@ function ToolCard({ tool, planTier, usage }: {
   const canSnapshot = access.snapshots !== 0;
   const canVideo = access.video !== 0;
   const canMic = access.mic !== 0;
+  const isComingSoon = tool.status === 'coming-soon';
 
   return (
     <div
@@ -849,13 +863,19 @@ function ToolCard({ tool, planTier, usage }: {
                 <p className="font-body text-sm leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
                   {tool.description}
                 </p>
+                {isComingSoon && (
+                  <p className="font-mono text-[9px] tracking-[0.24em] uppercase mt-3" style={{ color, opacity: 0.82 }}>
+                    Locked · Coming Soon
+                  </p>
+                )}
               </div>
               <button
-                onClick={() => router.push(tool.href)}
-                className="flex-shrink-0 flex items-center gap-1.5 font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-all hover:border-white/30"
-                style={{ borderColor: `${color}40`, color }}
+                onClick={() => { if (!isComingSoon) router.push(tool.href); }}
+                disabled={isComingSoon}
+                className="flex-shrink-0 flex items-center gap-1.5 font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-all hover:border-white/30 disabled:cursor-not-allowed"
+                style={{ borderColor: `${color}40`, color, opacity: isComingSoon ? 0.7 : 1 }}
               >
-                Open <ExternalLink size={10} />
+                {isComingSoon ? 'Coming Soon' : 'Open'} {!isComingSoon && <ExternalLink size={10} />}
               </button>
             </div>
 
@@ -907,7 +927,7 @@ function MessagesTab({ profile, isPaid, messages, messagesLoading, msgForm, msgS
           <ZalgoText text="Priority Channel — Paid Members" intensity="moderate" />
         </h2>
         <p className="font-body text-base max-w-lg mx-auto mb-8" style={{ color: "var(--ut-white-dim)" }}>
-          The direct line to Hakan is reserved for Initiate members. Send your questions, ideas, and reflections — he responds at priority between creating.
+          The direct line to Hakan is reserved for Initiate members. Send your questions, ideas, and reflections — he responds at priority between creating, alongside access to the deeper private process archive.
         </p>
         <button onClick={() => window.location.href = '/oracle/plans'} className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
           <Crown size={14} />

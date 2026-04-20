@@ -9,15 +9,15 @@ export default function CorrespondenceContinuumPage() {
       src="https://codex-deploy-phi.vercel.app"
       introEyebrow="Desktop symbolic workspace"
       introTitle="The Correspondence Continuum"
-      introDescription="A denser correspondence environment for deeper synthesis across archetypes, frequencies, geometry, and mythic systems. This surface is meant for larger screens and longer-form symbolic work."
+      introDescription="A denser correspondence environment for deeper synthesis across archetypes, frequencies, geometry, and mythic systems. All users should feel the same world; what changes by tier is depth, advanced actions, saved pathways, and synthesis power — not arbitrary system removal."
       notices={[
         {
           tone: "warning",
-          text: "Best experienced on laptop or desktop. On phones, use the Correspondence Codex instead for a lighter mobile-first interface.",
+          text: "Best experienced on laptop or desktop. On phones, use the Correspondence Codex instead for a lighter mobile-first interface that still feels real.",
         },
         {
           tone: "info",
-          text: "The Continuum is the heavier research workspace. The Correspondence Codex is the lighter mobile-access layer.",
+          text: "Guest should be able to browse the real Continuum, open a limited set of entries, and perform a small number of compare / reveal actions. Free expands depth and saved pathways. Initiate unlocks the full matrix and unlimited synthesis.",
         },
       ]}
       timeoutMs={12000}

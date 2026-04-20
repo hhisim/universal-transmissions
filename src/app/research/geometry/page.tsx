@@ -404,8 +404,9 @@ export default function ResearchGeometryPage() {
             {
               href: "/experience/cymatic-3d",
               title: "3D Cymatic Engine",
-              description: "Experience geometric resonance as animated volumetric form rather than static diagram.",
+              description: "This geometric experience is still being developed and currently remains a locked coming-soon surface.",
               label: "Interactive Tool",
+              comingSoon: true,
             },
             {
               href: "/gallery",

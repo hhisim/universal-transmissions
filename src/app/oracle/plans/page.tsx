@@ -10,7 +10,7 @@ import { normalizeMemberPlan, isPaidPlan } from '@/lib/plans'
 const MEMBER_EXPERIENCE = [
   {
     title: 'Experience Portal',
-    description: 'Tonoscope, 3D Cymatic Engine, Correspondence Codex, Continuum, and the wider interactive toolset.',
+    description: 'Correspondence Codex, Correspondence Continuum, Codex pathways, member archive access, and upcoming portal instruments that are still marked coming soon.',
     icon: Layers3,
     color: '#22d3ee',
   },
@@ -37,12 +37,12 @@ const TIERS = [
     borderColor: 'rgba(255,255,255,0.06)',
     price: 'Free',
     priceSub: 'No account required',
-    description: 'Explore the Oracle and preview the wider member portal',
+    description: 'Enter the world with a real but limited guest pass across Oracle and correspondence surfaces',
     features: [
-      { text: '10 questions total (no account)', included: true },
-      { text: 'English only', included: true },
-      { text: 'Demo responses only', included: true },
-      { text: 'Member portal, Codex II archive, and Ask Hakan lane', included: false },
+      { text: 'Oracle guest mode + limited correspondence exploration', included: true },
+      { text: 'A small number of real reveal / compare actions', included: true },
+      { text: 'Visual environment feels complete, but corpus depth is limited', included: true },
+      { text: 'Codex II archive, Ask Hakan, and full synthesis depth', included: false },
     ],
     cta: 'Try the Oracle',
     ctaHref: '/oracle',
@@ -56,12 +56,12 @@ const TIERS = [
     borderColor: 'rgba(34,211,238,0.2)',
     price: 'Free',
     priceSub: 'Create an account',
-    description: 'Create an account to unlock more Oracle use and member hub access',
+    description: 'Stay in the same world, but unlock broader corpus access and limited deeper actions',
     features: [
-      { text: '25 questions per day (reset daily)', included: true },
-      { text: 'EN, TR, and RU languages', included: true },
-      { text: 'Full oracle responses', included: true },
-      { text: 'Codex II exclusives and Ask Hakan priority lane', included: false },
+      { text: 'Broader correspondence access across all systems', included: true },
+      { text: 'Bookmarks / favorites + limited saved exploration', included: true },
+      { text: 'A small allowance of resonance / reveal actions', included: true },
+      { text: 'Codex II exclusives, Ask Hakan, and full deep synthesis', included: false },
     ],
     cta: 'Create Free Account',
     ctaHref: '/signup',
@@ -75,13 +75,13 @@ const TIERS = [
     borderColor: 'rgba(212,168,71,0.35)',
     price: '$3.99',
     priceSub: 'per month',
-    description: 'Unlimited Oracle access plus the full member portal experience',
+    description: 'Full correspondence matrix, full member archive, and unlimited deep ritual interaction',
     popular: true,
     features: [
-      { text: 'Unlimited questions', included: true },
+      { text: 'Unlimited Oracle and correspondence depth', included: true },
       { text: 'Ask Hakan priority channel', included: true },
-      { text: 'Codex II private archive + unreleased material', included: true },
-      { text: 'Experience Portal + correspondence tools', included: true },
+      { text: 'Codex II long-form process archive not available anywhere online', included: true },
+      { text: 'Full matrix traversal, synthesis, saved trails, and member tools', included: true },
     ],
     cta: 'Begin Initiate',
     ctaHref: '#subscribe',
@@ -374,7 +374,7 @@ export default function OraclePlansPage() {
               <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.25em', color: 'rgba(212,168,71,0.5)', marginBottom: 12 }}>[ What Membership Actually Unlocks ]</div>
               <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 20, letterSpacing: '0.14em', color: 'rgba(237,233,246,0.72)', marginBottom: 10 }}>The Full Member Experience</h2>
               <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(237,233,246,0.45)', maxWidth: 700, margin: '0 auto', lineHeight: 1.7 }}>
-                UT membership is not just Oracle credits. It is the portal layer that ties together research, tools, private archive access, orders, and direct communication.
+                UT membership is not just Oracle credits. It is the portal layer that ties together research, correspondence depth, private archive access, orders, and direct communication. Guests and free accounts stay in the same world; Initiate unlocks how deeply they can traverse and synthesize it.
               </p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18 }}>

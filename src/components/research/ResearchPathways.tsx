@@ -6,6 +6,7 @@ type PathwayLink = {
   description: string;
   label?: string;
   external?: boolean;
+  comingSoon?: boolean;
 };
 
 export default function ResearchPathways({
@@ -48,7 +49,7 @@ export default function ResearchPathways({
                     className="font-mono text-[9px] tracking-[0.35em] uppercase mb-3"
                     style={{ color: accent, opacity: 0.6 }}
                   >
-                    {link.label ?? (link.external ? 'External Path' : 'Next Path')}
+                    {link.comingSoon ? 'Coming Soon' : link.label ?? (link.external ? 'External Path' : 'Next Path')}
                   </p>
                   <h3 className="font-display text-lg mb-3" style={{ color: "var(--ut-white)" }}>
                     {link.title}
@@ -60,7 +61,7 @@ export default function ResearchPathways({
                     className="inline-flex items-center gap-2 font-heading text-[10px] tracking-[0.3em] uppercase"
                     style={{ color: accent }}
                   >
-                    Open
+                    {link.comingSoon ? 'Locked' : 'Open'}
                     <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
                       <path d="M0 4H14M14 4L11 1M14 4L11 7" stroke="currentColor" strokeWidth="1" />
                     </svg>
@@ -70,6 +71,14 @@ export default function ResearchPathways({
 
               const className = "group block ut-card p-8 h-full transition-all duration-300 hover:border-white/20";
               const style = { background: "rgba(255,255,255,0.02)" } as const;
+
+              if (link.comingSoon) {
+                return (
+                  <div key={link.title} className={className} style={{ ...style, opacity: 0.78 }}>
+                    {content}
+                  </div>
+                );
+              }
 
               return link.external ? (
                 <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className={className} style={style}>

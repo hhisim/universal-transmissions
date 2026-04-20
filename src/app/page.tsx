@@ -223,6 +223,50 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="py-16" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
+          <div className="container-ut">
+            <SectionReveal>
+              <div className="max-w-5xl mx-auto text-center mb-10">
+                <p className="font-mono text-[9px] tracking-[0.5em] uppercase mb-4" style={{ color: "var(--ut-gold)", opacity: 0.5 }}>
+                  [ Correspondence Access ]
+                </p>
+                <h2 className="font-display text-3xl md:text-4xl mb-4" style={{ color: "var(--ut-white)" }}>
+                  <ZalgoText text="One World · Three Depths" intensity="subtle" />
+                </h2>
+                <p className="font-body text-base max-w-3xl mx-auto" style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}>
+                  The Correspondence Codex and Continuum should never feel mechanically stingy. Guest, free, and Initiate all enter the same symbolic world. What changes is how deeply each person can traverse, compare, save, and synthesize it.
+                </p>
+              </div>
+            </SectionReveal>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {[
+                {
+                  title: 'Guest',
+                  text: 'A visually complete but corpus-limited explorer: real browsing, featured entries, and a very small number of advanced actions.',
+                  color: 'var(--ut-white-dim)'
+                },
+                {
+                  title: 'Free Account',
+                  text: 'The same world, broader access: all systems visible, more entries unlocked, bookmarks, and a few deeper reveals / resonance actions.',
+                  color: 'var(--ut-cyan)'
+                },
+                {
+                  title: 'Initiate',
+                  text: 'The full correspondence matrix: unlimited node opening, synthesis depth, saved trails, private archive access, and the deepest ritual interactions.',
+                  color: 'var(--ut-gold)'
+                }
+              ].map((item) => (
+                <SectionReveal key={item.title}>
+                  <div className="ut-card p-8 h-full" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                    <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-3" style={{ color: item.color }}>{item.title}</p>
+                    <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--ut-white-dim)', opacity: 0.74 }}>{item.text}</p>
+                  </div>
+                </SectionReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA ─────────────────────────────────────── */}
         <section
           className="py-32 text-center"
