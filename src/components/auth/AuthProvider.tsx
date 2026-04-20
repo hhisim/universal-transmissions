@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase-client'
-import { PLAN_CONFIG, PlanId } from '@/lib/plans'
+import { PlanId, normalizeMemberPlan } from '@/lib/plans'
 
 type AuthUser = {
   id: string
@@ -32,17 +32,28 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 })
 
-async function fetchPlan(email: string): Promise<{ plan: PlanId; stripeCustomerId?: string }> {
+async function fetchPlan(email: string, token?: string): Promise<{ plan: PlanId; stripeCustomerId?: string }> {
   try {
-    const res = await fetch(`/api/billing/plan-status?email=${encodeURIComponent(email)}`)
+    if (token) {
+      const sessionRes = await fetch('/api/billing/session', {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
+      })
+      if (sessionRes.ok) {
+        const data = await sessionRes.json()
+        return { plan: normalizeMemberPlan(data.plan), stripeCustomerId: data.stripeCustomerId }
+      }
+    }
+
+    const res = await fetch(`/api/billing/plan-status?email=${encodeURIComponent(email)}`, { cache: 'no-store' })
     if (res.ok) {
       const data = await res.json()
-      return { plan: data.plan ?? 'free', stripeCustomerId: data.stripeCustomerId }
+      return { plan: normalizeMemberPlan(data.plan), stripeCustomerId: data.stripeCustomerId }
     }
   } catch {
-    // fall through to free
+    // fall through to guest
   }
-  return { plan: 'free' }
+  return { plan: 'guest' }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -57,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
-      const { plan, stripeCustomerId } = await fetchPlan(session.user.email!)
+      const { plan, stripeCustomerId } = await fetchPlan(session.user.email!, session.access_token)
       setState({
         user: { id: session.user.id, email: session.user.email! },
         plan,
@@ -74,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Load initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchPlan(session.user.email!).then(({ plan, stripeCustomerId }) => {
+        fetchPlan(session.user.email!, session.access_token).then(({ plan, stripeCustomerId }) => {
           setState({
             user: { id: session.user.id, email: session.user.email! },
             plan,
@@ -91,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        fetchPlan(session.user.email!).then(({ plan, stripeCustomerId }) => {
+        fetchPlan(session.user.email!, session.access_token).then(({ plan, stripeCustomerId }) => {
           setState({
             user: { id: session.user.id, email: session.user.email! },
             plan,

@@ -113,10 +113,16 @@ body::-webkit-scrollbar-thumb:hover {
   ) !important;
 }
 
-/* Firefox — use magenta thumb */
-html,
-body {
-  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3);
+/* Ensure gradient thumb applies to common desktop browsers without a flat fallback */
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to bottom,
+    #d946ef 0%,
+    #f0c75e 24%,
+    #9333ea 62%,
+    #22d3ee 100%
+  ) !important;
+  border-radius: 4px !important;
 }
 
 /* Gallery horizontal carousel scrollbar — UT spectrum gradient */
