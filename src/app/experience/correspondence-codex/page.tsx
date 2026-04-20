@@ -6,23 +6,7 @@ export default function CodexPage() {
   return (
     <section style={{ minHeight: "100vh", background: "#02020a", paddingTop: 88, paddingBottom: 40 }}>
       <div style={{ maxWidth: 1360, margin: "0 auto", padding: "0 20px" }}>
-        <div style={{ marginBottom: 10, textAlign: "center" }}>
-          <p
-            style={{
-              margin: 0,
-              fontFamily: "JetBrains Mono, monospace",
-              fontSize: 10,
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "#f5e9ff",
-              opacity: 0.82,
-              animation: "utCodexHueShift 8s linear infinite",
-            }}
-          >
-            This website is an experience portal — put down your mobile device and engage with respect.
-          </p>
-        </div>
-
+        
         <div style={{ marginBottom: 18, padding: "18px 20px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(8,8,16,0.8)", backdropFilter: "blur(10px)" }}>
           <div style={{ fontFamily: "Cinzel, serif", letterSpacing: "0.25em", textTransform: "uppercase", fontSize: 10, color: "rgba(212,168,71,0.82)", marginBottom: 10 }}>
             Mobile correspondence layer
@@ -49,16 +33,6 @@ export default function CodexPage() {
 
         <CodexLoader />
       </div>
-
-      <style>{`
-        @keyframes utCodexHueShift {
-          0% { color: hsl(0, 100%, 78%); text-shadow: 0 0 14px hsla(0,100%,60%,0.32); }
-          25% { color: hsl(90, 100%, 76%); text-shadow: 0 0 14px hsla(90,100%,60%,0.32); }
-          50% { color: hsl(190, 100%, 78%); text-shadow: 0 0 14px hsla(190,100%,60%,0.32); }
-          75% { color: hsl(280, 100%, 80%); text-shadow: 0 0 14px hsla(280,100%,60%,0.32); }
-          100% { color: hsl(360, 100%, 78%); text-shadow: 0 0 14px hsla(360,100%,60%,0.32); }
-        }
-      `}</style>
-    </section>
+   </section>
   );
 }

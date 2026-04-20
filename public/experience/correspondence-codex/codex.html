@@ -1959,7 +1959,7 @@ async function requestOracleReply(systemPrompt,history){
   while(passes<3){
     const needsLongerReply = curMode==='etymology' || /every letter|letter by letter|alphabet ontology|decode the sacred name/i.test(working[working.length-1]?.content||'');
     const lastMsg=working[working.length-1]?.content||'';
-    const resp=await fetch('/api/oracle',{
+    const resp=await fetch('/api/codex-oracle',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({

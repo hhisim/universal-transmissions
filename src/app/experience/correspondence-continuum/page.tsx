@@ -9,7 +9,7 @@ export default function CorrespondenceContinuumPage() {
       src="https://codex-deploy-phi.vercel.app"
       introEyebrow="Desktop symbolic workspace"
       introTitle="The Correspondence Continuum"
-      introDescription="A denser correspondence environment for deeper synthesis across archetypes, frequencies, geometry, and mythic systems. All users should feel the same world; what changes by tier is depth, advanced actions, saved pathways, and synthesis power — not arbitrary system removal."
+      introDescription="A desktop-oriented correspondence workspace for deeper symbolic exploration."
       notices={[
         {
           tone: "warning",
