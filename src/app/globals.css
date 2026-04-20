@@ -94,11 +94,10 @@ body::-webkit-scrollbar-track {
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb {
   background: linear-gradient(
-    to right,
-    #c026d3 0%,
-    #9333ea 25%,
-    #6366f1 50%,
-    #22d3ee 75%,
+    to bottom,
+    #d946ef 0%,
+    #d4a847 28%,
+    #9333ea 62%,
     #22d3ee 100%
   ) !important;
   border-radius: 4px !important;
@@ -106,11 +105,11 @@ body::-webkit-scrollbar-thumb {
 html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
-    to right,
-    #d946ef 0%,
-    #9333ea 30%,
-    #22d3ee 70%,
-    #0891b2 100%
+    to bottom,
+    #f05be7 0%,
+    #f0c75e 28%,
+    #a855f7 62%,
+    #22d3ee 100%
   ) !important;
 }
 
@@ -134,11 +133,10 @@ body {
 }
 .gallery-carousel::-webkit-scrollbar-thumb {
   background: linear-gradient(
-    to right,
-    #c026d3 0%,
-    #9333ea 25%,
-    #6366f1 50%,
-    #22d3ee 75%,
+    to bottom,
+    #d946ef 0%,
+    #d4a847 28%,
+    #9333ea 62%,
     #22d3ee 100%
   ) !important;
   border-radius: 3px !important;
@@ -162,11 +160,10 @@ body {
 .overflow-x-auto::-webkit-scrollbar-thumb,
 .overflow-x-auto > *::-webkit-scrollbar-thumb {
   background: linear-gradient(
-    to right,
-    #c026d3 0%,
-    #9333ea 25%,
-    #6366f1 50%,
-    #22d3ee 75%,
+    to bottom,
+    #d946ef 0%,
+    #d4a847 28%,
+    #9333ea 62%,
     #22d3ee 100%
   ) !important;
   border-radius: 4px !important;
@@ -183,11 +180,10 @@ body {
 .ut-card-gold::-webkit-scrollbar-thumb,
 .artwork-card::-webkit-scrollbar-thumb {
   background: linear-gradient(
-    to right,
-    #c026d3 0%,
-    #9333ea 25%,
-    #6366f1 50%,
-    #22d3ee 75%,
+    to bottom,
+    #d946ef 0%,
+    #d4a847 28%,
+    #9333ea 62%,
     #22d3ee 100%
   ) !important;
   border-radius: 3px !important;

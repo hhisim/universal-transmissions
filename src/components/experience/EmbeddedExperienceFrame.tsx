@@ -73,7 +73,7 @@ export default function EmbeddedExperienceFrame({
     <section
       style={{
         minHeight: "100vh",
-        background: "#02020a",
+        background: "transparent",
         paddingTop: 96,
         paddingBottom: 40,
       }}
@@ -83,8 +83,8 @@ export default function EmbeddedExperienceFrame({
           style={{
             marginBottom: 18,
             padding: "18px 20px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(8,8,16,0.8)",
+            border: "1px solid rgba(217,70,239,0.08)",
+            background: "rgba(17,15,26,0.55)",
             backdropFilter: "blur(10px)",
           }}
         >
@@ -124,35 +124,19 @@ export default function EmbeddedExperienceFrame({
           </p>
         </div>
 
-        {notices.length > 0 && (
-          <div style={{ display: "grid", gap: 10, marginBottom: 18 }}>
-            {notices.map((notice, index) => {
-              const tone = toneStyles[notice.tone ?? "info"];
-              return (
-                <div
-                  key={`${notice.text}-${index}`}
-                  style={{
-                    padding: "12px 14px",
-                    border: `1px solid ${tone.border}`,
-                    background: tone.bg,
-                    color: tone.text,
-                    fontSize: 13,
-                    letterSpacing: "0.02em",
-                  }}
-                >
-                  {notice.text}
-                </div>
-              );
-            })}
-          </div>
-        )}
 
         <div
           style={{
             position: "relative",
             minHeight: "calc(100vh - 250px)",
             border: "1px solid rgba(212,168,71,0.12)",
-            background: "#02020a",
+            background: "transparent",
+            overflow: "hidden",
+          }}
+        >,
+            minHeight: "calc(100vh - 250px)",
+            border: "1px solid rgba(212,168,71,0.12)",
+            background: "transparent",
             overflow: "hidden",
           }}
         >
@@ -300,7 +284,7 @@ export default function EmbeddedExperienceFrame({
               height: "calc(100vh - 250px)",
               border: "none",
               display: "block",
-              background: "#02020a",
+              background: "transparent",
               opacity: loaded ? 1 : 0,
               transition: "opacity 0.25s ease",
             }}
@@ -312,6 +296,28 @@ export default function EmbeddedExperienceFrame({
             }}
           />
         </div>
+        {notices.length > 0 && (
+          <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+            {notices.map((notice, index) => {
+              const tone = toneStyles[notice.tone ?? "info"];
+              return (
+                <div
+                  key={`${notice.text}-${index}`}
+                  style={{
+                    padding: "12px 14px",
+                    border: `1px solid ${tone.border}`,
+                    background: tone.bg,
+                    color: tone.text,
+                    fontSize: 13,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {notice.text}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
