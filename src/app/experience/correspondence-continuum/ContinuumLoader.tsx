@@ -14,16 +14,15 @@ export default function ContinuumLoader() {
     <div
       style={{
         width: '100%',
-        height: 'calc(100vh - 162px)',
-        minHeight: '860px',
+        height: 'calc(100vh - 118px)',
+        minHeight: '940px',
         background: '#000205',
         position: 'relative',
         overflow: 'hidden',
-        boxShadow: '0 0 60px rgba(0,229,255,0.10), inset 0 0 80px rgba(157,78,221,0.08)',
       }}
     >
       {!loaded && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,6,14,0.86)', zIndex: 1 }}>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,6,14,0.72)', zIndex: 1 }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px', color: '#e040fb' }}>⬡</div>
             <div style={{ fontFamily: 'Cinzel, serif', color: '#e040fb', letterSpacing: '0.2em', fontSize: '14px' }}>
