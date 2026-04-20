@@ -9,7 +9,7 @@ export default function CorrespondenceContinuumPage() {
       src="https://codex-deploy-phi.vercel.app"
       introEyebrow="Desktop symbolic workspace"
       introTitle="The Correspondence Continuum"
-      introDescription="A desktop-oriented correspondence workspace for deeper symbolic exploration."
+      introDescription="An immersive portal into the vast realms of esoteric cross-correspondences, weaving together 27 traditional systems through the lens of superintelligence to generate unique and revelatory insights for seekers, practitioners, neophytes, and adepts alike. Born from over 30 years of esoteric study, hyperdimensional experience, and a cross-platform multimedia distillation of alchemical wisdom, it stands as a living synthesis of symbolic knowledge, spiritual inquiry, and transformative revelation."
       notices={[
         {
           tone: "warning",
