@@ -133,12 +133,6 @@ export default function EmbeddedExperienceFrame({
             background: "transparent",
             overflow: "hidden",
           }}
-        >,
-            minHeight: "calc(100vh - 250px)",
-            border: "1px solid rgba(212,168,71,0.12)",
-            background: "transparent",
-            overflow: "hidden",
-          }}
         >
           {!loaded && !timedOut && (
             <div
