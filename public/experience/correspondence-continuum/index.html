@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000305">
+  <meta name="description" content="CORRESPONDENCE CODEX - Xeno-Hexahedronal Nexium Matrix.">
+  <title>CORRESPONDENCE CODEX</title>
+  <link rel="manifest" href="/experience/correspondence-continuum/assets/manifest-CeYGhgE4.webmanifest">
+  <link rel="icon" href="/experience/correspondence-continuum/assets/images/ut-logo.svg" type="image/svg+xml">
+  <link rel="preload" href="/experience/correspondence-continuum/assets/fonts/hylian64.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/experience/correspondence-continuum/assets/images/ut-logo.svg" as="image">
+
+  <script type="module" crossorigin src="/experience/correspondence-continuum/assets/index-CHuhPRq8.js"></script>
+  <link rel="stylesheet" crossorigin href="/experience/correspondence-continuum/assets/index-BCe-lAtk.css">
+  <script type="module">import'data:text/javascript,if(!import.meta.resolve)throw Error("import.meta.resolve not supported")';import.meta.url;import("_").catch(()=>1);(async function*(){})().next();window.__vite_is_modern_browser=true</script>
+  <script type="module">!function(){if(window.__vite_is_modern_browser)return;console.warn("vite: loading legacy chunks, syntax error above and the same error below should be ignored");var e=document.getElementById("vite-legacy-polyfill"),n=document.createElement("script");n.src=e.src,n.onload=function(){System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))},document.body.appendChild(n)}();</script>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<audio id="codexAmbience" src="/experience/correspondence-continuum/assets/audio/codex-ambience.mp3" preload="metadata" loop playsinline></audio>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="lo-cube" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="lo-title">CORRESPONDENCE CODEX</div>
+  <div class="lo-credit">A VIRTUAL EXPERIENCE BY HAKAN HISIM</div>
+  <div class="lo-sub">Xeno-Hexahedronal Nexium Matrix     Node:// 45632.9328.1</div>
+  <div class="lo-bar"></div>
+  <div class="lo-tunnel">Tunneling Translinguistic Hyperdimension...</div>
+</div>
+<header class="ut-header">
+  <div>
+    <div class="header-title" data-text="CORRESPONDENCE CODEX">CORRESPONDENCE CODEX</div>
+    <div class="header-sub">Xeno-Hexahedronal Nexium Matrix     Node:// 45632.9328.1</div>
+  </div>
+  <div class="header-right">
+    <button class="hbtn mobile-menu-btn" id="mobileMenuBtn" type="button">SYSTEMS</button>
+    <img class="ut-logo" src="/experience/correspondence-continuum/assets/images/ut-logo.svg" alt="Hakan Hisim logo">
+    <div class="search-wrap">
+      <input class="search-input" id="codexSearch" type="search" placeholder="SEARCH" autocomplete="off">
+      <span class="search-mark">?</span>
+    </div>
+    <div class="compare-slot" id="cSlotA" onclick="startCompare(1)" title="Pick an entry for resonance slot A"><span>+</span> A</div>
+    <div class="compare-vs">/</div>
+    <div class="compare-slot" id="cSlotB" onclick="startCompare(2)" title="Pick an entry for resonance slot B"><span>+</span> B</div>
+    <button class="hbtn violet" id="compareBtn" onclick="triggerCompare()" style="display:none">RESONANCE</button>
+    <button class="hbtn" onclick="startStream()">STREAM</button>
+    <button class="hbtn gold" onclick="randomOracle()">ORACLE</button>
+    <button class="hbtn share-btn" onclick="shareCodex()">SHARE</button>
+    <button class="hbtn sound-btn" id="soundBtn" onclick="toggleAmbience()">SOUND</button>
+    <button class="hbtn fs-btn" onclick="toggleFullscreen()">FULLSCREEN</button>
+    <button class="hbtn" onclick="resetView()">RESET</button>
+  </div>
+</header>
+<main>
+  <nav class="sidebar" id="sidebar"><div class="sidebar-title">SYSTEMS</div></nav>
+  <div class="center-area" id="centerArea">
+    <canvas id="threeCanvas"></canvas>
+    <div class="cube-tip" id="cubeTip"></div>
+    <div class="category-legend" id="categoryLegend"></div>
+    <div class="usage-hints" aria-hidden="true">
+      <div class="hint-card" style="--d:0s"><div class="hint-title">ORBIT / MOVE</div><div class="hint-copy">Drag to orbit. Right-drag to move the scene.</div></div>
+      <div class="hint-card" style="--d:5s"><div class="hint-title">FACES</div><div class="hint-copy">Hover a face for system and element. Click to open the mapped card.</div></div>
+      <div class="hint-card" style="--d:10s"><div class="hint-title">SCROLL / ZOOM</div><div class="hint-copy">Scroll panels for text. Wheel the open sky to move closer or farther.</div></div>
+      <div class="hint-card" style="--d:15s"><div class="hint-title">A / B</div><div class="hint-copy">Load two entries, then run Resonance to reveal shared correspondences.</div></div>
+      <div class="hint-card" style="--d:20s"><div class="hint-title">GROUPS</div><div class="hint-copy">The four orbit cubes open Primordial, Celestial, Symbolic, and Embodied groups.</div></div>
+    </div>
+    <div class="hylian-code-stream" aria-hidden="true">
+      <div class="hylian-code-track">aetherion lumen vekh surai nexum orathi sel varuun xeno hexahedronal mareth codex iluun sai mora glypha kor venith alara nexus thal om recitae aetherion lumen vekh surai nexum orathi sel varuun xeno hexahedronal mareth codex iluun sai mora glypha kor venith alara nexus thal om recitae&nbsp;&nbsp;&nbsp;</div>
+    </div>
+    <div class="card-overlay" id="cardOverlay"></div>
+  </div>
+  <aside class="oracle-panel" id="oraclePanel">
+    <div class="oracle-header" id="oracleHeader"></div>
+    <div class="corr-section" id="oracleCorrs"></div>
+  </aside>
+</main>
+<div id="streamOverlay"></div>
+<div class="status-bar">
+  <span id="statusText">NEXUS ONLINE</span>
+  <span class="creator-credit">A VIRTUAL EXPERIENCE BY HAKAN HISIM &copy; 2026</span>
+  <span class="status-node">Xeno-Hexahedronal Nexium Matrix     Node:// 45632.9328.1</span>
+</div>
+
+  <script nomodule>!function(){var e=document,t=e.createElement("script");if(!("noModule"in t)&&"onbeforeload"in t){var n=!1;e.addEventListener("beforeload",(function(e){if(e.target===t)n=!0;else if(!e.target.hasAttribute("nomodule")||!n)return;e.preventDefault()}),!0),t.type="module",t.src=".",e.head.appendChild(t),t.remove()}}();</script>
+  <script nomodule crossorigin id="vite-legacy-polyfill" src="/experience/correspondence-continuum/assets/polyfills-legacy-J5pHNzNR.js"></script>
+  <script nomodule crossorigin id="vite-legacy-entry" data-src="/experience/correspondence-continuum/assets/index-legacy-B65qU-Sx.js">System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))</script>
+</body>
+</html>

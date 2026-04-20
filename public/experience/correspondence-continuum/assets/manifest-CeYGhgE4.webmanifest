@@ -1,0 +1,10 @@
+{
+  "name": "CORRESPONDENCE CODEX",
+  "short_name": "Codex",
+  "description": "Xeno-Hexahedronal Nexium Matrix",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000305",
+  "theme_color": "#000305",
+  "icons": []
+}

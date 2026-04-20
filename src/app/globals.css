@@ -116,14 +116,11 @@ body::-webkit-scrollbar-thumb:hover {
 /* Firefox — use magenta thumb */
 html,
 body {
-  scrollbar-width: thin;
   scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3);
 }
 
 /* Gallery horizontal carousel scrollbar — UT spectrum gradient */
 .gallery-carousel {
-  scrollbar-width: thin !important;
-  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 .gallery-carousel::-webkit-scrollbar {
   height: 6px !important;
@@ -145,8 +142,6 @@ body {
 /* Horizontal overflow containers — UT spectrum gradient */
 .overflow-x-auto,
 .overflow-x-auto > * {
-  scrollbar-width: thin !important;
-  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 .overflow-x-auto::-webkit-scrollbar,
 .overflow-x-auto > *::-webkit-scrollbar {
@@ -173,8 +168,6 @@ body {
 .ut-card,
 .ut-card-gold,
 .artwork-card {
-  scrollbar-width: thin !important;
-  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 .ut-card::-webkit-scrollbar-thumb,
 .ut-card-gold::-webkit-scrollbar-thumb,
@@ -192,8 +185,6 @@ body {
 /* General overflow containers */
 [overflow-x="auto"],
 [style*="overflow-x"] {
-  scrollbar-width: thin !important;
-  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ============================================================
