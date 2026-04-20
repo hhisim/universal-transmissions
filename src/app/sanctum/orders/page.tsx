@@ -4,8 +4,6 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { supabase } from "@/lib/supabase-client";
@@ -74,9 +72,7 @@ export default function OrdersPage() {
 
   return (
     <>
-      <Navigation />
-
-      <PageBackground variant="sanctum" />      <main className="pt-24 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="sanctum" />      <main className="pt-24 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut max-w-4xl mx-auto">
           {/* Header */}
           <SectionReveal>
@@ -209,7 +205,6 @@ export default function OrdersPage() {
           </SectionReveal>
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }

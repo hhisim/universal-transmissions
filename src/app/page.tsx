@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import HomeVideo from "@/components/ui/HomeVideo";
@@ -33,8 +31,7 @@ export default function HomePage() {
   return (
     <>
       <PageBackground variant="homepage" />
-      <Navigation />
-      <main style={{ background: "var(--ut-black)" }}>
+<main style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO — Interactive Logo ──────────────────── */}
         <section className="relative flex flex-col items-center overflow-hidden" style={{ height: "60vh" }}>
@@ -249,7 +246,6 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-      <Footer />
-    </>
+</>
   );
 }

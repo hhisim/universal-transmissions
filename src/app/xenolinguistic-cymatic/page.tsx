@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 
 export const metadata: Metadata = {
   title: "Xenolinguistic Cymatic Engine — Universal Transmissions",
@@ -11,8 +9,7 @@ export const metadata: Metadata = {
 export default function XenolinguisticCymaticPage() {
   return (
     <>
-      <Navigation />
-      <div className="relative w-full" style={{ height: "calc(100vh - 64px)" }}>
+<div className="relative w-full" style={{ height: "calc(100vh - 64px)" }}>
         <iframe
           src="/xenolinguistic-cymatic.html"
           title="Xenolinguistic Cymatic Engine"
@@ -21,7 +18,6 @@ export default function XenolinguisticCymaticPage() {
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         />
       </div>
-      <Footer />
-    </>
+</>
   );
 }

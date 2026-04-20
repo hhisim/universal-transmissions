@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const email = searchParams.get("email");
+    const email = req.nextUrl.searchParams.get("email")?.trim().toLowerCase();
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });

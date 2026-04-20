@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import PageBackground from "@/components/scenes/PageBackground";
 
@@ -14,9 +12,7 @@ export default function PrivacyPage() {
   return (
     <>
       <PageBackground variant="homepage" />
-      <Navigation />
-
-      <main
+<main
         className="min-h-screen pt-32 pb-20 px-4"
         style={{ background: "var(--ut-black)", zIndex: 1 }}
       >
@@ -134,8 +130,6 @@ To exercise any of these rights, contact us at the address below.`,
           </SectionReveal>
         </div>
       </main>
-
-      <Footer />
-    </>
+</>
   );
 }

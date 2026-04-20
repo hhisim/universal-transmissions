@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
+import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
   title: "Linguistics Research — Universal Transmissions",
@@ -41,8 +40,7 @@ export default function ResearchLinguisticsPage() {
   return (
     <>
       <PageBackground variant="xenolinguistics" />
-      <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
@@ -221,6 +219,39 @@ export default function ResearchLinguisticsPage() {
           </div>
         </section>
 
+        <ResearchPathways
+          eyebrow="[ From Language into Transmission ]"
+          title="Follow Xenolinguistics into the Site"
+          description="The linguistic research becomes divination prompts, symbolic interfaces, sigil systems, and journaled process notes rather than staying abstract."
+          accent="var(--ut-magenta)"
+          links={[
+            {
+              href: "/oracle",
+              title: "The Oracle",
+              description: "Bring names, symbols, and language structures into the Oracle for live interpretation.",
+              label: "Oracle Surface",
+            },
+            {
+              href: "/forge/sigil",
+              title: "Sigil Forge",
+              description: "Translate the linguistic and symbolic logic into a practical cipher-building surface.",
+              label: "Creation Tool",
+            },
+            {
+              href: "/experience/correspondence-codex",
+              title: "Correspondence Codex",
+              description: "Use the lighter codex surface to move through symbolic relationships quickly.",
+              label: "Index Surface",
+            },
+            {
+              href: "/journal",
+              title: "Journal",
+              description: "Read the transmission notes around language, syntax, and the Codex construction process.",
+              label: "Process Archive",
+            },
+          ]}
+        />
+
         {/* ── CROSS-LINK TO VoA ─────────────────────── */}
         <section
           className="py-16"
@@ -312,8 +343,6 @@ export default function ResearchLinguisticsPage() {
           </SectionReveal>
         </div>
       </section>
-
-      <Footer />
-    </>
+</>
   );
 }

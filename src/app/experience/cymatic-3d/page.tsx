@@ -4,8 +4,6 @@ import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float, Environment, Text, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -452,8 +450,7 @@ export default function Cymatic3DPage() {
   return (
     <>
       <PageBackground variant="cymatics" />
-      <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HEADER ─────────────────────────────────── */}
         <section className="py-12" style={{ borderBottom: "1px solid rgba(34,211,238,0.06)" }}>
@@ -618,8 +615,7 @@ export default function Cymatic3DPage() {
         </section>
 
       </main>
-      <Footer />
-    </>
+</>
   );
 }
 

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import Link from "next/link";
+import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
   title: "The Research — Universal Transmissions",
@@ -88,8 +87,7 @@ export default function ResearchPage() {
     <>
       <PageBackground variant="research" />
       <PageBackground variant="homepage" opacity={0.4} />
-      <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-24 md:py-32 relative overflow-hidden">
@@ -230,6 +228,39 @@ export default function ResearchPage() {
           </div>
         </section>
 
+        <ResearchPathways
+          eyebrow="[ From Research into the Living Site ]"
+          title="Follow the Research into the Actual Surfaces"
+          description="These research threads are not standalone essays. They feed the Oracle, the Experience Portal, the living archive of artworks, and the journal that documents the work as it unfolds."
+          accent="var(--ut-purple)"
+          links={[
+            {
+              href: "/oracle",
+              title: "The Oracle",
+              description: "Take the symbolic and geometric material into the divinatory interface itself.",
+              label: "Oracle Surface",
+            },
+            {
+              href: "/experience/correspondence-codex",
+              title: "Correspondence Codex",
+              description: "Move from theory into the lighter symbolic index built for quick exploration.",
+              label: "Experience Surface",
+            },
+            {
+              href: "/gallery",
+              title: "Gallery",
+              description: "See how the research resolves into finished transmissions, series, and image systems.",
+              label: "Archive Surface",
+            },
+            {
+              href: "/journal",
+              title: "Journal",
+              description: "Read the making-of notes, transmissions, and process entries around the work.",
+              label: "Process Surface",
+            },
+          ]}
+        />
+
         {/* ── CROSS-LINK TO VAULT ──────────────────── */}
         <section
           className="py-16"
@@ -284,7 +315,6 @@ export default function ResearchPage() {
         </section>
 
       </main>
-      <Footer />
-    </>
+</>
   );
 }

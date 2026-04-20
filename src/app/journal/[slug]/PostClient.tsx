@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
@@ -111,8 +109,7 @@ export default function PostClient({ slug }: { slug: string }) {
   if (!post) {
     return (
       <>
-        <Navigation />
-        <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
           <div className="container-ut text-center">
             <h1 className="font-display text-3xl mb-4" style={{ color: "var(--ut-cyan)" }}>Transmission Not Found</h1>
             <Link href="/journal" className="font-mono text-sm tracking-widest uppercase" style={{ color: "var(--ut-magenta)" }}>
@@ -120,8 +117,7 @@ export default function PostClient({ slug }: { slug: string }) {
             </Link>
           </div>
         </main>
-        <Footer />
-      </>
+</>
     );
   }
 
@@ -161,8 +157,7 @@ export default function PostClient({ slug }: { slug: string }) {
 
   return (
     <>
-      <Navigation />
-        <PageBackground variant="journal" />
+<PageBackground variant="journal" />
       <main style={{ background: "var(--ut-black)" }}>
         {/* ── Hero ── */}
         <div className="relative overflow-hidden" style={{ minHeight: "65vh" }}>
@@ -411,8 +406,7 @@ export default function PostClient({ slug }: { slug: string }) {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }
 

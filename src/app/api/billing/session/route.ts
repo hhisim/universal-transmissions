@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { normalizeMemberPlan } from "@/lib/plans";
 
 const SUPABASE_URL = "https://opixpkquyapeqdceyczs.supabase.co";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       authenticated: true,
       email,
-      plan: profile?.plan ?? member?.plan ?? "guest",
+      plan: normalizeMemberPlan(profile?.plan ?? member?.plan ?? "guest"),
       stripeCustomerId: profile?.stripe_customer_id ?? null,
       subscription_status: member?.subscription_status ?? "inactive",
       current_period_end: member?.current_period_end ?? null,

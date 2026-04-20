@@ -3,8 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import HomeVideo from "@/components/ui/HomeVideo";
 import PageBackground from "@/components/scenes/PageBackground";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import RotatingMerkaba from "@/components/three/RotatingMerkaba";
@@ -101,8 +99,7 @@ const videos = [
 export default function CodexPage() {
   return (
     <>
-      <Navigation />
-      <PageBackground variant="codex" />
+<PageBackground variant="codex" />
       <PageBackground variant="homepage" opacity={0.4} />
 <main style={{ background: "var(--ut-black)" }}>
 
@@ -494,7 +491,6 @@ export default function CodexPage() {
         </section>
 
       </main>
-      <Footer />
-    </>
+</>
   );
 }

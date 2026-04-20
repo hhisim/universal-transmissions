@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -253,8 +251,7 @@ export default function CymaticTonoscopePage() {
   return (
     <>
       <PageBackground variant="cymatics" />
-      <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HEADER ─────────────────────────────────── */}
         <section className="py-12" style={{ borderBottom: "1px solid rgba(34,211,238,0.06)" }}>
@@ -496,7 +493,6 @@ export default function CymaticTonoscopePage() {
         </section>
 
       </main>
-      <Footer />
-    </>
+</>
   );
 }

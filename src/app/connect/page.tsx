@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -23,7 +21,6 @@ export default function ConnectPage() {
         body: JSON.stringify(form),
       });
       const data = await res.json().catch(() => ({}));
-      console.log("[connect] API response:", res.status, data);
       if (res.ok) {
         setStatus("success");
         setForm({ name: "", email: "", subject: "", message: "" });
@@ -41,10 +38,7 @@ export default function ConnectPage() {
     <>
       {/* Full-page animation — fixed behind everything */}
       <PageBackground variant="connect" opacity={0.65} />
-
-      <Navigation />
-
-      <main
+<main
         className="min-h-screen flex flex-col items-center justify-center px-4 py-24 relative"
         style={{ background: "transparent", zIndex: 1 }}
       >
@@ -256,8 +250,6 @@ export default function ConnectPage() {
           </SectionReveal>
         </div>
       </main>
-
-      <Footer />
-    </>
+</>
   );
 }

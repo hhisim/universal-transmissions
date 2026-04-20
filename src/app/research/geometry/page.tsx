@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
+import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
   title: "Geometry Research — Universal Transmissions",
@@ -76,9 +75,7 @@ const geometryPatterns = [
 export default function ResearchGeometryPage() {
   return (
     <>
-      <Navigation />
-     
-      <PageBackground variant="geometry" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="geometry" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
@@ -398,6 +395,39 @@ export default function ResearchGeometryPage() {
           </div>
         </section>
 
+        <ResearchPathways
+          eyebrow="[ From Form into Transmission ]"
+          title="Follow Geometry into the Live Work"
+          description="Sacred geometry on UT is not just explanatory text. It appears in the artworks, animates the experience tools, and becomes a structural layer inside the Oracle and member archive."
+          accent="var(--ut-gold)"
+          links={[
+            {
+              href: "/experience/cymatic-3d",
+              title: "3D Cymatic Engine",
+              description: "Experience geometric resonance as animated volumetric form rather than static diagram.",
+              label: "Interactive Tool",
+            },
+            {
+              href: "/gallery",
+              title: "Gallery",
+              description: "See geometric frameworks embedded directly into the finished transmissions and series.",
+              label: "Archive Surface",
+            },
+            {
+              href: "/journal",
+              title: "Journal",
+              description: "Read the process material around construction, proportion, and the underlying forms.",
+              label: "Process Archive",
+            },
+            {
+              href: "/oracle",
+              title: "The Oracle",
+              description: "Bring geometric symbols and archetypal forms into the interpretive surface of the Oracle.",
+              label: "Oracle Surface",
+            },
+          ]}
+        />
+
         {/* ── CROSS-LINK TO VoA ─────────────────────── */}
         <section
           className="py-16"
@@ -489,8 +519,6 @@ export default function ResearchGeometryPage() {
           </SectionReveal>
         </div>
       </section>
-
-      <Footer />
-    </>
+</>
   );
 }

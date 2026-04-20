@@ -4,8 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
@@ -76,9 +74,7 @@ export default function ProductDetailPage({ params }: Props) {
 
   return (
     <>
-      <Navigation />
-     
-      <PageBackground variant="sanctum" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="sanctum" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Success Banner */}
           {showSuccess && (
@@ -339,7 +335,6 @@ export default function ProductDetailPage({ params }: Props) {
           )}
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }

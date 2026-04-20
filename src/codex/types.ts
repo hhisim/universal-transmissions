@@ -68,5 +68,5 @@ export interface UsageSnapshot {
   used: number;
   limit: number | "unlimited";
   remaining: number | "unlimited";
-  tier: "guest" | "free" | "initiate" | "master";
+  tier: "guest" | "free" | "initiate";
 }

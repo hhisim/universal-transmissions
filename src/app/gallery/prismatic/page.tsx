@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
@@ -19,9 +17,7 @@ const prismaticArtworks = artworks.filter((a) => a.tags.includes("prismatic"));
 export default function PrismaticPage() {
   return (
     <>
-      <Navigation />
-     
-      <PageBackground variant="gallery" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="gallery" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Header */}
           <SectionReveal>
@@ -95,7 +91,6 @@ export default function PrismaticPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }

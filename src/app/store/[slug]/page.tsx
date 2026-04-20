@@ -4,8 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { getProduct } from "@/data/products";
@@ -61,9 +59,7 @@ export default function ProductDetailPage({ params }: Props) {
 
   return (
     <>
-      <Navigation />
-     
-      <PageBackground variant="homepage" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="homepage" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Breadcrumb */}
           <SectionReveal>
@@ -162,7 +158,6 @@ export default function ProductDetailPage({ params }: Props) {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }

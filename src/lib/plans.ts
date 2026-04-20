@@ -3,7 +3,7 @@
 // Free: 25 questions/day (Supabase per-user counter, account required)
 // Initiate: $3.99/month, unlimited questions
 
-export type PlanId = 'guest' | 'free' | 'initiate' | 'master'
+export type PlanId = 'guest' | 'free' | 'initiate'
 
 export type PlanConfig = {
   id: PlanId
@@ -41,13 +41,6 @@ export const PLAN_CONFIG: Record<PlanId, PlanConfig> = {
     priceMonthly: 3.99,
     stripePriceId: INITIATE_PRICE_ID,
   },
-  master: {
-    id: 'master',
-    name: 'Master',
-    description: 'Full access. All traditions, archives, and Codex features.',
-    dailyLimit: 'unlimited',
-    priceMonthly: 0,
-  },
 }
 
 export function getPlanLimits(plan: PlanId) {
@@ -66,4 +59,42 @@ export function planFromPriceId(priceId?: string | null): PlanId | null {
   if (!priceId) return null
   if (priceId === INITIATE_PRICE_ID) return 'initiate'
   return null
+}
+
+
+export type MemberPlan = PlanId
+
+export function normalizeMemberPlan(plan?: string | null): MemberPlan {
+  switch (plan) {
+    case 'initiate':
+    case 'free':
+    case 'guest':
+      return plan
+    default:
+      return 'guest'
+  }
+}
+
+export function isPaidPlan(plan?: string | null): boolean {
+  const normalized = normalizeMemberPlan(plan)
+  return normalized === 'initiate'
+}
+
+export function getPlanLabel(plan?: string | null): string {
+  const normalized = normalizeMemberPlan(plan)
+  switch (normalized) {
+    case 'initiate':
+      return 'Initiate'
+    case 'free':
+      return 'Free'
+    default:
+      return 'Guest'
+  }
+}
+
+export function getPlanTierBucket(plan?: string | null): 'guest' | 'free' | 'paid' {
+  const normalized = normalizeMemberPlan(plan)
+  if (normalized == 'guest') return 'guest'
+  if (normalized == 'free') return 'free'
+  return 'paid'
 }

@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import PageBackground from "@/components/scenes/PageBackground";
 import ZalgoText from "@/components/ui/ZalgoText";
@@ -18,8 +16,7 @@ export default function OriginPage() {
   return (
     <>
       <PageBackground variant="about" />
-      <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HEADER ─────────────────────────────────── */}
         <section className="py-20" style={{ borderBottom: "1px solid rgba(0,229,255,0.06)" }}>
@@ -279,7 +276,6 @@ export default function OriginPage() {
         </section>
 
       </main>
-      <Footer />
-    </>
+</>
   );
 }

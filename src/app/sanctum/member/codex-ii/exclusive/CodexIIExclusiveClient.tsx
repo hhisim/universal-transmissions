@@ -452,7 +452,7 @@ export default function CodexIIExclusiveClient() {
                   <ZalgoText text="Questions About the Materials?" intensity="subtle" />
                 </h3>
                 <p className="font-body text-sm max-w-md mx-auto mb-5" style={{ color: "var(--ut-white-dim)" }}>
-                  Have a question about the process, a decision, or the work itself? Hakan reads and responds to messages from Initiate and Master members first.
+                  Have a question about the process, a decision, or the work itself? Hakan reads and responds to messages from Initiate members first.
                 </p>
                 <a
                   href="/sanctum/member#messages"

@@ -3,8 +3,6 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
@@ -109,8 +107,7 @@ export default function JournalPage() {
   return (
     <>
       <PageBackground variant="journal" />
-      <Navigation />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Hero Header */}
           <SectionReveal>
@@ -272,8 +269,7 @@ export default function JournalPage() {
           )}
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }
 

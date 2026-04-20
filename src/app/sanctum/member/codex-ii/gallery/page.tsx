@@ -1,12 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import PageBackground from "@/components/scenes/PageBackground";
 import CodexIIGalleryClient from "./CodexIIGalleryClient";
 import { supabaseAdmin } from "@/lib/supabase";
 
-const PLAN_CHECK = ["initiate", "adept", "master", "full"];
+const PLAN_CHECK = ["initiate"];
 
 export default async function CodexIIGalleryPage() {
   // Use NextAuth session — UT uses NextAuth (magic link), NOT Supabase Auth directly
@@ -35,8 +33,7 @@ export default async function CodexIIGalleryPage() {
   return (
     <>
       <PageBackground variant="cymatics" />
-      <Navigation />
-      {isPaid ? (
+{isPaid ? (
         <CodexIIGalleryClient />
       ) : (
         <main
@@ -64,11 +61,11 @@ export default async function CodexIIGalleryPage() {
               Codex II Gallery
             </h2>
             <p className="font-body text-base mb-6" style={{ color: "var(--ut-white-dim)" }}>
-              This collection is reserved for Initiate, Adept, and Master
+              This collection is reserved for Initiate
               members. Upgrade your membership to access.
             </p>
             <a
-              href="/sanctum/member/experience"
+              href="/oracle/plans"
               className="btn-primary px-8 py-3 inline-flex items-center gap-2 font-mono text-xs"
             >
               <svg
@@ -86,7 +83,6 @@ export default async function CodexIIGalleryPage() {
           </div>
         </main>
       )}
-      <Footer />
-    </>
+</>
   );
 }

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
+import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
   title: "Symbolism Research — Universal Transmissions",
@@ -48,9 +47,7 @@ const symbolismConcepts = [
 export default function ResearchSymbolismPage() {
   return (
     <>
-      <Navigation />
-     
-      <PageBackground variant="symbolism" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="symbolism" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
@@ -293,6 +290,39 @@ export default function ResearchSymbolismPage() {
           </div>
         </section>
 
+        <ResearchPathways
+          eyebrow="[ From Symbol into Correspondence ]"
+          title="Move from Symbolism into the Engine"
+          description="This page names the symbolic principles. The live site lets you traverse them through correspondence tools, divination, and the artwork archive itself."
+          accent="var(--ut-purple)"
+          links={[
+            {
+              href: "/experience/correspondence-codex",
+              title: "Correspondence Codex",
+              description: "Traverse symbols, archetypes, frequencies, and associations through the lighter symbolic index.",
+              label: "Index Surface",
+            },
+            {
+              href: "/experience/correspondence-continuum",
+              title: "Correspondence Continuum",
+              description: "Use the deeper desktop-oriented correspondence surface for broader symbolic mapping.",
+              label: "Deep Mapping",
+            },
+            {
+              href: "/oracle",
+              title: "The Oracle",
+              description: "Ask the symbolic system to interpret a question, name, pattern, or transmission directly.",
+              label: "Oracle Surface",
+            },
+            {
+              href: "/gallery/prismatic",
+              title: "Prismatic Gallery",
+              description: "See how symbolic correspondences resolve visually inside finished image systems.",
+              label: "Related Archive",
+            },
+          ]}
+        />
+
         {/* ── CROSS-LINK TO VoA ─────────────────────── */}
         <section
           className="py-16"
@@ -386,8 +416,6 @@ export default function ResearchSymbolismPage() {
           </SectionReveal>
         </div>
       </section>
-
-      <Footer />
-    </>
+</>
   );
 }

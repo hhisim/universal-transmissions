@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
+import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
   title: "Cymatics Research — Universal Transmissions",
@@ -24,9 +23,7 @@ const frequencyData = [
 export default function ResearchCymaticsPage() {
   return (
     <>
-      <Navigation />
-     
-      <PageBackground variant="cymatics" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="cymatics" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
@@ -278,6 +275,39 @@ export default function ResearchCymaticsPage() {
           </div>
         </section>
 
+        <ResearchPathways
+          eyebrow="[ From Frequency into Experience ]"
+          title="Take Cymatics into the Live Instruments"
+          description="Cymatics on UT is not just historical reference. It becomes playable in the Tonoscope, volumetric in the 3D engine, and visible across the transmissions archive."
+          accent="var(--ut-cyan)"
+          links={[
+            {
+              href: "/experience/cymatic-tonoscope",
+              title: "Cymatic Tonoscope",
+              description: "Move from theory into the live plate and frequency visualization tool.",
+              label: "Interactive Tool",
+            },
+            {
+              href: "/experience/cymatic-3d",
+              title: "3D Cymatic Engine",
+              description: "Explore standing waves and geometric resonance as immersive spatial form.",
+              label: "Interactive Tool",
+            },
+            {
+              href: "/journal",
+              title: "Journal Entries",
+              description: "Trace how sound, vibration, and form show up in the process writing around new transmissions.",
+              label: "Process Archive",
+            },
+            {
+              href: "/gallery/bio-energetic-vortexes",
+              title: "Bio-Energetic Vortexes",
+              description: "See one of the clearest series where frequency-thinking drives the image architecture.",
+              label: "Related Series",
+            },
+          ]}
+        />
+
         {/* ── CROSS-LINK TO VoA ─────────────────────── */}
         <section
           className="py-16"
@@ -370,8 +400,6 @@ export default function ResearchCymaticsPage() {
           </SectionReveal>
         </div>
       </section>
-
-      <Footer />
-    </>
+</>
   );
 }

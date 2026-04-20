@@ -4,13 +4,11 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import CodexIIClient from "./codex-ii/CodexIIClient";
-import { supabaseAdmin } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase-client";
+import { getPlanLabel, getPlanTierBucket, isPaidPlan, normalizeMemberPlan } from "@/lib/plans";
 import {
   Eye, Package, MessageCircle, Sparkles, Wand2, Hexagon,
   Layers3, Aperture, Lock, Unlock, Zap, Radio, ChevronRight,
@@ -21,7 +19,7 @@ import {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type TabId = 'dashboard' | 'codex' | 'experience' | 'messages';
-type PlanTier = 'free' | 'initiate' | 'master' | 'full';
+type PlanTier = 'guest' | 'free' | 'initiate';
 
 interface MemberProfile {
   email: string;
@@ -197,8 +195,24 @@ export default function MemberPage() {
   const [msgStatus, setMsgStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [msgError, setMsgError] = useState('');
 
+  function setActiveMemberTab(tab: TabId) {
+    setActiveTab(tab);
+    const params = new URLSearchParams(window.location.search);
+    if (tab === 'dashboard') params.delete('tab');
+    else params.set('tab', tab);
+    const query = params.toString();
+    router.replace(query ? `/sanctum/member?${query}` : '/sanctum/member', { scroll: false });
+  }
+
   // ─── Auth & Profile ───────────────────────────────────────────────────────
   // Check both Supabase auth (email+password login) and NextAuth (magic link)
+  useEffect(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    if (requestedTab === 'dashboard' || requestedTab === 'codex' || requestedTab === 'experience' || requestedTab === 'messages') {
+      setActiveTab(requestedTab);
+    }
+  }, []);
+
   useEffect(() => {
     async function loadSession() {
       try {
@@ -239,42 +253,30 @@ export default function MemberPage() {
 
   async function fetchProfile(email: string, token: string | null) {
     try {
-      const headers: Record<string, string> = {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waXhwa3F1eWFwZXFkY2V5Y3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODM2NzgsImV4cCI6MjA5MDM1OTY3OH0.clqq-XAE7NgY7muFnNqQfhJcLv2i_CALK0d6Kg4P_eQ',
-      };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      // Try ut_members first — confirmed working with user token
-      const memberRes = await fetch(
-        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=plan,subscription_status&limit=1`,
-        { headers }
-      );
-      if (memberRes.ok) {
-        const members = await memberRes.json();
-        if (Array.isArray(members) && members[0] && members[0].plan) {
-          setProfile({ email, plan: members[0].plan || 'free' });
-          // Share session with all UT prototypes via window
-          (window as any).__utSetSession?.(email, members[0].plan || 'free');
+      if (token) {
+        const sessionRes = await fetch('/api/billing/session', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (sessionRes.ok) {
+          const data = await sessionRes.json();
+          const normalizedPlan = normalizeMemberPlan(data.plan);
+          setProfile({ email, plan: normalizedPlan });
+          (window as any).__utSetSession?.(email, normalizedPlan);
           return;
         }
       }
 
-      // Fallback: profiles table (no name column — only select plan)
-      const profileRes = await fetch(
-        `https://opixpkquyapeqdceyczs.supabase.co/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=plan,created_at&limit=1`,
-        { headers }
-      );
-      if (profileRes.ok) {
-        const profiles = await profileRes.json();
-        if (Array.isArray(profiles) && profiles[0] && profiles[0].plan) {
-          setProfile({
-            email,
-            plan: profiles[0].plan || 'free',
-            joined_at: profiles[0].created_at,
-          });
-          (window as any).__utSetSession?.(email, profiles[0].plan || 'free');
-          return;
-        }
+      const memberRes = await fetch(`/api/member?email=${encodeURIComponent(email)}`);
+      if (memberRes.ok) {
+        const member = await memberRes.json();
+        const normalizedPlan = normalizeMemberPlan(member.plan ?? 'free');
+        setProfile({
+          email,
+          plan: normalizedPlan,
+          joined_at: member.created_at,
+        });
+        (window as any).__utSetSession?.(email, normalizedPlan);
+        return;
       }
 
       setProfile({ email, plan: 'free' });
@@ -344,14 +346,13 @@ export default function MemberPage() {
   }
 
   // ─── Render Helpers ───────────────────────────────────────────────────────
-  const isPaid = profile?.plan === 'initiate' || profile?.plan === 'master' || profile?.plan === 'full';
-  const planLabel = profile?.plan === 'master' ? 'Master' : profile?.plan === 'full' ? 'Full' : profile?.plan === 'initiate' ? 'Initiate' : 'Free';
+  const isPaid = isPaidPlan(profile?.plan);
+  const planLabel = getPlanLabel(profile?.plan);
 
   if (loading) {
     return (
       <>
-        <Navigation />
-        <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: "var(--ut-black)" }}>
           <div className="text-center">
             <div className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: "var(--ut-gold)" }}>
               Authenticating...
@@ -359,15 +360,13 @@ export default function MemberPage() {
             <div className="w-8 h-8 border-2 border-t-transparent mx-auto animate-spin rounded-full" style={{ borderColor: "var(--ut-gold)", borderTopColor: "transparent" }} />
           </div>
         </main>
-        <Footer />
-      </>
+</>
     );
   }
 
   return (
     <>
-      <Navigation />
-      <main className="pt-20 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
+<main className="pt-20 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
 
         {/* ── Header ────────────────────────────────────────────────────── */}
         <div className="border-b" style={{ borderColor: "rgba(217,70,239,0.08)" }}>
@@ -393,6 +392,28 @@ export default function MemberPage() {
                   <p className="font-body text-sm mt-1" style={{ color: "var(--ut-white-dim)" }}>
                     {session?.user?.email}
                   </p>
+                  <p className="font-body text-sm mt-3 max-w-2xl" style={{ color: "var(--ut-white-dim)", opacity: 0.75 }}>
+                    Your membership hub for the Oracle, Codex II, the Experience Portal, order history, and the direct line to Hakan.
+                  </p>
+                  <div className="flex flex-wrap gap-3 mt-4">
+                    <Link href="/account" className="btn-secondary text-[10px] px-4 py-2 inline-flex items-center gap-2">
+                      <User size={12} />
+                      Account & Billing
+                    </Link>
+                    <Link href="/oracle/plans" className="btn-secondary text-[10px] px-4 py-2 inline-flex items-center gap-2">
+                      <Crown size={12} />
+                      Membership Plans
+                    </Link>
+                    {isPaid && (
+                      <button
+                        onClick={() => setActiveMemberTab('messages')}
+                        className="btn-secondary text-[10px] px-4 py-2 inline-flex items-center gap-2"
+                      >
+                        <MessageCircle size={12} />
+                        Ask Hakan
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={handleSignOut}
@@ -413,7 +434,7 @@ export default function MemberPage() {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => !locked && setActiveTab(tab.id)}
+                    onClick={() => !locked && setActiveMemberTab(tab.id)}
                     className={`flex items-center gap-2 px-5 py-3 font-mono text-[10px] tracking-[0.25em] uppercase whitespace-nowrap border-b-2 transition-all ${
                       locked ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
                     } ${
@@ -495,7 +516,7 @@ export default function MemberPage() {
                     color="purple"
                     href="#"
                     locked={!isPaid}
-                    onClick={() => { if (isPaid) setActiveTab('codex'); }}
+                    onClick={() => { if (isPaid) setActiveMemberTab('codex'); }}
                   />
                   <QuickAccessCard
                     icon={<MessageCircle size={22} />}
@@ -504,7 +525,7 @@ export default function MemberPage() {
                     color="green"
                     href="#"
                     locked={!isPaid}
-                    onClick={() => { if (isPaid) setActiveTab('messages'); }}
+                    onClick={() => { if (isPaid) setActiveMemberTab('messages'); }}
                   />
                 </div>
               </section>
@@ -533,7 +554,7 @@ export default function MemberPage() {
                         <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "var(--ut-white-dim)" }}>
                           Get unlimited access to the Cymatic Tonoscope, 3D Cymatic Engine, Correspondence Continuum, Codex Dream Machine, and more. Guests get 1 snapshot. Free members get 3 snapshots + 1 video. Paid members get everything, endlessly.
                         </p>
-                        <Link href="/sanctum/member/experience" className="btn-primary text-xs px-6 py-2 inline-flex items-center gap-2">
+                        <Link href="/sanctum/member?tab=experience" className="btn-primary text-xs px-6 py-2 inline-flex items-center gap-2">
                           <Zap size={12} />
                           View Experience Portal
                           <ChevronRight size={12} />
@@ -602,9 +623,9 @@ export default function MemberPage() {
                     <ZalgoText text="Codex II — Paid Members Only" intensity="moderate" />
                   </h2>
                   <p className="font-body text-base max-w-lg mx-auto mb-8" style={{ color: "var(--ut-white-dim)" }}>
-                    Codex II exclusive content — long-form videos, behind-the-scenes process documentation, Hakan&apos;s personal notes, and unreleased material — is available to Initiate and Master members.
+                    Codex II exclusive content — long-form videos, behind-the-scenes process documentation, Hakan&apos;s personal notes, and unreleased material — is available to Initiate members.
                   </p>
-                  <Link href="/sanctum/member/experience" className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
+                  <Link href="/sanctum/member?tab=experience" className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
                     <Crown size={14} />
                     Unlock with Membership
                   </Link>
@@ -657,8 +678,7 @@ export default function MemberPage() {
 
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }
 
@@ -733,7 +753,7 @@ function ExperiencePortalTab({ profile, isPaid }: { profile: MemberProfile | nul
     }
   }
 
-  const planTier = profile?.plan === 'master' ? 'paid' : profile?.plan === 'initiate' ? 'paid' : 'free';
+  const planTier = getPlanTierBucket(profile?.plan);
 
   return (
     <div className="space-y-8">
@@ -887,9 +907,9 @@ function MessagesTab({ profile, isPaid, messages, messagesLoading, msgForm, msgS
           <ZalgoText text="Priority Channel — Paid Members" intensity="moderate" />
         </h2>
         <p className="font-body text-base max-w-lg mx-auto mb-8" style={{ color: "var(--ut-white-dim)" }}>
-          The direct line to Hakan is reserved for Initiate and Master members. Send your questions, ideas, and reflections — he responds at priority between creating.
+          The direct line to Hakan is reserved for Initiate members. Send your questions, ideas, and reflections — he responds at priority between creating.
         </p>
-        <button onClick={() => window.location.href = '/sanctum/member/experience'} className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
+        <button onClick={() => window.location.href = '/oracle/plans'} className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
           <Crown size={14} />
           Unlock with Membership
         </button>

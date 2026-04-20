@@ -1,14 +1,10 @@
 import Link from "next/link";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import PageBackground from "@/components/scenes/PageBackground";
 
 export default function SuccessPage() {
   return (
     <>
-      <Navigation />
-     
-      <PageBackground variant="sanctum" /> <main className="pt-32 pb-20 px-6 text-center min-h-screen" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="sanctum" /> <main className="pt-32 pb-20 px-6 text-center min-h-screen" style={{ background: "var(--ut-black)" }}>
         <div className="max-w-lg mx-auto">
           <div className="text-6xl mb-6">✦</div>
           <h1 className="font-display text-3xl tracking-[0.15em] mb-6" style={{ color: "var(--ut-white)" }}>
@@ -27,7 +23,6 @@ export default function SuccessPage() {
           </Link>
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }

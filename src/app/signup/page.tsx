@@ -3,8 +3,6 @@ export const dynamic = 'force-dynamic'
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import Navigation from '@/components/ui/Navigation'
-import Footer from '@/components/ui/Footer'
 import SectionReveal from '@/components/ui/SectionReveal'
 import ZalgoText from '@/components/ui/ZalgoText'
 import { supabase } from '@/lib/supabase-client'
@@ -103,8 +101,7 @@ function SignupPageContent() {
 
   return (
     <>
-      <Navigation />
-      <main className="pt-24 pb-20 min-h-screen" style={{ background: 'var(--ut-black, #0a090e)' }}>
+<main className="pt-24 pb-20 min-h-screen" style={{ background: 'var(--ut-black, #0a090e)' }}>
         <div className="container-ut max-w-lg mx-auto">
 
           <SectionReveal>
@@ -214,8 +211,7 @@ function SignupPageContent() {
 
         </div>
       </main>
-      <Footer />
-    </>
+</>
   )
 }
 
@@ -225,12 +221,10 @@ export default function SignupPage() {
       <PageBackground variant="homepage" />
       <Suspense fallback={
         <>
-          <Navigation />
-          <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
+<main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
             <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.3)' }}>Loading...</div>
           </main>
-          <Footer />
-        </>
+</>
       }>
         <SignupPageContent />
       </Suspense>

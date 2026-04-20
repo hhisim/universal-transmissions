@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import PageBackground from "@/components/scenes/PageBackground";
 import CodexIIExclusiveClient from "./CodexIIExclusiveClient";
 import { supabaseAdmin } from "@/lib/supabase";
 
-const PLAN_CHECK = ["initiate", "adept", "master", "full"];
+const PLAN_CHECK = ["initiate"];
 
 export default async function CodexIIExclusivePage() {
   // Use NextAuth session — UT uses NextAuth (magic link), NOT Supabase Auth directly
@@ -34,8 +32,7 @@ export default async function CodexIIExclusivePage() {
   return (
     <>
       <PageBackground variant="cymatics" />
-      <Navigation />
-      {isPaid ? (
+{isPaid ? (
         <CodexIIExclusiveClient />
       ) : (
         <main
@@ -63,11 +60,11 @@ export default async function CodexIIExclusivePage() {
               The Inner Transmission
             </h2>
             <p className="font-body text-base mb-6" style={{ color: "var(--ut-white-dim)" }}>
-              These long-form materials are reserved for Initiate, Adept, and
-              Master members. Upgrade your membership to unlock.
+              These long-form materials are reserved for Initiate
+              members. Upgrade your membership to unlock.
             </p>
             <a
-              href="/sanctum/member/experience"
+              href="/oracle/plans"
               className="btn-primary px-8 py-3 inline-flex items-center gap-2 font-mono text-xs"
             >
               <svg
@@ -85,7 +82,6 @@ export default async function CodexIIExclusivePage() {
           </div>
         </main>
       )}
-      <Footer />
-    </>
+</>
   );
 }

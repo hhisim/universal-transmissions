@@ -2,8 +2,6 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, Suspense } from 'react'
-import Navigation from '@/components/ui/Navigation'
-import Footer from '@/components/ui/Footer'
 import SectionReveal from '@/components/ui/SectionReveal'
 import ZalgoText from '@/components/ui/ZalgoText'
 import PageBackground from '@/components/scenes/PageBackground'
@@ -117,7 +115,12 @@ function NewsletterPageContent() {
                   </div>
 
                   {msg && (
-                    <div className="font-mono text-xs p-3" style={{ border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', background: 'rgba(239,68,68,0.04)', borderRadius: '8px' }}>
+                    <div
+                      className="font-mono text-xs p-3"
+                      style={status === 'error'
+                        ? { border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', background: 'rgba(239,68,68,0.04)', borderRadius: '8px' }
+                        : { border: '1px solid rgba(34,211,238,0.25)', color: 'var(--ut-cyan)', background: 'rgba(34,211,238,0.04)', borderRadius: '8px' }}
+                    >
                       {msg}
                     </div>
                   )}
@@ -183,8 +186,7 @@ export default function NewsletterPage() {
   return (
     <>
       <PageBackground variant="homepage" />
-      <Navigation />
-      <Suspense fallback={
+<Suspense fallback={
         <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
           <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.3)' }}>
             Loading...
@@ -193,7 +195,6 @@ export default function NewsletterPage() {
       }>
         <NewsletterPageContent />
       </Suspense>
-      <Footer />
-    </>
+</>
   )
 }

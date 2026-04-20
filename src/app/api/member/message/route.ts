@@ -16,8 +16,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
     }
 
-    const planLabel = plan === 'master' ? 'Master' : plan === 'initiate' ? 'Initiate' : 'Free';
-    const priority = plan === 'master' || plan === 'initiate' ? '★' : '';
+    const planLabel = plan === 'initiate' ? 'Initiate' : 'Free';
+    const priority = plan === 'initiate' ? '★' : '';
     
     const htmlContent = `
       <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 20px; background: #000; color: #e5e5e5; min-height: 100vh;">
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
             <p style="font-size: 11px; color: rgba(255,255,255,0.3); margin: 0;">
               From: ${email}<br/>
               Plan: ${planLabel}<br/>
-              Priority Channel: ${plan === 'master' || plan === 'initiate' ? 'Yes ★' : 'No'}
+              Priority Channel: ${plan === 'initiate' ? 'Yes ★' : 'No'}
             </p>
           </div>
         </div>

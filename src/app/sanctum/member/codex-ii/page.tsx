@@ -1,12 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
 import PageBackground from "@/components/scenes/PageBackground";
 import CodexIIClient from "./CodexIIClient";
 import { supabaseAdmin } from "@/lib/supabase";
 
-const PLAN_CHECK = ["initiate", "adept", "master", "full"];
+const PLAN_CHECK = ["initiate"];
 
 export default async function CodexIIPage() {
   const { auth } = await import("@/lib/auth");
@@ -34,8 +32,7 @@ export default async function CodexIIPage() {
   return (
     <>
       <PageBackground variant="cymatics" />
-      <Navigation />
-      {isPaid ? (
+{isPaid ? (
         <CodexIIClient />
       ) : (
         <main className="pt-24 min-h-screen flex items-center justify-center" style={{ background: "var(--ut-black)" }}>
@@ -48,7 +45,7 @@ export default async function CodexIIPage() {
             </div>
             <h2 className="font-display text-2xl mb-4 text-white">Codex II — Behind the Veil</h2>
             <p className="font-body text-base mb-6" style={{ color: "var(--ut-white-dim)" }}>
-              This collection is reserved for Initiate, Adept, and Master members. Upgrade your membership to access.
+              This collection is reserved for Initiate members. Upgrade your membership to access.
             </p>
             <a href="/sanctum" className="btn-primary px-8 py-3 inline-flex items-center gap-2 font-mono text-xs">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -59,7 +56,6 @@ export default async function CodexIIPage() {
           </div>
         </main>
       )}
-      <Footer />
-    </>
+</>
   );
 }

@@ -4,8 +4,6 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Navigation from '@/components/ui/Navigation'
-import Footer from '@/components/ui/Footer'
 import SectionReveal from '@/components/ui/SectionReveal'
 import ZalgoText from '@/components/ui/ZalgoText'
 import PageBackground from '@/components/scenes/PageBackground'
@@ -24,14 +22,12 @@ export default function AccountPage() {
       <PageBackground variant="homepage" />
       <Suspense fallback={
         <>
-          <Navigation />
-          <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black)' }}>
+<main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black)' }}>
             <div className="text-center">
               <div className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: 'var(--ut-gold)' }}>Loading...</div>
             </div>
           </main>
-          <Footer />
-        </>
+</>
       }>
         <AccountPageContent />
       </Suspense>
@@ -114,14 +110,12 @@ function AccountPageContent() {
   if (loading) {
     return (
       <>
-        <Navigation />
-        <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black)' }}>
+<main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black)' }}>
           <div className="text-center">
             <div className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: 'var(--ut-gold)' }}>Loading...</div>
           </div>
         </main>
-        <Footer />
-      </>
+</>
     )
   }
 
@@ -133,8 +127,7 @@ function AccountPageContent() {
 
   return (
     <>
-      <Navigation />
-      <main className="pt-24 pb-20 min-h-screen" style={{ background: 'var(--ut-black)' }}>
+<main className="pt-24 pb-20 min-h-screen" style={{ background: 'var(--ut-black)' }}>
         <div className="container-ut max-w-2xl mx-auto">
 
           {/* Header */}
@@ -282,7 +275,6 @@ function AccountPageContent() {
 
         </div>
       </main>
-      <Footer />
-    </>
+</>
   )
 }

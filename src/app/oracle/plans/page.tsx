@@ -3,10 +3,30 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Navigation from '@/components/ui/Navigation'
-import Footer from '@/components/ui/Footer'
-import { Crown, Zap, Star, CheckCircle } from 'lucide-react'
+import { Crown, Zap, Star, CheckCircle, BookOpen, Layers3, MessageCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
+import { normalizeMemberPlan, isPaidPlan } from '@/lib/plans'
+
+const MEMBER_EXPERIENCE = [
+  {
+    title: 'Experience Portal',
+    description: 'Tonoscope, 3D Cymatic Engine, Correspondence Codex, Continuum, and the wider interactive toolset.',
+    icon: Layers3,
+    color: '#22d3ee',
+  },
+  {
+    title: 'Codex II + Private Archive',
+    description: 'Behind-the-scenes process notes, unreleased material, and paid-member-only Codex II access.',
+    icon: BookOpen,
+    color: '#d4a847',
+  },
+  {
+    title: 'Ask Hakan',
+    description: 'A first-class member channel for questions, reflections, and direct correspondence.',
+    icon: MessageCircle,
+    color: '#10b981',
+  },
+]
 
 const TIERS = [
   {
@@ -17,12 +37,12 @@ const TIERS = [
     borderColor: 'rgba(255,255,255,0.06)',
     price: 'Free',
     priceSub: 'No account required',
-    description: 'Explore the Codex Oracle in demo mode',
+    description: 'Explore the Oracle and preview the wider member portal',
     features: [
       { text: '10 questions total (no account)', included: true },
       { text: 'English only', included: true },
       { text: 'Demo responses only', included: true },
-      { text: 'Full correspondence web', included: false },
+      { text: 'Member portal, Codex II archive, and Ask Hakan lane', included: false },
     ],
     cta: 'Try the Oracle',
     ctaHref: '/oracle',
@@ -36,12 +56,12 @@ const TIERS = [
     borderColor: 'rgba(34,211,238,0.2)',
     price: 'Free',
     priceSub: 'Create an account',
-    description: 'Create an account to unlock more questions',
+    description: 'Create an account to unlock more Oracle use and member hub access',
     features: [
       { text: '25 questions per day (reset daily)', included: true },
       { text: 'EN, TR, and RU languages', included: true },
       { text: 'Full oracle responses', included: true },
-      { text: 'Full correspondence web', included: false },
+      { text: 'Codex II exclusives and Ask Hakan priority lane', included: false },
     ],
     cta: 'Create Free Account',
     ctaHref: '/signup',
@@ -55,13 +75,13 @@ const TIERS = [
     borderColor: 'rgba(212,168,71,0.35)',
     price: '$3.99',
     priceSub: 'per month',
-    description: 'Unlimited access to the Codex Oracle',
+    description: 'Unlimited Oracle access plus the full member portal experience',
     popular: true,
     features: [
       { text: 'Unlimited questions', included: true },
-      { text: 'Unlimited voice messages', included: true },
-      { text: 'All languages', included: true },
-      { text: 'Full correspondence web', included: true },
+      { text: 'Ask Hakan priority channel', included: true },
+      { text: 'Codex II private archive + unreleased material', included: true },
+      { text: 'Experience Portal + correspondence tools', included: true },
     ],
     cta: 'Begin Initiate',
     ctaHref: '#subscribe',
@@ -94,7 +114,7 @@ export default function OraclePlansPage() {
           const token = activeSession.access_token
           const data = await fetchSessionWithToken(token)
           setSession({ ...data, accessToken: token })
-          setPlan(data.plan || 'guest')
+          setPlan(normalizeMemberPlan(data.plan))
         } else {
           setSession(null)
           setPlan('guest')
@@ -146,13 +166,12 @@ export default function OraclePlansPage() {
   }
 
   const isLoggedIn = !!session?.authenticated
-  const isInitiate = plan === 'initiate'
+  const isInitiate = isPaidPlan(plan)
   const isFree = plan === 'free'
 
   return (
     <>
-      <Navigation />
-      <main className="min-h-screen pt-24 pb-20" style={{ background: 'var(--ut-black, #0a090e)', position: 'relative' }}>
+<main className="min-h-screen pt-24 pb-20" style={{ background: 'var(--ut-black, #0a090e)', position: 'relative' }}>
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)', width: 800, height: 400, background: 'radial-gradient(ellipse, rgba(147,51,234,0.06) 0%, transparent 70%)' }} />
           <div style={{ position: 'absolute', top: '40%', right: '5%', width: 400, height: 300, background: 'radial-gradient(ellipse, rgba(212,168,71,0.04) 0%, transparent 70%)' }} />
@@ -170,15 +189,16 @@ export default function OraclePlansPage() {
           {/* Logged-in status */}
           {!loading && isLoggedIn && (
             <div className="mb-8 text-center" style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(212,168,71,0.5)' }}>
-              Signed in as {session.email} · <Link href="/member" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>Account</Link>
-              {isInitiate && ' · '}<Link href="/member" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>{isInitiate ? 'Initiate Member' : ''}</Link>
+              Signed in as {session.email} · <Link href="/sanctum/member" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>Member Portal</Link>
+              · <Link href="/account" style={{ color: 'rgba(212,168,71,0.7)', textDecoration: 'none' }}>Account</Link>
+              {isInitiate && ' · '}<span style={{ color: 'rgba(212,168,71,0.7)' }}>{isInitiate ? 'Initiate Member' : ''}</span>
             </div>
           )}
 
           {/* Header */}
           {!loading && (
           <div className="text-center mb-16">
-            <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.3em', color: 'rgba(212,168,71,0.5)', marginBottom: 16 }}>[ CODEX ORACLE ]</div>
+            <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.3em', color: 'rgba(212,168,71,0.5)', marginBottom: 16 }}>[ MEMBERSHIP · ORACLE · EXPERIENCE ]</div>
             <h1 style={{
               fontFamily: "'Cinzel Decorative', serif",
               fontSize: 'clamp(28px, 5vw, 48px)',
@@ -189,14 +209,14 @@ export default function OraclePlansPage() {
               backgroundClip: 'text',
               marginBottom: 16,
             }}>
-              Oracle Access
+              Membership & Access
             </h1>
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(237,233,246,0.45)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
               {isInitiate
-                ? 'Your Initiate membership is active. Unlimited questions, all modes.'
+                ? 'Your Initiate membership is active. Unlimited Oracle access, the full portal, and direct member privileges.'
                 : isLoggedIn
-                  ? 'Choose your level of access to the Codex Oracle.'
-                  : 'Choose your level of access to the Codex Oracle. From exploration to mastery — all paths begin with a single question.'}
+                  ? 'Choose your level of access to the Oracle, member portal, and wider Codex experience.'
+                  : 'Choose your level of access to the Oracle, Codex II archive, Experience Portal, and direct member communication. From exploration to initiation — all paths begin with a single question.'}
             </p>
 
             <div style={{ width: 260, height: 1, margin: '32px auto 0', background: 'linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), transparent)' }} />
@@ -208,7 +228,7 @@ export default function OraclePlansPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 60 }}>
             {TIERS.map((t) => {
               const Icon = t.icon
-              const isCurrentTier = (plan === t.id) || (plan === 'guest' && t.id === 'guest') || (plan === 'free' && t.id === 'free')
+              const isCurrentTier = t.id === 'initiate' ? isInitiate : normalizeMemberPlan(plan) === t.id
 
               return (
                 <div
@@ -334,14 +354,44 @@ export default function OraclePlansPage() {
               <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.2em', color: '#22d3ee', marginBottom: 8 }}>
                 Current Plan: {isFree ? 'Free Account — 25 questions/day' : 'Guest — 10 questions total'}
               </div>
-              {isFree && (
-                <div style={{ marginTop: 12 }}>
+              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <Link href="/sanctum/member" className="btn-secondary text-xs px-6 py-2">
+                  Open Member Portal
+                </Link>
+                {isFree && (
                   <button onClick={handleInitiateCheckout} disabled={checkingOut} className="btn-primary text-xs px-6 py-2" style={{ cursor: checkingOut ? 'not-allowed' : 'pointer', opacity: checkingOut ? 0.6 : 1 }}>
                     {checkingOut ? 'Redirecting to Stripe...' : 'Upgrade to Initiate — $3.99/mo'}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+          )}
+
+          {/* Member Experience */}
+          {!loading && (
+          <div style={{ marginBottom: 56 }}>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.25em', color: 'rgba(212,168,71,0.5)', marginBottom: 12 }}>[ What Membership Actually Unlocks ]</div>
+              <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 20, letterSpacing: '0.14em', color: 'rgba(237,233,246,0.72)', marginBottom: 10 }}>The Full Member Experience</h2>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(237,233,246,0.45)', maxWidth: 700, margin: '0 auto', lineHeight: 1.7 }}>
+                UT membership is not just Oracle credits. It is the portal layer that ties together research, tools, private archive access, orders, and direct communication.
+              </p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18 }}>
+              {MEMBER_EXPERIENCE.map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.title} style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(17,15,26,0.42)', padding: '24px 20px' }}>
+                    <div style={{ width: 40, height: 40, border: `1px solid ${item.color}55`, background: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                      <Icon size={18} color={item.color} />
+                    </div>
+                    <div style={{ fontFamily: 'Cinzel, serif', fontSize: 13, letterSpacing: '0.12em', color: item.color, marginBottom: 10 }}>{item.title}</div>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(237,233,246,0.5)', lineHeight: 1.6, margin: 0 }}>{item.description}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
           )}
 
           {/* FAQ */}
@@ -352,8 +402,8 @@ export default function OraclePlansPage() {
             {[
               { q: 'Can I cancel anytime?', a: 'Yes — cancel from your account portal at any time. Your access continues until the end of the billing period.' },
               { q: 'What counts as a question?', a: 'Each message you send to the Oracle counts as one question. Voice messages also count as questions.' },
-              { q: 'What happens to my history?', a: 'Initiate members have full access to their message history. Guest and free accounts reset daily.' },
-              { q: 'Is there a yearly option?', a: 'Yearly billing is coming soon at a discounted rate. Monthly is available now.' },
+              { q: 'What happens to my history?', a: 'Paid members keep access to the deeper member surfaces — including Ask Hakan and portal-only materials — while Oracle usage for guest/free tiers remains limited.' },
+              { q: 'What does Initiate unlock beyond Oracle?', a: 'Initiate opens the full member hub: Codex II private materials, the Experience Portal, and the Ask Hakan priority lane in addition to unlimited Oracle use.' },
             ].map(item => (
               <div key={item.q} style={{ marginBottom: 24, padding: '16px 20px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(17,15,26,0.3)' }}>
                 <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.1em', color: '#d946ef', marginBottom: 8 }}>{item.q}</div>
@@ -379,7 +429,6 @@ export default function OraclePlansPage() {
 
         </div>
       </main>
-      <Footer />
-    </>
+</>
   )
 }

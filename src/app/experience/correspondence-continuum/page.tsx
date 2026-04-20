@@ -1,27 +1,29 @@
 "use client";
 
-import Navigation from "@/components/ui/Navigation";
-import Footer from "@/components/ui/Footer";
+import EmbeddedExperienceFrame from "@/components/experience/EmbeddedExperienceFrame";
 
 export default function CorrespondenceContinuumPage() {
   return (
-    <>
-      <Navigation />
-      <div style={{ paddingTop: "64px", minHeight: "100vh", background: "#02020a" }}>
-        <iframe
-          src="https://codex-deploy-phi.vercel.app"
-          title="Correspondence Continuum"
-          style={{
-            width: "100%",
-            height: "calc(100vh - 64px)",
-            border: "none",
-            display: "block",
-          }}
-          allow="microphone; autoplay; fullscreen"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock"
-        />
-      </div>
-      <Footer />
-    </>
+    <EmbeddedExperienceFrame
+      title="Correspondence Continuum"
+      src="https://codex-deploy-phi.vercel.app"
+      introEyebrow="Desktop symbolic workspace"
+      introTitle="The Correspondence Continuum"
+      introDescription="A denser correspondence environment for deeper synthesis across archetypes, frequencies, geometry, and mythic systems. This surface is meant for larger screens and longer-form symbolic work."
+      notices={[
+        {
+          tone: "warning",
+          text: "Best experienced on laptop or desktop. On phones, use the Correspondence Codex instead for a lighter mobile-first interface.",
+        },
+        {
+          tone: "info",
+          text: "The Continuum is the heavier research workspace. The Correspondence Codex is the lighter mobile-access layer.",
+        },
+      ]}
+      timeoutMs={12000}
+      externalHref="https://codex-deploy-phi.vercel.app"
+      fallbackHref="/experience/correspondence-codex"
+      fallbackLabel="Open mobile Codex"
+    />
   );
 }
