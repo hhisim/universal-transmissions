@@ -96,7 +96,7 @@ body::-webkit-scrollbar-thumb {
   background: linear-gradient(
     to bottom,
     #d946ef 0%,
-    #d4a847 28%,
+    #f0c75e 24%,
     #9333ea 62%,
     #22d3ee 100%
   ) !important;
@@ -107,7 +107,7 @@ body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     to bottom,
     #f05be7 0%,
-    #f0c75e 28%,
+    #f0c75e 24%,
     #a855f7 62%,
     #22d3ee 100%
   ) !important;
@@ -117,13 +117,13 @@ body::-webkit-scrollbar-thumb:hover {
 html,
 body {
   scrollbar-width: thin;
-  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3);
+  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3);
 }
 
 /* Gallery horizontal carousel scrollbar — UT spectrum gradient */
 .gallery-carousel {
   scrollbar-width: thin !important;
-  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 .gallery-carousel::-webkit-scrollbar {
   height: 6px !important;
@@ -135,7 +135,7 @@ body {
   background: linear-gradient(
     to bottom,
     #d946ef 0%,
-    #d4a847 28%,
+    #f0c75e 24%,
     #9333ea 62%,
     #22d3ee 100%
   ) !important;
@@ -146,7 +146,7 @@ body {
 .overflow-x-auto,
 .overflow-x-auto > * {
   scrollbar-width: thin !important;
-  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 .overflow-x-auto::-webkit-scrollbar,
 .overflow-x-auto > *::-webkit-scrollbar {
@@ -162,7 +162,7 @@ body {
   background: linear-gradient(
     to bottom,
     #d946ef 0%,
-    #d4a847 28%,
+    #f0c75e 24%,
     #9333ea 62%,
     #22d3ee 100%
   ) !important;
@@ -174,7 +174,7 @@ body {
 .ut-card-gold,
 .artwork-card {
   scrollbar-width: thin !important;
-  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 .ut-card::-webkit-scrollbar-thumb,
 .ut-card-gold::-webkit-scrollbar-thumb,
@@ -182,7 +182,7 @@ body {
   background: linear-gradient(
     to bottom,
     #d946ef 0%,
-    #d4a847 28%,
+    #f0c75e 24%,
     #9333ea 62%,
     #22d3ee 100%
   ) !important;
@@ -193,7 +193,7 @@ body {
 [overflow-x="auto"],
 [style*="overflow-x"] {
   scrollbar-width: thin !important;
-  scrollbar-color: #c026d3 rgba(0, 0, 0, 0.3) !important;
+  scrollbar-color: #d4a847 rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ============================================================

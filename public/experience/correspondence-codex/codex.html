@@ -1958,21 +1958,21 @@ async function requestOracleReply(systemPrompt,history){
   let passes=0;
   while(passes<3){
     const needsLongerReply = curMode==='etymology' || /every letter|letter by letter|alphabet ontology|decode the sacred name/i.test(working[working.length-1]?.content||'');
-    const lastMsg=working[working.length-1]?.content||'';
     const resp=await fetch('/api/codex-oracle',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        message:lastMsg,
+        message:working[working.length-1]?.content||'',
         pack:'codex',
         mode:curMode,
         lang:'en',
-        speed:needsLongerReply?0.7:1
+        speed:needsLongerReply?0.7:1,
+        systemPrompt,
+        history:working
       })
     });
     const data=await resp.json();
-    const part=(typeof data?.response==='string'?data.response.trim():(data?.content||[]).map(c=>c?.text||'').join('
-').trim()||'');
+    const part=(typeof data?.response==='string'?data.response.trim():(data?.content||[]).map(c=>c?.text||'').join('\n').trim());
     if(part) combined.push(part);
     if(passes>=2) break;
     working=[
@@ -1982,9 +1982,7 @@ async function requestOracleReply(systemPrompt,history){
     ];
     passes++;
   }
-  return combined.join('
-
-').trim() || 'The transmission is unclear. Ask again.';
+  return combined.join('\n\n').trim() || 'The transmission is unclear. Ask again.';
 }
 async function sendOracle(){
   const inp=document.getElementById('oi');
