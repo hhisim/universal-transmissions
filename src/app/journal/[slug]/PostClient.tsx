@@ -12,6 +12,53 @@ import { blogPosts, getPostBySlug, getRelatedPosts, type BlogPost } from "@/data
 import { extractFirstImage } from "@/data/blog-posts";
 import PageBackground from "@/components/scenes/PageBackground";
 
+
+type VaultInvite = {
+  eyebrow: string;
+  body: string;
+  href: string;
+  cta: string;
+};
+
+const VAULT_INVITES_BY_SLUG: Record<string, VaultInvite> = {
+  'tarot-symbolic-machine-for-fate': {
+    eyebrow: 'CONTINUE THE TAROT READING',
+    body: 'Bring the archetype, spread, or threshold you are living into a private Tarot conversation with the Vault Oracle.',
+    href: 'https://www.vaultofarcana.com/chat',
+    cta: 'OPEN TAROT ORACLE →',
+  },
+  'dreamwalker-lucid-dreaming-astral-projection': {
+    eyebrow: 'CONTINUE WITH DREAMWALKER',
+    body: 'Carry the image, symbol, or question from your dream into a private Dreamwalker conversation with the Vault Oracle.',
+    href: 'https://www.vaultofarcana.com/chat',
+    cta: 'OPEN DREAMWALKER →',
+  },
+  'i-ching-ancient-oracle-of-change': {
+    eyebrow: 'CONTINUE WITH THE TAO',
+    body: 'Bring the change you are facing into a private Tao conversation with the Vault Oracle.',
+    href: 'https://www.vaultofarcana.com/chat',
+    cta: 'OPEN TAO ORACLE →',
+  },
+  'sexual-alchemy-taoist-tradition': {
+    eyebrow: 'CONTINUE THE STUDY',
+    body: 'Explore Taoist inner-alchemy traditions and the questions they open through the Vault Oracle.',
+    href: 'https://www.vaultofarcana.com/chat',
+    cta: 'OPEN TAO ORACLE →',
+  },
+  'taoism-quantum-physics-controversy': {
+    eyebrow: 'CONTINUE WITH THE TAO',
+    body: 'Explore the philosophical questions this transmission raises through the Vault Oracle.',
+    href: 'https://www.vaultofarcana.com/chat',
+    cta: 'OPEN TAO ORACLE →',
+  },
+  'alchemy-of-soul-magnum-opus': {
+    eyebrow: 'EXPLORE THE CORRESPONDENCES',
+    body: 'Follow the symbolic threads of alchemy, Kabbalah, and Hermetic thought through the Vault correspondence engine.',
+    href: 'https://vaultofarcana.com/correspondence-engine',
+    cta: 'OPEN THE CODEX →',
+  },
+};
+
 // ─── YouTube embed component ───────────────────────────────────────────────────
 
 function YouTubeEmbed({ url }: { url: string }) {
@@ -124,6 +171,7 @@ export default function PostClient({ slug }: { slug: string }) {
   const related = getRelatedPosts(post.slug, 3);
   const headings = extractHeadings(post.content);
   const heroImage = post.heroImage ?? extractFirstImage(post.content);
+  const vaultInvite = VAULT_INVITES_BY_SLUG[post.slug];
 
   const idx = blogPosts.findIndex((p) => p.slug === post.slug);
   const prevPost = idx > 0 ? blogPosts[idx - 1] : null;
@@ -364,31 +412,33 @@ export default function PostClient({ slug }: { slug: string }) {
                 </SectionReveal>
               )}
 
-              {/* ASK THE ORACLE CTA */}
-              <SectionReveal delay={0.35}>
-                <div
-                  className="mt-12 p-6 border"
-                  style={{
-                    borderColor: "rgba(147,51,234,0.15)",
-                    background: "rgba(147,51,234,0.03)",
-                  }}
-                >
-                  <div className="font-heading text-[11px] tracking-[0.2em] mb-2" style={{ color: "rgba(147,51,234,0.7)" }}>
-                    ASK THE ORACLE
+              {/* CONTEXTUAL VAULT INVITATION */}
+              {vaultInvite && (
+                <SectionReveal delay={0.35}>
+                  <div
+                    className="mt-12 p-6 border"
+                    style={{
+                      borderColor: "rgba(147,51,234,0.15)",
+                      background: "rgba(147,51,234,0.03)",
+                    }}
+                  >
+                    <div className="font-heading text-[11px] tracking-[0.2em] mb-2" style={{ color: "rgba(147,51,234,0.7)" }}>
+                      {vaultInvite.eyebrow}
+                    </div>
+                    <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "rgba(237,233,246,0.5)" }}>
+                      {vaultInvite.body}
+                    </p>
+                    <div className="flex gap-3 flex-wrap">
+                      <a href="/oracle" className="font-heading text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all hover:border-[rgba(212,168,71,0.5)]" style={{ borderColor: "rgba(212,168,71,0.25)", background: "rgba(212,168,71,0.05)", color: "rgba(212,168,71,0.8)" }}>
+                        CODEX ORACLE
+                      </a>
+                      <a href={vaultInvite.href} target="_blank" rel="noopener noreferrer" className="font-heading text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all hover:border-[rgba(0,229,255,0.5)]" style={{ borderColor: "rgba(0,229,255,0.2)", background: "rgba(0,229,255,0.03)", color: "rgba(0,229,255,0.6)" }}>
+                        {vaultInvite.cta}
+                      </a>
+                    </div>
                   </div>
-                  <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "rgba(237,233,246,0.5)" }}>
-                    Explore the symbolism, geometry, and hidden correspondences within this transmission through the living intelligence of Vault of Arcana.
-                  </p>
-                  <div className="flex gap-3 flex-wrap">
-                    <a href="/oracle" className="font-heading text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all hover:border-[rgba(212,168,71,0.5)]" style={{ borderColor: "rgba(212,168,71,0.25)", background: "rgba(212,168,71,0.05)", color: "rgba(212,168,71,0.8)" }}>
-                      CODEX ORACLE
-                    </a>
-                    <a href="https://www.vaultofarcana.com/chat" target="_blank" rel="noopener noreferrer" className="font-heading text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all hover:border-[rgba(0,229,255,0.5)]" style={{ borderColor: "rgba(0,229,255,0.2)", background: "rgba(0,229,255,0.03)", color: "rgba(0,229,255,0.6)" }}>
-                      VAULT OF ARCANA →
-                    </a>
-                  </div>
-                </div>
-              </SectionReveal>
+                </SectionReveal>
+              )}
 
               {/* Back to journal */}
               <SectionReveal delay={0.4}>
