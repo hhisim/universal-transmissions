@@ -5,6 +5,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
 import PageBackground from "@/components/scenes/PageBackground";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Prismatic Transmissions",

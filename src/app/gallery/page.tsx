@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import GalleryClient from "./GalleryClient";
 import PageBackground from "@/components/scenes/PageBackground";
+export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
   title: "Gallery",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
   title: "Xenolinguistic Cymatic Engine — Universal Transmissions",

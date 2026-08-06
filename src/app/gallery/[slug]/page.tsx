@@ -9,6 +9,7 @@ import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import PageBackground from "@/components/scenes/PageBackground";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
+export const revalidate = 300;
 
 interface Props {
   params: { slug: string };

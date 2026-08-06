@@ -4,6 +4,7 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import Link from "next/link";
 import ResearchPathways from "@/components/research/ResearchPathways";
+export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
   title: "The Research — Universal Transmissions",

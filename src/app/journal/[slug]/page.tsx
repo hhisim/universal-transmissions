@@ -1,6 +1,7 @@
 import { blogPosts, getPostBySlug, getRelatedPosts } from "@/data/blog-posts";
 import type { Metadata } from "next";
 import PostClient from "./PostClient";
+export const revalidate = 300;
 
 interface Props {
   params: { slug: string };
