@@ -1,0 +1,16 @@
+# Vercel ignore — never upload local build artifacts / deps to Vercel's server
+node_modules
+.next
+.next-build
+out
+dist
+.git
+*.log
+.DS_Store
+.gitignore
+.bak
+package-lock.json.bak
+public/email/*.html
+.hermes
+gen_registry.py
+parse_squarespace.py
