@@ -275,6 +275,168 @@ export default function ResearchCymaticsPage() {
           </div>
         </section>
 
+        {/* ── CYMATICS AS VIBRATIONAL COSMOLOGY (FABLE-5 ENRICHMENT) ────── */}
+        <section
+          className="py-20"
+          style={{ borderTop: "1px solid rgba(34, 211, 238, 0.06)" }}
+        >
+          <div className="container-ut">
+            <div className="max-w-3xl mx-auto">
+              <SectionReveal>
+                <h2
+                  className="font-display text-2xl mb-8"
+                  style={{ color: "var(--ut-white)" }}
+                >
+                  <ZalgoText text="Sound as the First Geometry" intensity="subtle" />
+                </h2>
+                <div className="space-y-6 font-body text-base leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
+                  <p>
+                    Before there was matter there was ratio. When a vibrating source drives a
+                    membrane, the sand does not scatter randomly — it organizes itself into
+                    lattices of astonishing symmetry, and the pattern is not chosen: it is
+                    <em>derived</em>. Square forms billow from one note, six-fold rosettes from
+                    another, and the transition between them is instantaneous and discrete, as if
+                    the geometry were already latent in the frequency itself. Cymatics is the
+                    laboratory proof of an ancient claim — that number, not substance, is the
+                    substrate of the visible world.
+                  </p>
+                  <p>
+                    Pythagoras heard this as the <em>harmony of the spheres</em>: the planets, each
+                    on its own orbital ratio, striking a chord whose mathematics is audible to those
+                    who learn to listen with number. Kepler, three centuries later, tried to
+                    reconstruct that celestial score, and believed the five perfect solids were the
+                    tuning-pins of the cosmos. Hans Jenny, in <em>Kymatik</em>, restored the claim to
+                    the lab bench by showing that a single tone can be "tuned" through an entire
+                    family of living, crystalline forms — some recognizably cellular, mandalic,
+                    even approximating organic motion. In the working library behind this project,
+                    Dan Winter&apos;s <em>Alphabet of the H)Eart(H</em> carries the thread forward,
+                    reading the golden-mean compression of the heart&apos;s field as a cymatic
+                    signature — the same wave-becoming-form principle, relocated from the plate to
+                    the body.
+                  </p>
+                  <p>
+                    This matters for art because it dissolves the boundary between the audible and
+                    the visible. If a frequency can beget a flower, then a painter or a generator of
+                    images is, in a precise sense, composing in the same field a musician composes
+                    in. The Universal Transmissions works treat every glyph and curve as a frozen
+                    sonority — a wave arrested at the crest of its own resonance. The chakra tones
+                    (528 Hz the heart, 639 Hz harmony, 741 Hz awakening, 963 Hz crown) are not
+                    decorative memos appended to the imagery; they are the load-bearing
+                    frequencies, the ones the whole structure is tuned to, so that the finished
+                    image behaves more like an instrument than a picture. When you animate that
+                    image, you are not adding motion to a form — you are letting the wave continue,
+                    letting the sand keep dancing after the bow has left the plate.
+                  </p>
+                  <p>
+                    The deeper principle is transduction: energy does not vanish between one state
+                    and another, it changes its cloak. Sound becomes sand-pattern becomes geometry
+                    becomes symbol becomes intention. What cymatics teaches is that there is no dead
+                    end in this chain — every frequency is looking for its form, and every form is
+                    waiting to be sung. To study cymatics is to learn fluency in that middle
+                    alphabet, the one that sits exactly between a thought and a thing.
+                  </p>
+                </div>
+              </SectionReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CONTINUE THE STUDY: SEEDING — CHAKRA LOOP PACKS ─────────── */}
+        <section
+          className="py-20"
+          style={{ borderTop: "1px solid rgba(34, 211, 238, 0.06)" }}
+        >
+          <div className="container-ut">
+            <SectionReveal>
+              <div className="max-w-3xl mx-auto text-center mb-10">
+                <p
+                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
+                  style={{ color: "var(--ut-cyan)", opacity: 0.5 }}
+                >
+                  [ From Frequency into Form ]
+                </p>
+                <h2
+                  className="font-display text-2xl md:text-3xl glow-cyan"
+                  style={{ color: "var(--ut-cyan)" }}
+                >
+                  <ZalgoText text="Continue the Study in Motion" intensity="moderate" />
+                </h2>
+                <p
+                  className="font-body text-base max-w-xl mx-auto mt-4"
+                  style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}
+                >
+                  Cymatics resolved into living image. The same oscillating fields that raise
+                  sand-patterns are animated and set to loop — geometry let back into time.
+                </p>
+              </div>
+            </SectionReveal>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+              <SectionReveal delay={0.1}>
+                <a
+                  href="/store/chakra-4k-loop-pack"
+                  className="group block ut-card p-8 h-full transition-all duration-300 hover:border-cyan/20"
+                  style={{ background: "rgba(34, 211, 238, 0.02)" }}
+                >
+                  <p className="font-mono text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "var(--ut-cyan)", opacity: 0.6 }}>
+                    Loop Pack · Root
+                  </p>
+                  <h3 className="font-display text-lg mb-3" style={{ color: "var(--ut-white)" }}>
+                    CHAKRA 4K
+                  </h3>
+                  <p className="font-body text-sm leading-relaxed mb-6" style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}>
+                    13 videos, 30-second loops in 4K and 2K — the chakra works animated into
+                    living, looping geometry and color fields.
+                  </p>
+                  <span className="inline-flex items-center gap-2 font-heading text-[10px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-cyan)" }}>
+                    Open
+                    <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
+                      <path d="M0 4H14M14 4L11 1M14 4L11 7" stroke="currentColor" strokeWidth="1" />
+                    </svg>
+                  </span>
+                </a>
+              </SectionReveal>
+              <SectionReveal delay={0.2}>
+                <a
+                  href="/store/chakra-8k-loop-pack"
+                  className="group block ut-card p-8 h-full transition-all duration-300 hover:border-cyan/20"
+                  style={{ background: "rgba(34, 211, 238, 0.02)" }}
+                >
+                  <p className="font-mono text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "var(--ut-cyan)", opacity: 0.6 }}>
+                    Loop Pack · Flow
+                  </p>
+                  <h3 className="font-display text-lg mb-3" style={{ color: "var(--ut-white)" }}>
+                    CHAKRA 8K
+                  </h3>
+                  <p className="font-body text-sm leading-relaxed mb-6" style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}>
+                    16 videos, 60-second loops in 8K, 4K and 2K — deeper flow and finer detail for
+                    the moving geometry that began as static frequency maps.
+                  </p>
+                  <span className="inline-flex items-center gap-2 font-heading text-[10px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-cyan)" }}>
+                    Open
+                    <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
+                      <path d="M0 4H14M14 4L11 1M14 4L11 7" stroke="currentColor" strokeWidth="1" />
+                    </svg>
+                  </span>
+                </a>
+              </SectionReveal>
+            </div>
+            <SectionReveal delay={0.3}>
+              <div className="text-center mt-10">
+                <a
+                  href="/store/universal-transmissions-codex-vol1-digital"
+                  className="inline-flex items-center gap-2 font-heading text-[10px] tracking-[0.3em] uppercase"
+                  style={{ color: "var(--ut-cyan)", opacity: 0.8 }}
+                >
+                  Or carry the full visual language in the Codex
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                </a>
+              </div>
+            </SectionReveal>
+          </div>
+        </section>
+
         <ResearchPathways
           eyebrow="[ From Frequency into Experience ]"
           title="Take Cymatics into the Live Instruments"
