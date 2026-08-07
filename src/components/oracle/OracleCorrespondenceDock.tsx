@@ -639,7 +639,7 @@ export default function OracleCorrespondenceDock({
           margin-top: 8px;
         }
         .oracle-dock { border: 0; background: transparent; box-shadow: none; padding: 0; }
-        .oracle-dock-body { grid-template-columns: 300px minmax(0,1fr) 430px; gap: 16px; margin-top: 0; align-items: start; }
+        .oracle-dock-body { grid-template-columns: 260px minmax(0,1fr) 360px; gap: 16px; margin-top: 0; align-items: start; }
         .oracle-dock-left, .oracle-dock-primary, .oracle-dock-context {
           border: 1px solid rgba(255,255,255,.07);
           background: linear-gradient(180deg,rgba(9,8,16,.68),rgba(0,0,0,.34));
@@ -651,6 +651,11 @@ export default function OracleCorrespondenceDock({
         .oracle-v12-left, .oracle-v12-right {
           overflow: visible;
           max-height: none;
+        }
+        /* Perf: drop backdrop-filter on large dock panels (major jank source) */
+        .oracle-dock, .oracle-dock-left, .oracle-dock-primary, .oracle-dock-context, .oracle-system-focus-live {
+          -webkit-backdrop-filter: none;
+          backdrop-filter: none;
         }
         .oracle-v12-left {
           display: flex;
@@ -762,7 +767,8 @@ export default function OracleCorrespondenceDock({
           color: rgba(237,233,246,.92);
           text-align: center;
           transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, filter .18s ease;
-          animation: oracleRevealRainbow 4.8s linear infinite;
+          animation: none;
+          background-position: 0% 50%;
         }
         .oracle-focus-details summary::-webkit-details-marker {
           display: none;
@@ -781,7 +787,7 @@ export default function OracleCorrespondenceDock({
           transform: translateY(-1px);
           border-color: rgba(237,233,246,.22);
           filter: saturate(1.25);
-          animation-duration: 2.8s;
+          animation: oracleRevealRainbow 2.8s linear 1;
           box-shadow:
             inset 0 1px 0 rgba(255,255,255,.1),
             0 0 24px rgba(217,70,239,.18),

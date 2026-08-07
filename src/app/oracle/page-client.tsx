@@ -1287,7 +1287,7 @@ export default function OraclePage() {
         }
         .oracle-inline-controls {
           display: grid;
-          grid-template-columns: minmax(220px,.72fr) minmax(300px,1fr) minmax(280px,.92fr);
+          grid-template-columns: repeat(auto-fit, minmax(min(240px,100%), 1fr));
           gap: 10px;
         }
         .oracle-inline-block {
