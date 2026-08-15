@@ -84,6 +84,7 @@ import working_on_the_5th_chakra_raw from "./blog-content/old-squarespace/workin
 import xl_tapestries_now_added_to_the_store_raw from "./blog-content/old-squarespace/xl-tapestries-now-added-to-the-store.md";
 import yugen_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
 import yugen_kolm_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
+import cymatics_language_of_form_raw from "./blog-content/2026-08-15/cymatics-language-of-form.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -94,6 +95,19 @@ function stripFrontmatter(raw: string): string {
 // === Registry =======================================================================
 
 export const blogPosts: BlogPost[] = [
+  // ── Modern Opus Posts (newest first) ───────────────────────────────────────────────
+  {
+    slug: "cymatics-language-of-form",
+    title: "Cymatics and the Language of Form: When Vibration Learns to Spell",
+    publishedAt: "2026-08-15",
+    author: "Prime + Hakan",
+    excerpt: "Hans Jenny's vibrating plate did more than make sand dance — it introduced frequency, medium, and form as one continuum. How cymatics turns the Codex into a language you can actually hear, test, and read.",
+    readTime: "9 min",
+    hero_gradient: "from-cyan-900 via-indigo-950 to-black",
+    tags: ["cymatics", "sound", "vibration", "geometry", "frequency", "tonoscope", "resonance", "sacred-geometry", "jenny", "language-of-form"],
+    tradition: "cymatics",
+    content: stripFrontmatter(cymatics_language_of_form_raw),
+  },
   // ── Old-Squarespace Posts (chronological) ────────────────────────────────────────
   {
     slug: "receiving-transmissions",
