@@ -23,11 +23,11 @@ import realitySyntax_raw from "./blog-content/linguistics/reality-as-syntax.md";
 import dreamwalker_raw from "./blog-content/2026-03-21/dreamwalker-lucid-dreaming-astral-projection.md";
 import gnosticism_raw from "./blog-content/2026-03-21/gnosticism-archive-of-light-architecture-divine-spark.md";
 import kundalini_raw from "./blog-content/2026-03-21/kundalini-shakti-serpent-power-western-science.md";
-import iching_raw from "./blog-content/2026-03-21/i-ching-ancient-oracle-of-change.md";
+import iching_raw from "./blog-content/2026-08-20/i-ching-ancient-oracle-of-change.md";
 import sufism_raw from "./blog-content/2026-03-21/sufism-the-path-of-divine-love.md";
 import kybalion_raw from "./blog-content/2026-03-21/the-kybalion-7-principles-hermetic-philosophy.md";
-import tarot_raw from "./blog-content/2026-03-21/tarot-symbolic-machine-for-fate.md";
-import alchemy_raw from "./blog-content/2026-03-21/alchemy-of-soul-magnum-opus.md";
+import tarot_raw from "./blog-content/2026-08-20/tarot-symbolic-machine-for-fate.md";
+import alchemy_raw from "./blog-content/2026-08-20/alchemy-of-soul-magnum-opus.md";
 import tibetans_raw from "./blog-content/2026-03-21/five-tibetans-ancient-rites-of-rejuvenation.md";
 import enochian_raw from "./blog-content/2026-03-21/enochian-angelic-language-modern-occultism.md";
 import sexualAlchemy_raw from "./blog-content/Tao/sexual-alchemy-taoist-tradition.md";
@@ -85,6 +85,17 @@ import xl_tapestries_now_added_to_the_store_raw from "./blog-content/old-squares
 import yugen_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
 import yugen_kolm_raw from "./blog-content/2026-04-06/yugen-kolm-album-artwork.md";
 import cymatics_language_of_form_raw from "./blog-content/2026-08-15/cymatics-language-of-form.md";
+import conference_of_the_birds_raw from "./blog-content/2026-08-20/conference-of-the-birds-simurgh-map-of-self-recognition.md";
+import corpus_hermeticum_raw from "./blog-content/2026-08-20/corpus-hermeticum-poimandres-cosmic-human.md";
+import sefer_yetzirah_raw from "./blog-content/2026-08-20/sefer-yetzirah-32-paths-of-wisdom.md";
+import picatrix_correspondence_raw from "./blog-content/2026-08-20/picatrix-technology-of-correspondence-astrological-magic.md";
+import kabbalah_sefirot_raw from "./blog-content/2026-08-20/kabbalah-tree-of-life-sefirot-explained.md";
+import alchemical_vessel_raw from "./blog-content/2026-08-22/alchemical-vessel-athanor-technology-of-transformation.md";
+import cosmic_bio_machine_raw from "./blog-content/2026-08-24/cosmic-bio-machine-sumerian-light-science.md";
+import vijnana_bhairava_raw from "./blog-content/2026-08-26/vijnana-bhairava-112-doors-technology-of-attention.md";
+import walter_russell_universal_one_raw from "./blog-content/2026-08-28/walter-russell-universal-one-cosmology-of-light.md";
+import rosicrucian_manifestos_public_secret_reformation_raw from "./blog-content/2026-08-30/rosicrucian-manifestos-public-secret-reformation.md";
+import taoist_microcosmic_orbit_inner_alchemy_raw from "./blog-content/2026-09-01/taoist-microcosmic-orbit-inner-alchemy.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -95,9 +106,49 @@ function stripFrontmatter(raw: string): string {
 // === Registry =======================================================================
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "taoist-microcosmic-orbit-inner-alchemy",
+    heroImage: "/journal/voa-20260901/taoist-microcosmic-orbit-inner-alchemy/cover.png",
+    title: "The Microcosmic Orbit: How Taoist Inner Alchemy Turns the Body into a Practice of Return",
+    publishedAt: "2026-09-01",
+    author: "Prime + Hakan",
+    excerpt: "The microcosmic orbit is often marketed as a hidden energy circuit. Read historically and symbolically, it is more exacting: a pedagogy of return that trains attention to circulate through the body rather than escape it.",
+    readTime: "22 min",
+    hero_gradient: "from-teal-950 via-emerald-950 to-black",
+    tags: ["taoism", "microcosmic-orbit", "inner-alchemy", "neidan", "qi-cultivation", "jing-qi-shen", "dantian", "breath-practice", "embodied-attention", "daoist-philosophy", "esoteric-history"],
+    tradition: "taoism",
+    content: stripFrontmatter(taoist_microcosmic_orbit_inner_alchemy_raw),
+  },
+  {
+    slug: "rosicrucian-manifestos-public-secret-reformation",
+    heroImage: "/journal/voa-20260830/rosicrucian-manifestos-public-secret-reformation/cover.png",
+    title: "The Rosicrucian Manifestos: How a Secret Brotherhood Turned Absence into a Method of Reform",
+    publishedAt: "2026-08-30",
+    author: "Prime + Hakan",
+    excerpt: "The Rosicrucian manifestos did not simply hide a secret order. They made secrecy public, turning an absent fraternity into a method for recruiting readers, provoking critics, and testing what reform can mean when it enters history as a text.",
+    readTime: "21 min",
+    hero_gradient: "from-rose-950 via-violet-950 to-black",
+    tags: ["rosicrucianism", "rosicrucian-manifestos", "fama-fraternitatis", "confessio-fraternitatis", "christian-rosencreutz", "hermeticism", "alchemy", "western-esotericism", "secret-societies", "intellectual-history", "general-reformation"],
+    tradition: "rosicrucianism",
+    content: stripFrontmatter(rosicrucian_manifestos_public_secret_reformation_raw),
+  },
+  {
+    slug: "walter-russell-universal-one-cosmology-of-light",
+    heroImage: "/journal/voa-20260828/walter-russell-universal-one-cosmology-of-light.png",
+    title: "Walter Russell's The Universal One: When Cosmology Became a Diagram of Light",
+    publishedAt: "2026-08-28",
+    author: "Prime + Hakan",
+    excerpt: "Walter Russell's The Universal One is not a lost physics textbook. It is an artist's attempt to make spiritual monism measurable-looking: a cosmology of light, wave rhythm, and universal return that reveals how diagrams give metaphysics the authority of science.",
+    readTime: "22 min",
+    hero_gradient: "from-cyan-950 via-indigo-950 to-black",
+    tags: ["walter-russell", "the-universal-one", "cosmology", "sacred-geometry", "light", "wave-theory", "consciousness", "science-and-spirituality", "electromagnetism", "esoteric-history"],
+    tradition: "sacred-geometry",
+    content: stripFrontmatter(walter_russell_universal_one_raw),
+  },
   // ── Modern Opus Posts (newest first) ───────────────────────────────────────────────
   {
     slug: "cymatics-language-of-form",
+    heroImage: "/journal/voa-20260820/cymatics-language-of-form.png",
     title: "Cymatics and the Language of Form: When Vibration Learns to Spell",
     publishedAt: "2026-08-15",
     author: "Prime + Hakan",
@@ -107,6 +158,111 @@ export const blogPosts: BlogPost[] = [
     tags: ["cymatics", "sound", "vibration", "geometry", "frequency", "tonoscope", "resonance", "sacred-geometry", "jenny", "language-of-form"],
     tradition: "cymatics",
     content: stripFrontmatter(cymatics_language_of_form_raw),
+  },
+  // ── VOA → UT paired editorial mirrors (2026-08-22) ────────────────────────────────
+  {
+    slug: "alchemical-vessel-athanor-technology-of-transformation",
+    heroImage: "/journal/voa-20260822/alchemical-vessel-athanor-technology-of-transformation.png",
+    title: "The Alchemical Vessel: Why the Athanor Changes the Observer Before It Changes the Substance",
+    publishedAt: "2026-08-22",
+    author: "Prime + Hakan",
+    excerpt: "The athanor is not primarily an image of heat. It is a technology of sustained attention: a vessel that holds unstable material, time, and contradiction long enough for transformation to become legible — changing the observer before it changes the substance.",
+    readTime: "18 min",
+    hero_gradient: "from-cyan-950 via-blue-950 to-black",
+    tags: ["alchemy", "athanor", "athenor", "alchemical-vessel", "inner-transformation", "sustained-attention", "fulcanelli", "picatrix"],
+    tradition: "alchemy",
+    content: stripFrontmatter(alchemical_vessel_raw),
+  },
+  {
+    slug: "cosmic-bio-machine-sumerian-light-science",
+    heroImage: "/journal/voa-20260824/cosmic-bio-machine-sumerian-light-science.png",
+    title: "The Cosmic Bio-Machine: Dr. George Merkl and the Sumerian Science of Light-Born Life",
+    publishedAt: "2026-08-24",
+    author: "Prime + Hakan",
+    excerpt: "A forgotten San Diego researcher claimed he could grow proteins from light, water, and geometry — and traced the method back to Sumer. Inside the Cosmic Bio-Machine: life crystals, scrolls of light, and the most overlooked esoteric-scientific manuscript of the twentieth century.",
+    readTime: "21 min",
+    hero_gradient: "from-cyan-950 via-indigo-950 to-black",
+    tags: ["sumer", "george-merkl", "life-crystals", "structured-water", "implosion", "sacred-geometry", "dan-winter", "biophysics"],
+    tradition: "sacred-geometry",
+    content: stripFrontmatter(cosmic_bio_machine_raw),
+  },
+  {
+    slug: "vijnana-bhairava-112-doors-technology-of-attention",
+    heroImage: "/journal/voa-20260826/vijnana-bhairava-112-doors-technology-of-attention.png",
+    title: "The 112 Doors of the Vijnana Bhairava: How Attention Becomes a Technology",
+    publishedAt: "2026-08-26",
+    author: "Prime + Hakan",
+    excerpt: "The Vijnana Bhairava is often presented as a catalogue of 112 meditations. Read beside its closing verses and translation history, it becomes a grammar of thresholds — breath, sound, touch, desire, and the gaps in between — where attention can change state.",
+    readTime: "18 min",
+    hero_gradient: "from-cyan-950 via-indigo-950 to-black",
+    tags: ["vijnana-bhairava", "bhairava", "tantra", "meditation", "kashmir-shaivism", "breath", "attention", "consciousness", "non-dualism"],
+    tradition: "tantra",
+    content: stripFrontmatter(vijnana_bhairava_raw),
+  },
+  {
+    slug: "conference-of-the-birds-simurgh-map-of-self-recognition",
+    heroImage: "/journal/voa-20260820/conference-of-the-birds-simurgh-map-of-self-recognition.png",
+    title: "The Conference of the Birds and the Simurgh: A Map of Self-Recognition",
+    publishedAt: "2026-08-19",
+    author: "Prime + Hakan",
+    excerpt: "Attar's birds do not travel toward a distant god so much as undergo a change in the grammar of seeking. Across seven valleys, the flock's excuses become mirrors, and the Simurgh appears when thirty surviving birds can finally recognize what their journey has made visible.",
+    readTime: "22 min",
+    hero_gradient: "from-amber-950 via-violet-950 to-black",
+    tags: ["conference-of-the-birds", "simurgh", "attar", "sufism", "persian-poetry", "self-recognition"],
+    tradition: "sufism",
+    content: stripFrontmatter(conference_of_the_birds_raw),
+  },
+  {
+    slug: "corpus-hermeticum-poimandres-cosmic-human",
+    heroImage: "/journal/voa-20260820/corpus-hermeticum-poimandres-cosmic-human.png",
+    title: "The Corpus Hermeticum and the Cosmic Human: Why Gnosis Begins as a Change in Attention",
+    publishedAt: "2026-08-20",
+    author: "Prime + Hakan",
+    excerpt: "The Corpus Hermeticum does not treat gnosis as a secret fact that the mind can possess. In Poimandres and the Secret Sermon on the Mountain, awakening is a relocation of attention.",
+    readTime: "12 min",
+    hero_gradient: "from-emerald-950 via-violet-950 to-black",
+    tags: ["corpus-hermeticum", "poimandres", "hermeticism", "gnosis", "cosmic-human", "attention"],
+    tradition: "hermetics",
+    content: stripFrontmatter(corpus_hermeticum_raw),
+  },
+  {
+    slug: "sefer-yetzirah-32-paths-of-wisdom",
+    heroImage: "/journal/voa-20260820/sefer-yetzirah-32-paths-of-wisdom.png",
+    title: "Sefer Yetzirah and the 32 Paths of Wisdom: The Hebrew Alphabet as the Software of Creation",
+    publishedAt: "2026-08-20",
+    author: "Prime + Hakan",
+    excerpt: "The Sefer Yetzirah reads creation through ten sefirot and twenty-two Hebrew letters: the thirty-two paths as an ancient theory of language, information, and form.",
+    readTime: "14 min",
+    hero_gradient: "from-indigo-950 via-purple-950 to-black",
+    tags: ["sefer-yetzirah", "kabbalah", "32-paths", "hebrew-alphabet", "gematria", "tree-of-life"],
+    tradition: "kabbalah",
+    content: stripFrontmatter(sefer_yetzirah_raw),
+  },
+  {
+    slug: "picatrix-technology-of-correspondence-astrological-magic",
+    heroImage: "/journal/voa-20260820/picatrix-technology-of-correspondence-astrological-magic.png",
+    title: "The Picatrix and the Technology of Correspondence: How Medieval Magic Turned the Sky into an Instrument",
+    publishedAt: "2026-08-20",
+    author: "Prime + Hakan",
+    excerpt: "The Picatrix is a theory of correspondence: how time, material, image, speech, and attention can be tuned until intention becomes an instrument in a living cosmos.",
+    readTime: "12 min",
+    hero_gradient: "from-slate-950 via-amber-950 to-black",
+    tags: ["picatrix", "astrological-magic", "astral-magic", "hermeticism", "correspondence", "grimoires"],
+    tradition: "hermetics",
+    content: stripFrontmatter(picatrix_correspondence_raw),
+  },
+  {
+    slug: "kabbalah-tree-of-life-sefirot-explained",
+    heroImage: "/journal/voa-20260820/kabbalah-tree-of-life-sefirot-explained.png",
+    title: "Kabbalah's Tree of Life: The Ten Sefirot as a Map of Consciousness",
+    publishedAt: "2026-08-20",
+    author: "Prime + Hakan",
+    excerpt: "The ten sefirot are not merely a diagram. They are a living map of emanation, consciousness, embodiment, and return — a Tree meant to be read through the whole human instrument.",
+    readTime: "11 min",
+    hero_gradient: "from-amber-950 via-violet-950 to-black",
+    tags: ["kabbalah", "sefirot", "tree-of-life", "consciousness", "zohar", "gematria"],
+    tradition: "kabbalah",
+    content: stripFrontmatter(kabbalah_sefirot_raw),
   },
   // ── Old-Squarespace Posts (chronological) ────────────────────────────────────────
   {
@@ -690,6 +846,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "dreamwalker-lucid-dreaming-astral-projection",
+    heroImage: "/journal/voa-20260321/dreamwalker-lucid-dreaming-astral-projection.png",
     title: "Dreamwalker: The Lucid Dreaming and Astral Projection Nexus",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
@@ -702,7 +859,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "gnosticism-archive-of-light-architecture-divine-spark",
-    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075657/voa/heroes/gnosticism-hero.png",
+    heroImage: "/journal/voa-20260321/gnosticism-archive-of-light-architecture-divine-spark.png",
     title: "Gnosticism: The Archive of Light and the Architecture of the Divine Spark",
     publishedAt: "2026-03-21",
     author: "Prime + Hakan",
@@ -727,8 +884,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "i-ching-ancient-oracle-of-change",
+    heroImage: "/journal/voa-20260820/i-ching-ancient-oracle-of-change.png",
     title: "The I Ching: Ancient Oracle of Change Through 8 Trigrams and 64 Hexagrams",
-    publishedAt: "2026-03-21",
+    publishedAt: "2026-08-20",
     author: "Prime + Hakan",
     excerpt: "3000 years of oracular wisdom from the Yijing - 8 trigrams, 64 hexagrams, the oldest systematic divination system on Earth, rooted in Taoist cosmology.",
     readTime: "12 min",
@@ -764,9 +922,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "tarot-symbolic-machine-for-fate",
-    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075665/voa/heroes/tarot-hero.png",
-    title: "Tarot: The Symbolic Machine for Fate and Self-Discovery",
-    publishedAt: "2026-03-21",
+    heroImage: "/journal/voa-20260820/tarot-symbolic-machine-for-fate.png",
+    title: "The Tarot: A Symbolic Machine for Mapping the Architecture of Fate",
+    publishedAt: "2026-08-20",
     author: "Prime + Hakan",
     excerpt: "78 archetypes, two arcana, one symbolic machine. From the Fool's Journey to the Golden Dawn's reconstruction - the Tarot as semantic navigation.",
     readTime: "12 min",
@@ -777,9 +935,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "alchemy-of-soul-magnum-opus",
-    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775075671/voa/heroes/alchemy-soul-hero.png",
-    title: "Alchemy of the Soul: The Magnum Opus from Nigredo to Rubedo",
-    publishedAt: "2026-03-21",
+    heroImage: "/journal/voa-20260820/alchemy-of-soul-magnum-opus.png",
+    title: "The Alchemy of the Soul: The Twelve Stages of the Great Work (Magnum Opus)",
+    publishedAt: "2026-08-20",
     author: "Prime + Hakan",
     excerpt: "Solve et Coagula - dissolve and recombine. The twelve stages of alchemical transformation from calcination to projection. The Nigredo, Albedo, and Rubedo.",
     readTime: "13 min",

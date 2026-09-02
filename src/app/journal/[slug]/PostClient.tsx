@@ -9,6 +9,7 @@ import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 import LikeButton from "@/components/ui/LikeButton";
 import CommentSection from "@/components/ui/CommentSection";
 import { blogPosts, getPostBySlug, getRelatedPosts, type BlogPost } from "@/data/blog-posts";
+import { getVoaPackInvite, shop } from "@/data/voa-pack-invites";
 import { extractFirstImage } from "@/data/blog-posts";
 import PageBackground from "@/components/scenes/PageBackground";
 
@@ -172,6 +173,7 @@ export default function PostClient({ slug }: { slug: string }) {
   const headings = extractHeadings(post.content);
   const heroImage = post.heroImage ?? extractFirstImage(post.content);
   const vaultInvite = VAULT_INVITES_BY_SLUG[post.slug];
+  const voaPackInvite = getVoaPackInvite(post.slug);
 
   const idx = blogPosts.findIndex((p) => p.slug === post.slug);
   const prevPost = idx > 0 ? blogPosts[idx - 1] : null;
@@ -408,6 +410,56 @@ export default function PostClient({ slug }: { slug: string }) {
                         </Link>
                       ))}
                     </div>
+                  </div>
+                </SectionReveal>
+              )}
+
+              {/* UT → VOA DIGITAL-PACK FUNNEL */}
+              {voaPackInvite && (
+                <SectionReveal delay={0.32}>
+                  <div
+                    className="mt-12 p-6 border"
+                    style={{
+                      borderColor: "rgba(212,168,71,0.18)",
+                      background: "rgba(212,168,71,0.03)",
+                    }}
+                  >
+                    <div className="font-heading text-[11px] tracking-[0.2em] mb-2" style={{ color: "rgba(212,168,71,0.8)" }}>
+                      {voaPackInvite.eyebrow}
+                    </div>
+                    <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "rgba(237,233,246,0.55)" }}>
+                      {voaPackInvite.body}
+                    </p>
+                    <div className="space-y-3 mb-4">
+                      {voaPackInvite.packs.map((pack) => (
+                        <a
+                          key={pack.sku}
+                          href={shop(pack.sku)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ut-card block p-3 transition-all group"
+                          style={{ textDecoration: "none", border: "1px solid rgba(212,168,71,0.12)" }}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="font-body text-[13px] leading-snug" style={{ color: "rgba(237,233,246,0.7)" }}>
+                              {pack.title}
+                            </span>
+                            <span className="font-mono text-[10px] whitespace-nowrap" style={{ color: "rgba(212,168,71,0.9)" }}>
+                              {pack.price}
+                            </span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                    <a
+                      href={shop(voaPackInvite.packs[0].sku)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-heading text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all hover:border-[rgba(212,168,71,0.6)]"
+                      style={{ borderColor: "rgba(212,168,71,0.3)", background: "rgba(212,168,71,0.06)", color: "rgba(228,189,112,0.95)" }}
+                    >
+                      {voaPackInvite.cta}
+                    </a>
                   </div>
                 </SectionReveal>
               )}

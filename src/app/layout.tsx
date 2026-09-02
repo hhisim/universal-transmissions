@@ -5,6 +5,7 @@ import PageBackground from "@/components/ui/PageBackground";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import AuthSessionGate from "@/components/auth/AuthSessionGate";
+import InteractionTracker from "@/components/analytics/InteractionTracker";
 
 export const metadata: Metadata = {
   verification: {
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.universal-transmissions.net",
+    url: "https://www.universal-transmissions.com",
     siteName: "Universal Transmissions",
     title: "Universal Transmissions — Sacred Art & Symbolic Code",
     description:
@@ -59,6 +60,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebSite",
+              "@id": "https://www.universal-transmissions.com/#website",
+              url: "https://www.universal-transmissions.com/",
+              name: "Universal Transmissions",
+              publisher: { "@id": "https://www.universal-transmissions.com/#organization" },
+            },
+            {
+              "@type": "Organization",
+              "@id": "https://www.universal-transmissions.com/#organization",
+              name: "Hakan Hisim",
+              url: "https://www.universal-transmissions.com/",
+            },
+          ],
+        }) }} />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-793DRYHJP0" />
         <script dangerouslySetInnerHTML={{ __html: "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-793DRYHJP0');" }} />
         <script dangerouslySetInnerHTML={{ __html: `
@@ -91,6 +110,7 @@ window.__utGetSession = function() {
       <body className="antialiased">
         <PageBackground />
         <Analytics />
+        <InteractionTracker />
         <AuthSessionGate />
         <Navigation />
         <div className="min-h-screen flex flex-col pt-16">
