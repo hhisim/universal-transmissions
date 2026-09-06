@@ -96,6 +96,7 @@ import vijnana_bhairava_raw from "./blog-content/2026-08-26/vijnana-bhairava-112
 import walter_russell_universal_one_raw from "./blog-content/2026-08-28/walter-russell-universal-one-cosmology-of-light.md";
 import rosicrucian_manifestos_public_secret_reformation_raw from "./blog-content/2026-08-30/rosicrucian-manifestos-public-secret-reformation.md";
 import taoist_microcosmic_orbit_inner_alchemy_raw from "./blog-content/2026-09-01/taoist-microcosmic-orbit-inner-alchemy.md";
+import egyptian_book_of_the_dead_heart_scale_maat_raw from "./blog-content/2026-09-05/egyptian-book-of-the-dead-heart-scale-maat.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -118,6 +119,19 @@ export const blogPosts: BlogPost[] = [
     tags: ["taoism", "microcosmic-orbit", "inner-alchemy", "neidan", "qi-cultivation", "jing-qi-shen", "dantian", "breath-practice", "embodied-attention", "daoist-philosophy", "esoteric-history"],
     tradition: "taoism",
     content: stripFrontmatter(taoist_microcosmic_orbit_inner_alchemy_raw),
+  },
+  {
+    slug: "egyptian-book-of-the-dead-heart-scale-maat",
+    heroImage: "/journal/voa-20260905/egyptian-book-of-the-dead-heart-scale-maat.png",
+    title: "The Heart on the Scale: How the Egyptian Book of the Dead Makes a Self Legible",
+    publishedAt: "2026-09-05",
+    author: "Prime + Hakan",
+    excerpt: "The weighing of the heart is often reduced to a moral scorecard. Read through Spell 125, the heart spells, and the surviving papyri, it becomes something more exacting: a ritual system that makes a person legible through speech, memory, material, and Maat.",
+    readTime: "20 min",
+    hero_gradient: "from-amber-950 via-orange-950 to-black",
+    tags: ["egyptian-book-of-the-dead", "maat", "weighing-of-the-heart", "ancient-egypt", "funerary-texts", "papyrus-of-ani", "spell-125", "heart-scarabs", "osiris", "thoth", "kemetic-studies", "esoteric-history"],
+    tradition: "kemet",
+    content: stripFrontmatter(egyptian_book_of_the_dead_heart_scale_maat_raw),
   },
   {
     slug: "rosicrucian-manifestos-public-secret-reformation",

@@ -123,6 +123,20 @@ export const VOA_PACK_INVITES_BY_SLUG: Record<string, VoaPackInvite> = {
     ],
   },
 
+  // ── Ancient Egypt / funerary texts ───────────────────────────────────────
+  "egyptian-book-of-the-dead-heart-scale-maat": {
+    eyebrow: "ENTER THE EGYPTIAN SOURCE ARCHIVE",
+    body: "Continue the weighing-of-the-heart study into an Egyptology and Kemetic source shelf — hieroglyphs, funerary texts, temples, and the historical material behind the transmission.",
+    cta: "OPEN THE EGYPTIAN ARCHIVE →",
+    packs: [
+      {
+        sku: "etsy-4543086125",
+        title: "Ancient Egypt Mysteries & Sacred Traditions Archive — 854 Files",
+        price: "$11.99",
+      },
+    ],
+  },
+
   // ── Alchemy / Hermetic ───────────────────────────────────────────────────
   "alchemy-of-soul-magnum-opus": {
     eyebrow: "EXPLORE THE CORRESPONDENCES",
