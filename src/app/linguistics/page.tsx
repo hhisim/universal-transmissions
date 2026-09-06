@@ -5,6 +5,7 @@ import PageBackground from "@/components/scenes/PageBackground";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/linguistics" },
   title: "Xenolinguistics — Universal Transmissions",
   description:
     "Research into the roots of language, the hacking of syntax, and the translinguistic exploration of Universal Transmissions.",

@@ -9,6 +9,7 @@ import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import PageBackground from "@/components/scenes/PageBackground";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
+import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_URL, seoDescription, seoTitle } from "@/lib/seo";
 export const revalidate = 300;
 
 interface Props {
@@ -17,10 +18,29 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const artwork = getArtwork(params.slug);
-  if (!artwork) return { title: "Not Found" };
+  if (!artwork) return { title: "Not Found", robots: { index: false, follow: false } };
+  const canonicalUrl = `${SITE_URL}/gallery/${artwork.slug}`;
+  const socialImage = artwork.detailImages?.[0] || DEFAULT_OG_IMAGE;
+  const imageUrl = absoluteUrl(socialImage);
+  const metaTitle = seoTitle(artwork.title);
+  const metaDescription = seoDescription(artwork.description);
   return {
-    title: `${artwork.title} — Universal Transmissions`,
-    description: artwork.description,
+    title: metaTitle,
+    description: metaDescription,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title: metaTitle,
+      description: metaDescription,
+      type: "website",
+      url: canonicalUrl,
+      images: [{ url: imageUrl, alt: artwork.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: metaTitle,
+      description: metaDescription,
+      images: [imageUrl],
+    },
   };
 }
 

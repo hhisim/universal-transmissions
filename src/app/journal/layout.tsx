@@ -1,16 +1,30 @@
 import type { Metadata } from 'next'
+import { absoluteUrl, DEFAULT_OG_IMAGE, DEFAULT_OG_IMAGE_HEIGHT, DEFAULT_OG_IMAGE_WIDTH, SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'Journal — Art & Symbol Blog | Universal Transmissions',
+  metadataBase: new URL(SITE_URL),
+  title: 'Journal — Art & Symbol Essays',
   description: 'Essays on sacred geometry, symbolic art, alchemy, and the visual language of hidden knowledge. By Hakan Hisim.',
   alternates: {
-    canonical: 'https://www.universal-transmissions.com/journal',
+    canonical: '/journal',
   },
   openGraph: {
     title: 'Journal | Universal Transmissions',
     description: 'Essays on sacred geometry and symbolic art.',
-    url: 'https://www.universal-transmissions.com/journal',
+    url: absoluteUrl('/journal'),
     type: 'website',
+    images: [{
+      url: absoluteUrl(DEFAULT_OG_IMAGE),
+      width: DEFAULT_OG_IMAGE_WIDTH,
+      height: DEFAULT_OG_IMAGE_HEIGHT,
+      alt: 'Universal Transmissions journal',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Journal | Universal Transmissions',
+    description: 'Essays on sacred geometry and symbolic art.',
+    images: [absoluteUrl(DEFAULT_OG_IMAGE)],
   },
 }
 

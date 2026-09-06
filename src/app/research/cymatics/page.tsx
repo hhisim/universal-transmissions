@@ -6,6 +6,7 @@ import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/research/cymatics" },
   title: "Cymatics Research — Universal Transmissions",
   description:
     "The science of visible sound and vibration — Chladni patterns, standing waves, and the Tonoscope. How frequency creates form.",

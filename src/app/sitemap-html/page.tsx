@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/sitemap-html" },
   title: 'Sitemap — Universal Transmissions',
   description: 'Browse all pages and sections of Universal Transmissions.',
   robots: { index: false, follow: true },

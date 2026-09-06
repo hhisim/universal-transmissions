@@ -6,6 +6,7 @@ import { artworks } from "@/data/artworks";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/origin" },
   title: "Origin — Universal Transmissions",
   description:
     "The origin story of Universal Transmissions — the Apex Being, Adam Kadmon artwork series, xenolinguistics research, and the narrative essence of the project.",

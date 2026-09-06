@@ -169,7 +169,7 @@ export const artworks: Artwork[] = [
     description:
       "Of strange surfaces. The second installment explores the tesseract — the four-dimensional hypercube — as a geometric key to higher dimensional navigation. An attempt to visualize what cannot be seen in three dimensions.",
     images: [`${BASE}/tessetact/main.jpg`],
-    detailImages: Array.from({ length: 4 }, (_, i) => `${BASE}/tessetact/details/Universal-Transmissions-II---Tesseract---Detail-${String(i + 1).padStart(2, "0")}.jpg`),
+    detailImages: Array.from({ length: 4 }, (_, i) => `${BASE}/tessetact/details/Universal-Tranmissions-II---Tesseract-${String(i + 1).padStart(2, "0")}.jpg`),
     available: true,
     prints: true,
     tags: ["universal-transmissions", "tesseract", "fourth-dimension", "hypercube", "sacred-geometry"],

@@ -196,7 +196,6 @@ export default function OraclePlansPage() {
           )}
 
           {/* Header */}
-          {!loading && (
           <div className="text-center mb-16">
             <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.3em', color: 'rgba(212,168,71,0.5)', marginBottom: 16 }}>[ MEMBERSHIP · ORACLE · EXPERIENCE ]</div>
             <h1 style={{
@@ -221,7 +220,6 @@ export default function OraclePlansPage() {
 
             <div style={{ width: 260, height: 1, margin: '32px auto 0', background: 'linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), transparent)' }} />
           </div>
-          )}
 
           {/* Plan cards */}
           {!loading && (

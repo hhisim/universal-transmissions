@@ -6,6 +6,7 @@ import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/research/linguistics" },
   title: "Linguistics Research — Universal Transmissions",
   description:
     "Xenolinguistics — the roots of language, the hacking of syntax, and translinguistic exploration. How language shapes reality.",

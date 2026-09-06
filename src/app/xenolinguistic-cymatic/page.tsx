@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/xenolinguistic-cymatic" },
   title: "Xenolinguistic Cymatic Engine — Universal Transmissions",
   description:
     "An interactive Chladni plate simulator — xenolinguistic glyphs, sacred geometry, and cymatic field generation. Built with Three.js and Web Audio.",

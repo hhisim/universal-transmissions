@@ -3,6 +3,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import PageBackground from "@/components/scenes/PageBackground";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacy" },
   title: "Privacy Policy — Universal Transmissions",
   description:
     "How Universal Transmissions collects, uses, and protects your personal information.",

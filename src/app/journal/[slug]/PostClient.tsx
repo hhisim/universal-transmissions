@@ -85,7 +85,12 @@ function YouTubeEmbed({ url }: { url: string }) {
 
 // ─── Content with YouTube embeds ───────────────────────────────────────────────
 
+function stripLeadingMarkdownTitle(content: string): string {
+  return content.replace(/^\s*#\s+[^\n]+(?:\r?\n)+/, "");
+}
+
 function ProcessedContent({ content }: { content: string }) {
+  const contentWithoutTitle = stripLeadingMarkdownTitle(content);
   // Split content by YouTube URLs and render embeds
   const YOUTUBE_REGEX = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]+[^\n]*/gi;
   const YOUTUBE_SHORT = /(?:https?:\/\/)?youtu\.be\/([a-zA-Z0-9_-]{11})[^\n]*/gi;
@@ -97,11 +102,11 @@ function ProcessedContent({ content }: { content: string }) {
   const combinedRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})[^\n]*/gi;
   let match;
 
-  while ((match = combinedRegex.exec(content)) !== null) {
+  while ((match = combinedRegex.exec(contentWithoutTitle)) !== null) {
     if (match.index > lastIndex) {
-      parts.push({ type: "text", value: content.slice(lastIndex, match.index) });
+      parts.push({ type: "text", value: contentWithoutTitle.slice(lastIndex, match.index) });
     }
-    const urlMatch = content.slice(match.index).match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})[^\n]*/);
+    const urlMatch = contentWithoutTitle.slice(match.index).match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})[^\n]*/);
     if (urlMatch) {
       parts.push({ type: "youtube", value: urlMatch[0] });
       lastIndex = match.index + urlMatch[0].length;
@@ -110,12 +115,12 @@ function ProcessedContent({ content }: { content: string }) {
     }
   }
 
-  if (lastIndex < content.length) {
-    parts.push({ type: "text", value: content.slice(lastIndex) });
+  if (lastIndex < contentWithoutTitle.length) {
+    parts.push({ type: "text", value: contentWithoutTitle.slice(lastIndex) });
   }
 
   if (parts.length === 0) {
-    return <MarkdownRenderer content={content} />
+    return <MarkdownRenderer content={contentWithoutTitle} />
     ;
   }
 

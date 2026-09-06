@@ -6,8 +6,13 @@ import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import AuthSessionGate from "@/components/auth/AuthSessionGate";
 import InteractionTracker from "@/components/analytics/InteractionTracker";
+import { absoluteUrl, DEFAULT_OG_IMAGE, DEFAULT_OG_IMAGE_HEIGHT, DEFAULT_OG_IMAGE_WIDTH, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
   verification: {
     google: ['387c5TKuDQhB8zKDt21HjoaRtPXIILoBbnSC_2E19fQ', 'N_Zt8XImandmsyzfEnqu1YttaDdnOool9Oh95rzS9FI'],
   },
@@ -22,16 +27,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.universal-transmissions.com",
+    url: `${SITE_URL}/`,
     siteName: "Universal Transmissions",
     title: "Universal Transmissions — Sacred Art & Symbolic Code",
     description:
       "The visual lexicon of hidden knowledge. Sacred geometry, symbolic art, and the Codex Oracle.",
     images: [
       {
-        url: "https://www.universal-transmissions.net/og-image.jpg",
-        width: 1200,
-        height: 630,
+        url: absoluteUrl(DEFAULT_OG_IMAGE),
+        width: DEFAULT_OG_IMAGE_WIDTH,
+        height: DEFAULT_OG_IMAGE_HEIGHT,
         alt: "Universal Transmissions",
       },
     ],
@@ -41,6 +46,7 @@ export const metadata: Metadata = {
     title: "Universal Transmissions",
     description: "The visual lexicon of hidden knowledge.",
     creator: "@hakanhisim",
+    images: [absoluteUrl(DEFAULT_OG_IMAGE)],
   },
   icons: {
     icon: "/favicon.ico",

@@ -1,6 +1,15 @@
 import { blogPosts, getPostBySlug, getRelatedPosts } from "@/data/blog-posts";
 import type { Metadata } from "next";
 import PostClient from "./PostClient";
+import {
+  absoluteUrl,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_WIDTH,
+  SITE_URL,
+  seoDescription,
+  seoTitle,
+} from "@/lib/seo";
 export const revalidate = 300;
 
 interface Props {
@@ -11,31 +20,37 @@ export async function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata>
-     {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getPostBySlug(params.slug);
-  if (!post) return { title: "Not Found" };
-  const canonicalUrl = `https://www.universal-transmissions.com/journal/${post.slug}`;
+  if (!post) return { title: "Not Found", robots: { index: false, follow: false } };
+  const canonicalUrl = `${SITE_URL}/journal/${post.slug}`;
+  const imageUrl = absoluteUrl(post.heroImage || DEFAULT_OG_IMAGE);
+  const metaTitle = seoTitle(post.title);
+  const metaDescription = seoDescription(post.excerpt);
   return {
-    title: post.title,
-    description: post.excerpt,
+    title: metaTitle,
+    description: metaDescription,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      type: "article",
+      title: metaTitle,
+      description: metaDescription,
       url: canonicalUrl,
       publishedTime: post.publishedAt,
       authors: [post.author],
-      images: post.heroImage ? [{ url: `https://www.universal-transmissions.com${post.heroImage}`, width: 1200, height: 630, alt: post.title }] : undefined,
+      images: [{
+        url: imageUrl,
+        width: DEFAULT_OG_IMAGE_WIDTH,
+        height: DEFAULT_OG_IMAGE_HEIGHT,
+        alt: post.title,
+      }],
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
-      description: post.excerpt,
-      images: post.heroImage ? [`https://www.universal-transmissions.com${post.heroImage}`] : undefined,
+      title: metaTitle,
+      description: metaDescription,
+      images: [imageUrl],
     },
   };
 }
@@ -43,6 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata>
 export default function PostPage({ params }: Props) {
   const post = getPostBySlug(params.slug);
   if (!post) return <PostClient slug={params.slug} />;
+  const imageUrl = absoluteUrl(post.heroImage || DEFAULT_OG_IMAGE);
   return (
     <>
       <script
@@ -55,7 +71,7 @@ export default function PostPage({ params }: Props) {
             description: post.excerpt,
             datePublished: post.publishedAt,
             dateModified: post.publishedAt,
-            image: post.heroImage ? `https://www.universal-transmissions.com${post.heroImage}` : undefined,
+            image: imageUrl,
             author: {
               "@type": "Person",
               name: post.author,
@@ -64,7 +80,7 @@ export default function PostPage({ params }: Props) {
             keywords: post.tags.join(", "),
             mainEntityOfPage: {
               "@type": "WebPage",
-              "@id": `https://www.universal-transmissions.com/journal/${post.slug}`,
+              "@id": `${SITE_URL}/journal/${post.slug}`,
             },
           }),
         }}

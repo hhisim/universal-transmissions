@@ -15,9 +15,10 @@ const LogoHero = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Universal Transmissions — Visual Alchemy by Hakan Hisim",
+  alternates: { canonical: "/" },
+  title: "Visual Alchemy by Hakan Hisim",
   description:
-    "A pan-dimensional manuscript containing universal transmissions based on concepts of transcending syntax and linguistics. Art, codex, and the language of the divine.",
+    "Explore Hakan Hisim's visual alchemy: sacred geometry, symbolic art, the Universal Transmissions codex, and the language of the divine.",
 };
 
 const featuredArtworks = [

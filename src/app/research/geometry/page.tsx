@@ -7,6 +7,7 @@ import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/research/geometry" },
   title: "Geometry Research — Universal Transmissions",
   description:
     "Sacred geometry — the skeleton of the visible world. Platonic solids, Flower of Life, Metatron's Cube, and the golden ratio that underlies all creation.",

@@ -8,6 +8,7 @@ import PageBackground from "@/components/scenes/PageBackground";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/gallery/prismatic" },
   title: "Prismatic Transmissions",
   description:
     "Six transmissions rendered in prismatic twilight tones — where the visible spectrum bleeds into the invisible.",

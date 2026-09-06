@@ -6,6 +6,7 @@ import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/research/symbolism" },
   title: "Symbolism Research — Universal Transmissions",
   description:
     "Sacred symbolism — archetypes, sigils, and the hidden correspondences between all things. The universal language beneath culture.",

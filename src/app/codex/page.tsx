@@ -8,6 +8,7 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import RotatingMerkaba from "@/components/three/RotatingMerkaba";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/codex" },
   title: "The Codex — Universal Transmissions",
   description:
     "The Universal Transmissions Codex — 150 pages of symbolic art, sacred geometry, and visionary experience. A book unlike any other. Available in physical and digital editions.",

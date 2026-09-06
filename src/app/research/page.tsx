@@ -7,6 +7,7 @@ import ResearchPathways from "@/components/research/ResearchPathways";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/research" },
   title: "The Research — Universal Transmissions",
   description:
     "The source material, investigations, and patterns that underlie every Universal Transmissions artwork — cymatics, linguistics, symbolism, and sacred geometry.",

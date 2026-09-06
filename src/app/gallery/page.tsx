@@ -4,6 +4,7 @@ import PageBackground from "@/components/scenes/PageBackground";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/gallery" },
   title: "Gallery",
   description:
     "Browse the complete collection of Universal Transmissions artwork — sacred geometry, symbolic prints, and visual transmissions.",

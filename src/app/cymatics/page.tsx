@@ -5,6 +5,7 @@ import PageBackground from "@/components/scenes/PageBackground";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/cymatics" },
   title: "Cymatics — Universal Transmissions",
   description:
     "The science of visible sound and vibration. Hakan Hisim uses a Tonoscope Cymatic Generator to capture and portray frequencies within each artwork.",

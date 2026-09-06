@@ -8,6 +8,7 @@ import PageBackground from "@/components/scenes/PageBackground";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/gallery/bio-energetic-vortexes" },
   title: "Bio-Energetic Vortexes",
   description:
     "Seven visualizations of the human energy system — from Root to Crown — as perceived through hyper-dimensional vision.",

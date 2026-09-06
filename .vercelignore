@@ -1,11 +1,8 @@
-.git
 node_modules
 .next
 .next-build
-out
-dist
-*.log
-*.tsbuildinfo
+.git
 .env*
-screenshots
-browser-profile
+*.log
+*.tgz
+*.zip
