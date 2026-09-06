@@ -227,7 +227,7 @@ export default function JournalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {paginatedPosts.map((post, i) => (
               <SectionReveal key={post.slug} delay={i * 0.04}>
-                <PostCard post={post} heroImage={HERO_IMAGES[post.slug]} />
+                <PostCard post={post} heroImage={post.heroImage || HERO_IMAGES[post.slug]} />
               </SectionReveal>
             ))}
           </div>
@@ -311,7 +311,7 @@ function PostCard({ post, heroImage }: { post: (typeof blogPosts)[0]; heroImage?
   return (
     <Link href={`/journal/${post.slug}`} className="ut-card block overflow-hidden group" style={{ padding: 0 }}>
       {/* Hero image or gradient band */}
-      <div className="h-40 relative overflow-hidden">
+      <div className="aspect-video relative overflow-hidden">
         {heroImage && !imgError ? (
           <Image
             src={heroImage}
