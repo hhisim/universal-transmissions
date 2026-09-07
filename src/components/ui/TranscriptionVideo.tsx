@@ -10,7 +10,7 @@ interface Props {
 export default function TranscriptionVideo({ videoId, title }: Props) {
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const [thumbnailQuality, setThumbnailQuality] = useState<"maxresdefault" | "hqdefault">("maxresdefault");
+  const [thumbnailQuality, setThumbnailQuality] = useState<"maxresdefault" | "hqdefault">("hqdefault");
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
