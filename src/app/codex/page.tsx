@@ -9,9 +9,9 @@ import RotatingMerkaba from "@/components/three/RotatingMerkaba";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/codex" },
-  title: "The Codex — Universal Transmissions",
+  title: "The Codex",
   description:
-    "The Universal Transmissions Codex — 150 pages of symbolic art, sacred geometry, and visionary experience. A book unlike any other. Available in physical and digital editions.",
+    "The Universal Transmissions Codex: 150 pages of symbolic art, sacred geometry, and visionary experience, available in physical and digital editions.",
 };
 
 // Video data extracted from YouTube playlist: https://www.youtube.com/playlist?list=PLCWmbE92exfkQgYC4phTXoRKyJ-ACXVem

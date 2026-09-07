@@ -10,10 +10,11 @@ interface Props {
 export default function TranscriptionVideo({ videoId, title }: Props) {
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [thumbnailQuality, setThumbnailQuality] = useState<"maxresdefault" | "hqdefault">("maxresdefault");
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/${thumbnailQuality}.jpg`;
 
   const toggleSound = () => {
     if (!playing) {
@@ -145,6 +146,9 @@ export default function TranscriptionVideo({ videoId, title }: Props) {
             <img
               src={thumbnailUrl}
               alt={title}
+              onError={() => {
+                if (thumbnailQuality === "maxresdefault") setThumbnailQuality("hqdefault");
+              }}
               style={{
                 position: "absolute",
                 inset: 0,

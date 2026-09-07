@@ -9,7 +9,7 @@ export function absoluteUrl(pathOrUrl: string): string {
   return new URL(pathOrUrl, SITE_URL).toString();
 }
 
-export function seoTitle(value: string, maxLength = 40): string {
+export function seoTitle(value: string, maxLength = 34): string {
   const clean = value.replace(/\s+/g, " ").trim();
   if (clean.length <= maxLength) return clean;
   const cut = clean.slice(0, maxLength - 1).replace(/\s+[^\s]*$/, "").trim();

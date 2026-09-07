@@ -48,6 +48,9 @@ yarn-error.log*
 
 # Credentials and secrets
 *secret*
+!public/journal/voa-20260830/
+!public/journal/voa-20260830/rosicrucian-manifestos-public-secret-reformation/
+!public/journal/voa-20260830/rosicrucian-manifestos-public-secret-reformation/*.png
 *password*
 *.pem
 *.key

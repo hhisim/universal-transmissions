@@ -6,9 +6,10 @@ import remarkGfm from "remark-gfm";
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  fallbackAlt?: string;
 }
 
-export default function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
+export default function MarkdownRenderer({ content, className = "", fallbackAlt }: MarkdownRendererProps) {
   return (
     <div className={`markdown-body ${className}`}>
       <ReactMarkdown
@@ -135,6 +136,9 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
                 background: "linear-gradient(to right, transparent, rgba(0,229,255,0.2), rgba(217,70,239,0.2), transparent)",
               }}
             />
+          ),
+          img: ({ alt, ...props }) => (
+            <img {...props} alt={alt?.trim() || fallbackAlt || "Journal image"} />
           ),
           a: ({ href, children }) => (
             <a

@@ -89,7 +89,7 @@ function stripLeadingMarkdownTitle(content: string): string {
   return content.replace(/^\s*#\s+[^\n]+(?:\r?\n)+/, "");
 }
 
-function ProcessedContent({ content }: { content: string }) {
+function ProcessedContent({ content, fallbackAlt }: { content: string; fallbackAlt: string }) {
   const contentWithoutTitle = stripLeadingMarkdownTitle(content);
   // Split content by YouTube URLs and render embeds
   const YOUTUBE_REGEX = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]+[^\n]*/gi;
@@ -120,7 +120,7 @@ function ProcessedContent({ content }: { content: string }) {
   }
 
   if (parts.length === 0) {
-    return <MarkdownRenderer content={contentWithoutTitle} />
+    return <MarkdownRenderer content={contentWithoutTitle} fallbackAlt={fallbackAlt} />
     ;
   }
 
@@ -132,7 +132,7 @@ function ProcessedContent({ content }: { content: string }) {
             <YouTubeEmbed url={part.value} />
           </div>
         ) : (
-          <MarkdownRenderer key={i} content={part.value} />
+          <MarkdownRenderer key={i} content={part.value} fallbackAlt={fallbackAlt} />
 
                 )
       )}
@@ -221,7 +221,7 @@ export default function PostClient({ slug }: { slug: string }) {
             <div className="absolute inset-0">
               <Image
                 src={heroImage}
-                alt=""
+                alt={post.title}
                 fill
                 unoptimized={true}
                 className="object-cover object-center"
@@ -342,7 +342,7 @@ export default function PostClient({ slug }: { slug: string }) {
 
               {/* Full content (with YouTube embeds) */}
               <SectionReveal delay={0.1}>
-                <ProcessedContent content={post.content} />
+                <ProcessedContent content={post.content} fallbackAlt={post.title} />
               </SectionReveal>
 
               {/* Share */}
