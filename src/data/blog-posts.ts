@@ -97,6 +97,7 @@ import walter_russell_universal_one_raw from "./blog-content/2026-08-28/walter-r
 import rosicrucian_manifestos_public_secret_reformation_raw from "./blog-content/2026-08-30/rosicrucian-manifestos-public-secret-reformation.md";
 import taoist_microcosmic_orbit_inner_alchemy_raw from "./blog-content/2026-09-01/taoist-microcosmic-orbit-inner-alchemy.md";
 import egyptian_book_of_the_dead_heart_scale_maat_raw from "./blog-content/2026-09-05/egyptian-book-of-the-dead-heart-scale-maat.md";
+import the_star_and_the_uncarved_block_raw from "./blog-content/2026-09-07/the-star-and-the-uncarved-block.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -132,6 +133,19 @@ export const blogPosts: BlogPost[] = [
     tags: ["egyptian-book-of-the-dead", "maat", "weighing-of-the-heart", "ancient-egypt", "funerary-texts", "papyrus-of-ani", "spell-125", "heart-scarabs", "osiris", "thoth", "kemetic-studies", "esoteric-history"],
     tradition: "kemet",
     content: stripFrontmatter(egyptian_book_of_the_dead_heart_scale_maat_raw),
+  },
+  {
+    slug: "the-star-and-the-uncarved-block",
+    heroImage: "/journal/voa-20260907/the-star-and-the-uncarved-block/cover.png",
+    title: "The Star and the Uncarved Block",
+    publishedAt: "2026-09-07",
+    author: "Prime + Hakan",
+    excerpt: "Crowley's True Will and Lao Tzu's wu wei look like opposite disciplines: one finds the star's exact orbit, the other returns to the uncarved block. Taken seriously, both warn against confusing a borrowed objective with a life that knows its own shape.",
+    readTime: "22 min",
+    hero_gradient: "from-violet-950 via-purple-950 to-black",
+    tags: ["thelema", "taoism", "true-will", "wu-wei", "aleister-crowley", "lao-tzu", "tao-te-ching", "ai-alignment", "artificial-agency", "esoteric-history"],
+    tradition: "thelema-taoism",
+    content: stripFrontmatter(the_star_and_the_uncarved_block_raw),
   },
   {
     slug: "rosicrucian-manifestos-public-secret-reformation",

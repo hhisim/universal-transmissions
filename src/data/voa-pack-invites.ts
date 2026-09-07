@@ -431,6 +431,24 @@ export const VOA_PACK_INVITES_BY_SLUG: Record<string, VoaPackInvite> = {
       },
     ],
   },
+
+  "the-star-and-the-uncarved-block": {
+    eyebrow: "ENTER THE WILL / WU WEI ARCHIVE",
+    body: "Continue the comparison through the primary Crowley material and the Taoist inner-alchemy shelf behind this essay — True Will, wu wei, dream practice, and the texts that make both disciplines more exacting.",
+    cta: "OPEN THE SOURCE ARCHIVES →",
+    packs: [
+      {
+        sku: "etsy-4311224586",
+        title: "Thelema Mega Pack",
+        price: "$9.99",
+      },
+      {
+        sku: "etsy-4543082389",
+        title: "Taoist Inner Alchemy & Dream Practice Archive",
+        price: "$10.99",
+      },
+    ],
+  },
 };
 
 // Resolve a slug → invite, with a safe fallback to null.
