@@ -98,6 +98,7 @@ import rosicrucian_manifestos_public_secret_reformation_raw from "./blog-content
 import taoist_microcosmic_orbit_inner_alchemy_raw from "./blog-content/2026-09-01/taoist-microcosmic-orbit-inner-alchemy.md";
 import egyptian_book_of_the_dead_heart_scale_maat_raw from "./blog-content/2026-09-05/egyptian-book-of-the-dead-heart-scale-maat.md";
 import the_star_and_the_uncarved_block_raw from "./blog-content/2026-09-07/the-star-and-the-uncarved-block.md";
+import hermetic_crater_raw from "./blog-content/2026-09-08/hermetic-crater-cup-of-mind.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -146,6 +147,19 @@ export const blogPosts: BlogPost[] = [
     tags: ["thelema", "taoism", "true-will", "wu-wei", "aleister-crowley", "lao-tzu", "tao-te-ching", "ai-alignment", "artificial-agency", "esoteric-history"],
     tradition: "thelema-taoism",
     content: stripFrontmatter(the_star_and_the_uncarved_block_raw),
+  },
+  {
+    slug: "hermetic-crater-cup-of-mind",
+    heroImage: "/journal/voa-20260908/hermetic-crater-cup-of-mind/cover.png",
+    title: "The Hermetic Crater: The Cup of Mind and the Discipline of Receiving",
+    publishedAt: "2026-09-08",
+    author: "Prime + Hakan",
+    excerpt: "The Hermetic crater is not a container of secret information. In Corpus Hermeticum IV, Mind is placed between souls in a mixing-bowl: a vessel that asks the receiver to enter, change proportion, and return with a form of life rather than another fact.",
+    readTime: "20 min",
+    hero_gradient: "from-cyan-950 via-amber-950 to-black",
+    tags: ["hermeticism", "corpus-hermeticum", "crater", "krater", "nous", "gnosis", "hermes-trismegistus", "attention", "receiving", "inner-transformation", "esoteric-history"],
+    tradition: "hermetics",
+    content: stripFrontmatter(hermetic_crater_raw),
   },
   {
     slug: "rosicrucian-manifestos-public-secret-reformation",

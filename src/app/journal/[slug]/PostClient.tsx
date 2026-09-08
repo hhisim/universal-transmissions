@@ -58,6 +58,12 @@ const VAULT_INVITES_BY_SLUG: Record<string, VaultInvite> = {
     href: 'https://vaultofarcana.com/correspondence-engine',
     cta: 'OPEN THE CODEX →',
   },
+  'hermetic-crater-cup-of-mind': {
+    eyebrow: 'READ THE VAULT EDITION',
+    body: 'Carry this transmission into the Vault of Arcana edition for the longer textual reading of Corpus Hermeticum IV, its crater, and the question of receiving Mind.',
+    href: 'https://www.vaultofarcana.com/blog/hermetic-crater-cup-of-mind',
+    cta: 'OPEN THE VAULT EDITION →',
+  },
 };
 
 // ─── YouTube embed component ───────────────────────────────────────────────────

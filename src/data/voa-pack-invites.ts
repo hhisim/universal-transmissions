@@ -449,6 +449,24 @@ export const VOA_PACK_INVITES_BY_SLUG: Record<string, VoaPackInvite> = {
       },
     ],
   },
+
+  "hermetic-crater-cup-of-mind": {
+    eyebrow: "ENTER THE HERMETIC SOURCE ARCHIVE",
+    body: "Continue the crater study through a broader shelf of Hermetic and alchemical source material — manuscripts, emblems, Great Work studies, and the texts that let a symbol become a practice.",
+    cta: "OPEN THE HERMETIC ARCHIVE →",
+    packs: [
+      {
+        sku: "etsy-4543073329",
+        title: "Hermetic Alchemy Master Archive — 1,701 Files",
+        price: "$11.99",
+      },
+      {
+        sku: "etsy-1890769318",
+        title: "Grimoire & Occult eBook Archive — 13GB",
+        price: "$29.99",
+      },
+    ],
+  },
 };
 
 // Resolve a slug → invite, with a safe fallback to null.
