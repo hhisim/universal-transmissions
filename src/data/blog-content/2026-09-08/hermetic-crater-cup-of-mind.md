@@ -42,6 +42,8 @@ A good reading does not choose whichever word best confirms a prior worldview. I
 
 ## The *kratēr* is a technology of proportion
 
+![Entering the vessel: the seeker crosses the rim of the Hermetic mixing-bowl](/journal/voa-20260908/hermetic-crater-cup-of-mind/enter-vessel.png)
+
 A [krater](https://www.britannica.com/art/krater) was an ancient Greek vessel used for diluting wine with water. It was broad, stable, and made for mixing before the drink was distributed. It belonged to a social setting in which the strength of the wine was not an incidental detail. The mixture had to be prepared.
 
 The material context does not prove that the Hermetic dialogue records a literal symposium or an institution that performed a crater baptism. It gives the metaphor a physical intelligence. The thing in the scene is not just a precious container. It is an instrument that changes a relation.
@@ -87,6 +89,8 @@ The difference is visible in any serious practice. A person can collect referenc
 The archive is the rim. Practice is the immersion.
 
 ## The herald’s call is a readiness test
+
+![Proportion: the vessel changes the relation among its elements](/journal/voa-20260908/hermetic-crater-cup-of-mind/proportion.png)
 
 The text does not give us a securely identifiable historical office for the herald. It gives us a voice that carries a proclamation to the hearts of human beings. That is enough for the image to work, but not enough to invent an ancient organization around it.
 
@@ -184,6 +188,8 @@ These are questions of alignment in the plainest sense. They apply to an artist,
 The ancient image is not valuable because it gives us a mystical name for a modern technology. It is valuable because it distinguishes output from understanding. Speech can be abundant. Mind is the proportion that makes speech answerable to purpose.
 
 ## A reading method for a difficult text
+
+![Return with form: what is received becomes visible in action](/journal/voa-20260908/hermetic-crater-cup-of-mind/return-with-form.png)
 
 If you want to work with *Corpus Hermeticum* IV without flattening it, keep four boundaries visible.
 
