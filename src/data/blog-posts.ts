@@ -99,6 +99,7 @@ import taoist_microcosmic_orbit_inner_alchemy_raw from "./blog-content/2026-09-0
 import egyptian_book_of_the_dead_heart_scale_maat_raw from "./blog-content/2026-09-05/egyptian-book-of-the-dead-heart-scale-maat.md";
 import the_star_and_the_uncarved_block_raw from "./blog-content/2026-09-07/the-star-and-the-uncarved-block.md";
 import hermetic_crater_raw from "./blog-content/2026-09-08/hermetic-crater-cup-of-mind.md";
+import law_of_one_ethics_of_relation_raw from "./blog-content/2026-09-10/law-of-one-ethics-of-relation.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -160,6 +161,19 @@ export const blogPosts: BlogPost[] = [
     tags: ["hermeticism", "corpus-hermeticum", "crater", "krater", "nous", "gnosis", "hermes-trismegistus", "attention", "receiving", "inner-transformation", "esoteric-history"],
     tradition: "hermetics",
     content: stripFrontmatter(hermetic_crater_raw),
+  },
+  {
+    slug: "law-of-one-ethics-of-relation",
+    heroImage: "/journal/voa-20260910/law-of-one-ethics-of-relation/cover.png",
+    title: "The Law of One: When Cosmic Unity Becomes an Ethics of Relation",
+    publishedAt: "2026-09-11",
+    author: "Prime + Hakan",
+    excerpt: "The Law of One is usually shelved as UFO lore. Read closely, the Ra sessions make unity a discipline of relation: free will that refuses coercion, service measured by how difference is treated, and distortion accepted as the condition of every claim.",
+    readTime: "18 min",
+    hero_gradient: "from-indigo-950 via-slate-900 to-black",
+    tags: ["law-of-one", "ra-contact", "ll-research", "free-will", "polarity", "service-to-others", "service-to-self", "distortion", "choice", "channeling", "ethics", "unity", "esoteric-history"],
+    tradition: "philosophy",
+    content: stripFrontmatter(law_of_one_ethics_of_relation_raw),
   },
   {
     slug: "rosicrucian-manifestos-public-secret-reformation",
