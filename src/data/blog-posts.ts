@@ -100,6 +100,7 @@ import egyptian_book_of_the_dead_heart_scale_maat_raw from "./blog-content/2026-
 import the_star_and_the_uncarved_block_raw from "./blog-content/2026-09-07/the-star-and-the-uncarved-block.md";
 import hermetic_crater_raw from "./blog-content/2026-09-08/hermetic-crater-cup-of-mind.md";
 import law_of_one_ethics_of_relation_raw from "./blog-content/2026-09-10/law-of-one-ethics-of-relation.md";
+import fasting_of_the_heart_zhuangzi_attention_raw from "./blog-content/2026-09-22/fasting-of-the-heart-zhuangzi-attention.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -110,6 +111,19 @@ function stripFrontmatter(raw: string): string {
 // === Registry =======================================================================
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "fasting-of-the-heart-zhuangzi-attention",
+    heroImage: "/journal/voa-20260922/fasting-of-the-heart-zhuangzi-attention/cover.png",
+    title: "The Fasting of the Heart: Zhuangzi's Attention Practice for an Overloaded Age",
+    publishedAt: "2026-09-22",
+    author: "Prime + Hakan",
+    excerpt: "Zhuangzi's fasting of the heart is not a demand to stop thinking. It is a discipline of loosening the self's first grip on experience so perception can meet the world before it turns everything into a verdict.",
+    readTime: "19 min",
+    hero_gradient: "from-teal-950 via-slate-950 to-black",
+    tags: ["zhuangzi", "fasting-of-the-heart", "xinzhai", "sitting-and-forgetting", "daoism", "taoism", "attention", "embodied-practice", "meditation", "studio-practice", "esoteric-history"],
+    tradition: "taoism",
+    content: stripFrontmatter(fasting_of_the_heart_zhuangzi_attention_raw),
+  },
   {
     slug: "taoist-microcosmic-orbit-inner-alchemy",
     heroImage: "/journal/voa-20260901/taoist-microcosmic-orbit-inner-alchemy/cover.png",
