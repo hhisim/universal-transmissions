@@ -40,11 +40,13 @@ export default function HomeVideo() {
     <div className="video-wrapper">
       <video
         ref={videoRef}
-        src="https://res.cloudinary.com/dvkxsh4ve/video/upload/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.mp4"
+        src="https://res.cloudinary.com/dvkxsh4ve/video/upload/w_640,q_auto:eco,f_mp4,vc_h264/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.mp4"
+        poster="https://res.cloudinary.com/dvkxsh4ve/video/upload/so_0,w_640,q_auto:eco,f_jpg/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.jpg"
         autoPlay
         muted
         loop
         playsInline
+        preload="metadata"
         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         onClick={togglePlay}
       />
