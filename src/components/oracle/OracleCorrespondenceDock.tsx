@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { codex, type CodexEntry } from "@/lib/codex-data";
+import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
 import { ontology } from "@/lib/ontology-data";
 import { buildSynthesis, findEntanglements, selectSignalStack } from "@/codex/chamber-text";
 import { cleanDisplayValue } from "@/codex/speech-normalize";
@@ -21,7 +22,9 @@ type Props = {
   status: string;
   lastOracleText?: string;
   onSeedOracle(prompt: string): void;
-  onAskOracle(prompt: string): void;
+  /** Ask the Oracle about a node. The second argument is the selected
+      entry's STABLE IDENTIFIER only — the server resolves the record. */
+  onAskOracle(prompt: string, entryId?: string): void;
   onSetMode(mode: string): void;
   children?: ReactNode;
 };
@@ -223,7 +226,10 @@ export default function OracleCorrespondenceDock({
 
   const askEntry = (entry: CodexEntry) => {
     onSetMode("correspondence");
-    onAskOracle(`Use the shared COR CODEX data model to read ${entryName(entry)}. Give the strongest correspondences, a human meaning, and one chamber path from this node.`);
+    onAskOracle(
+      `Use the shared COR CODEX data model to read ${entryName(entry)}. Give the strongest correspondences, a human meaning, and one chamber path from this node.`,
+      correspondenceEntryId(entry)
+    );
   };
 
   const seedEntry = (entry: CodexEntry) => {

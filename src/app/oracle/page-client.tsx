@@ -11,6 +11,8 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import OracleCorrespondenceDock from "@/components/oracle/OracleCorrespondenceDock";
 import { buildOracleCodexContext, codexRowCount } from "@/codex/oracle-context";
 import { artworks } from "@/data/artworks";
+import { buildHistoryFromMessages } from "@/lib/oracle-conversation";
+import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
 
 const CosmicBackground = dynamic(() => import("@/components/oracle/CosmicBackground"), { ssr: false });
 
@@ -97,6 +99,8 @@ const T: Record<string, Record<string, string>> = {
     receiving: "RECEIVING TRANSMISSION", deepProc: "DEEP PROCESSING",
     engine: "Engine", fast: "FAST", deep: "DEEP", language: "Language", voice: "Voice", female: "FEMALE", male: "MALE",
     clear: "CLEAR",
+    newConversation: "NEW CONVERSATION",
+    remembering: "REMEMBERING {n} TURNS",
     goDeeper: "Go Deeper", goDesc: "The Codex Oracle is one gateway. Vault of Arcana holds six living traditions — Tao, Tarot, Tantra, Entheogens, Dreamwalker, and the Codex — with more awakening.",
     enterVault: "Enter the Vault", getBook: "Get the Book",
     guestLimit: "Guest · {n}/10 today", freeLimit: "Free · {n}/25 today", initiateActive: "Initiate · Unlimited",
@@ -116,6 +120,8 @@ const T: Record<string, Record<string, string>> = {
     receiving: "İLETİM ALINIYOR", deepProc: "DERİN İŞLEM",
     engine: "Motor", fast: "HIZLI", deep: "DERİN", language: "Dil", voice: "Ses", female: "KADIN", male: "ERKEK",
     clear: "TEMİZLE",
+    newConversation: "YENİ SOHBET",
+    remembering: "{n} TURLUK HATIRLANIYOR",
     goDeeper: "Daha Derine", goDesc: "Kodeks Kehaneti tek bir kapıdır. Vault of Arcana altı canlı geleneği barındırır.",
     enterVault: "Kasaya Gir", getBook: "Kitabı Al",
     guestLimit: "Misafir · {n}/10 bugün", freeLimit: "Ücretsiz · {n}/25 bugün", initiateActive: "Mürit · Sınırsız",
@@ -135,6 +141,8 @@ const T: Record<string, Record<string, string>> = {
     receiving: "ПРИЁМ ПЕРЕДАЧИ", deepProc: "ГЛУБОКАЯ ОБРАБОТКА",
     engine: "Движок", fast: "БЫСТРО", deep: "ГЛУБОКО", language: "Язык", voice: "Голос", female: "ЖЕНСКИЙ", male: "МУЖСКОЙ",
     clear: "ОЧИСТИТЬ",
+    newConversation: "НОВЫЙ ДИАЛОГ",
+    remembering: "ПОМНЮ {n} ОБМЕНОВ",
     goDeeper: "Глубже", goDesc: "Оракул Кодекса — лишь одни врата.",
     enterVault: "Войти", getBook: "Книгу",
     guestLimit: "Гость · {n}/10", freeLimit: "Бесплатно · {n}/25", initiateActive: "Посвящённый · ∞",
@@ -559,7 +567,23 @@ function AudioPlayer({ src, color }: { src: string; color: string }) {
 /* ═══════════════════════════════════════════════════════════
    CHAT BUBBLE — with decrypt animation + output mode support
    ═══════════════════════════════════════════════════════════ */
+/* ── Batch 2: server-resolved evidence + honest memory state ──────────────
+   Everything here comes from the server response. The client never invents
+   a source, an identifier or a citation. */
+interface OracleEvidenceField { label: string; value: string; }
+interface OracleEvidence {
+  entityId: string;
+  entityType: string;
+  title: string;
+  system: string;
+  sourceType: string;
+  fields: OracleEvidenceField[];
+  action: { label: string; href: string } | null;
+}
+interface OracleMemoryState { turns: number; retained: number; dropped: number; }
+
 interface Msg {
+
   role: "user" | "oracle";
   text: string;
   mode?: string;
@@ -569,6 +593,45 @@ interface Msg {
   entityId?: string;
   /** Ids of in-flight speech requests; used to cancel stale audio. */
   ttsPending?: boolean;
+  /** Server-resolved evidence for the selected entry, if one was resolved. */
+  evidence?: OracleEvidence;
+}
+
+/* ── Batch 2: compact evidence display ─────────────────────────────────────
+   Renders ONLY what the server resolved: a verified identifier, a readable
+   title, the source type, and the fields genuinely present on that record.
+   Nothing here is inferred from the model's prose. Declared as a real landmark
+   with an accessible name so it is reachable, not just visible. */
+function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
+  return (
+    <section
+      className="oracle-evidence"
+      aria-label="Source evidence for this answer"
+      data-entity-id={evidence.entityId}
+    >
+      <header className="oracle-evidence-head">
+        <span className="oracle-evidence-kind">{evidence.sourceType}</span>
+        <strong className="oracle-evidence-title">{evidence.title}</strong>
+        <span className="oracle-evidence-system">{evidence.system}</span>
+      </header>
+      <dl className="oracle-evidence-fields">
+        {evidence.fields.map((f, i) => (
+          <div className="oracle-evidence-field" key={`${f.label}-${i}`}>
+            <dt>{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <footer className="oracle-evidence-foot">
+        <code className="oracle-evidence-id">{evidence.entityId}</code>
+        {evidence.action ? (
+          <a className="oracle-evidence-action" href={evidence.action.href}>
+            {evidence.action.label}
+          </a>
+        ) : null}
+      </footer>
+    </section>
+  );
 }
 
 function ChatBubble({
@@ -663,7 +726,8 @@ function ChatBubble({
               {/* Readable text is ALWAYS rendered immediately and in full.
                   The decode effect is decorative and off by default (audit D);
                   it never gates or replaces the answer. */}
-              <div className="oracle-answer-readable">
+              {msg.evidence ? <EvidencePanel evidence={msg.evidence} /> : null}
+            <div className="oracle-answer-readable">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
               </div>
               {decodedOverlay && (
@@ -768,6 +832,12 @@ export default function OraclePage() {
   const [voiceOn, setVoiceOn] = useState(true);
   const [voiceGender, setVoiceGender] = useState<"f" | "m">("f");
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  // The entry the visitor explicitly selected in the Correspondence dock. Sent
+  // as a stable identifier only; the server resolves the record itself.
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  // Honest, non-sensitive counters for the last turn.
+  const [memory, setMemory] = useState<OracleMemoryState | null>(null);
+  const [entityNotice, setEntityNotice] = useState<string | null>(null);
   // The artwork entry question arrives as ?q=. It becomes an EDITABLE draft so
   // the visitor confirms it; it is deliberately NOT auto-submitted, because a
   // submitted question consumes a guest-tier question.
@@ -939,7 +1009,11 @@ export default function OraclePage() {
           lang,
           speed,
           artworkId: artworkContext?.id,
-          artworkTitle: artworkContext?.title,
+          // Completed previous turns only. The server appends the current
+          // question, so it is never duplicated by also sending it here.
+          history: buildHistoryFromMessages(msgs, m),
+          entityId: selectedEntryId ?? undefined,
+          entityType: selectedEntryId ? "correspondence_entry" : undefined,
         }),
         signal: reqController.signal,
       });
@@ -962,9 +1036,17 @@ export default function OraclePage() {
         outputMode,
         entityId: artworkContext?.id,
         ttsPending: voiceOn && Boolean(answer),
+        evidence: (data.evidence as OracleEvidence) || undefined,
       };
       setMsgs((p) => [...p, bubble]);
       setQuestionsUsed((q) => q + 1);
+      // Honest counters only — never transcript content.
+      setMemory((data.conversation as OracleMemoryState) || null);
+      setEntityNotice(
+        data.entityStatus && data.entityStatus !== "resolved" && data.entityStatus !== "absent"
+          ? `The selected entry is unavailable (${String(data.entityStatus)}).`
+          : null
+      );
 
       if (voiceOn && answer) {
         fetchTTS(answer).then((audioUrl) => {
@@ -1004,7 +1086,7 @@ export default function OraclePage() {
     }
   }, [
     input, mode, lang, speed, loading, atLimit, fetchTTS, outputMode, voiceOn,
-    artworkContext, cancelPendingSpeech,
+    artworkContext, cancelPendingSpeech, msgs, selectedEntryId,
   ]);
 
   const lastOracleText = useMemo(() => {
@@ -1019,12 +1101,19 @@ export default function OraclePage() {
     setInput(prompt);
   }, []);
 
-  const askOracleFromDock = useCallback((prompt: string) => {
-    setMode("correspondence");
-    send(prompt, "correspondence");
-  }, [send]);
+  const askOracleFromDock = useCallback(
+    (prompt: string, entryId?: string) => {
+      setMode("correspondence");
+      // Selecting an entry makes the new anchor explicit; the previously
+      // selected entity is replaced, never silently retained.
+      if (entryId) setSelectedEntryId(entryId);
+      send(prompt, "correspondence");
+    },
+    [send]
+  );
 
   const decodeName = () => {
+
     if (!nameInput.trim()) return;
     const name = nameInput.trim().toUpperCase();
     setMode("etymology");
@@ -1034,6 +1123,26 @@ export default function OraclePage() {
     );
     setNameInput("");
   };
+
+  /* ── New conversation ───────────────────────────────────────────────────
+───────────────────────────────────────────────────
+     Clears the transcript so previous turns are no longer sent, cancels any
+     in-flight work and stops speech. Membership and the visitor's question
+     quota are untouched. */
+  const startNewConversation = useCallback(() => {
+    reqAbortRef.current?.abort();
+    speechAbortRef.current?.abort();
+    cancelPendingSpeech();
+    window.speechSynthesis?.cancel();
+    setMsgs((p) => {
+      for (const m of p) if (m.audioUrl) URL.revokeObjectURL(m.audioUrl);
+      return [];
+    });
+    setMemory(null);
+    setEntityNotice(null);
+    setStatusKey("idle");
+    setLoading(false);
+  }, [cancelPendingSpeech]);
 
   const kd = (e: React.KeyboardEvent) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 
@@ -1418,8 +1527,29 @@ export default function OraclePage() {
               {tier === "initiate" ? t.initiateActive : tier === "free" ? t.freeLimit.replace("{n}", String(questionsUsed)) : t.guestLimit.replace("{n}", String(questionsUsed))}
             </span>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
-            <button onClick={() => setMsgs([])} className="font-mono text-[8px] tracking-widest uppercase px-3 py-1.5 border transition-all hover:border-[rgba(255,255,255,0.15)]"
-              style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint, rgba(237,233,246,0.25))" }}>{t.clear}</button>
+            {/* Honest memory state — counts only, never transcript content. */}
+            {memory && memory.turns > 0 ? (
+              <span
+                className="font-mono text-[8px] tracking-widest uppercase"
+                style={{ color: "rgba(237,233,246,0.3)" }}
+              >{t.remembering.replace("{n}", String(memory.retained))}</span>
+            ) : null}
+            {entityNotice ? (
+              <span
+                className="font-mono text-[8px] tracking-widest uppercase"
+                style={{ color: "#f59e0b" }}
+              >{entityNotice}</span>
+            ) : null}
+            <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
+            {/* Batch 2: an explicit New-conversation action. It resets conversational
+                state only — membership and the question quota are untouched. */}
+            <button
+              onClick={startNewConversation}
+              disabled={msgs.length === 0 && !loading}
+              aria-label={t.newConversation}
+              className="font-mono text-[8px] tracking-widest uppercase px-3 py-1.5 border transition-all hover:border-[rgba(255,255,255,0.15)] disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint, rgba(237,233,246,0.25))" }}
+            >{t.newConversation}</button>
           </div>
 
           {/* Shell info line */}
@@ -1545,6 +1675,89 @@ export default function OraclePage() {
         }
 
         /* Oracle animations */
+        /* Batch 2 evidence panel — compact, high-contrast, never dominant. */
+        .oracle-evidence {
+          margin: 0 0 12px;
+          padding: 10px 12px;
+          border: 1px solid rgba(139, 92, 246, 0.22);
+          border-left-width: 2px;
+          border-radius: 10px;
+          background: rgba(139, 92, 246, 0.05);
+          display: grid;
+          gap: 8px;
+        }
+        .oracle-evidence-head {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          gap: 8px;
+        }
+        .oracle-evidence-kind {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: rgba(167, 139, 250, 0.85);
+          border: 1px solid rgba(167, 139, 250, 0.3);
+          border-radius: 999px;
+          padding: 2px 7px;
+        }
+        .oracle-evidence-title {
+          font-family: 'Cinzel', serif;
+          font-size: 14px;
+          color: var(--ut-white, #ede9f6);
+        }
+        .oracle-evidence-system {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ut-white-faint, rgba(237, 233, 246, 0.4));
+        }
+        .oracle-evidence-fields {
+          margin: 0;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+          gap: 6px;
+        }
+        .oracle-evidence-field { display: grid; gap: 1px; min-width: 0; }
+        .oracle-evidence-field dt {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 7px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(237, 233, 246, 0.34);
+        }
+        .oracle-evidence-field dd {
+          margin: 0;
+          font-size: 11px;
+          line-height: 1.45;
+          color: rgba(237, 233, 246, 0.72);
+          overflow-wrap: anywhere;
+        }
+        .oracle-evidence-foot {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .oracle-evidence-id {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 7px;
+          letter-spacing: 0.08em;
+          color: rgba(237, 233, 246, 0.26);
+          overflow-wrap: anywhere;
+        }
+        .oracle-evidence-action {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(34, 211, 238, 0.85);
+          text-decoration: underline;
+        }
+        .oracle-evidence-action:hover { color: #f0c75e; }
         @keyframes oracleP {
           0%, 100% { opacity: 0.25; transform: scale(0.8); }
           50% { opacity: 0.9; transform: scale(1.2); }

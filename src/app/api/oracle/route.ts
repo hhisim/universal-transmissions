@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server';
 import { artworks } from '@/data/artworks';
+import {
+  buildHistoryFromMessages,
+  composeGroundedMessage,
+  extractPageReference,
+  MAX_QUESTION_CHARS,
+  pageReferenceGuidance,
+  stripUnverifiedCitations,
+  validateHistory,
+  type HistoryMessage,
+} from '@/lib/oracle-conversation';
+import { resolveOracleEntity, type ResolvedEntry } from '@/lib/oracle-entry-resolver';
 
 const BACKEND_URL = process.env.ORACLE_BACKEND_URL || 'http://204.168.154.237:8001';
 
@@ -21,39 +32,121 @@ function resolveArtwork(rawId: unknown) {
   };
 }
 
+type Timing = { stage: string; ms: number };
+
+function msSince(start: number): number {
+  return Math.round(performance.now() - start);
+}
+
 export async function POST(req: Request) {
+  /* Stage timings carry stage names and durations only. No prompt, answer or
+     transcript content is ever logged. Timings are returned for measurement and
+     are safe to show. */
+  const timings: Timing[] = [];
+  let stageStart = performance.now();
+
   try {
     const body = await req.json();
-    const { message, mode, lang, speed } = body;
+    const { message, mode, lang, speed, history, entityId, entityType } = body;
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'No message provided' }, { status: 400 });
     }
 
-    // Bound the question and the grounded block. A question is a short prompt,
-    // not a content field; oversized input is rejected rather than forwarded.
-    const MAX_QUESTION_CHARS = 2000;
-    const MAX_GROUNDED_CHARS = 6000;
+    // Bound the question. A question is a short prompt, not a content field;
+    // oversized input is rejected rather than forwarded.
     if (message.trim().length > MAX_QUESTION_CHARS) {
       return NextResponse.json({ error: 'Question is too long' }, { status: 413 });
     }
 
+    const question = message.trim();
+
+    /* ── Bounded conversational memory ────────────────────────────────────────
+       History is validated server-side: only conversational roles survive, only
+       bounded messages are kept in chronological order, oversized messages are
+       dropped whole rather than cut into misleading fragments, and the current
+       question is guaranteed to appear exactly once. */
+    const validation = validateHistory(history, question);
+    if (!validation.ok) {
+      // Malformed/oversized history is refused predictably, never echoed.
+      console.warn('[oracle/api] history rejected:', validation.error, validation.stats);
+      const tooLong = validation.error === 'history is too long';
+      return NextResponse.json(
+        { error: tooLong ? 'Conversation history is too long.' : 'Invalid conversation history.' },
+        { status: tooLong ? 413 : 400 }
+      );
+    }
+    let conversation: HistoryMessage[] = validation.messages;
+
+    // A client may instead send its own message array (the standalone chat). It is
+    // normalised through the same shared builder and the same validator.
+    if (!conversation.length && Array.isArray(body?.messages)) {
+      conversation = buildHistoryFromMessages(body.messages, question);
+    }
+
+    /* ── Selected-entry resolution ─────────────────────────────────────────────
+       The client sends a stable identifier only. The record is resolved here
+       against the real corpus; client descriptions are never trusted. */
+    const resolution = resolveOracleEntity(entityType, entityId);
+
+    let entry: ResolvedEntry | null = null;
+    let entityNotice: string | null = null;
+
+    if (resolution.status === 'resolved') {
+      entry = resolution.entry;
+    } else if (resolution.status === 'ambiguous') {
+      entityNotice = `The selected entry is ambiguous: ${resolution.reason} ${resolution.candidates.join('; ')}. Ask the visitor which one they mean.`;
+    } else if (resolution.status === 'unknown') {
+      entityNotice = `The selected entry could not be resolved: ${resolution.reason} Answer from the general corpus and say plainly that the selected entry is unavailable.`;
+    }
+
+    /* ── Trusted grounding ─────────────────────────────────────────────────────
+       Only registry-verified artwork metadata and only the resolved entry record
+       are prepended. Unknown ids are ignored rather than echoed back, so URL or
+       payload text cannot pose as archive evidence. */
     const artwork = resolveArtwork(body?.artworkId);
-    // Only registry-verified metadata is prepended. An unknown id is ignored
-    // rather than echoed back, so URL text cannot pose as archive evidence.
-    const groundedMessage = artwork
-      ? [
+    const groundingParts: string[] = [];
+
+    if (artwork) {
+      groundingParts.push(
+        [
           `Artwork context (verified record ${artwork.id}):`,
           `Title: ${artwork.title}`,
           `Year: ${artwork.year}`,
           `Medium: ${artwork.medium}`,
           `Author description: ${artwork.description}`,
           `Tags: ${artwork.tags.join(', ')}`,
-          '',
-          `Question: ${message.trim()}`,
         ].join('\n')
-          .slice(0, MAX_GROUNDED_CHARS)
-      : message.trim().slice(0, MAX_QUESTION_CHARS);
+      );
+    }
+
+    if (entry) {
+      groundingParts.push(entry.promptBlock);
+    }
+
+    /* ── Codex page questions ──────────────────────────────────────────────────
+       Page-anchored retrieval only covers pages 1-200. When the visitor names a
+       page we state that bound honestly instead of letting another page or a
+       different book stand in for it. */
+    const pageRef = extractPageReference(question);
+    if (pageRef !== null) {
+      groundingParts.push(pageReferenceGuidance(pageRef));
+    }
+
+    if (entityNotice) {
+      groundingParts.push(entityNotice);
+    }
+
+    timings.push({ stage: 'context_validation', ms: msSince(stageStart) });
+    stageStart = performance.now();
+
+    // Transcript, then trusted grounding, then the current question LAST so it
+    // appears exactly once in the provider message.
+    const groundedMessage = composeGroundedMessage({
+      history: conversation,
+      grounding: groundingParts.join('\n\n'),
+      question,
+    });
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000);
@@ -72,6 +165,7 @@ export async function POST(req: Request) {
     });
 
     clearTimeout(timeout);
+    timings.push({ stage: 'provider_response', ms: msSince(stageStart) });
 
     if (!res.ok) {
       const detail = await res.text().catch(() => 'unknown');
@@ -83,9 +177,37 @@ export async function POST(req: Request) {
     }
 
     const data = await res.json();
+
+    // Only server-supplied hrefs may be rendered as links, so the model cannot
+    // invent citations or arbitrary URLs.
+    const allowedHrefs = entry?.action ? [entry.action.href] : [];
+    const answer = stripUnverifiedCitations(data.response || data.answer || '', allowedHrefs);
+
+    const total = timings.reduce((sum, t) => sum + t.ms, 0);
+
     return NextResponse.json({
-      response: data.response || data.answer || '',
+      response: answer,
       groundedArtworkId: artwork?.id ?? null,
+      // Server-resolved evidence, rendered compactly by the client.
+      evidence: entry
+        ? {
+            entityId: entry.entityId,
+            entityType: entry.entityType,
+            title: entry.title,
+            system: entry.system,
+            sourceType: entry.sourceType,
+            fields: entry.fields,
+            action: entry.action,
+          }
+        : null,
+      entityStatus: entry ? 'resolved' : resolution.status,
+      // Non-sensitive counters so the client can show honest memory state.
+      conversation: {
+        turns: conversation.length,
+        retained: validation.stats.kept,
+        dropped: validation.stats.received - validation.stats.kept,
+      },
+      timings: timings.concat([{ stage: 'total', ms: total }]),
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Unknown error';

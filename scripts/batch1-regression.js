@@ -60,7 +60,7 @@ check(
 console.log("\nC. Text before speech");
 check(
   "answer appended before TTS is awaited",
-  /const bubble: Msg = \{[\s\S]{0,400}?setMsgs\(\(p\) => \[\.\.\.p, bubble\]\)[\s\S]{0,400}?fetchTTS\(answer\)\.then\(/.test(pageClient),
+  /const bubble: Msg = \{[\s\S]{0,400}?setMsgs\(\(p\) => \[\.\.\.p, bubble\]\)[\s\S]{0,800}?fetchTTS\(answer\)\.then\(/.test(pageClient),
   "expected the answer append to precede the fire-and-forget TTS call"
 );
 check(
