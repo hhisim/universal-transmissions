@@ -41,7 +41,7 @@ check("event_name is allowlisted", /allowlisted\(body\.event_name, ALLOWED_EVENT
 check("category allowlisted", /ALLOWED_CATEGORIES/.test(route));
 check("action allowlisted", /ALLOWED_ACTIONS/.test(route));
 check("placement allowlisted", /ALLOWED_PLACEMENTS/.test(route));
-check("entity_type allowlisted (not free-form)", /allowlisted\(body\.entity_type, ALLOWED_ENTITY_TYPES\)/.test(route));
+check("entity_type NOT persisted (column absent from real table)", !/entity_type:/.test(route));
 check("post_slug/sku/product_id constrained to token shape", /post_slug: entityId\(/.test(route) && /sku: entityId\(/.test(route));
 check("meta restricted to an explicit key list", /ALLOWED_META_KEYS/.test(route));
 check("meta label must be token-shaped", /LABEL_TOKEN/.test(route));
@@ -145,8 +145,8 @@ const makeReq = (body) => ({
   check("no '?' query survives in referrer", !String(row.referrer || "").includes("?"));
   check("path is the canonical route", row.path === "/gallery/vitruvian-spirit", `got ${row.path}`);
   check("target_url reduced to pathname", row.target_url === "/oracle/desktop", `got ${row.target_url}`);
-  check("entity id retained", row.entity_id === "ut-011");
-  check("entity type retained", row.entity_type === "artwork");
+  check("entity_id absent from the stored row (unsupported column)", !("entity_id" in row));
+  check("entity_type absent from the stored row (unsupported column)", !("entity_type" in row));
   check("token label retained", row.meta && row.meta.label === "ASK_THE_ORACLE");
 
   // ── Adversarial: hostile payloads must be dropped, not stored ──────────

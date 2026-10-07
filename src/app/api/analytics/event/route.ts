@@ -52,10 +52,6 @@ const ALLOWED_PLACEMENTS = new Set([
   "header", "hero", "body", "footer", "sidebar", "inline", "modal", "cart",
 ]);
 
-const ALLOWED_ENTITY_TYPES = new Set([
-  "artwork", "journal_post", "product", "collection", "research_topic", "route",
-]);
-
 /* A "label" is a short static UI token, not prose and never a prompt or an
    answer. Reject anything with whitespace-heavy prose, punctuation, or length
    beyond a token. This is what stops user-entered copy from being stored. */
@@ -117,8 +113,12 @@ export async function POST(req: NextRequest) {
     placement: allowlisted(body.placement, ALLOWED_PLACEMENTS),
     path: pathOnly(body.path, 500),
     target_url: pathOnly(body.target_url, 1000),
-    entity_id: entityId(body.entity_id),
-    entity_type: allowlisted(body.entity_type, ALLOWED_ENTITY_TYPES),
+    /* entity_id / entity_type are intentionally NOT persisted. The live
+       ut_analytics_events table has no such columns, so sending them failed
+       the insert outright (PostgREST PGRST204) and silently dropped every
+       event. Entity context cannot ride in an existing privacy-safe column
+       without inventing a new mechanism, so it is omitted for now.
+       Every key below is verified to exist in the real table. */
     product_id: entityId(body.product_id),
     sku: entityId(body.sku),
     post_slug: entityId(body.post_slug),
@@ -132,9 +132,18 @@ export async function POST(req: NextRequest) {
     const { error } = await supabaseAdmin.from("ut_analytics_events").insert(row);
     if (error) throw error;
   } catch (error) {
-    console.error("UT analytics insert failed", error);
-    // Preserve the client contract: analytics must never break navigation or checkout.
-    return NextResponse.json({ ok: true, stored: false });
+    /* Minimal, non-identifying diagnostic: enough to tell a schema mismatch
+       from a connectivity or constraint failure, with no event payload,
+       visitor identifier, prompt or secret value. */
+    const code = (error as { code?: string })?.code;
+    console.error("UT analytics insert failed", { code: code ?? "unknown" });
+    /* Report the failure honestly instead of claiming a store that never
+       happened. The visitor is still never blocked: the client treats this
+       endpoint as fire-and-forget, and the body carries no database detail. */
+    return NextResponse.json(
+      { ok: false, error: "Analytics unavailable" },
+      { status: 503 },
+    );
   }
 
   return NextResponse.json({ ok: true, stored: true });
