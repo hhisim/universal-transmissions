@@ -17,7 +17,7 @@ export type UtAnalyticsPayload = {
   referrer?: string;
   /** Stable public entity id (e.g. artwork id). Never free text. */
   entity_id?: string;
-  /** Entity kind, e.g. "artwork". Never free text. */
+  /** Entity kind from a fixed set, e.g. "artwork". Never free text. */
   entity_type?: string;
   meta?: Record<string, Primitive>;
 };
@@ -71,7 +71,7 @@ function vercelProperties(payload: UtAnalyticsPayload): Record<string, Primitive
     sku: payload.sku,
     post_slug: payload.post_slug,
     entity_id: sanitizedEntityId(payload.entity_id),
-    entity_type: payload.entity_type,
+    entity_type: sanitizedEntityId(payload.entity_type),
   };
 
   for (const [key, value] of Object.entries(payload.meta || {})) {
@@ -90,7 +90,11 @@ export function trackUtEvent(payload: UtAnalyticsPayload): void {
     path: sanitizedPath(payload.path),
     target_url: payload.target_url ? sanitizedPath(payload.target_url) : undefined,
     entity_id: sanitizedEntityId(payload.entity_id),
-    referrer: payload.referrer ?? document.referrer,
+    entity_type: sanitizedEntityId(payload.entity_type),
+    // Referrer is reduced to a pathname; it can otherwise carry a ?q= prompt.
+    referrer: sanitizedPath(document.referrer) || undefined,
+    // session_id is a random per-browser UUID. It is used only for
+    // first-party aggregation in transit and is NOT persisted server-side.
     session_id: getSessionId(),
     user_agent: navigator.userAgent,
   };

@@ -21,6 +21,17 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
+/* Hard bounds for anything that arrives in the URL. A context/handoff payload is
+   not a content field: an oversized value is truncated rather than rendered,
+   forwarded or submitted. */
+const MAX_DRAFT_CHARS = 600;
+const MAX_ENTITY_CHARS = 120;
+const MAX_RETURN_CHARS = 200;
+
+function boundedParam(value: string | null | undefined, max: number): string {
+  return (value || "").slice(0, max).trim();
+}
+
 /* Combining diacritical marks (U+0300–U+036F) are what produce the corrupted
    look. Several strings in this file are stored already-corrupted, so the
    accessible name must be de-marked rather than merely hidden. */
@@ -520,6 +531,14 @@ function AudioPlayer({ src, color }: { src: string; color: string }) {
 
   useEffect(() => { const a = audioRef.current; if (a && src) { a.load(); a.play().then(() => setPlaying(true)).catch(() => {}); } }, [src]);
 
+  /* Stop playback and release the object URL when this answer is replaced or
+     the page unmounts. Without this, every spoken answer leaks a blob URL. */
+  useEffect(() => () => {
+    const a = audioRef.current;
+    if (a) { a.pause(); a.removeAttribute("src"); a.load(); }
+    if (src) URL.revokeObjectURL(src);
+  }, [src]);
+
   const toggle = () => { const a = audioRef.current; if (!a) return; if (playing) { a.pause(); setPlaying(false); } else { a.play().then(() => setPlaying(true)).catch(() => {}); } };
   const seek = (e: React.MouseEvent<HTMLDivElement>) => { const a = audioRef.current; if (!a || !duration) return; const r = e.currentTarget.getBoundingClientRect(); a.currentTime = ((e.clientX - r.left) / r.width) * duration; };
   const fmt = (s: number) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
@@ -722,16 +741,21 @@ export default function OraclePage() {
      the displayed title/return link come from our own content, not from
      attacker-controllable URL text. Unknown ids are dropped rather than
      displayed. */
-  const rawArtworkId = searchParams.get("artworkId") || "";
-  const draftQuestion = searchParams.get("q") || "";
-  const returnTo = searchParams.get("from") || "";
+  // All entry parameters are bounded before use. `artworkId` is looked up in our
+  // own registry only; an unknown id yields no context at all.
+  const rawArtworkId = boundedParam(searchParams.get("artworkId"), MAX_ENTITY_CHARS);
+  const entryQuestion = boundedParam(searchParams.get("q"), MAX_DRAFT_CHARS);
+  const returnTo = boundedParam(searchParams.get("from"), MAX_RETURN_CHARS);
   const artworkContext = useMemo(() => {
     if (!rawArtworkId) return null;
     const match = artworks.find((a) => a.id === rawArtworkId || a.slug === rawArtworkId);
     if (!match) return null;
-    const safeReturn = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
-      ? returnTo
-      : `/gallery/${match.slug}`;
+    // Only a same-origin absolute path is honoured. Protocol-relative ("//evil")
+    // and absolute URLs fall back to the registry's own artwork route.
+    const safeReturn =
+      returnTo.startsWith("/") && !returnTo.startsWith("//") && !returnTo.includes("\\")
+        ? returnTo
+        : `/gallery/${match.slug}`;
     return { id: match.id, slug: match.slug, title: match.title, year: match.year, returnTo: safeReturn };
   }, [rawArtworkId, returnTo]);
 
@@ -809,8 +833,18 @@ export default function OraclePage() {
     return () => window.removeEventListener("mousemove", handle);
   }, []);
 
-  /* ── Cancel in-flight request on unmount ── */
-  useEffect(() => () => reqAbortRef.current?.abort(), []);
+  /* ── Cancel in-flight work and release audio on unmount ── */
+  useEffect(
+    () => () => {
+      reqAbortRef.current?.abort();
+      speechAbortRef.current?.abort();
+      setMsgs((p) => {
+        for (const m of p) if (m.audioUrl) URL.revokeObjectURL(m.audioUrl);
+        return p;
+      });
+    },
+    [],
+  );
 
   /* ── Scroll ── */
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
@@ -821,24 +855,49 @@ export default function OraclePage() {
 
   /* ── E: seed the editable draft from the entry link, exactly once ──────────── */
   useEffect(() => {
+    // Seeds once. `draftSeeded` flips in the same commit, so a later rerender
+    // (settings change, language switch, new answer) cannot restore the entry
+    // text over something the visitor has since edited or deliberately cleared.
     if (draftSeeded) return;
-    const fromEntry = (searchParams.get("q") || "").trim();
-    if (fromEntry) {
-      setInput(fromEntry);
+    if (entryQuestion) {
+      setInput(entryQuestion);
       // Make the seeded draft obvious rather than silently prefilled.
       if (artworkContext) setMode("oracle");
     }
     setDraftSeeded(true);
-  }, [draftSeeded, searchParams, artworkContext]);
+  }, [draftSeeded, entryQuestion, artworkContext]);
+
+  /* Speech is abortable: turning voice off, superseding a question, or
+     unmounting cancels the in-flight /api/oracle/tts request instead of paying
+     for audio that will never be used. `ttsPending` is cleared on abort so the
+     marker does not linger. */
+  const speechAbortRef = useRef<AbortController | null>(null);
+
+  const cancelPendingSpeech = useCallback(() => {
+    speechAbortRef.current?.abort();
+    speechAbortRef.current = null;
+    setMsgs((p) => (p.some((m) => m.ttsPending) ? p.map((m) => (m.ttsPending ? { ...m, ttsPending: false } : m)) : p));
+  }, []);
 
   const fetchTTS = useCallback(async (text: string): Promise<string> => {
     if (!voiceOn) return "";
+    speechAbortRef.current?.abort();
+    const controller = new AbortController();
+    speechAbortRef.current = controller;
     try {
-      const res = await fetch("/api/oracle/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, lang, voice: voiceGender === "m" ? "standard" : "hd" }) });
+      const res = await fetch("/api/oracle/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, lang, voice: voiceGender === "m" ? "standard" : "hd" }),
+        signal: controller.signal,
+      });
       if (!res.ok) return "";
       const blob = await res.blob();
+      if (controller.signal.aborted) return "";
       return URL.createObjectURL(blob);
-    } catch { return ""; }
+    } catch {
+      return "";
+    }
   }, [voiceOn, lang, voiceGender]);
 
   const send = useCallback(async (text?: string, forceMode?: string) => {
@@ -849,6 +908,7 @@ export default function OraclePage() {
     setMsgs(p => [...p, { role: "user", text: m }]);
     // Supersede any in-flight request before starting a new one.
     reqAbortRef.current?.abort();
+    cancelPendingSpeech();
     const reqController = new AbortController();
     reqAbortRef.current = reqController;
     const reqSignal = reqController.signal;
@@ -913,11 +973,14 @@ export default function OraclePage() {
             return;
           }
           setMsgs((p) =>
-            p.map((existing) =>
-              existing === bubble || (existing.role === "oracle" && existing.ttsPending)
-                ? { ...existing, audioUrl: audioUrl || undefined, ttsPending: false }
-                : existing
-            )
+            p.map((existing) => {
+              const isTarget = existing === bubble || (existing.role === "oracle" && existing.ttsPending);
+              if (!isTarget) return existing;
+              // If this bubble is being replaced rather than filled, release the
+              // audio it already held so the object URL is not leaked.
+              if (existing.audioUrl && existing.audioUrl !== audioUrl) URL.revokeObjectURL(existing.audioUrl);
+              return { ...existing, audioUrl: audioUrl || undefined, ttsPending: false };
+            })
           );
         });
       }
@@ -941,7 +1004,7 @@ export default function OraclePage() {
     }
   }, [
     input, mode, lang, speed, loading, atLimit, fetchTTS, outputMode, voiceOn,
-    artworkContext,
+    artworkContext, cancelPendingSpeech,
   ]);
 
   const lastOracleText = useMemo(() => {
@@ -1125,7 +1188,7 @@ export default function OraclePage() {
                     {(["en", "tr", "ru"] as const).map(l => (
                       <button key={l} onClick={() => setLang(l)} data-active={lang === l}>{l.toUpperCase()}</button>
                     ))}
-                    <button onClick={() => { setVoiceOn(!voiceOn); if (voiceOn) window.speechSynthesis?.cancel(); }} data-active={voiceOn}>{voiceOn ? t.voiceOn : t.voiceOff}</button>
+                    <button onClick={() => { const next = !voiceOn; setVoiceOn(next); if (!next) cancelPendingSpeech(); if (voiceOn) window.speechSynthesis?.cancel(); }} data-active={voiceOn}>{voiceOn ? t.voiceOn : t.voiceOff}</button>
                   </div>
                 </div>
                 <div className="oracle-inline-block oracle-inline-name">
@@ -1341,7 +1404,7 @@ export default function OraclePage() {
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
             <div className="flex items-center gap-2">
               <span className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-white-faint, rgba(237,233,246,0.25))" }}>{t.voice}</span>
-              <button onClick={() => { setVoiceOn(!voiceOn); if (voiceOn) window.speechSynthesis?.cancel(); }} className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
+              <button onClick={() => { const next = !voiceOn; setVoiceOn(next); if (!next) cancelPendingSpeech(); if (voiceOn) window.speechSynthesis?.cancel(); }} className="font-mono text-[9px] tracking-widest uppercase px-3 py-1.5 border transition-all"
                 style={{ borderColor: voiceOn ? "rgba(34,211,238,0.4)" : "rgba(255,255,255,0.06)", color: voiceOn ? "#22d3ee" : "var(--ut-white-faint, rgba(237,233,246,0.25))" }}>{voiceOn ? "🔊 ON" : "🔇 OFF"}</button>
               {voiceOn && (<>
                 <button onClick={() => setVoiceGender("f")} className="font-mono text-[9px] px-2.5 py-1 border transition-all"

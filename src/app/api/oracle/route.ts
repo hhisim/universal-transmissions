@@ -30,6 +30,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No message provided' }, { status: 400 });
     }
 
+    // Bound the question and the grounded block. A question is a short prompt,
+    // not a content field; oversized input is rejected rather than forwarded.
+    const MAX_QUESTION_CHARS = 2000;
+    const MAX_GROUNDED_CHARS = 6000;
+    if (message.trim().length > MAX_QUESTION_CHARS) {
+      return NextResponse.json({ error: 'Question is too long' }, { status: 413 });
+    }
+
     const artwork = resolveArtwork(body?.artworkId);
     // Only registry-verified metadata is prepended. An unknown id is ignored
     // rather than echoed back, so URL text cannot pose as archive evidence.
@@ -44,7 +52,8 @@ export async function POST(req: Request) {
           '',
           `Question: ${message.trim()}`,
         ].join('\n')
-      : message.trim();
+          .slice(0, MAX_GROUNDED_CHARS)
+      : message.trim().slice(0, MAX_QUESTION_CHARS);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000);
