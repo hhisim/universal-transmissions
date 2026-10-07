@@ -313,10 +313,45 @@ section("S1 — controls are reachable, not duplicated");
 }
 
 console.log(`\n${"=".repeat(72)}`);
+
+// ── S5: anchor stale-closure regression ──────────────────────────────────────
+// askOracleFromDock() calls setSelectedEntryId() and then send() in the same tick, so
+// send() must NOT resolve the request's anchor from React state on that path. Observed
+// live on the preview: the dock request went out with entityId: null, so the server
+// returned no evidence panel for a correctly selected Thoth entry.
+{
+  const src = fs.readFileSync(path.join(SRC, "app/oracle/page-client.tsx"), "utf8");
+  const checks = [
+    ['send accepts an explicit anchor argument',
+     /async \(text\?: string, forceMode\?: string, anchorEntryId\?: string \| null\) => \{/],
+    ['the explicit argument wins over stale state',
+     /anchorEntryId !== undefined \? anchorEntryId : selectedEntryId/],
+    ['the request body sends the resolved anchor, not raw state',
+     /entityId: activeAnchorId \?\? undefined/],
+    ['entityType derives from the resolved anchor',
+     /entityType: activeAnchorId \? "correspondence_entry" : undefined/],
+    ['the dock passes the anchor through to send',
+     /send\(prompt, "correspondence", entryId \?\? null\)/],
+  ];
+  for (const [name, re] of checks) ok(re.test(src), name);
+
+  // Regression guards: the request body must never be bound to raw state again.
+  ok(!/entityId: selectedEntryId \?\? undefined/.test(src),
+     'entityId regressed to raw selectedEntryId');
+  ok(!/entityType: selectedEntryId \?/.test(src),
+     'entityType regressed to raw selectedEntryId');
+
+  // The other send() call sites pass no anchor and must keep working: they fall
+  // through to selectedEntryId via the explicit-override sentinel above.
+  const others = src.match(/send\((?!prompt, "correspondence")/g) || [];
+  console.log(`  [S5] ${others.length} other send() call sites unchanged (no anchor arg)`);
+}
+
 console.log(`batch2-followup: ${pass} passed, ${fail} failed`);
 if (fail) {
   console.log("\nFAILURES:");
   for (const f of failures) console.log("  - " + f);
   process.exit(1);
 }
+
 console.log("all follow-up assertions passed");

@@ -1004,11 +1004,17 @@ export default function OraclePage() {
     }
   }, [voiceOn, lang, voiceGender]);
 
-  const send = useCallback(async (text?: string, forceMode?: string) => {
+  const send = useCallback(
+    async (text?: string, forceMode?: string, anchorEntryId?: string | null) => {
     const m = (text || input).trim();
     if (!m || loading || atLimit) return;
     setInput("");
     const useMode = forceMode || mode;
+    // Resolve the anchor from the explicit argument when one is supplied. A
+    // setState() earlier in the same tick has not landed yet, so reading the
+    // state here would send the PREVIOUS entry (entityId: null, no evidence).
+    const activeAnchorId =
+      anchorEntryId !== undefined ? anchorEntryId : selectedEntryId;
     setMsgs(p => [...p, { role: "user", text: m }]);
     // Supersede any in-flight request before starting a new one.
     reqAbortRef.current?.abort();
@@ -1046,8 +1052,8 @@ export default function OraclePage() {
           // Completed previous turns only. The server appends the current
           // question, so it is never duplicated by also sending it here.
           history: buildHistoryFromMessages(msgs, m),
-          entityId: selectedEntryId ?? undefined,
-          entityType: selectedEntryId ? "correspondence_entry" : undefined,
+          entityId: activeAnchorId ?? undefined,
+          entityType: activeAnchorId ? "correspondence_entry" : undefined,
         }),
         signal: reqController.signal,
       });
@@ -1141,7 +1147,7 @@ export default function OraclePage() {
       // Selecting an entry makes the new anchor explicit; the previously
       // selected entity is replaced, never silently retained.
       if (entryId) setSelectedEntryId(entryId);
-      send(prompt, "correspondence");
+      send(prompt, "correspondence", entryId ?? null);
     },
     [send]
   );
