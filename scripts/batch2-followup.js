@@ -347,6 +347,103 @@ console.log(`\n${"=".repeat(72)}`);
   console.log(`  [S5] ${others.length} other send() call sites unchanged (no anchor arg)`);
 }
 
+
+// ── S6: correspondence dock request contract ────────────────────────────────
+// The dock used to compose a ~4.3KB corpus context into `message`. That body was
+// rejected by the route's 2,000-char MAX_QUESTION_CHARS with 413 — so the dock was
+// unusable, and the rejection predates Batch 2 (production returns the same 413).
+// The cap is deliberately NOT raised: `message` must carry only the visitor's
+// question, and grounding for a selected entry is derived server-side from the
+// verified corpus record.
+{
+  const src = fs.readFileSync(path.join(SRC, "app/oracle/page-client.tsx"), "utf8");
+
+  ok(/const apiMessage = m;/.test(src), 'dock: message must be the raw question');
+  ok(!/buildOracleCodexContext\(/.test(src),
+     'dock: client must not compose corpus context into the request');
+  ok(!/^import .*buildOracleCodexContext.*$/m.test(src),
+     'dock: client must not import the composer (no import statement may bind it)');
+  ok(!/\bbuildOracleCodexContext\s*\(/.test(src),
+     'dock: client must never call the composer');
+  ok(/import \{ codexRowCount \} from "@\/codex\/oracle-context";/.test(src),
+     'dock: the visible row counter must still be wired');
+  ok(/rows=\{latticeMeta\.rows \|\| codexRowCount\(\)\}/.test(src),
+     'dock: row counter prop must still read latticeMeta/codexRowCount');
+
+  // Forbidden workarounds. Each of these would satisfy the symptom by weakening the
+  // contract instead of fixing it.
+  ok(!/message:\s*m\.slice/.test(src), 'dock: question must not be truncated to pass the cap');
+  ok(!/apiMessage\s*=\s*m\.slice/.test(src), 'dock: apiMessage must not be truncated');
+  ok(!/systemPrompt/.test(src), 'dock: no client systemPrompt may reappear');
+
+  // The cap itself must be unchanged.
+  const conv = fs.readFileSync(path.join(SRC, "lib/oracle-conversation.ts"), "utf8");
+  ok(/MAX_QUESTION_CHARS\s*=\s*2000/.test(conv),
+     'cap: MAX_QUESTION_CHARS must stay 2000 (not raised)');
+}
+
+// ── S7: explicit anchor switching and non-reuse ──────────────────────────────
+// Switching entries must send the NEW id in the same tick, and clearing an anchor
+// must never fall back to the previous selection.
+{
+  const src = fs.readFileSync(path.join(SRC, "app/oracle/page-client.tsx"), "utf8");
+
+  ok(/async \(text\?: string, forceMode\?: string, anchorEntryId\?: string \| null\) => \{/.test(src),
+     'anchor: send() must accept an explicit anchor argument');
+  ok(/anchorEntryId !== undefined \? anchorEntryId : selectedEntryId/.test(src),
+     'anchor: explicit argument must win over not-yet-landed state');
+  ok(/entityId: activeAnchorId \?\? undefined/.test(src),
+     'anchor: request body must send the resolved anchor');
+  ok(/entityType: activeAnchorId \? "correspondence_entry" : undefined/.test(src),
+     'anchor: entityType must follow the resolved anchor');
+  ok(/send\(prompt, "correspondence", entryId \?\? null\)/.test(src),
+     'anchor: dock must pass entryId ?? null so a clear never reuses the old id');
+  ok(/if \(entryId\) setSelectedEntryId\(entryId\);/.test(src),
+     'anchor: state must still be set so the visible anchor disclosure is correct');
+
+  // A clear must not resurrect the previous selection through the state fallback:
+  // the dock always passes an explicit value, so state is only a fallback for the
+  // ordinary typed-question path.
+  ok(!/send\(prompt, "correspondence"\);/.test(src),
+     'anchor: dock must never call send() without an explicit anchor value');
+}
+
+// ── S8: server-derived grounding ─────────────────────────────────────────────
+// The permitted grounding for a selected entry must come from the verified record,
+// built server-side inside the existing budget — never from client prose.
+{
+  const res = fs.readFileSync(path.join(SRC, "lib/oracle-entry-resolver.ts"), "utf8");
+  const route = fs.readFileSync(path.join(SRC, "app/api/oracle/route.ts"), "utf8");
+
+  ok(/export const MAX_GROUNDING_CHARS = 2600;/.test(res),
+     'grounding: MAX_GROUNDING_CHARS must be declared and bounded');
+  ok(/UT corpus material/.test(res),
+     'grounding: records must be labelled as UT corpus material');
+  ok(/not a historical document or a scientific citation/.test(res),
+     'grounding: provenance caveat must be present in the provider block');
+  ok(/must not replace it/.test(res),
+     'grounding: the selected record must stay the primary anchor');
+  ok(/groundingParts\.push\(entry\.promptBlock\)/.test(route),
+     'grounding: route must feed the resolved record block into composition');
+  ok(/composeGroundedMessage\(/.test(route),
+     'grounding: route must compose through the existing bounded composer');
+
+  // Grounding must be bounded by dropping whole field lines, never by slicing one.
+  ok(/while \(promptBlock\.length > MAX_GROUNDING_CHARS && promptLines\.length > 3\)/.test(res),
+     'grounding: overflow must drop whole lines, not slice through a field');
+  ok(!/promptBlock\.slice\(0,/.test(res),
+     'grounding: promptBlock must not be sliced mid-field');
+
+  // The evidence action must point at a route that actually exists.
+  ok(/href: "\/experience\/correspondence-codex"/.test(res),
+     'evidence: inspect action must use the live correspondence-codex route');
+  const emittedHrefs = [...res.matchAll(/href:\s*"([^"]+)"/g)].map((m) => m[1]);
+  ok(emittedHrefs.length > 0, 'evidence: resolver must emit at least one href');
+  ok(emittedHrefs.every((h) => !h.includes('/oracle/correspondence')),
+     'evidence: no emitted href may point at the 404 /oracle/correspondence route');
+  ok(emittedHrefs.includes('/experience/correspondence-codex'),
+     'evidence: the live correspondence-codex href must be emitted');
+}
 console.log(`batch2-followup: ${pass} passed, ${fail} failed`);
 if (fail) {
   console.log("\nFAILURES:");

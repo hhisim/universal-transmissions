@@ -403,6 +403,115 @@ function questionsIn(providerMessage) {
     ok(!JSON.stringify(turn.payload.timings).includes("secret-topic-xyz"), "Timings: no prompt content in timings");
   }
 
+// ── H: correspondence dock request contract, exercised against the REAL handler ─
+//
+// The dock used to compose a ~4.3KB corpus context into `message`, which the route's
+// 2,000-char question cap rejected with 413. The cap is not raised: the dock now sends
+// only the visitor's question plus the selected-entry identifier, and the server
+// derives the grounding from the verified record.
+//
+// These cases invoke the actual route handler and capture the actual provider request
+// body, so they prove the wire contract rather than the intent of the source.
+{
+  const THOTH = "corr-v1:DEITIES::Thoth%20%5BEgyptian%5D";
+  const DOCK_Q = "Use the shared COR CODEX data model to read Thoth [Egyptian]. Give the strongest correspondences, a human meaning, and one chamber path from this node.";
+
+  // H1: the exact dock body is accepted (it is now far under the cap).
+  {
+    const r = await postOracle({
+      message: DOCK_Q,
+      mode: "correspondence",
+      lang: "en",
+      entityId: THOTH,
+      entityType: "correspondence_entry",
+    });
+    eq(r.res.status, 200, "H1: dock-shaped body must not be rejected");
+    eq(r.payload.entityStatus, "resolved", "H1: dock entry id must resolve");
+    ok(r.sent && r.sent.body, "H1: provider request must be captured");
+    ok(r.sent.body.message.includes(DOCK_Q),
+       "H1: the visitor's question must reach the provider verbatim");
+    ok(!r.sent.body.message.includes("Use this shared COR CODEX data model as primary source material."),
+       "H1: the client instruction block must no longer be injected");
+  }
+
+  // H2: grounding in the provider message is server-derived from the real record.
+  {
+    const r = await postOracle({
+      message: "What does this entry hold?",
+      mode: "correspondence",
+      lang: "en",
+      entityId: THOTH,
+      entityType: "correspondence_entry",
+    });
+    const sent = r.sent.body.message;
+    ok(sent.includes(THOTH), "H2: provider message must name the resolved entry id");
+    ok(sent.includes("Thoth [Egyptian]"), "H2: provider message must carry the record title");
+    ok(sent.includes("UT corpus material"),
+       "H2: provider message must label the record as UT corpus material");
+    ok(sent.includes("DEITIES"), "H2: provider message must carry the record's system");
+    ok(!sent.includes("buildOracleCodexContext"),
+       "H2: no client composer artefact may appear");
+
+    // Every field surfaced to the model must exist on the real dataset record.
+    const data = require(path.join(SRC, "data/codex-raw.json"));
+    const rec = data.find((x) => x.sys === "DEITIES" && x.e === "Thoth [Egyptian]");
+    ok(!!rec, "H2: Thoth record must exist in the authoritative dataset");
+    const ev = r.payload.evidence;
+    ok(ev && ev.fields.length > 0, "H2: evidence fields must be present");
+    for (const f of ev.fields) {
+      const present = Object.values(rec).some(
+        (v) => typeof v === "string" && v.replace(/\s+/g, " ").trim().startsWith(f.value.slice(0, 24))
+      );
+      ok(present, `H2: evidence field "${f.label}" must come from the record`);
+    }
+  }
+
+  // H3: switching to a DIFFERENT entry sends and grounds the new one, with no
+  // leftover Thoth record in the provider message.
+  {
+    const data = require(path.join(SRC, "data/codex-raw.json"));
+    const other = data.find(
+      (x) => x.sys !== "DEITIES" && (x.pl || x.zo || x.el) && x.e && x.e !== "Thoth [Egyptian]"
+    );
+    const otherId = `corr-v1:${encodeURIComponent(other.sys)}::${encodeURIComponent(other.e)}`;
+    const r = await postOracle({
+      message: "What is this entry?",
+      mode: "correspondence",
+      lang: "en",
+      entityId: otherId,
+      entityType: "correspondence_entry",
+    });
+    eq(r.payload.entityStatus, "resolved", "H3: the new entry must resolve");
+    eq(r.payload.evidence.entityId, otherId, "H3: evidence must identify the NEW entry");
+    ok(r.sent.body.message.includes(otherId),
+       "H3: provider message must name the new entry id");
+    ok(!r.sent.body.message.includes(THOTH),
+       "H3: stale Thoth id must not remain in the provider message");
+    eq(r.payload.evidence.sourceType, "UT corpus material", "H3: provenance label");
+  }
+
+  // H4: the cap is unchanged and still rejects an oversized QUESTION.
+  {
+    const r = await postOracle({ message: "Q".repeat(2001), mode: "correspondence", lang: "en" });
+    eq(r.res.status, 413, "H4: a >2000 char question must still be refused");
+    const okCase = await postOracle({ message: "Q".repeat(2000), mode: "correspondence", lang: "en" });
+    eq(okCase.res.status, 200, "H4: exactly 2000 chars must still be accepted");
+  }
+
+  // H5: an unknown anchor yields an honest state and no fabricated evidence.
+  {
+    const r = await postOracle({
+      message: "What is this?",
+      mode: "correspondence",
+      lang: "en",
+      entityId: "corr-v1:DEITIES::Definitely Not A Real Entry",
+      entityType: "correspondence_entry",
+    });
+    eq(r.payload.entityStatus, "unknown", "H5: unknown entry must report unknown");
+    ok(!r.payload.evidence, "H5: unknown entry must not fabricate evidence");
+  }
+}
+
   global.fetch = realFetch;
   console.log(`\n${passed} assertions passed, ${failures.length} failed`);
   if (failures.length) {

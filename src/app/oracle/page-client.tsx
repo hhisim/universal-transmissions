@@ -9,7 +9,9 @@ import { motion } from "framer-motion";
 import ZalgoText from "@/components/ui/ZalgoText";
 import SectionReveal from "@/components/ui/SectionReveal";
 import OracleCorrespondenceDock from "@/components/oracle/OracleCorrespondenceDock";
-import { buildOracleCodexContext, codexRowCount } from "@/codex/oracle-context";
+// buildOracleCodexContext is deliberately NOT imported: corpus context is composed
+// server-side now. codexRowCount still drives the dock's visible row counter.
+import { codexRowCount } from "@/codex/oracle-context";
 import { artworks } from "@/data/artworks";
 import { buildHistoryFromMessages } from "@/lib/oracle-conversation";
 import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
@@ -1025,21 +1027,13 @@ export default function OraclePage() {
     setLoading(true);
     setStatusKey("waiting");
     try {
-      let apiMessage = m;
-      if (useMode === "correspondence") {
-        try {
-          const latticeContext = buildOracleCodexContext(m);
-          if (latticeContext) {
-            apiMessage = [
-              `Question: ${m}`,
-              "Use this shared COR CODEX data model as primary source material. Select only the strongest coherent correspondences and turn them into human symbolic intelligence, not an inventory dump.",
-              latticeContext,
-            ].join("\n\n");
-          }
-        } catch {
-          setLatticeMeta((meta) => ({ ...meta, status: "offline" }));
-        }
-      }
+      // DOCK CONTRACT: `message` carries ONLY the visitor's own question.
+      // Client-composed corpus context used to be appended here, which made the
+      // composed body ~4.4KB and tripped the route's 2,000-char question cap
+      // (413). Grounding for a selected entry is derived SERVER-side from the
+      // verified corpus record (oracle-entry-resolver -> entry.promptBlock), so
+      // nothing about the selected record is trusted from the client.
+      const apiMessage = m;
       const res = await fetch("/api/oracle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
