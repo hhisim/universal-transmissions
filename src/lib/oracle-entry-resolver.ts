@@ -22,6 +22,8 @@ import { FORORDER } from "@/lib/correspondence-systems";
 
 /** Entry identifier prefix, so an artwork id can never be read as an entry id. */
 export const CORRESPONDENCE_ENTRY_PREFIX = "corr-v1:";
+/** Upper bound on the grounding block handed to the provider. */
+export const MAX_GROUNDING_CHARS = 2600;
 
 /** Entity types the Oracle understands. Correspondence entries are one of them. */
 export type OracleEntityType = "correspondence_entry";
@@ -62,7 +64,7 @@ export interface ResolvedEntry {
   /** Fields genuinely present on this record, bounded for a compact display. */
   fields: EvidenceField[];
   /** A real in-site inspection action, when one exists. */
-  action: { label: string; href: string } | null;
+  action: { label: string; href: string; entryId?: string } | null;
   /** Bounded, label-free record body for the provider prompt. */
   promptBlock: string;
 }
@@ -196,10 +198,18 @@ function resolveResolved(entry: CodexEntry): Resolution {
     if (evidenceChars > 1400 || fields.length >= 8) break;
   }
 
-  // An in-site inspection action that genuinely exists: the Oracle's own
-  // Correspondence surface. No invented deep-link is emitted.
-  const actionHref = `/oracle/correspondence?entry=${encodeURIComponent(entityId)}`;
-  const action = { label: "Inspect in Correspondence", href: actionHref };
+  // Two real destinations, no invented deep-link:
+  //  - href    the live Correspondence Codex experience. Verified 200 on BOTH
+  //            production and the Batch 2 preview. The Oracle's own page renders
+  //            the record in place via `openEntry`, so the panel can also show
+  //            the record inline without leaving the page.
+  // There is deliberately NO `/oracle/correspondence` link: that route does not
+  // exist and returns 404 in both production and preview.
+  const action = {
+    label: "Inspect this entry",
+    href: "/experience/correspondence-codex",
+    entryId: entityId,
+  };
 
   // Provider grounding: the resolved record only, no client-supplied prose.
   const promptLines = [
@@ -212,7 +222,13 @@ function resolveResolved(entry: CodexEntry): Resolution {
     "This record is UT corpus material — a correspondence lattice entry, not a historical document or a scientific citation.",
     "Treat it as the primary anchor for the answer. Broader retrieval may supplement it but must not replace it.",
   ];
-  const promptBlock = promptLines.join("\n").slice(0, 2600);
+  // Bound the grounding block without slicing through a field: drop whole
+  // trailing field lines until it fits.
+  let promptBlock = promptLines.join("\n");
+  while (promptBlock.length > MAX_GROUNDING_CHARS && promptLines.length > 3) {
+    promptLines.pop();
+    promptBlock = promptLines.join("\n");
+  }
 
   return {
     status: "resolved",

@@ -45,6 +45,16 @@ export async function POST(req: NextRequest) {
     }
     const conversation: HistoryMessage[] = validation.messages;
 
+    const composed = composeGroundedMessage({ history: conversation, question });
+    // Refuse before calling the provider when even the question alone will not
+    // fit, rather than truncating the visitor's own words.
+    if (!composed.ok) {
+      return NextResponse.json(
+        { error: composed.error || "Request is too long to send." },
+        { status: 413 }
+      );
+    }
+
     const response = await fetch(ORACLE_BACKEND, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,7 +63,7 @@ export async function POST(req: NextRequest) {
         mode,
         lang,
         speed,
-        message: composeGroundedMessage({ history: conversation, question }),
+        message: composed.message,
       }),
     });
 

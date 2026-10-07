@@ -170,8 +170,7 @@ check(
 );
 check(
   "server re-resolves artwork id, ignoring client title",
-  /function resolveArtwork/.test(apiRoute) && /groundedMessage/.test(apiRoute)
-);
+  /function resolveArtwork/.test(apiRoute) && /composed\.message/.test(apiRoute) && /message: composed\.message/.test(apiRoute));
 check(
   "unknown artwork id is dropped, not echoed",
   /if \(!match\) return null;/.test(apiRoute)

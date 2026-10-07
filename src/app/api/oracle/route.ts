@@ -142,11 +142,20 @@ export async function POST(req: Request) {
 
     // Transcript, then trusted grounding, then the current question LAST so it
     // appears exactly once in the provider message.
-    const groundedMessage = composeGroundedMessage({
+    const composed = composeGroundedMessage({
       history: conversation,
       grounding: groundingParts.join('\n\n'),
       question,
     });
+    // If the question plus the required grounding cannot fit, refuse BEFORE
+    // calling the provider. Truncating the question or dropping the anchor
+    // would produce a confidently-wrong answer, which is the worse failure.
+    if (!composed.ok) {
+      return NextResponse.json(
+        { error: composed.error || 'Request is too long to send.' },
+        { status: 413 }
+      );
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000);
@@ -159,7 +168,7 @@ export async function POST(req: Request) {
         mode: mode || 'oracle',
         lang: lang || 'en',
         speed: speed || 'fast',
-        message: groundedMessage,
+        message: composed.message,
       }),
       signal: controller.signal,
     });
@@ -203,8 +212,10 @@ export async function POST(req: Request) {
       entityStatus: entry ? 'resolved' : resolution.status,
       // Non-sensitive counters so the client can show honest memory state.
       conversation: {
+        // What the client actually sent vs what was actually forwarded upstream.
         turns: conversation.length,
         retained: validation.stats.kept,
+        omitted: composed.omitted,
         dropped: validation.stats.received - validation.stats.kept,
       },
       timings: timings.concat([{ stage: 'total', ms: total }]),

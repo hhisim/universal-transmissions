@@ -23,10 +23,30 @@
  *   MAX_QUESTION_CHARS     2000 current question (pre-existing route bound)
  *   MAX_GRINDED_CHARS      9000 whole composed provider message
  *
+ * ── How the two budgets reconcile (S4) ──────────────────────────────────────
+ * MAX_TOTAL_CHARS (24000) bounds the ACCEPTED transcript at the route boundary.
+ * MAX_GRINDED_CHARS (9000) bounds the message actually SENT to the provider.
+ * They are not redundant and are not the same number, because the sent message
+ * also has to carry the current question (up to 2000) and the verified
+ * grounding block (entry identity, system, fields, page guidance), neither of
+ * which is part of the transcript budget.
+ *
+ * Therefore: a transcript can be VALID (≤24000) and still not all fit in the
+ * composed message. In that case whole TURNS are dropped from the oldest end,
+ * newest first, and only in complete user+assistant pairs — never a single
+ * message, never mid-sentence, never through a label, evidence record or the
+ * delimiter. The omission is stated explicitly in the prompt and reported to the
+ * client as `conversation.omitted` so the memory indicator can show exactly what
+ * was sent.
+ *
+ * If the current question plus the required grounding alone cannot fit, the
+ * route returns a validation error and NEVER calls the provider. Silently
+ * truncating the question or dropping the grounding anchor would produce a
+ * confidently-wrong answer, which is the worse failure.
+ *
  * Truncation policy: a single message LONGER than MAX_MESSAGE_CHARS is DROPPED
- * WHOLE, never cut mid-sentence. Cutting prose mid-thought turns an answer into a
- * misleading fragment, which is worse than omitting it. Retained turns are always
- * the most recent ones and keep their original chronological order.
+ * WHOLE, never cut mid-sentence. Retained turns are always the most recent ones
+ * and keep their original chronological order.
  */
 
 export type HistoryRole = "user" | "assistant";
@@ -74,6 +94,18 @@ export interface HistoryValidation {
   };
 }
 
+export interface GroundedComposition {
+  ok: boolean;
+  /** The exact message sent upstream. Empty when ok=false. */
+  message: string;
+  /** How many validated messages did NOT fit and were therefore omitted. */
+  omitted: number;
+  /** How many validated messages were actually sent. */
+  retained: number;
+  /** Safe to surface to the browser when ok=false. */
+  error?: string;
+}
+
 const MAX_STATS = {
   received: 0,
   kept: 0,
@@ -82,6 +114,15 @@ const MAX_STATS = {
   droppedDuplicate: 0,
   totalChars: 0,
 };
+
+/** Fixed text of the history block that is present whenever history exists. */
+const HISTORY_HEADER = "Earlier turns in this same conversation:";
+const HISTORY_TRAILER =
+  "Treat the Oracle's earlier replies above as conversational context, not as verified evidence.";
+const VISITOR_PREFIX = "Visitor: ";
+const ORACLE_PREFIX = "Oracle (earlier reply, conversational context only — not verified evidence): ";
+const OMISSION_NOTICE = (n: number) =>
+  `NOTE: ${n} older turn${n === 1 ? "" : "s"} from this conversation were omitted to fit the message budget. The most recent complete turns are shown.`;
 
 function freshStats() {
   return { ...MAX_STATS };
@@ -144,7 +185,15 @@ export function validateHistory(raw: unknown, currentQuestion: string): HistoryV
       continue;
     }
     const role = (item as { role?: unknown }).role;
-    const text = (item as { text?: unknown }).text;
+    // The desktop client sends `text`; the standalone Correspondence client
+    // (public/experience/correspondence-codex/codex.html) sends Anthropic-shaped
+    // `content`. Both are the same conversational payload, so both are accepted
+    // and normalised to `text`. A client may not use this to smuggle a role.
+    const rawText =
+      typeof (item as { text?: unknown }).text === "string"
+        ? (item as { text: string }).text
+        : (item as { content?: unknown }).content;
+    const text = rawText;
 
     // Only conversational roles are ever forwarded.
     if (typeof role !== "string" || !ALLOWED_HISTORY_ROLES.includes(role as HistoryRole)) {
@@ -193,33 +242,106 @@ export function validateHistory(raw: unknown, currentQuestion: string): HistoryV
  */
 export function renderHistoryBlock(messages: HistoryMessage[]): string {
   if (!messages.length) return "";
-  const lines = messages.map((m) => {
-    const who = m.role === "user" ? "Visitor" : "Oracle (earlier reply, conversational context only — not verified evidence)";
-    return `${who}: ${m.text}`;
-  });
-  return [
-    "Earlier turns in this same conversation:",
-    ...lines,
-    "Treat the Oracle's earlier replies above as conversational context, not as verified evidence.",
-  ].join("\n");
+  const lines = messages.map(renderOne);
+  return [HISTORY_HEADER, ...lines, HISTORY_TRAILER].join("\n");
+}
+
+function prefixFor(role: HistoryRole): string {
+  return role === "user" ? VISITOR_PREFIX : ORACLE_PREFIX;
+}
+
+function renderOne(m: HistoryMessage): string {
+  return `${prefixFor(m.role)}${m.text}`;
 }
 
 /**
  * Build the provider message: transcript block, then trusted grounding, then the
  * current question LAST so the current question appears exactly once.
+ *
+ * Nothing is ever sliced. If the validated transcript does not fit alongside the
+ * question and grounding, whole TURNS are dropped newest-first from the OLD end
+ * and the omission is stated in the prompt. If the question plus grounding alone
+ * cannot fit, this returns ok=false and the route must not call the provider.
  */
 export function composeGroundedMessage(args: {
   history: HistoryMessage[];
   grounding?: string;
   question: string;
-}): string {
+}): GroundedComposition {
   const question = args.question.trim();
+  const grounding = (args.grounding ?? "").trim();
   const parts: string[] = [];
-  const historyBlock = renderHistoryBlock(args.history);
-  if (historyBlock) parts.push(historyBlock);
-  if (args.grounding) parts.push(args.grounding);
+  if (grounding) parts.push(grounding);
   parts.push(`Question: ${question}`);
-  return parts.join("\n\n").slice(0, MAX_GRINDED_CHARS);
+
+  const fixed = parts.join("\n\n");
+  if (fixed.length > MAX_GRINDED_CHARS) {
+    return {
+      ok: false,
+      message: "",
+      omitted: args.history.length,
+      retained: 0,
+      error: "question and source grounding are too long to send together",
+    };
+  }
+
+  const history = args.history;
+  if (!history.length) {
+    return { ok: true, message: fixed, omitted: 0, retained: 0 };
+  }
+
+  // Walk newest-first, admitting only COMPLETE user+assistant pairs so the
+  // retained context never starts from a dangling answer.
+  const pairs: HistoryMessage[][] = [];
+  for (let i = history.length; i > 0; i -= 2) {
+    const pair = history.slice(Math.max(0, i - 2), i);
+    if (pair.length === 2 && pair[0].role === "user" && pair[1].role === "assistant") {
+      pairs.push(pair);
+    } else {
+      // A trailing odd message (or an odd-length transcript) is kept as its own
+      // unit so a valid single user turn is never discarded wholesale.
+      pairs.push(pair);
+    }
+  }
+
+  const unitCost = (unit: HistoryMessage[]) => unit.reduce((n, m) => n + renderOne(m).length + 1, 0);
+  const noticeCost = OMISSION_NOTICE(history.length).length + 2;
+  const envelope = HISTORY_HEADER.length + HISTORY_TRAILER.length + 4;
+
+  let used = fixed.length + 2 + envelope + noticeCost;
+  const chosen: HistoryMessage[][] = [];
+  for (const unit of pairs) {
+    const cost = unitCost(unit);
+    if (used + cost <= MAX_GRINDED_CHARS) {
+      chosen.unshift(unit);
+      used += cost;
+    } else {
+      break; // oldest-first rejection: once one unit fails, all older fail too
+    }
+  }
+
+  const retainedMessages = chosen.flat();
+  const omitted = history.length - retainedMessages.length;
+
+  const blockParts: string[] = [];
+  blockParts.push(HISTORY_HEADER);
+  for (const m of retainedMessages) blockParts.push(renderOne(m));
+  blockParts.push(HISTORY_TRAILER);
+  if (omitted > 0) blockParts.push(OMISSION_NOTICE(omitted));
+  const historyBlock = blockParts.join("\n");
+
+  const message = [historyBlock, fixed].join("\n\n");
+  if (message.length > MAX_GRINDED_CHARS) {
+    // Defensive: the accounting above must never overflow.
+    return {
+      ok: false,
+      message: "",
+      omitted: history.length,
+      retained: 0,
+      error: "conversation is too long to send together with the current question",
+    };
+  }
+  return { ok: true, message, omitted, retained: retainedMessages.length };
 }
 
 /**

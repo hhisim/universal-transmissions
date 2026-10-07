@@ -315,7 +315,7 @@ function questionsIn(providerMessage) {
     backendResponse = {
       response:
         "Thoth writes here. See [the archive](https://evil.example.com/thoth) and https://made.up.example/page38 " +
-        "plus [real link](/oracle/correspondence?entry=" + encodeURIComponent(THOTH_ID) + ").",
+        "plus [real link](/experience/correspondence-codex).",
     };
     const cited = await postOracle({
       message: "What does this entry hold?",
@@ -324,7 +324,15 @@ function questionsIn(providerMessage) {
     });
     ok(!cited.payload.response.includes("evil.example.com"), "F: invented citation URL removed");
     ok(!cited.payload.response.includes("made.up.example"), "F: bare invented URL removed");
-    ok(cited.payload.response.includes("/oracle/correspondence?entry="), "F: server-verified href preserved");
+    ok(cited.payload.response.includes("/experience/correspondence-codex"),
+       "F: server-verified href preserved");
+    // The 404 route must never be emitted anywhere in the response.
+    ok(!cited.payload.response.includes("/oracle/correspondence"),
+       "F: 404 /oracle/correspondence never rendered");
+    const evAction = cited.payload.evidence && cited.payload.evidence.action;
+    ok(evAction && evAction.href === "/experience/correspondence-codex",
+       "F: evidence action points at the live route");
+    ok(evAction && evAction.entryId === THOTH_ID, "F: evidence action carries the resolved id");
     backendResponse = { response: "OK" };
 
     // oversized question still rejected

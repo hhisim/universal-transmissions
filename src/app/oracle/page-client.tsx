@@ -100,6 +100,10 @@ const T: Record<string, Record<string, string>> = {
     engine: "Engine", fast: "FAST", deep: "DEEP", language: "Language", voice: "Voice", female: "FEMALE", male: "MALE",
     clear: "CLEAR",
     newConversation: "NEW CONVERSATION",
+    newConversationHint: "Clear this conversation. Membership and your question quota are unchanged.",
+    anchorKept: "ENTRY ANCHOR KEPT",
+    anchorCleared: "NO ENTRY ANCHOR",
+    noMemory: "NO MEMORY",
     remembering: "REMEMBERING {n} TURNS",
     goDeeper: "Go Deeper", goDesc: "The Codex Oracle is one gateway. Vault of Arcana holds six living traditions — Tao, Tarot, Tantra, Entheogens, Dreamwalker, and the Codex — with more awakening.",
     enterVault: "Enter the Vault", getBook: "Get the Book",
@@ -580,7 +584,7 @@ interface OracleEvidence {
   fields: OracleEvidenceField[];
   action: { label: string; href: string } | null;
 }
-interface OracleMemoryState { turns: number; retained: number; dropped: number; }
+interface OracleMemoryState { turns: number; retained: number; dropped: number; omitted?: number; }
 
 interface Msg {
 
@@ -603,6 +607,7 @@ interface Msg {
    Nothing here is inferred from the model's prose. Declared as a real landmark
    with an accessible name so it is reachable, not just visible. */
 function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
+  const [open, setOpen] = useState(false);
   return (
     <section
       className="oracle-evidence"
@@ -625,11 +630,40 @@ function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
       <footer className="oracle-evidence-foot">
         <code className="oracle-evidence-id">{evidence.entityId}</code>
         {evidence.action ? (
-          <a className="oracle-evidence-action" href={evidence.action.href}>
-            {evidence.action.label}
-          </a>
+          <span className="oracle-evidence-actions">
+            {/* In-place inspector: shows the resolved record without navigating,
+                so this action can never depend on a route that might not exist. */}
+            <button
+              type="button"
+              className="oracle-evidence-action"
+              aria-expanded={open ? "true" : "false"}
+              aria-controls="oracle-evidence-body"
+              onClick={() => setOpen((v) => !v)}
+            >{evidence.action.label}</button>
+            <a
+              className="oracle-evidence-action oracle-evidence-action-link"
+              href={evidence.action.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >Open Correspondence Codex</a>
+          </span>
         ) : null}
       </footer>
+      {open ? (
+        <div className="oracle-evidence-body" id="oracle-evidence-body">
+          <strong>{evidence.title}</strong>
+          <span>{evidence.system} · {evidence.sourceType}</span>
+          <code>{evidence.entityId}</code>
+          <dl>
+            {evidence.fields.map((f, i) => (
+              <div key={`body-${f.label}-${i}`}>
+                <dt>{f.label}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -1129,9 +1163,19 @@ export default function OraclePage() {
      Clears the transcript so previous turns are no longer sent, cancels any
      in-flight work and stops speech. Membership and the visitor's question
      quota are untouched. */
+  /* The selected Correspondence entry is RETAINED as the active anchor and that
+     retention is stated in the UI. It is not conversation state: the dock's
+     selection is how the visitor says "keep answering from this record".
+     Clearing it silently would leave hidden context, so the decision is
+     disclosed rather than hidden. */
+  const [anchorNotice, setAnchorNotice] = useState<string | null>(null);
   const startNewConversation = useCallback(() => {
+    // Abort BEFORE clearing, so an in-flight response can never repopulate the
+    // conversation, and pending speech is cancelled and its object URLs freed.
     reqAbortRef.current?.abort();
+    reqAbortRef.current = null;
     speechAbortRef.current?.abort();
+    speechAbortRef.current = null;
     cancelPendingSpeech();
     window.speechSynthesis?.cancel();
     setMsgs((p) => {
@@ -1140,9 +1184,14 @@ export default function OraclePage() {
     });
     setMemory(null);
     setEntityNotice(null);
+    setAnchorNotice(
+      selectedEntryId
+        ? `${(T[lang] || T.en).anchorKept}: ${selectedEntryId}`
+        : `${(T[lang] || T.en).anchorCleared}`
+    );
     setStatusKey("idle");
     setLoading(false);
-  }, [cancelPendingSpeech]);
+  }, [cancelPendingSpeech, selectedEntryId, lang]);
 
   const kd = (e: React.KeyboardEvent) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 
@@ -1362,6 +1411,28 @@ export default function OraclePage() {
                   <span>{currentMode.icon}</span>
                   <span>{(currentMode.label as Record<string, string>)[lang] || (currentMode.label as Record<string, string>).en}</span>
                 </div>
+                {/* Batch 2 follow-up: these controls live in the chat card head
+                    because `oracle-settings-strip` is `display:none` above
+                    1023px, which made them unreachable on desktop. Rendered
+                    exactly once, at every supported width. */}
+                <div className="oracle-conversation-controls">
+                  <span
+                    className="oracle-memory-state"
+                    data-omitted={memory && (memory.omitted ?? 0) > 0 ? "true" : "false"}
+                  >
+                    {memory && memory.turns > 0
+                      ? `${t.remembering.replace("{n}", String(memory.retained))}${(memory.omitted ?? 0) > 0 ? ` · ${memory.omitted} OMITTED` : ""}`
+                      : t.noMemory}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={startNewConversation}
+                    disabled={msgs.length === 0 && !loading}
+                    aria-label={t.newConversationHint}
+                    title={t.newConversationHint}
+                    className="oracle-new-conversation"
+                  >{t.newConversation}</button>
+                </div>
               </div>
               <div className="oracle-spectrum-ribbon oracle-mode-ribbon">
                 <span>{t.modeLens}</span>
@@ -1433,7 +1504,15 @@ export default function OraclePage() {
               </div>
 
               {/* ═══ E: artwork context + return path ═══ */}
-              {artworkContext && (
+                {/* Hidden-context guards: always in the visible chat column,
+                    never in the desktop-hidden settings strip. */}
+                {(anchorNotice || entityNotice) ? (
+                  <div className="oracle-context-notice" role="status" aria-live="polite">
+                    {anchorNotice ? <span data-kind="anchor">{anchorNotice}</span> : null}
+                    {entityNotice ? <span data-kind="entity" style={{ color: "#f59e0b" }}>{entityNotice}</span> : null}
+                  </div>
+                ) : null}
+                {artworkContext && (
                 <div className="oracle-artwork-context" role="note">
                   <span className="oracle-artwork-context-label">SPEAKING ABOUT</span>
                   <a
@@ -1527,29 +1606,12 @@ export default function OraclePage() {
               {tier === "initiate" ? t.initiateActive : tier === "free" ? t.freeLimit.replace("{n}", String(questionsUsed)) : t.guestLimit.replace("{n}", String(questionsUsed))}
             </span>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
-            {/* Honest memory state — counts only, never transcript content. */}
-            {memory && memory.turns > 0 ? (
-              <span
-                className="font-mono text-[8px] tracking-widest uppercase"
-                style={{ color: "rgba(237,233,246,0.3)" }}
-              >{t.remembering.replace("{n}", String(memory.retained))}</span>
-            ) : null}
             {entityNotice ? (
               <span
                 className="font-mono text-[8px] tracking-widest uppercase"
                 style={{ color: "#f59e0b" }}
               >{entityNotice}</span>
             ) : null}
-            <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)" }} />
-            {/* Batch 2: an explicit New-conversation action. It resets conversational
-                state only — membership and the question quota are untouched. */}
-            <button
-              onClick={startNewConversation}
-              disabled={msgs.length === 0 && !loading}
-              aria-label={t.newConversation}
-              className="font-mono text-[8px] tracking-widest uppercase px-3 py-1.5 border transition-all hover:border-[rgba(255,255,255,0.15)] disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ borderColor: "rgba(255,255,255,0.06)", color: "var(--ut-white-faint, rgba(237,233,246,0.25))" }}
-            >{t.newConversation}</button>
           </div>
 
           {/* Shell info line */}
@@ -2487,6 +2549,136 @@ export default function OraclePage() {
           .oracle-shell-copy { font-size: 13px; }
           .oracle-shell-stats { gap: 8px; }
           .oracle-stat { min-width: calc(33.333% - 6px); flex: 1 1 0; }
+        }
+
+        /* ── Batch 2 follow-up: conversation controls + evidence inspector ───────
+           These live in the chat card head, which renders at EVERY width, unlike
+           .oracle-settings-strip (display:none above 1023px). */
+        .oracle-conversation-controls {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          margin-left: auto;
+        }
+        .oracle-memory-state {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(237,233,246,0.3);
+          white-space: nowrap;
+        }
+        .oracle-memory-state[data-omitted="true"] {
+          color: #f59e0b;
+        }
+        .oracle-new-conversation {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          padding: 7px 11px;
+          color: rgba(237,233,246,0.62);
+          border: 1px solid rgba(255,255,255,0.1);
+          background: transparent;
+          cursor: pointer;
+          transition: border-color 0.18s ease, color 0.18s ease;
+          white-space: nowrap;
+        }
+        .oracle-new-conversation:hover:not(:disabled) {
+          border-color: rgba(255,255,255,0.28);
+          color: rgba(237,233,246,0.9);
+        }
+        /* A real, always-visible focus ring — not removed, not subtle. */
+        .oracle-new-conversation:focus-visible,
+        .oracle-evidence-action:focus-visible {
+          outline: 2px solid #22d3ee;
+          outline-offset: 2px;
+        }
+        .oracle-new-conversation:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        .oracle-context-notice {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 14px;
+          margin: 0 0 12px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(237,233,246,0.42);
+        }
+        .oracle-evidence-actions {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .oracle-evidence-action {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #22d3ee;
+          background: transparent;
+          border: 0;
+          border-bottom: 1px solid rgba(34,211,238,0.35);
+          padding: 2px 0;
+          cursor: pointer;
+        }
+        .oracle-evidence-action-link {
+          text-decoration: none;
+        }
+        .oracle-evidence-action:hover {
+          border-bottom-color: #22d3ee;
+        }
+        .oracle-evidence-body {
+          margin-top: 10px;
+          padding: 10px 12px;
+          border: 1px solid rgba(34,211,238,0.18);
+          background: rgba(34,211,238,0.04);
+          font-size: 10px;
+          line-height: 1.6;
+          color: rgba(237,233,246,0.72);
+        }
+        .oracle-evidence-body strong {
+          display: block;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(237,233,246,0.92);
+        }
+        .oracle-evidence-body code {
+          display: block;
+          margin: 6px 0;
+          font-size: 8px;
+          letter-spacing: 0.08em;
+          color: rgba(34,211,238,0.75);
+          word-break: break-all;
+        }
+        .oracle-evidence-body dl > div {
+          display: flex;
+          gap: 10px;
+          padding: 2px 0;
+        }
+        .oracle-evidence-body dt {
+          min-width: 96px;
+          color: rgba(237,233,246,0.4);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          font-size: 8px;
+        }
+        .oracle-evidence-body dd {
+          flex: 1;
+        }
+        @media (max-width: 640px) {
+          .oracle-conversation-controls {
+            margin-left: 0;
+            width: 100%;
+            justify-content: flex-start;
+          }
         }
 
         /* Selection colors */
