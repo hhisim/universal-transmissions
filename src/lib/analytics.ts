@@ -15,8 +15,32 @@ export type UtAnalyticsPayload = {
   sku?: string;
   post_slug?: string;
   referrer?: string;
+  /** Stable public entity id (e.g. artwork id). Never free text. */
+  entity_id?: string;
+  /** Entity kind, e.g. "artwork". Never free text. */
+  entity_type?: string;
   meta?: Record<string, Primitive>;
 };
+
+/* Stable, non-identifying entity tokens are safe to record. Anything else that
+   arrives in a URL query (notably `q`, a visitor's own question) is NOT. */
+const ALLOWED_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,119}$/;
+
+function sanitizedEntityId(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return ALLOWED_ENTITY_ID.test(trimmed) ? trimmed : undefined;
+}
+
+/** Only the pathname is ever recorded: query strings can contain prompts. */
+function sanitizedPath(explicit?: string): string {
+  const raw = explicit ?? (typeof window === "undefined" ? "" : window.location.pathname);
+  try {
+    return new URL(raw, window.location.origin).pathname.slice(0, 500);
+  } catch {
+    return String(raw).split("?")[0].slice(0, 500);
+  }
+}
 
 const SESSION_KEY = "ut_analytics_session_id";
 
@@ -46,6 +70,8 @@ function vercelProperties(payload: UtAnalyticsPayload): Record<string, Primitive
     product_id: payload.product_id,
     sku: payload.sku,
     post_slug: payload.post_slug,
+    entity_id: sanitizedEntityId(payload.entity_id),
+    entity_type: payload.entity_type,
   };
 
   for (const [key, value] of Object.entries(payload.meta || {})) {
@@ -60,7 +86,10 @@ export function trackUtEvent(payload: UtAnalyticsPayload): void {
 
   const enriched: UtAnalyticsPayload & { session_id?: string; user_agent?: string } = {
     ...payload,
-    path: payload.path || `${window.location.pathname}${window.location.search}`,
+    // Was `pathname + search`, which persisted any `?q=` prompt verbatim.
+    path: sanitizedPath(payload.path),
+    target_url: payload.target_url ? sanitizedPath(payload.target_url) : undefined,
+    entity_id: sanitizedEntityId(payload.entity_id),
     referrer: payload.referrer ?? document.referrer,
     session_id: getSessionId(),
     user_agent: navigator.userAgent,

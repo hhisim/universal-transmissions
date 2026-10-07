@@ -5,21 +5,37 @@ function isMobileUserAgent(userAgent: string) {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent);
 }
 
+/* Params the Oracle desktop/mobile clients know how to consume. Anything
+   else is dropped rather than forwarded into analytics or the request body. */
+const FORWARDED_PARAMS = ["view", "q", "artworkId", "from"] as const;
+
+function buildForwardQuery(sp: Record<string, string | string[] | undefined>): string {
+  const params = new URLSearchParams();
+  for (const key of FORWARDED_PARAMS) {
+    const value = sp[key];
+    if (typeof value === "string" && value) params.set(key, value);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
 export default function OracleRouteChooser({
   searchParams,
 }: {
-  searchParams?: { view?: string };
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const forcedView = searchParams?.view;
+  const sp = searchParams || {};
+  const forwardQuery = buildForwardQuery(sp);
+  const forcedView = sp.view;
 
   if (forcedView === "mobile") {
-    redirect("/oracle/mobile");
+    redirect(`/oracle/mobile${forwardQuery}`);
   }
 
   if (forcedView === "desktop") {
-    redirect("/oracle/desktop");
+    redirect(`/oracle/desktop${forwardQuery}`);
   }
 
   const userAgent = headers().get("user-agent") || "";
-  redirect(isMobileUserAgent(userAgent) ? "/oracle/mobile" : "/oracle/desktop");
+  redirect(isMobileUserAgent(userAgent) ? `/oracle/mobile${forwardQuery}` : `/oracle/desktop${forwardQuery}`);
 }

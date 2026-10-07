@@ -11,6 +11,26 @@ function text(value: unknown, max = 500): string | null {
   return trimmed ? trimmed.slice(0, max) : null;
 }
 
+/* Query strings can carry a visitor's own question (`?q=...`) on routes such as
+   the Oracle. Only the pathname is ever persisted. */
+function pathOnly(value: unknown, max = 500): string | null {
+  const raw = text(value, 2000);
+  if (!raw) return null;
+  const withoutQuery = raw.split("?")[0].split("#")[0];
+  return withoutQuery ? withoutQuery.slice(0, max) : null;
+}
+
+/* Stable entity tokens only; free text is rejected outright. */
+const ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,119}$/;
+
+function entityId(value: unknown): string | null {
+  const raw = text(value, 120);
+  if (!raw || !ENTITY_ID.test(raw)) return null;
+  return raw;
+}
+
+
+
 function meta(value: unknown): Record<string, string | number | boolean | null> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   return Object.fromEntries(
@@ -37,13 +57,15 @@ export async function POST(req: NextRequest) {
     category: text(body.category, 80),
     action: text(body.action, 80),
     placement: text(body.placement, 120),
-    path: text(body.path, 500),
-    target_url: text(body.target_url, 1000),
+    path: pathOnly(body.path, 500),
+    target_url: pathOnly(body.target_url, 1000),
+    entity_id: entityId(body.entity_id),
+    entity_type: entityId(body.entity_type),
     product_id: text(body.product_id, 120),
     sku: text(body.sku, 120),
     post_slug: text(body.post_slug, 160),
     session_id: text(body.session_id, 120),
-    referrer: text(body.referrer, 1000),
+    referrer: pathOnly(body.referrer, 1000),
     user_agent: text(body.user_agent || req.headers.get("user-agent"), 500),
     meta: meta(body.meta),
   };

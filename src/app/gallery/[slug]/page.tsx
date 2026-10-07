@@ -304,7 +304,7 @@ export default function ArtworkDetailPage({ params }: Props) {
                 Ask the Codex Oracle about the symbolism, geometry, and hidden correspondences within this piece.
               </p>
               <a
-                href={`/oracle?q=Tell+me+about+${encodeURIComponent(artwork.title)}`}
+                href={`/oracle?view=desktop&artworkId=${encodeURIComponent(artwork.id)}&from=${encodeURIComponent(`/gallery/${artwork.slug}`)}&q=${encodeURIComponent(`Tell me about ${artwork.title}`)}`}
                 className="font-heading text-[10px] tracking-[0.2em] uppercase oracle-link"
               >
                 ASK THE ORACLE ABOUT THIS PIECE →

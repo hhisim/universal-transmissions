@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -9,8 +10,27 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import SectionReveal from "@/components/ui/SectionReveal";
 import OracleCorrespondenceDock from "@/components/oracle/OracleCorrespondenceDock";
 import { buildOracleCodexContext, codexRowCount } from "@/codex/oracle-context";
+import { artworks } from "@/data/artworks";
 
 const CosmicBackground = dynamic(() => import("@/components/oracle/CosmicBackground"), { ssr: false });
+
+/* Reduced-motion is a hard accessibility requirement (audit O). Read once
+   per render pass; used to disable display gates, never to hide content. */
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+}
+
+/* Combining diacritical marks (U+0300–U+036F) are what produce the corrupted
+   look. Several strings in this file are stored already-corrupted, so the
+   accessible name must be de-marked rather than merely hidden. */
+function plainText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFC")
+    .trim();
+}
 
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
@@ -366,32 +386,43 @@ function GlitchTitle({ text, mousePos }: { text: string; mousePos: { x: number; 
     return Math.min(dist / 150, 6);
   }, [mousePos]);
 
+  /* Audit O: the plain string is the accessible name; every glyph layer is
+     decorative. Reduced motion drops the chromatic echoes and the corruption
+     so the heading is simply readable text. */
+  const reduced = typeof window !== "undefined" ? prefersReducedMotion() : false;
+
   return (
     <span className="glitch-title-wrap relative inline-block">
-      <span className="glitch-title-r absolute inset-0"
-        style={{
-          color: "#ff003c",
-          clipPath: `inset(${Math.random() * 10}% 0 ${Math.random() * 10}% 0)`,
-          transform: `translate(${intensity * 0.8}px, ${-intensity * 0.3}px)`,
-          opacity: Math.min(intensity * 0.15, 0.6),
-          mixBlendMode: "screen",
-          transition: "transform 0.1s ease-out, opacity 0.15s",
-        }}>
-        <ZalgoText text={text} intensity="moderate" />
-      </span>
-      <span className="glitch-title-b absolute inset-0"
-        style={{
-          color: "#00e5ff",
-          clipPath: `inset(${Math.random() * 10}% 0 ${Math.random() * 10}% 0)`,
-          transform: `translate(${-intensity * 0.6}px, ${intensity * 0.4}px)`,
-          opacity: Math.min(intensity * 0.12, 0.5),
-          mixBlendMode: "screen",
-          transition: "transform 0.1s ease-out, opacity 0.15s",
-        }}>
-        <ZalgoText text={text} intensity="moderate" />
-      </span>
-      <span className="relative z-10" style={{ color: "var(--ut-white, #ede9f6)" }}>
-        <ZalgoText text={text} intensity="moderate" />
+      {!reduced && (
+        <>
+          <span aria-hidden="true" className="glitch-title-r absolute inset-0"
+            style={{
+              color: "#ff003c",
+              clipPath: `inset(${Math.random() * 10}% 0 ${Math.random() * 10}% 0)`,
+              transform: `translate(${intensity * 0.8}px, ${-intensity * 0.3}px)`,
+              opacity: Math.min(intensity * 0.15, 0.6),
+              mixBlendMode: "screen",
+              transition: "transform 0.1s ease-out, opacity 0.15s",
+            }}>
+            <ZalgoText text={text} intensity="moderate" />
+          </span>
+          <span aria-hidden="true" className="glitch-title-b absolute inset-0"
+            style={{
+              color: "#00e5ff",
+              clipPath: `inset(${Math.random() * 10}% 0 ${Math.random() * 10}% 0)`,
+              transform: `translate(${-intensity * 0.6}px, ${intensity * 0.4}px)`,
+              opacity: Math.min(intensity * 0.12, 0.5),
+              mixBlendMode: "screen",
+              transition: "transform 0.1s ease-out, opacity 0.15s",
+            }}>
+            <ZalgoText text={text} intensity="moderate" />
+          </span>
+        </>
+      )}
+      {/* Plain, correct text for assistive tech; visually the glyph treatment. */}
+      <span className="sr-only">{plainText(text)}</span>
+      <span aria-hidden="true" className="relative z-10" style={{ color: "var(--ut-white, #ede9f6)" }}>
+        {reduced ? plainText(text) : <ZalgoText text={text} intensity="moderate" />}
       </span>
     </span>
   );
@@ -509,7 +540,17 @@ function AudioPlayer({ src, color }: { src: string; color: string }) {
 /* ═══════════════════════════════════════════════════════════
    CHAT BUBBLE — with decrypt animation + output mode support
    ═══════════════════════════════════════════════════════════ */
-interface Msg { role: "user" | "oracle"; text: string; mode?: string; audioUrl?: string; outputMode?: string }
+interface Msg {
+  role: "user" | "oracle";
+  text: string;
+  mode?: string;
+  audioUrl?: string;
+  outputMode?: string;
+  /** Stable registry id (e.g. artwork id) when the answer has an entity anchor. */
+  entityId?: string;
+  /** Ids of in-flight speech requests; used to cancel stale audio. */
+  ttsPending?: boolean;
+}
 
 function ChatBubble({
   msg,
@@ -528,6 +569,10 @@ function ChatBubble({
   const t = T[lang] || T.en;
   const ml = (MODES.find(m => m.id === msg.mode)?.label as Record<string, string>)?.[lang] || "ORACLE";
   const [decryptDone, setDecryptDone] = useState(false);
+  // Decorative decode echo is opt-in per answer. Default off so the readable
+  // text is what the visitor sees; reduced motion can never enable it.
+  const [decodedOverlay, setDecodedOverlay] = useState(false);
+  const [reduced] = useState(() => (typeof window !== "undefined" ? prefersReducedMotion() : false));
   const oMode = msg.outputMode || outputMode;
 
   // Determine display text based on output mode
@@ -545,10 +590,12 @@ function ChatBubble({
   };
 
   useEffect(() => {
-    if (!isOracle || decryptDone || isLemurian) return;
+    // Only the optional decorative echo reports activity; it must not imply
+    // the answer itself is still loading.
+    if (!decodedOverlay || reduced || isLemurian) return;
     onDecodingChange?.(true);
     return () => onDecodingChange?.(false);
-  }, [decryptDone, isLemurian, isOracle, onDecodingChange]);
+  }, [decodedOverlay, reduced, isLemurian, onDecodingChange]);
 
   return (
     <motion.div initial={{ opacity: 0, y: 16, filter: "blur(6px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.5 }}
@@ -593,22 +640,20 @@ function ChatBubble({
           letterSpacing: isLemurian ? "0.15em" : isXeno ? "0.08em" : "normal",
         }}>
           {isOracle ? (
-            isXeno ? (
-              // Xeno mode: decode into encrypted glyph text with subtle glow
-              <span className="xeno-output" style={{ textShadow: `0 0 8px ${modeColor}66, 0 0 20px ${modeColor}22` }}>
-                {decryptDone ? displayText : <DecryptText text={displayText} onComplete={completeDecode} />}
-              </span>
-            ) : isLemurian ? (
-              // Lemurian mode: CODEX_2 font + number substitution
-              <span className="lemurian-output" style={{ textShadow: `0 0 10px rgba(212,168,71,0.4), 0 0 30px rgba(212,168,71,0.15)` }}>
-                {toLemurianText(displayText)}
-              </span>
-            ) : decryptDone ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
-            ) : (
-              // Standard: decrypt animation
-              <DecryptText text={displayText} onComplete={completeDecode} />
-            )
+            <>
+              {/* Readable text is ALWAYS rendered immediately and in full.
+                  The decode effect is decorative and off by default (audit D);
+                  it never gates or replaces the answer. */}
+              <div className="oracle-answer-readable">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+              </div>
+              {decodedOverlay && (
+                <span aria-hidden="true" className="xeno-output mt-2 block"
+                  style={{ textShadow: `0 0 8px ${modeColor}66, 0 0 20px ${modeColor}22` }}>
+                  {isXeno ? displayText : isLemurian ? toLemurianText(displayText) : <DecryptText text={displayText} onComplete={completeDecode} />}
+                </span>
+              )}
+            </>
           ) : (
             <span>{msg.text}</span>
           )}
@@ -640,8 +685,26 @@ function ChatBubble({
           </details>
         )}
 
-        {/* Standard mode — render markdown after decrypt */}
+        {/* Speech is independent of the text above: a pending or failed TTS
+            request never hides, delays or alters the readable answer. */}
         {isOracle && msg.audioUrl && <AudioPlayer src={msg.audioUrl} color={modeColor} />}
+        {isOracle && msg.ttsPending && (
+          <span className="mt-2 block font-mono text-[8px] tracking-[0.18em] uppercase"
+            style={{ color: "var(--ut-white-faint, rgba(237,233,246,0.25))" }}>
+            PREPARING SPOKEN FORM…
+          </span>
+        )}
+        {isOracle && (
+          <button
+            type="button"
+            onClick={() => setDecodedOverlay((v) => !v)}
+            aria-pressed={decodedOverlay}
+            className="mt-3 font-mono text-[8px] tracking-[0.18em] uppercase border px-2 py-1"
+            style={{ borderColor: "rgba(255,255,255,0.08)", color: "var(--ut-white-faint, rgba(237,233,246,0.35))" }}
+          >
+            {decodedOverlay ? "▾ HIDE DECODED ECHO" : "▸ SHOW DECODED ECHO"}
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -651,6 +714,27 @@ function ChatBubble({
    MAIN PAGE
    ═══════════════════════════════════════════════════════════ */
 export default function OraclePage() {
+  const searchParams = useSearchParams();
+
+  /* ── E: artwork/topic context from the entry link ──────────────────────────
+     `q` becomes an editable draft (never auto-submitted) and `artworkId` is
+     resolved against the trusted artworks registry in src/data/artworks.ts, so
+     the displayed title/return link come from our own content, not from
+     attacker-controllable URL text. Unknown ids are dropped rather than
+     displayed. */
+  const rawArtworkId = searchParams.get("artworkId") || "";
+  const draftQuestion = searchParams.get("q") || "";
+  const returnTo = searchParams.get("from") || "";
+  const artworkContext = useMemo(() => {
+    if (!rawArtworkId) return null;
+    const match = artworks.find((a) => a.id === rawArtworkId || a.slug === rawArtworkId);
+    if (!match) return null;
+    const safeReturn = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
+      ? returnTo
+      : `/gallery/${match.slug}`;
+    return { id: match.id, slug: match.slug, title: match.title, year: match.year, returnTo: safeReturn };
+  }, [rawArtworkId, returnTo]);
+
   const [booted, setBooted] = useState(false);
   const [bootPhase, setBootPhase] = useState(-1);
   const [mode, setMode] = useState("oracle");
@@ -660,8 +744,16 @@ export default function OraclePage() {
   const [voiceOn, setVoiceOn] = useState(true);
   const [voiceGender, setVoiceGender] = useState<"f" | "m">("f");
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  // The artwork entry question arrives as ?q=. It becomes an EDITABLE draft so
+  // the visitor confirms it; it is deliberately NOT auto-submitted, because a
+  // submitted question consumes a guest-tier question.
   const [input, setInput] = useState("");
+  const [draftSeeded, setDraftSeeded] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Aborts the in-flight /api/oracle request on unmount and when a newer
+  // question supersedes it, so a stale response can never overwrite a newer one.
+  const reqAbortRef = useRef<AbortController | null>(null);
+  const [statusKey, setStatusKey] = useState<"idle" | "sending" | "waiting" | "error">("idle");
   const [nameInput, setNameInput] = useState("");
   const [questionsUsed, setQuestionsUsed] = useState(0);
   const [tier] = useState<"guest" | "free" | "initiate">("guest");
@@ -679,20 +771,35 @@ export default function OraclePage() {
 
   const starters = useMemo(() => pickRandom(Q_POOL[mode] || Q_POOL.oracle, 4), [mode]);
 
-  /* ── Boot sequence ── */
+  /* ── Boot atmosphere (no fixed readiness gate) ───────────────────────────
+     Previously 5x900ms ticks plus a 1200ms hand-off gated `booted`, so the input
+     was unusable for ~6.6s regardless of real network work. `booted` is now set
+     as soon as the console's real dependencies are in place (mount + one paint)
+     and the boot lines continue as a dismissible overlay, so atmosphere never
+     gates useful work. Reduced motion skips the sequence entirely.
+     ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
+    if (prefersReducedMotion()) {
+      setBootPhase(5);
+      setBooted(true);
+      return;
+    }
     let current = 0;
     const total = 5;
+    const raf = requestAnimationFrame(() => setBooted(true));
     const interval = setInterval(() => {
       if (current < total) {
         setBootPhase(current);
         current++;
       } else {
         clearInterval(interval);
-        setTimeout(() => setBooted(true), 1200);
+        setBootPhase(total);
       }
-    }, 900);
-    return () => clearInterval(interval);
+    }, 420);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(interval);
+    };
   }, []);
 
   /* ── Mouse tracking ── */
@@ -702,12 +809,27 @@ export default function OraclePage() {
     return () => window.removeEventListener("mousemove", handle);
   }, []);
 
+  /* ── Cancel in-flight request on unmount ── */
+  useEffect(() => () => reqAbortRef.current?.abort(), []);
+
   /* ── Scroll ── */
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
   useEffect(() => {
     setLatticeMeta({ status: "ready", rows: codexRowCount() });
   }, []);
+
+  /* ── E: seed the editable draft from the entry link, exactly once ──────────── */
+  useEffect(() => {
+    if (draftSeeded) return;
+    const fromEntry = (searchParams.get("q") || "").trim();
+    if (fromEntry) {
+      setInput(fromEntry);
+      // Make the seeded draft obvious rather than silently prefilled.
+      if (artworkContext) setMode("oracle");
+    }
+    setDraftSeeded(true);
+  }, [draftSeeded, searchParams, artworkContext]);
 
   const fetchTTS = useCallback(async (text: string): Promise<string> => {
     if (!voiceOn) return "";
@@ -725,7 +847,13 @@ export default function OraclePage() {
     setInput("");
     const useMode = forceMode || mode;
     setMsgs(p => [...p, { role: "user", text: m }]);
+    // Supersede any in-flight request before starting a new one.
+    reqAbortRef.current?.abort();
+    const reqController = new AbortController();
+    reqAbortRef.current = reqController;
+    const reqSignal = reqController.signal;
     setLoading(true);
+    setStatusKey("waiting");
     try {
       let apiMessage = m;
       if (useMode === "correspondence") {
@@ -742,20 +870,79 @@ export default function OraclePage() {
           setLatticeMeta((meta) => ({ ...meta, status: "offline" }));
         }
       }
-      const res = await fetch("/api/oracle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: apiMessage, mode: useMode, lang, speed }) });
+      const res = await fetch("/api/oracle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: apiMessage,
+          mode: useMode,
+          lang,
+          speed,
+          artworkId: artworkContext?.id,
+          artworkTitle: artworkContext?.title,
+        }),
+        signal: reqController.signal,
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.error) {
         throw new Error(data.error || `Oracle API returned ${res.status}`);
       }
       const answer = data.response || data.answer || "";
-      const audioUrl = answer ? await fetchTTS(answer) : "";
-      setMsgs(p => [...p, { role: "oracle", text: answer || "This transmission has not yet entered the archive.", mode: useMode, audioUrl, outputMode }]);
-      setQuestionsUsed(q => q + 1);
+
+      // ── C: text first, speech strictly independent ───────────────────────────
+      // The answer is appended the instant the text exists. TTS is requested
+      // AFTER that append and patches the same message in place, so a slow or
+      // failing speech request can no longer delay, hide or corrupt the answer.
+      // reqSignal aborts on unmount or when a newer question is submitted, so a
+      // stale response cannot overwrite a newer answer.
+      const bubble: Msg = {
+        role: "oracle",
+        text: answer || "This transmission has not yet entered the archive.",
+        mode: useMode,
+        outputMode,
+        entityId: artworkContext?.id,
+        ttsPending: voiceOn && Boolean(answer),
+      };
+      setMsgs((p) => [...p, bubble]);
+      setQuestionsUsed((q) => q + 1);
+
+      if (voiceOn && answer) {
+        fetchTTS(answer).then((audioUrl) => {
+          if (reqController.signal.aborted) {
+            if (audioUrl) URL.revokeObjectURL(audioUrl);
+            return;
+          }
+          setMsgs((p) =>
+            p.map((existing) =>
+              existing === bubble || (existing.role === "oracle" && existing.ttsPending)
+                ? { ...existing, audioUrl: audioUrl || undefined, ttsPending: false }
+                : existing
+            )
+          );
+        });
+      }
     } catch (err) {
-      const detail = err instanceof Error ? err.message : "";
-      setMsgs(p => [...p, { role: "oracle", text: detail ? `The transmission was interrupted. ${detail}` : "The transmission was interrupted.", mode: useMode, outputMode }]);
-    } finally { setLoading(false); }
-  }, [input, mode, lang, speed, loading, atLimit, fetchTTS, outputMode]);
+      if (reqController.signal.aborted) return;
+      // Never surface a raw provider/backend message to the visitor.
+      setMsgs((p) => [
+        ...p,
+        {
+          role: "oracle",
+          text: "The transmission was interrupted.",
+          mode: useMode,
+          outputMode,
+        },
+      ]);
+      setStatusKey("error");
+    } finally {
+      if (reqAbortRef.current === reqController) reqAbortRef.current = null;
+      if (!reqController.signal.aborted) setStatusKey("idle");
+      setLoading(false);
+    }
+  }, [
+    input, mode, lang, speed, loading, atLimit, fetchTTS, outputMode, voiceOn,
+    artworkContext,
+  ]);
 
   const lastOracleText = useMemo(() => {
     for (let i = msgs.length - 1; i >= 0; i -= 1) {
@@ -798,8 +985,8 @@ export default function OraclePage() {
   /* ═══════════════════════════════════════════════
      BOOT SCREEN
      ═══════════════════════════════════════════════ */
-  if (!booted) {
-    return (
+  const bootOverlay = !booted ? (
+      <div className="oracle-boot-overlay" aria-hidden="true">
       <div className="h-screen w-screen bg-[#020103] flex flex-col items-center justify-center overflow-hidden relative">
         <CosmicBackground />
         {/* CRT overlay */}
@@ -848,14 +1035,15 @@ export default function OraclePage() {
           </motion.p>
         </div>
       </div>
-    );
-  }
+      </div>
+    ) : null;
 
   /* ═══════════════════════════════════════════════
      MAIN INTERFACE
      ═══════════════════════════════════════════════ */
   return (
     <>
+      {bootOverlay}
       <CosmicBackground isProcessing={loading} mousePos={mousePos} />
 
       {/* Overlays */}
@@ -1072,6 +1260,26 @@ export default function OraclePage() {
                 )}
               </div>
 
+              {/* ═══ E: artwork context + return path ═══ */}
+              {artworkContext && (
+                <div className="oracle-artwork-context" role="note">
+                  <span className="oracle-artwork-context-label">SPEAKING ABOUT</span>
+                  <a
+                    href={artworkContext.returnTo}
+                    className="oracle-artwork-context-title"
+                    aria-label={`Return to ${artworkContext.title}`}
+                  >
+                    {artworkContext.title}
+                  </a>
+                  <span className="oracle-artwork-context-meta">
+                    ARTWORK {artworkContext.id} · {artworkContext.year}
+                  </span>
+                  <a href={artworkContext.returnTo} className="oracle-artwork-context-return">
+                    ← RETURN TO ARTWORK
+                  </a>
+                </div>
+              )}
+
               {/* ═══ Input ═══ */}
               <div style={{ padding: "0 24px 20px", borderTop: `1px solid rgba(255,255,255,0.04)` }}>
                 {atLimit && (
@@ -1082,10 +1290,12 @@ export default function OraclePage() {
                 )}
                 <div className="flex gap-3 items-end mt-4">
                   <textarea rows={1} value={input} onChange={e => setInput(e.target.value)} onKeyDown={kd}
+                    aria-label={t.placeholder}
                     placeholder={t.placeholder} disabled={atLimit}
                     className="flex-1 bg-[rgba(17,15,26,0.4)] border px-4 py-3 font-body text-base resize-none outline-none transition-all focus:border-[rgba(217,70,239,0.25)]"
                     style={{ borderColor: "rgba(255,255,255,0.06)", minHeight: 48, color: "var(--ut-white, #ede9f6)", backdropFilter: "blur(8px)" }} />
-                  <button onClick={() => send()} disabled={loading || !input.trim() || atLimit}
+                  <button type="button" onClick={() => send()} disabled={loading || !input.trim() || atLimit}
+                    aria-label={t.transmit}
                     className="font-heading text-[10px] tracking-[0.2em] uppercase px-6 py-3 border transition-all relative overflow-hidden group"
                     style={{ borderColor: currentMode.c + "55", color: currentMode.c, background: currentMode.c + "08", opacity: loading || !input.trim() || atLimit ? 0.3 : 1, cursor: loading || !input.trim() || atLimit ? "not-allowed" : "pointer" }}>
                     <span className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -1096,6 +1306,13 @@ export default function OraclePage() {
                   <ChromaticWavelength isActive={loading || answerAnimating} color={currentMode.c} />
                 </div>
                 <div className="mt-2 text-center font-mono text-[8px] tracking-widest" style={{ color: "rgba(237,233,246,0.08)" }}>{t.enterHint}</div>
+                {/* Concise status feedback, announced politely. Announces state
+                    changes only — never the full answer on every token. */}
+                <div role="status" aria-live="polite" aria-atomic="true"
+                  className="mt-2 text-center font-mono text-[9px] tracking-[0.16em] uppercase"
+                  style={{ color: statusKey === "error" ? "#f59e0b" : "var(--ut-white-faint, rgba(237,233,246,0.4))" }}>
+                  {statusKey === "waiting" ? "THE ORACLE IS SPEAKING…" : statusKey === "error" ? "TRANSMISSION INTERRUPTED" : ""}
+                </div>
               </div>
             </div>
 
@@ -1188,6 +1405,80 @@ export default function OraclePage() {
           font-weight: normal;
           font-style: normal;
           font-display: swap;
+        }
+
+        /* Boot overlay: atmosphere only — never blocks the console underneath. */
+        .oracle-boot-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 60;
+          pointer-events: none;
+          animation: oracleBootFade 900ms ease-out forwards;
+        }
+        @keyframes oracleBootFade {
+          0% { opacity: 1; }
+          70% { opacity: 1; }
+          100% { opacity: 0; visibility: hidden; }
+        }
+
+        /* Readable answer text — full content, immediately, no decode gate. */
+        .oracle-answer-readable p { margin: 0 0 0.85em; }
+        .oracle-answer-readable p:last-child { margin-bottom: 0; }
+        .oracle-answer-readable ul, .oracle-answer-readable ol { margin: 0.5em 0 0.85em 1.1em; }
+        .oracle-answer-readable code {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.9em;
+          color: #f0c75e;
+        }
+        .oracle-answer-readable a { color: #22d3ee; text-decoration: underline; }
+
+        /* Artwork context chip. */
+        .oracle-artwork-context {
+          margin: 12px 24px 0;
+          padding: 10px 12px;
+          border: 1px solid rgba(212, 168, 71, 0.22);
+          border-left-width: 2px;
+          border-radius: 10px;
+          background: rgba(212, 168, 71, 0.05);
+          display: grid;
+          gap: 3px;
+        }
+        .oracle-artwork-context-label {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: rgba(212, 168, 71, 0.6);
+        }
+        .oracle-artwork-context-title {
+          font-family: 'Cinzel', serif;
+          font-size: 15px;
+          color: var(--ut-white, #ede9f6);
+        }
+        .oracle-artwork-context-title:hover { color: #f0c75e; }
+        .oracle-artwork-context-meta {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.16em;
+          color: var(--ut-white-faint, rgba(237, 233, 246, 0.3));
+        }
+        .oracle-artwork-context-return {
+          margin-top: 4px;
+          justify-self: start;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: rgba(217, 70, 239, 0.8);
+        }
+        .oracle-artwork-context-return:hover { color: #f0c75e; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .oracle-boot-overlay { display: none; }
+          .oracle-scan-line, .xeno-output, .lemurian-output,
+          .chromatic-wave, .oracle-scroll::-webkit-scrollbar-thumb {
+            animation: none !important;
+          }
         }
 
         /* Oracle animations */
