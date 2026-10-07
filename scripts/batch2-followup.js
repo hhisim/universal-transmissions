@@ -444,6 +444,35 @@ console.log(`\n${"=".repeat(72)}`);
   ok(emittedHrefs.includes('/experience/correspondence-codex'),
      'evidence: the live correspondence-codex href must be emitted');
 }
+
+
+// ── S10: the controls must not be clipped by the card on narrow screens ──────
+// Measured on the final preview at 390px: the New Conversation button's right edge
+// sat at 377 while its `overflow:hidden` clipping ancestor ended at 354, so ~23px of
+// the label was genuinely cut off (confirmed visually). The card head could not wrap,
+// so the controls could never take their own line.
+{
+  const src = fs.readFileSync(path.join(SRC, "app/oracle/page-client.tsx"), "utf8");
+
+  const headBlock = (src.match(/\.oracle-chat-card-head\s*\{([^}]*)\}/) || [,""])[1];
+  ok(/flex-wrap:\s*wrap/.test(headBlock),
+     "narrow: the chat card head must be allowed to wrap");
+  ok(/row-gap:\s*8px/.test(headBlock),
+     "narrow: wrapped lines need vertical separation");
+
+  const narrowBlock = (src.match(/@media \(max-width: 640px\)\s*\{\s*\.oracle-conversation-controls\s*\{([^}]*)\}/) || [,""])[1];
+  ok(/flex:\s*0\s*0\s*100%/.test(narrowBlock),
+     "narrow: controls must claim a full-width line");
+  ok(/width:\s*100%/.test(narrowBlock),
+     "narrow: controls must keep the existing full-width rule");
+  ok(/margin-left:\s*0/.test(narrowBlock),
+     "narrow: the auto margin must be dropped when the controls take their own line");
+
+  // The button must never be allowed to shrink its own label away.
+  ok(/white-space:\s*nowrap/.test((src.match(/\.oracle-new-conversation\s*\{([^}]*)\}/) || [,""])[1]),
+     "narrow: the button label must stay on one line rather than being squeezed");
+}
+
 console.log(`batch2-followup: ${pass} passed, ${fail} failed`);
 if (fail) {
   console.log("\nFAILURES:");

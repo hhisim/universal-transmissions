@@ -2039,6 +2039,11 @@ export default function OraclePage() {
           gap: 14px;
           padding: 14px 18px 10px;
           border-bottom: 1px solid rgba(255,255,255,0.055);
+          /* NARROW-WIDTH CLIP FIX: without wrapping, the conversation controls
+             cannot take their own line and are clipped by the card's
+             overflow:hidden ancestor on narrow screens. */
+          flex-wrap: wrap;
+          row-gap: 8px;
         }
         .oracle-chat-card-head strong {
           display: block;
@@ -2675,6 +2680,8 @@ export default function OraclePage() {
         }
         @media (max-width: 640px) {
           .oracle-conversation-controls {
+            /* NARROW-WIDTH CLIP FIX: own full-width line, so nothing is clipped. */
+            flex: 0 0 100%;
             margin-left: 0;
             width: 100%;
             justify-content: flex-start;
