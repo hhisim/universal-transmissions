@@ -13,7 +13,10 @@ import OracleCorrespondenceDock from "@/components/oracle/OracleCorrespondenceDo
 // server-side now. codexRowCount still drives the dock's visible row counter.
 import { codexRowCount } from "@/codex/oracle-context";
 import { artworks } from "@/data/artworks";
-import { buildHistoryFromMessages } from "@/lib/oracle-conversation";
+import {
+  resolveResearchTopic,
+  researchTopicId as researchTopicIdFor,
+} from "@/lib/research-topics";import { buildHistoryFromMessages } from "@/lib/oracle-conversation";
 import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
 
 const CosmicBackground = dynamic(() => import("@/components/oracle/CosmicBackground"), { ssr: false });
@@ -846,8 +849,29 @@ export default function OraclePage() {
   const rawArtworkId = boundedParam(searchParams.get("artworkId"), MAX_ENTITY_CHARS);
   const entryQuestion = boundedParam(searchParams.get("q"), MAX_DRAFT_CHARS);
   const returnTo = boundedParam(searchParams.get("from"), MAX_RETURN_CHARS);
+  /* A research entry carries a stable identifier only. The title and route below
+     come from the server registry, so a forged id or a rewritten URL cannot
+     present itself as a real research topic. */
+  const rawResearchId = boundedParam(
+    searchParams.get("researchTopicId"),
+    MAX_ENTITY_CHARS
+  );
+  const researchContext = useMemo(() => {
+    if (!rawResearchId) return null;
+    const topic = resolveResearchTopic(rawResearchId);
+    if (!topic) return null;
+    const safeReturn =
+      returnTo.startsWith("/") && !returnTo.startsWith("//") && !returnTo.includes("\\")
+        ? returnTo
+        : topic.route;
+    return { id: topic.id, title: topic.title, route: topic.route, returnTo: safeReturn };
+  }, [rawResearchId, returnTo]);
   const artworkContext = useMemo(() => {
     if (!rawArtworkId) return null;
+    /* ANCHOR PRECEDENCE (research > artwork): when a research topic is the
+       entry anchor, the artwork context is deliberately dropped rather than
+       merged, so a stale artwork or deity anchor cannot silently survive. */
+    if (researchContext) return null;
     const match = artworks.find((a) => a.id === rawArtworkId || a.slug === rawArtworkId);
     if (!match) return null;
     // Only a same-origin absolute path is honoured. Protocol-relative ("//evil")
@@ -857,8 +881,7 @@ export default function OraclePage() {
         ? returnTo
         : `/gallery/${match.slug}`;
     return { id: match.id, slug: match.slug, title: match.title, year: match.year, returnTo: safeReturn };
-  }, [rawArtworkId, returnTo]);
-
+  }, [rawArtworkId, returnTo, researchContext]);
   const [booted, setBooted] = useState(false);
   const [bootPhase, setBootPhase] = useState(-1);
   const [mode, setMode] = useState("oracle");
@@ -1043,7 +1066,11 @@ export default function OraclePage() {
           lang,
           speed,
           artworkId: artworkContext?.id,
-          // Completed previous turns only. The server appends the current
+          /* Stable identifier only. The server resolves the record; a
+             client-supplied title or summary is never forwarded. */
+          researchTopicId: researchContext
+            ? researchTopicIdFor(researchContext.id)
+            : undefined,          // Completed previous turns only. The server appends the current
           // question, so it is never duplicated by also sending it here.
           history: buildHistoryFromMessages(msgs, m),
           entityId: activeAnchorId ?? undefined,
@@ -1512,6 +1539,24 @@ export default function OraclePage() {
                     {entityNotice ? <span data-kind="entity" style={{ color: "#f59e0b" }}>{entityNotice}</span> : null}
                   </div>
                 ) : null}
+                {researchContext && (
+                <div className="oracle-artwork-context" role="note" data-research-context="true">
+                  <span className="oracle-artwork-context-label">SPEAKING ABOUT</span>
+                  <a
+                    href={researchContext.returnTo}
+                    className="oracle-artwork-context-title"
+                    aria-label={`Return to ${researchContext.title}`}
+                  >
+                    {researchContext.title}
+                  </a>
+                  <span className="oracle-artwork-context-meta">
+                    RESEARCH {researchContext.id.toUpperCase()}
+                  </span>
+                  <a href={researchContext.returnTo} className="oracle-artwork-context-return">
+                    &#8592; RETURN TO {researchContext.title.toUpperCase()}
+                  </a>
+                </div>
+              )}
                 {artworkContext && (
                 <div className="oracle-artwork-context" role="note">
                   <span className="oracle-artwork-context-label">SPEAKING ABOUT</span>

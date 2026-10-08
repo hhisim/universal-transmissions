@@ -7,7 +7,11 @@ function isMobileUserAgent(userAgent: string) {
 
 /* Params the Oracle desktop/mobile clients know how to consume. Anything
    else is dropped rather than forwarded into analytics or the request body. */
-const FORWARDED_PARAMS = ["view", "q", "artworkId", "from"] as const;
+/* Stable research identifier (e.g. research-v1:cymatics) must survive this
+   chooser or the Oracle loses the research anchor on redirect. An identifier
+   only: the title, summary and permitted sources are resolved server-side
+   from the research registry, never forwarded from the URL. */
+const FORWARDED_PARAMS = ["view", "q", "artworkId", "researchTopicId", "from"] as const;
 
 function buildForwardQuery(sp: Record<string, string | string[] | undefined>): string {
   const params = new URLSearchParams();

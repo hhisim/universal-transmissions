@@ -4,6 +4,10 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import CymaticsConnections from "@/components/research/CymaticsConnections";
+import ResearchOraclePortal from "@/components/research/ResearchOraclePortal";
+import { CYMATICS_CONNECTIONS } from "@/lib/research-connections";
+import { resolveResearchTopic, researchTopicId } from "@/lib/research-topics";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/cymatics" },
@@ -12,16 +16,26 @@ export const metadata: Metadata = {
     "The science of visible sound and vibration — Chladni patterns, standing waves, and the Tonoscope. How frequency creates form.",
 };
 
+/* Symbolic tone values. The note is what this archive assigns the tone, NOT a
+   measured property of it. This is UT's own symbolic scheme; no therapeutic or
+   healing effect is claimed or implied for any of these numbers. */
 const frequencyData = [
-  { freq: "432 Hz", note: "Natural Tuning · Nature's Frequency", color: "var(--ut-cyan)" },
-  { freq: "528 Hz", note: "DNA Repair · Love Frequency", color: "var(--ut-magenta)" },
-  { freq: "639 Hz", note: "Harmony · Relationships", color: "var(--ut-purple)" },
-  { freq: "741 Hz", note: "Expression · Awakening", color: "var(--ut-indigo)" },
-  { freq: "852 Hz", note: "Third Eye · Intuition", color: "var(--ut-cyan-deep)" },
-  { freq: "963 Hz", note: "Crown · Pure Tone", color: "var(--ut-gold)" },
+  { freq: "432 Hz", note: "Natural tuning · Symbolic", color: "var(--ut-cyan)" },
+  { freq: "528 Hz", note: "Love · Symbolic (no DNA claim)", color: "var(--ut-magenta)" },
+  { freq: "639 Hz", note: "Harmony · Symbolic", color: "var(--ut-purple)" },
+  { freq: "741 Hz", note: "Expression · Symbolic", color: "var(--ut-indigo)" },
+  { freq: "852 Hz", note: "Intuition · Symbolic", color: "var(--ut-cyan-deep)" },
+  { freq: "963 Hz", note: "Crown · Symbolic", color: "var(--ut-gold)" },
 ];
 
 export default function ResearchCymaticsPage() {
+  /* Resolved here, on the server, from the authoritative registry. This page holds a
+     fixed stable identifier; nothing descriptive ever arrives from the URL. */
+  const cymaticsTopic = resolveResearchTopic(researchTopicId("cymatics"));
+  if (!cymaticsTopic) {
+    throw new Error("Cymatics research topic is missing from the research registry.");
+  }
+
   return (
     <>
 <PageBackground variant="cymatics" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
@@ -105,10 +119,12 @@ export default function ResearchCymaticsPage() {
                   </h2>
                   <div className="space-y-6 font-body text-base leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
                     <p>
-                      Cymatics comes from the Greek <em>kyma</em> meaning &apos;wave.&apos; It is the study of
-                      visible sound and vibration — typically patterns formed by placing sand, water, or
-                      other materials on a plate or membrane and then vibrating it at different
-                      frequencies. The word comes from the Greek <em>kyma</em> meaning &apos;wave.&apos;
+                      Cymatics concerns the visible effects of vibration: patterns made visible by
+                      placing sand, water or another material on a plate or membrane and then
+                      vibrating it at a resonant frequency. The word itself is modern — it was
+                      <strong>coined by Hans Jenny</strong> in the mid-twentieth century from the
+                      Greek <em>kŭma</em>, &apos;wave&apos;. It is not an ancient term, and it was not
+                      Pythagoras&apos; word.
                     </p>
                     <p>
                       Each frequency produces a unique geometric pattern — circles become squares, squares
@@ -117,11 +133,20 @@ export default function ResearchCymaticsPage() {
                       create the visual language of vibration itself.
                     </p>
                     <p>
-                      In the Universal Transmissions project, cymatics is not merely an aesthetic choice
-                      — it is a fundamental building block. The Tonoscope Cymatic Generator is used to
-                      capture and portray the range of frequencies that are needed within a single page
-                      or image. Each symbol, each line, each geometric form is grounded in the physics
-                      of actual sound.
+                      <strong>UT artistic interpretation.</strong> In this project cymatics is treated
+                      as a working principle rather than a decorative reference: frequency and geometry
+                      are the vocabulary the imagery is built from. That is a choice this archive has
+                      made about its own work. It is a claim about the artwork, not a discovery about
+                      sound.
+                    </p>
+                    <p>
+                      <strong>What the experiment does not show.</strong> A cymatic pattern is
+                      genuinely observed and genuinely reproducible. What the pattern does
+                      <em>not</em> establish is that vibration originates form, heals the body, or
+                      carries a fixed meaning. The step from a nodal figure to a mandala, a cell or a
+                      symbol is an analogy made by an observer. In Jenny&apos;s own account those forms
+                      seemed to manifest an invisible force field — that was his stated belief, and
+                      it was not a measurement.
                     </p>
                   </div>
                 </div>
@@ -147,10 +172,12 @@ export default function ResearchCymaticsPage() {
                       Chladni Plates
                     </h3>
                     <p className="font-body text-sm leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                      Ernst Chladni (1756–1827) pioneered the visualization of vibrational patterns,
-                      sprinkling sand on metal plates and drawing a bow across their edges. The sand
-                      dances to the nodes — the points of stillness between waves — revealing the
-                      hidden geometry of sound.
+                      Ernst Chladni (1756–1827) introduced the method systematically, in 1787, in
+                      <em>Entdeckungen über die Theorie des Klanges</em> — scattering fine sand on
+                      smooth plates and drawing a violin bow across the edge. The powder collects at
+                      the nodes, so the mode of vibration becomes a visible figure. Galileo had made
+                      comparable observations around 1630 and Robert Hooke saw nodal patterns on a
+                      glass plate in 1680; the figures are still called Chladni figures.
                     </p>
                   </div>
                   <div className="ut-card p-8" style={{ background: "rgba(34, 211, 238, 0.02)" }}>
@@ -161,9 +188,12 @@ export default function ResearchCymaticsPage() {
                       Standing Waves
                     </h3>
                     <p className="font-body text-sm leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                      When a wave reflects back on itself, it creates a standing wave — points of
-                      maximum amplitude (antinodes) and points of no movement (nodes). These patterns
-                      are the foundation of all resonant systems, from atoms to galaxies.
+                      When a wave reflects back on itself it forms a standing wave: fixed points of
+                      maximum movement called antinodes, and fixed points of no movement called
+                      nodes. For a plate of uniform material, the normal modes of vibration and their
+                      nodal-line patterns are determined by the plate&apos;s shape and by how it is
+                      held — which is why the same frequency produces a different figure on a
+                      different plate.
                     </p>
                   </div>
                 </div>
@@ -219,6 +249,19 @@ export default function ResearchCymaticsPage() {
                     </div>
                   ))}
                 </div>
+                <p
+                  className="font-mono text-[10px] leading-relaxed mt-6"
+                  style={{ color: "var(--ut-white-faint)", opacity: 0.72 }}
+                >
+                  <strong>How to read this table.</strong> These six tone values are a symbolic
+                  system used in this archive, and the labels are UT&apos;s own assignments. There is
+                  no established evidence that any frequency in this table repairs DNA, treats
+                  illness, or produces a measurable effect on the body; claims of that kind
+                  circulate widely but are not supported by the experimental literature. What
+                  <em>is</em> experimentally established is narrower and more interesting: driven
+                  plates and membranes produce reproducible standing-wave figures, and those
+                  figures are governed by geometry.
+                </p>
               </SectionReveal>
             </div>
           </div>
@@ -241,9 +284,12 @@ export default function ResearchCymaticsPage() {
                   </h2>
                   <div className="space-y-6 font-body text-base leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
                     <p>
-                      The Tonoscope is a cymatic instrument that makes sound visible. Developed from
-                      principles laid out by Hans Jenny in his seminal work on cymatics, the tonoscope
-                      reveals the geometric patterns that underlie all sound vibration.
+                      A tonoscope is a cymatic instrument that makes sound visible: a membrane is
+                      covered with a fine light material and darkened from behind, so the standing-wave
+                      figure can be seen directly. It works on the same principle as the sand plate.
+                      The instrument in this project&apos;s portal vision is <strong>not yet built</strong>
+                      — the tonoscope and volumetric cymatic routes linked below are unfinished
+                      coming-soon surfaces, and nothing here should be read as a working instrument.
                     </p>
                     <p>
                       Each chakra, each organ, each geometric form in the Universal Transmissions
@@ -252,9 +298,11 @@ export default function ResearchCymaticsPage() {
                       doesn&apos;t merely <em>represent</em> sound, but is a direct visualization of it.
                     </p>
                     <p>
-                      Frequencies like 528Hz (known as the &apos;Love frequency&apos;), 639Hz (harmony and
-                      relationships), 741Hz (expression and awakening), and 963Hz (the &apos;God frequency&apos;
-                      or crown chakra tone) are all embedded into the visual field of the artwork.
+                      <strong>UT artistic interpretation.</strong> In this project the chakra tone
+                      values — 528 Hz, 639 Hz, 741 Hz, 963 Hz — are given symbolic roles and carried
+                      into the visual structure of the work. That assignment is this archive&apos;s own
+                      framework, and it is held in the Correspondence Codex as well as in the art. It
+                      is not a claim that those frequencies do anything measurable.
                     </p>
                   </div>
                 </div>
@@ -297,16 +345,17 @@ export default function ResearchCymaticsPage() {
                     lattices of astonishing symmetry, and the pattern is not chosen: it is
                     <em>derived</em>. Square forms billow from one note, six-fold rosettes from
                     another, and the transition between them is instantaneous and discrete, as if
-                    the geometry were already latent in the frequency itself. Cymatics is the
-                    laboratory proof of an ancient claim — that number, not substance, is the
-                    substrate of the visible world.
+                    the geometry were already latent in the frequency itself. Whether that settles any
+                    ancient claim about number being the substrate of the visible world is a
+                    metaphysical question the experiment does not answer: it shows that geometry
+                    governs the pattern on a driven plate, and that is all.
                   </p>
                   <p>
                     Pythagoras heard this as the <em>harmony of the spheres</em>: the planets, each
                     on its own orbital ratio, striking a chord whose mathematics is audible to those
                     who learn to listen with number. Kepler, three centuries later, tried to
                     reconstruct that celestial score, and believed the five perfect solids were the
-                    tuning-pins of the cosmos. Hans Jenny, in <em>Kymatik</em>, restored the claim to
+                    tuning-pins of the cosmos. Hans Jenny, in <em>Kymatik</em> (1967), carried the claim to
                     the lab bench by showing that a single tone can be "tuned" through an entire
                     family of living, crystalline forms — some recognizably cellular, mandalic,
                     even approximating organic motion. In the working library behind this project,
@@ -435,6 +484,16 @@ export default function ResearchCymaticsPage() {
                 </a>
               </div>
             </SectionReveal>
+          </div>
+        </section>
+
+        <CymaticsConnections connections={CYMATICS_CONNECTIONS} />
+
+        <section className="py-16" style={{ borderTop: "1px solid var(--ut-border)" }}>
+          <div className="container-ut">
+            <div className="max-w-3xl mx-auto">
+              <ResearchOraclePortal topic={cymaticsTopic} returnHref="/research/cymatics" />
+            </div>
           </div>
         </section>
 
