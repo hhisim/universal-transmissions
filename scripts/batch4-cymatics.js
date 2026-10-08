@@ -108,8 +108,9 @@ ok("every connection declares a basis",
 ok("every connection states its basisLabel", blocks.every((b) => /basisLabel:/.test(b)));
 ok("basis vocabulary is explicit", /type ConnectionBasis = "documented" \| "interpretation" \| "thematic"/.test(conns));
 ok("states a keyword alone is insufficient", /keyword overlap is not a relationship/i.test(flat(conns)));
-ok("declares an honest Codex gap instead of inventing a link", /Correspondence Codex holds no cymatics record/i.test(flat(conns)));
-ok("gap cites the real corpus size", /824 entries/.test(flat(conns)));
+ok("declares an honest correspondence gap instead of inventing a link",
+  /No Correspondence entry is linked in this pilot/i.test(flat(conns)));
+ok("gap makes no exhaustive corpus claim", !/824 entries|holds no cymatics record/i.test(flat(conns)));
 ok("no canvas/graph/large-viz dependency", !/canvas|getContext\(|d3|three|webgl/i.test(conns));
 ok("all connection hrefs are internal routes", entries.every((h) => h.startsWith("/") && !h.includes("..")));
 ok("no invented /research/ cross-links", !entries.some((h) => h.startsWith("/research/")));
@@ -197,8 +198,7 @@ ok("draft re-seed guarded by a dirty flag", /if \(dirty\) return/.test(portal));
 ok("cleared draft handled explicitly", /cleared/.test(portal) && /data-research-empty/.test(portal));
 ok("external sources open safely", /rel="noopener noreferrer"/.test(portal));
 ok("states sources are not per-sentence citations",
-  /not citations[\s\S]{0,220}?not the full text/i.test(portalFlat) ||
-  /model is given this[\s\S]{0,60}summary, not the full text/i.test(portalFlat));
+  /references behind this page[\s\S]{0,160}?not the full text of each document/i.test(portalFlat));
 ok("explicitly says the model gets the summary, not the documents",
   /not the full text of each document/i.test(portalFlat));
 ok("draft has a real label", /htmlFor="research-oracle-draft"/.test(portal));
@@ -236,7 +236,8 @@ ok("client never trusts a URL title/summary/prompt",
   !/searchParams\.get\("(title|summary|prompt|systemPrompt)"\)/.test(client));
 ok("identifier bounded by the existing entity budget",
   /searchParams\.get\("researchTopicId"\),\s*MAX_ENTITY_CHARS/.test(clientFlat));
-ok("artwork context dropped when a research topic is present", /if \(researchContext\) return null/.test(client));
+ok("artwork context dropped when a research topic is requested",
+  /if \(researchRequested\) return null/.test(client));
 ok("draft still bounded by MAX_DRAFT_CHARS",
   /boundedParam\(searchParams\.get\("q"\), MAX_DRAFT_CHARS\)/.test(client));
 ok("return path still bounded by MAX_RETURN_CHARS",
@@ -248,6 +249,55 @@ ok("history still excludes the current question", /buildHistoryFromMessages/.tes
 ok("research return path hardened against protocol-relative URLs",
   /!returnTo\.startsWith\("\/\/"\)/.test(clientFlat));
 ok("no auto-submit effect for the seeded question", !/useEffect\([\s\S]{0,200}?sendMessage\(/.test(client));
+
+// ── 10. review round: anchor policy + visitor-facing copy ───────────────────
+section("anchor policy consistency");
+ok("client distinguishes 'supplied' from 'resolved'",
+  /const researchRequested = rawResearchId\.length > 0;/.test(client));
+ok("artwork suppressed whenever a research id was supplied",
+  /if \(researchRequested\) return null;/.test(client));
+ok("unavailable research context is disclosed in the UI",
+  /data-research-unavailable/.test(client) && /RESEARCH CONTEXT UNAVAILABLE/.test(client));
+ok("no silent substitute anchor for an unknown research id",
+  /researchRequested && !researchContext && \(/.test(client));
+ok("API discloses unavailability rather than inventing a topic",
+  /could not be resolved on the server/.test(api) && /Do not invent a/.test(api));
+ok("API returns an explicit researchStatus",
+  /researchStatus: researchRequested \? \(topic \? 'resolved' : 'unknown'\) : 'absent'/.test(api));
+
+section("visitor-facing copy");
+const portalCopy = R("src/components/research/ResearchOraclePortal.tsx");
+ok("no raw identifier shown in the portal UI",
+  !/id research-v1/.test(portalCopy));
+ok("portal still sends the identifier on the wire",
+  /research-v1:\$\{topic\.id\}/.test(portalCopy));
+ok("portal uses the plain continuation sentence",
+  /Continue with \{topic\.title\} as your context\. Edit the question before opening the/.test(portalCopy));
+// Assert on JSX *text nodes* only: strip comments first, then look for the
+// plumbing language between tags. A raw source regex would match the code
+// comment above the chip, which is not shown to visitors.
+const portalText = portalCopy.replace(/\{[\s\S]*?\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+ok("portal no longer explains server resolution to visitors",
+  !/It cannot be told a different title/.test(portalText) &&
+  !/resolved on the server/.test(portalText) &&
+  !/identifier/.test(portalText));
+ok("portal drops the never-submitted-automatically label",
+  !/never submitted automatically/.test(portalCopy));
+ok("oracle chip no longer shows the raw identifier",
+  !/researchContext\.id\.toUpperCase\(\)/.test(client));
+ok("oracle chip still shows the registry title + return link",
+  /researchContext\.title/.test(client) && /researchContext\.returnTo/.test(client));
+
+section("correspondence absence claim");
+const connGaps = R("src/lib/research-connections.ts");
+ok("no exhaustive corpus claim remains", !/824 entries/.test(connGaps) && !/holds no cymatics record/.test(connGaps));
+ok("absence stated as an editorial fact for this pilot",
+  /No Correspondence entry is linked in this pilot/.test(connGaps));
+ok("keyword-sweep limitation is admitted", /keyword search/.test(connGaps));
+ok("frequency values described as UT symbolic material",
+  /UT symbolic material/.test(connGaps));
+ok("internal labels distinguished from scientific evidence",
+  /not scientific evidence/.test(connGaps));
 
 // ── 8b. defects found in LIVE preview verification ─────────────────────────
 section("live-verified defect regressions");

@@ -98,9 +98,9 @@ const CYMATICS: ResearchTopic = {
     {
       kind: "historical",
       label: "Chladni, Entdeckungen über die Theorie des Klanges (1787)",
-      url: "https://gallica.bnf.fr/ark:/12148/bd6t57722568.texteImage",
+      url: "https://archive.org/details/entdeckungenuber00chla",
       supports:
-        "Chladni's original treatise, digitised by the Bibliothèque nationale de France. Supports the 1787 date, the plates-and-sand method, and the figures still called Chladni figures.",
+        "Chladni's original treatise, digitised. The catalogue record confirms the title, the author (Chladni, 1756-1827) and the 1787 Leipzig imprint, and the volume carries the plates still called Chladni figures.",
       },
     {
       kind: "primary",

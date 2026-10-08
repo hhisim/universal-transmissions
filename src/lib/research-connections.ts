@@ -75,8 +75,9 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
  * it cannot support.
  */
 export const CYMATICS_GAPS = [
-  "The Correspondence Codex holds no cymatics record. Across all 824 entries, neither \"Chladni\" nor \"Jenny\" appears, so there is no correspondence entry to link here without inventing one.",
-  "The Solfeggio tone values used symbolically in the work (528, 639, 741, 963 Hz) appear throughout the Correspondence corpus as symbolic attributions. They are recorded there as correspondence material, not as measured physical properties.",
+  "No Correspondence entry is linked in this pilot. A passage that engages the subject under other names would not have been caught by a keyword search, so this is an editorial choice for this page rather than a claim that the Codex is silent on it.",
+  "The tone values used in the work (528, 639, 741, 963 Hz) are UT symbolic material. They are part of the project's own scheme and are not presented here as measured physical properties.",
+  "The labels above describe how each connection is held, not scientific evidence. \"Documented\" means the record names the relationship; \"thematic\" means it shares an idea.",
 ];
 
 export function connectionSources(): ResearchSource[] {

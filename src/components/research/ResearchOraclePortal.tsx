@@ -79,15 +79,6 @@ export default function ResearchOraclePortal({
         >
           Research context · {topic.title}
         </span>
-        <span
-          className="font-mono text-[9px] tracking-[0.15em] uppercase px-2 py-1"
-          style={{
-            color: "var(--ut-white-faint)",
-            border: "1px solid rgba(237, 233, 246, 0.12)",
-          }}
-        >
-          id research-v1:{topic.id}
-        </span>
         <Link
           href={returnHref}
           data-research-return="true"
@@ -102,10 +93,8 @@ export default function ResearchOraclePortal({
         className="font-body text-[13px] leading-relaxed mb-4"
         style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
       >
-        The Oracle is given this topic&apos;s verified record — its title, a bounded
-        summary and its permitted references — resolved on the server. It cannot be told a
-        different title or a different set of sources from the link. The question below is
-        a starting point you can rewrite or clear.
+        Continue with {topic.title} as your context. Edit the question before opening the
+        Oracle.
       </p>
 
       <label
@@ -113,7 +102,7 @@ export default function ResearchOraclePortal({
         style={{ color: "var(--ut-white-faint)" }}
         htmlFor="research-oracle-draft"
       >
-        Suggested question — editable, never submitted automatically
+        Your question
       </label>
       <textarea
         id="research-oracle-draft"
@@ -167,7 +156,7 @@ export default function ResearchOraclePortal({
           className="font-mono text-[9px] tracking-[0.25em] uppercase cursor-pointer"
           style={{ color: "var(--ut-white-faint)" }}
         >
-          What the Oracle is given about this topic
+          Sources for this topic
         </summary>
         <ul className="mt-4 space-y-3">
           {topic.sources.map((s: ResearchSource) => (
@@ -194,9 +183,8 @@ export default function ResearchOraclePortal({
           className="font-mono text-[10px] mt-4 leading-relaxed"
           style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
         >
-          These are the topic&apos;s references, listed honestly. They are not citations
-          for any particular sentence the Oracle may produce: the model is given this
-          summary, not the full text of each document.
+          These are the references behind this page. The Oracle is given a summary of the
+          topic drawn from them, not the full text of each document.
         </p>
       </details>
     </div>

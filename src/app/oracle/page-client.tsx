@@ -856,6 +856,14 @@ export default function OraclePage() {
     searchParams.get("researchTopicId"),
     MAX_ENTITY_CHARS
   );
+  /* ANCHOR POLICY, explicit:
+       - no research id      -> existing artwork/correspondence handling stands.
+       - valid research id   -> research wins; the artwork anchor is dropped.
+       - unknown research id -> we say the research context is unavailable. We do
+         NOT substitute the artwork anchor, because a confident artwork chip
+         beside an unavailable topic reads as a different subject entirely.
+         The API already refuses to fall back; the UI must not imply otherwise. */
+  const researchRequested = rawResearchId.length > 0;
   const researchContext = useMemo(() => {
     if (!rawResearchId) return null;
     const topic = resolveResearchTopic(rawResearchId);
@@ -868,10 +876,9 @@ export default function OraclePage() {
   }, [rawResearchId, returnTo]);
   const artworkContext = useMemo(() => {
     if (!rawArtworkId) return null;
-    /* ANCHOR PRECEDENCE (research > artwork): when a research topic is the
-       entry anchor, the artwork context is deliberately dropped rather than
-       merged, so a stale artwork or deity anchor cannot silently survive. */
-    if (researchContext) return null;
+    /* Suppressed whenever a research id was supplied, whether or not it resolved.
+       This keeps the visible anchor and the model's grounding in agreement. */
+    if (researchRequested) return null;
     const match = artworks.find((a) => a.id === rawArtworkId || a.slug === rawArtworkId);
     if (!match) return null;
     // Only a same-origin absolute path is honoured. Protocol-relative ("//evil")
@@ -1539,6 +1546,18 @@ export default function OraclePage() {
                     {entityNotice ? <span data-kind="entity" style={{ color: "#f59e0b" }}>{entityNotice}</span> : null}
                   </div>
                 ) : null}
+                {researchRequested && !researchContext && (
+                <div
+                  className="oracle-artwork-context"
+                  role="note"
+                  data-research-unavailable="true"
+                >
+                  <span className="oracle-artwork-context-label">RESEARCH CONTEXT UNAVAILABLE</span>
+                  <span className="oracle-artwork-context-meta">
+                    THIS TOPIC IS NO LONGER AVAILABLE &#8212; CONTINUING WITHOUT IT
+                  </span>
+                </div>
+              )}
                 {researchContext && (
                 <div className="oracle-artwork-context" role="note" data-research-context="true">
                   <span className="oracle-artwork-context-label">SPEAKING ABOUT</span>
@@ -1550,7 +1569,7 @@ export default function OraclePage() {
                     {researchContext.title}
                   </a>
                   <span className="oracle-artwork-context-meta">
-                    RESEARCH {researchContext.id.toUpperCase()}
+                    RESEARCH CONTEXT
                   </span>
                   <a href={researchContext.returnTo} className="oracle-artwork-context-return">
                     &#8592; RETURN TO {researchContext.title.toUpperCase()}
