@@ -12,4 +12,5 @@ assert(mobile.includes('.oracle-question-seed-deck'), 'question seeds must not p
 assert(s.includes('className="oracle-chat-input"'), 'composer wrapper needs a stable class');
 assert(dock.includes('aria-expanded={toolsOpen}') && dock.includes('aria-expanded={contextOpen}'), 'secondary panels need disclosures');
 assert(dock.includes('hidden={!contextOpen && !desktopLayout}'), 'context panel must collapse only on mobile');
-console.log('PASS 9 mobile-arrival source contracts');
+assert(dock.includes('{showFocusedNode && focusedNodePanel}'), 'focused node must still render within the responsive correspondence panel');
+console.log('PASS 10 mobile-arrival source contracts');

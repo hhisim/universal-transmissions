@@ -408,10 +408,9 @@ export default function OracleCorrespondenceDock({
         {children ? <div className="oracle-dock-oracle-center">{children}</div> : <div className="oracle-dock-primary">{renderSurface()}</div>}
 
         <aside className="oracle-dock-context oracle-v12-right">
-          {/* Every surface in this aside (focused node, search, letters, decode,
-              narrow screens). On mobile it is collapsed to its summary line so
-              the conversation follows immediately; the other surfaces in this
-              aside (search, letters, decode, chakra, modes) are unaffected. */}
+          {/* The correspondence panel stays complete on desktop. On narrow
+              screens its whole body (focused node and collection/search tools)
+              sits behind this disclosure so the conversation comes first. */}
           <button
             type="button"
             className="oracle-dock-context-toggle"
@@ -432,6 +431,7 @@ export default function OracleCorrespondenceDock({
             data-open={contextOpen ? "true" : "false"}
             hidden={!contextOpen && !desktopLayout}
           >
+          {showFocusedNode && focusedNodePanel}
           {query.trim() ? (
             <>
               <div className="oracle-dock-kicker">Responsive Search</div>
