@@ -6,11 +6,29 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks, getArtwork } from "@/data/artworks";
 import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
+import ProgressiveDetailExplorer from "@/components/gallery/ProgressiveDetailExplorer";
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import PageBackground from "@/components/scenes/PageBackground";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_URL, seoDescription, seoTitle } from "@/lib/seo";
 export const revalidate = 300;
+
+/**
+ * Batch 3 pilot scope. Exactly one artwork uses the progressive explorer; every
+ * other artwork keeps its existing horizontal strip and behaviour untouched
+ * until the pilot is reviewed.
+ */
+const PROGRESSIVE_PILOT_SLUG = "vitruvian-spirit";
+
+/**
+ * Registry indices (1-based, matching the order in src/data/artworks.ts) revealed
+ * on first paint. Chosen by inspecting the series: they span the poster/lettering
+ * plate (#1), the frontal face (#2), the globe (#3), the open triangular-panel
+ * geometry (#35), the full-body mandala figure (#37) and the sparse spiral emblem
+ * (#38). Remaining near-duplicate portrait and text-plate variants are held back
+ * for later batches. No detail is removed: all 42 remain reachable.
+ */
+const PILOT_INITIAL_DETAIL_INDICES = [1, 2, 3, 35, 37, 38];
 
 interface Props {
   params: { slug: string };
@@ -85,35 +103,49 @@ export default function ArtworkDetailPage({ params }: Props) {
         {artwork.detailImages.length > 0 && (
           <div className="container-ut mt-6">
             <SectionReveal>
-              <div>
-                <div
-                  className="flex items-center gap-3 mb-4 font-mono text-[10px] tracking-[0.25em] uppercase"
-                  style={{ color: "var(--ut-white-faint)" }}
-                >
-                  <span>Detail Views</span>
-                  <span style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>—</span>
-                  <span>Scroll →</span>
+              {artwork.slug === PROGRESSIVE_PILOT_SLUG ? (
+                /* Batch 3 pilot: unrevealed details are never mounted, so they
+                   cannot start an image request. */
+                <ProgressiveDetailExplorer
+                  title={artwork.title}
+                  details={artwork.detailImages.map((src, i) => ({
+                    src,
+                    registryIndex: i + 1,
+                  }))}
+                  initialRegistryIndices={PILOT_INITIAL_DETAIL_INDICES}
+                />
+              ) : (
+                /* Unchanged existing behaviour for every other artwork. */
+                <div>
+                  <div
+                    className="flex items-center gap-3 mb-4 font-mono text-[10px] tracking-[0.25em] uppercase"
+                    style={{ color: "var(--ut-white-faint)" }}
+                  >
+                    <span>Detail Views</span>
+                    <span style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>—</span>
+                    <span>Scroll →</span>
+                  </div>
+                  <div
+                    className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory gallery-carousel"
+                  >
+                    {artwork.detailImages.map((img, i) => (
+                      <div
+                        key={i}
+                        className="flex-shrink-0 w-28 h-28 md:w-36 md:h-36 relative overflow-hidden border chromatic-hover snap-start"
+                        style={{
+                          borderColor: "rgba(217,70,239,0.12)",
+                          borderRadius: "2px",
+                        }}
+                      >
+                        <ImageThumb
+                          src={img}
+                          alt={`${artwork.title} detail ${i + 1}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div
-                  className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory gallery-carousel"
-                >
-                  {artwork.detailImages.map((img, i) => (
-                    <div
-                      key={i}
-                      className="flex-shrink-0 w-28 h-28 md:w-36 md:h-36 relative overflow-hidden border chromatic-hover snap-start"
-                      style={{
-                        borderColor: "rgba(217,70,239,0.12)",
-                        borderRadius: "2px",
-                      }}
-                    >
-                      <ImageThumb
-                        src={img}
-                        alt={`${artwork.title} detail ${i + 1}`}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
             </SectionReveal>
           </div>
         )}

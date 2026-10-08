@@ -1,0 +1,215 @@
+"use client";
+
+/**
+ * Progressive detail explorer — Batch 3 pilot.
+ *
+ * Invariants this component is built to hold:
+ *  - An unrevealed detail is NOT MOUNTED, so it cannot begin an image request.
+ *    Hiding an already-mounted gallery with CSS would not satisfy this.
+ *  - Revealed batches are never unmounted, so scroll position and previously
+ *    revealed content survive every further activation.
+ *  - Revealed order always equals the registry order, and every original detail
+ *    is reachable exactly once.
+ *  - Thumbnails go through next/image so the browser negotiates a resized
+ *    variant; the full-resolution original is requested only on inspection.
+ *  - The first batch is part of the server-rendered HTML.
+ *
+ * Inspection reuses the site's existing <Lightbox> overlay.
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import Lightbox from "@/components/gallery/Lightbox";
+
+/** Details revealed per activation. */
+const BATCH_SIZE = 6;
+
+export interface ProgressiveDetail {
+  /** Registry path exactly as declared in src/data/artworks.ts. */
+  src: string;
+  /** 1-based position in the artwork's complete detail list. */
+  registryIndex: number;
+}
+
+interface ProgressiveDetailExplorerProps {
+  details: ProgressiveDetail[];
+  /**
+   * Registry indices (1-based) revealed on first paint. The pilot supplies a
+   * curated, visually representative set here rather than a blind prefix.
+   */
+  initialRegistryIndices: number[];
+  title: string;
+  label?: string;
+}
+
+export default function ProgressiveDetailExplorer({
+  details,
+  initialRegistryIndices,
+  title,
+  label = "Detail views",
+}: ProgressiveDetailExplorerProps) {
+  const total = details.length;
+
+  /**
+   * The revealed set is an explicit list, not a prefix: the pilot seeds a
+   * curated selection. It is stored as a sorted set of registry positions and
+   * always rendered in registry order.
+   */
+  const [revealed, setRevealed] = useState<number[]>(() => {
+    const seed = new Set(initialRegistryIndices);
+    return details.filter((d) => seed.has(d.registryIndex)).map((d) => d.registryIndex);
+  });
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const triggerRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  const revealedSet = useMemo(() => new Set(revealed), [revealed]);
+
+  /** Revealed details, in registry order. */
+  const visible = useMemo(
+    () => details.filter((d) => revealedSet.has(d.registryIndex)),
+    [details, revealedSet]
+  );
+
+  /** Next un-revealed details, in registry order. */
+  const pending = useMemo(
+    () => details.filter((d) => !revealedSet.has(d.registryIndex)),
+    [details, revealedSet]
+  );
+
+  const handleReveal = useCallback(() => {
+    setRevealed((prev) => {
+      const next = new Set(prev);
+      for (const d of details) {
+        if (next.size >= prev.length + BATCH_SIZE) break;
+        next.add(d.registryIndex);
+      }
+      return details.filter((d) => next.has(d.registryIndex)).map((d) => d.registryIndex);
+    });
+  }, [details]);
+
+  const openDetail = useCallback((index: number) => {
+    returnFocusRef.current = (document.activeElement as HTMLElement) || null;
+    setLightboxIndex(index);
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    const trigger = lightboxIndex !== null ? triggerRefs.current[lightboxIndex] : null;
+    setLightboxIndex(null);
+    // Wait for the overlay to unmount before restoring focus to the page.
+    window.requestAnimationFrame(() => {
+      if (trigger && document.contains(trigger)) trigger.focus();
+      else returnFocusRef.current?.focus?.();
+    });
+  }, [lightboxIndex]);
+
+  // Escape closes even when focus has drifted off the overlay's own controls.
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeDetail();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [lightboxIndex, closeDetail]);
+
+  // Only the revealed slice is mounted in the viewer, so an unopened detail is
+  // never requested by the overlay.
+  const revealedSources = visible.map((d) => d.src);
+  const remaining = pending.length;
+
+  return (
+    <section aria-label={label} data-gallery-progressive="true">
+      <div
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-4 font-mono text-[10px] tracking-[0.25em] uppercase"
+        style={{ color: "var(--ut-white-faint)" }}
+      >
+        <span>Detail Views</span>
+        <span style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>—</span>
+        <span data-detail-count="true" aria-live="polite">
+          {revealed.length} of {total} revealed
+        </span>
+      </div>
+
+      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" data-detail-grid="true">
+        {visible.map((d, i) => {
+          const position = d.registryIndex;
+          const alt = `${title} detail ${position} of ${total}`;
+          return (
+            <li key={d.src}>
+              <button
+                type="button"
+                ref={(el) => {
+                  triggerRefs.current[i] = el;
+                }}
+                onClick={() => openDetail(i)}
+                aria-label={`Inspect detail ${position} of ${total} of ${title}`}
+                data-detail-position={position}
+                className="group relative block w-full aspect-square overflow-hidden border chromatic-hover"
+                style={{ borderColor: "rgba(217,70,239,0.12)", borderRadius: "2px" }}
+              >
+                <Image
+                  src={d.src}
+                  alt={alt}
+                  fill
+                  /* Responsive delivery: the browser selects a width from `sizes`
+                     instead of downloading the ~400KB original for a small tile. */
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                  quality={62}
+                  className="ut-detail-img object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span
+                  className="absolute bottom-1 right-1 font-mono text-[9px] px-1.5 py-0.5 pointer-events-none"
+                  style={{ background: "rgba(5,5,7,0.72)", color: "var(--ut-white-dim)" }}
+                >
+                  {position}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {remaining > 0 ? (
+        <div className="mt-6 flex flex-col items-start gap-2">
+          <button
+            type="button"
+            onClick={handleReveal}
+            data-explore-more="true"
+            className="btn-secondary"
+          >
+            Explore more details
+          </button>
+          <p
+            className="font-mono text-[9px] tracking-[0.2em] uppercase"
+            style={{ color: "var(--ut-white-faint)" }}
+          >
+            Showing {revealed.length} of {total} · {Math.min(BATCH_SIZE, remaining)} more
+            available
+          </p>
+        </div>
+      ) : (
+        <p
+          className="mt-6 font-mono text-[9px] tracking-[0.2em] uppercase"
+          style={{ color: "var(--ut-white-faint)" }}
+          data-detail-complete="true"
+        >
+          All {total} details revealed
+        </p>
+      )}
+
+      {lightboxIndex !== null && (
+        <Lightbox
+          images={revealedSources}
+          title={`${title} — details`}
+          initialIndex={lightboxIndex}
+          onRequestClose={closeDetail}
+        />
+      )}
+    </section>
+  );
+}

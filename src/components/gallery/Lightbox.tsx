@@ -1,12 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
 interface LightboxProps {
   images: string[];
   title: string;
+  /**
+   * Zero-based index to open at. Omitted keeps the existing behaviour of
+   * always opening on the first image.
+   */
+  initialIndex?: number;
+  /**
+   * When supplied, the overlay calls this instead of managing its own open
+   * state. Used by callers that own the open/close lifecycle so focus can be
+   * returned to the control that opened it.
+   */
+  onRequestClose?: () => void;
 }
 
 interface ImageThumbProps {
@@ -14,19 +25,32 @@ interface ImageThumbProps {
   alt: string;
 }
 
+type LoadState = "idle" | "loading" | "ready" | "error";
 
-export default function Lightbox({ images, title }: LightboxProps) {
+export default function Lightbox({ images, title, initialIndex, onRequestClose }: LightboxProps) {
   const [open, setOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex ?? 0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Reset index when opening
+  /* Controlled mode: the parent owns visibility and closing. */
+  useEffect(() => {
+    if (onRequestClose && initialIndex !== undefined) setCurrentIndex(initialIndex);
+  }, [onRequestClose, initialIndex]);
+
   const handleOpen = () => {
-    setCurrentIndex(0);
+    setCurrentIndex(initialIndex ?? 0);
     setOpen(true);
   };
+
+  const handleClose = useCallback(() => {
+    if (onRequestClose) onRequestClose();
+    else setOpen(false);
+  }, [onRequestClose]);
+
+  const isControlled = onRequestClose !== undefined;
+  const visible = isControlled ? true : open;
 
   return (
     <>
@@ -59,11 +83,11 @@ export default function Lightbox({ images, title }: LightboxProps) {
       </div>
 
       {/* Lightbox portal */}
-      {mounted && open && createPortal(
+      {mounted && visible && createPortal(
         <LightboxOverlay
           images={images}
           currentIndex={currentIndex}
-          onClose={() => setOpen(false)}
+          onClose={handleClose}
           onNavigate={(idx) => setCurrentIndex(idx)}
           title={title}
         />,
@@ -127,12 +151,65 @@ function LightboxOverlay({
   const hasNext = currentIndex < images.length - 1;
   const currentSrc = images[currentIndex];
 
-  // Keyboard navigation
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+  const imageWrapRef = useRef<HTMLDivElement | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [statusMsg, setStatusMsg] = useState("");
+
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  /* Capture the element that had focus before the overlay opened. */
+  useEffect(() => {
+    returnFocusRef.current = (document.activeElement as HTMLElement) || null;
+    /* Move focus into the dialog so screen readers and Tab stay inside it. */
+    closeRef.current?.focus();
+  }, []);
+
+  /* Reset zoom/pan and load state whenever the displayed image changes. */
+  useEffect(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    setLoadState("loading");
+  }, [currentSrc]);
+
+  /* Keyboard navigation */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft" && hasPrev) onNavigate(currentIndex - 1);
-      if (e.key === "ArrowRight" && hasNext) onNavigate(currentIndex + 1);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === "ArrowLeft" && hasPrev) {
+        e.preventDefault();
+        onNavigate(currentIndex - 1);
+        return;
+      }
+      if (e.key === "ArrowRight" && hasNext) {
+        e.preventDefault();
+        onNavigate(currentIndex + 1);
+        return;
+      }
+      if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        setZoom((z) => clamp(z * 1.5, 1, 4));
+        return;
+      }
+      if (e.key === "-") {
+        e.preventDefault();
+        setZoom((z) => clamp(z / 1.5, 1, 4));
+        return;
+      }
+      if (e.key === "0") {
+        e.preventDefault();
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+      }
     }
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -141,6 +218,78 @@ function LightboxOverlay({
       document.body.style.overflow = "";
     };
   }, [onClose, currentIndex, hasPrev, hasNext, onNavigate]);
+
+  /* Focus containment: keep Tab inside the dialog while it is open. */
+  useEffect(() => {
+    const root = dialogRef.current;
+    if (!root) return;
+    /* Captured as a const so TypeScript keeps the non-null narrowing inside the
+       nested listener, which it does not do across a closure for a `let`. */
+    const dialog = root;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement;
+      if (e.shiftKey && (active === first || !dialog.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
+  }, []);
+
+  /* Return focus to the activating control when the overlay unmounts. */
+  useEffect(() => {
+    return () => {
+      const target = returnFocusRef.current;
+      if (target && document.contains(target)) {
+        window.requestAnimationFrame(() => target.focus());
+      }
+    };
+  }, []);
+
+  /* Pointer panning, only meaningful while zoomed. */
+  const dragState = useRef<{ active: boolean; startX: number; startY: number; originX: number; originY: number } | null>(null);
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (zoom <= 1) return;
+    dragState.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: pan.x,
+      originY: pan.y,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragState.current;
+    if (!d || !d.active) return;
+    setPan({
+      x: d.originX + (e.clientX - d.startX),
+      y: d.originY + (e.clientY - d.startY),
+    });
+  };
+  const onPointerUp = () => {
+    if (dragState.current) dragState.current.active = false;
+  };
+
+  const zoomIn = () => setZoom((z) => clamp(z * 1.5, 1, 4));
+  const zoomOut = () => setZoom((z) => clamp(z / 1.5, 1, 4));
+  const resetView = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -152,24 +301,36 @@ function LightboxOverlay({
     if (hasNext) onNavigate(currentIndex + 1);
   };
 
+  const transition = prefersReducedMotion ? "none" : undefined;
+
   return (
     <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={images.length > 1 ? `${title}, image ${currentIndex + 1} of ${images.length}` : title}
       className="fixed inset-0 z-[200] flex items-center justify-center"
-      style={{ background: "rgba(5,5,7,0.95)" }}
+      style={{ background: "rgba(5,5,7,0.95)", touchAction: zoom > 1 ? "none" : undefined }}
       onClick={onClose}
     >
-      {/* Counter */}
+      {/* Counter — always shown when navigating a set, so identity is explicit */}
       {images.length > 1 && (
         <div
-          className="absolute top-6 left-1/2 -translate-x-1/2 font-mono text-xs tracking-widest uppercase"
+          className="absolute top-6 left-1/2 -translate-x-1/2 font-mono text-xs tracking-widest uppercase pointer-events-none text-center"
           style={{ color: "var(--ut-white-dim)" }}
+          data-lightbox-counter="true"
         >
-          {currentIndex + 1} / {images.length}
+          <span data-lightbox-position="true">{currentIndex + 1} / {images.length}</span>
+          <span className="block mt-1 text-[9px] opacity-60" style={{ color: "var(--ut-white-faint)" }}>
+            {title}
+          </span>
         </div>
       )}
 
       {/* Close button */}
       <button
+        ref={closeRef}
+        type="button"
         className="absolute top-6 right-6 z-10 p-2 font-mono text-xs tracking-widest uppercase"
         style={{ color: "var(--ut-white-dim)" }}
         onClick={onClose}
@@ -181,7 +342,8 @@ function LightboxOverlay({
       {/* Prev button */}
       {images.length > 1 && (
         <button
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 font-mono text-lg transition-opacity"
+          type="button"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 p-3 min-w-[44px] min-h-[44px] font-mono text-lg transition-opacity"
           style={{ color: "var(--ut-white-dim)" }}
           onClick={handlePrev}
           aria-label="Previous image"
@@ -194,7 +356,8 @@ function LightboxOverlay({
       {/* Next button */}
       {images.length > 1 && (
         <button
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 font-mono text-lg transition-opacity"
+          type="button"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 p-3 min-w-[44px] min-h-[44px] font-mono text-lg transition-opacity"
           style={{ color: "var(--ut-white-dim)" }}
           onClick={handleNext}
           aria-label="Next image"
@@ -206,22 +369,111 @@ function LightboxOverlay({
 
       {/* Image */}
       <div
-        className="relative w-full h-full flex items-center justify-center p-8"
+        className="relative w-full h-full flex items-center justify-center p-6 sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          key={currentSrc}
-          src={currentSrc}
-          alt={`${title} ${currentIndex + 1}`}
-          className="max-w-full max-h-full object-contain"
-          style={{
-            maxWidth: "90vw",
-            maxHeight: "90vh",
-            boxShadow: "0 0 80px rgba(217,70,239,0.15), 0 0 200px rgba(147,51,234,0.08)",
-          }}
-        />
+        {loadState === "loading" && (
+          <div
+            className="absolute font-mono text-[10px] tracking-[0.25em] uppercase"
+            style={{ color: "var(--ut-white-faint)" }}
+            role="status"
+            data-lightbox-loading="true"
+          >
+            Loading image…
+          </div>
+        )}
+
+        {loadState === "error" ? (
+          <div className="text-center px-4" data-lightbox-error="true">
+            <p
+              className="font-mono text-[10px] tracking-[0.25em] uppercase mb-3"
+              style={{ color: "var(--ut-magenta)" }}
+            >
+              Image unavailable
+            </p>
+            <p
+              className="font-mono text-[9px] mb-4 break-all"
+              style={{ color: "var(--ut-white-faint)" }}
+            >
+              {currentSrc}
+            </p>
+            <button type="button" className="btn-secondary" onClick={() => setLoadState("loading")}>
+              Retry
+            </button>
+          </div>
+        ) : (
+          <div
+            ref={imageWrapRef}
+            className="relative max-w-full max-h-full"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            style={{
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              transition: transition === "none" ? "none" : "transform 160ms ease-out",
+              cursor: zoom > 1 ? (dragState.current?.active ? "grabbing" : "grab") : "zoom-in",
+              willChange: zoom > 1 ? "transform" : undefined,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={currentSrc}
+              src={currentSrc}
+              alt={`${title} ${currentIndex + 1}`}
+              onLoad={() => setLoadState("ready")}
+              onError={() => setLoadState("error")}
+              className="max-w-full max-h-full object-contain"
+              style={{
+                maxWidth: zoom > 1 ? "none" : "90vw",
+                maxHeight: zoom > 1 ? "none" : "90vh",
+                boxShadow: "0 0 80px rgba(217,70,239,0.15), 0 0 200px rgba(147,51,234,0.08)",
+                display: loadState === "ready" ? "block" : "none",
+              }}
+            />
+          </div>
+        )}
       </div>
+
+      {/* Zoom controls */}
+      <div
+        className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="px-3 py-2 font-mono text-xs min-w-[44px] min-h-[44px]"
+          style={{ color: "var(--ut-white-dim)", border: "1px solid rgba(217,70,239,0.2)" }}
+          onClick={zoomOut}
+          aria-label="Zoom out"
+          disabled={zoom <= 1}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className="px-3 py-2 font-mono text-[10px] tracking-widest min-h-[44px]"
+          style={{ color: "var(--ut-white-faint)", border: "1px solid rgba(217,70,239,0.2)" }}
+          onClick={resetView}
+          aria-label="Reset zoom"
+          data-lightbox-zoom="true"
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+        <button
+          type="button"
+          className="px-3 py-2 font-mono text-xs min-w-[44px] min-h-[44px]"
+          style={{ color: "var(--ut-white-dim)", border: "1px solid rgba(217,70,239,0.2)" }}
+          onClick={zoomIn}
+          aria-label="Zoom in"
+          disabled={zoom >= 4}
+        >
+          +
+        </button>
+      </div>
+
+      {/* Live region for zoom/load announcements */}
+      <div className="sr-only" role="status" aria-live="polite">{statusMsg}</div>
 
       {/* Chromatic fringe effect on the overlay edges */}
       <div
@@ -232,4 +484,21 @@ function LightboxOverlay({
       />
     </div>
   );
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    setReduced(mq?.matches ?? false);
+    const listener = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq?.addEventListener?.("change", listener);
+    return () => mq?.removeEventListener?.("change", listener);
+  }, []);
+  return reduced;
 }
