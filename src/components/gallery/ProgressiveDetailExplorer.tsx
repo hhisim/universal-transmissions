@@ -68,10 +68,27 @@ export default function ProgressiveDetailExplorer({
 
   const revealedSet = useMemo(() => new Set(revealed), [revealed]);
 
-  /** Revealed details, in registry order. */
+  /**
+   * Display order follows the REVEAL sequence, not registry order.
+   *
+   * Deriving this by filtering `details` would silently re-impose registry
+   * order and move the seeded tiles (35, 37, 38) when a later batch is added,
+   * even though the scroll position never changed. Each entry is looked up by
+   * its canonical registry index; `registryIndex` is never derived from the
+   * display slot, so identity and order stay independent.
+   */
+  const byRegistryIndex = useMemo(() => {
+    const map = new Map<number, ProgressiveDetail>();
+    for (const d of details) map.set(d.registryIndex, d);
+    return map;
+  }, [details]);
+
   const visible = useMemo(
-    () => details.filter((d) => revealedSet.has(d.registryIndex)),
-    [details, revealedSet]
+    () =>
+      revealed
+        .map((registryIndex) => byRegistryIndex.get(registryIndex))
+        .filter((d): d is ProgressiveDetail => d !== undefined),
+    [revealed, byRegistryIndex]
   );
 
   /** Next un-revealed details, in registry order. */

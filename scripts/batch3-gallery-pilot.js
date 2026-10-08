@@ -41,8 +41,10 @@ ok(gate !== -1 && legacyStrip > gate, "legacy strip lives in the non-pilot branc
 /* ---------------- 2. unrevealed details are not mounted ---------------- */
 section("2. Unrevealed details cannot start a request (not CSS-hidden)");
 ok(!/hidden\b/.test(explorer.split("data-detail-grid")[0] || ""), "no blanket hiding in grid header");
-ok(/\.filter\(\(d\) => revealedSet\.has\(d\.registryIndex\)\)/.test(explorer),
-   "rendered set is an explicit filter over revealed indices");
+ok(/revealed\s*\.map\(\(registryIndex\) => byRegistryIndex\.get\(registryIndex\)\)/.test(explorer),
+   "rendered set is derived explicitly from the revealed sequence");
+ok(/\.filter\(\(d\): d is ProgressiveDetail => d !== undefined\)/.test(explorer),
+   "unresolved entries are dropped rather than rendered");
 ok(/details\.filter\(\(d\) => !revealedSet\.has\(d\.registryIndex\)\)/.test(explorer),
    "pending set computed separately");
 ok(!/opacity-0[^"]*absolute|visibility:\s*hidden/.test(explorer),
@@ -74,6 +76,17 @@ ok(!/details\.filter\(\(d\) => next\.has\(d\.registryIndex\)\)/.test(explorer),
 ok(!/\.sort\(/.test(explorer), "no sort anywhere in the explorer");
 ok(!/\.reverse\(/.test(explorer), "no reverse anywhere in the explorer");
 ok(/registryIndex: i \+ 1/.test(page), "canonical identity stays registry-derived, not slot-derived");
+/* Regression for the actual defect: the rendered list must follow the REVEAL
+   sequence. Deriving it by filtering `details` re-imposed registry order and
+   moved the seeded tiles even though scrollY was unchanged. */
+ok(/const visible = useMemo\([\s\S]*?revealed\s*\.map\(\(registryIndex\)/.test(explorer),
+   "rendered list is built from the reveal sequence, not from registry order");
+ok(!/details\.filter\(\(d\) => revealedSet\.has\(d\.registryIndex\)\)/.test(explorer),
+   "no registry-order filter can override the reveal order");
+ok(/byRegistryIndex\.get\(registryIndex\)/.test(explorer), "entries resolved by canonical index");
+ok(/const map = new Map<number, ProgressiveDetail>\(\)/.test(explorer), "index lookup map exists");
+ok(/initialRegistryIndices\)/.test(explorer) && /const seed = new Set\(initialRegistryIndices\)/.test(explorer),
+   "seed order still comes from the caller-supplied indices");
 
 /* ---------------- 4. batch size and counts ---------------- */
 section("4. Six per activation, accurate counts");
