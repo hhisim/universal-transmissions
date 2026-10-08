@@ -2404,7 +2404,11 @@ export default function OraclePage() {
           }
           .oracle-inline-controls,
           .oracle-question-seed-deck { order: 1; }
-          .oracle-chat-card-head { order: 0; }
+          .oracle-chat-card-head {
+            order: 0;
+            padding: 8px 12px 6px;
+          }
+          .oracle-chat-input .flex.items-end { margin-top: 8px; }
           .oracle-artwork-context,
           .oracle-context-notice { order: 1; }
           .oracle-chat-input { order: 2; }
