@@ -213,13 +213,21 @@ function LightboxOverlay({
    */
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const idle = (cb: () => void) => {
-      const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: unknown) => number })
-        .requestIdleCallback;
-      if (ric) ric(cb, { timeout: 1500 });
-      else window.setTimeout(cb, 400);
-    };
-    idle(() => {
+    let cancelled = false;
+    let cancelIdle: (() => void) | undefined;
+
+    const ric = (
+      window as unknown as {
+        requestIdleCallback?: (cb: () => void, o?: unknown) => number;
+        cancelIdleCallback?: (handle: number) => void;
+      }
+    ).requestIdleCallback;
+
+    const run = () => {
+      /* Re-check after the callback is scheduled: the viewer may have closed in
+         the meantime, and a pending idle callback must not initiate requests
+         once the overlay is gone. */
+      if (cancelled) return;
       for (const i of [currentIndex - 1, currentIndex + 1]) {
         const src = images[i];
         if (!src) continue;
@@ -227,7 +235,22 @@ function LightboxOverlay({
         im.decoding = "async";
         im.src = src;
       }
-    });
+    };
+
+    if (ric) {
+      const handle = ric(run, { timeout: 1500 });
+      cancelIdle = () =>
+        (window as unknown as { cancelIdleCallback?: (h: number) => void })
+          .cancelIdleCallback?.(handle);
+    } else {
+      const timer = window.setTimeout(run, 400);
+      cancelIdle = () => window.clearTimeout(timer);
+    }
+
+    return () => {
+      cancelled = true;
+      cancelIdle?.();
+    };
   }, [images, currentIndex]);
 
   /* Capture the element that had focus before the overlay opened. */

@@ -190,6 +190,22 @@ ok(/data-lightbox-loading="true"/.test(lightbox), "loading state exists");
 ok(/data-lightbox-error="true"/.test(lightbox), "failure state exists");
 ok(/onError=\{\(\) => setLoadState\("error"\)\}/.test(lightbox), "error is wired to onError");
 ok(/Retry/.test(lightbox), "failure offers retry");
+/* Release gate: a failed or slow image must leave close/navigation usable, and
+   a pending idle preload must not fire after the viewer closes. */
+ok(/role="status"[\s\S]{0,80}data-lightbox-loading/.test(lightbox) || /data-lightbox-loading="true"/.test(lightbox),
+   "slow-image state is announced politely");
+const closeIdx = lightbox.indexOf('aria-label="Close"');
+const errIdx = lightbox.indexOf('data-lightbox-error');
+ok(closeIdx > -1 && errIdx > -1 && closeIdx !== errIdx,
+   "close control is rendered independently of the image/error branch");
+ok(/e\.key === "Escape"[\s\S]{0,200}onClose\(\)/.test(lightbox),
+   "Escape closes even while an image is loading or failed");
+ok(/let cancelled = false;/.test(lightbox), "preload tracks cancellation");
+ok(/if \(cancelled\) return;/.test(lightbox), "the scheduled preload re-checks cancellation before requesting");
+ok(/cancelIdleCallback/.test(lightbox), "pending idle callback is cancelled on unmount");
+ok(/return \(\) => \{\s*cancelled = true;\s*cancelIdle\?\.\(\);\s*\};/.test(lightbox),
+   "effect cleanup cancels both the flag and the pending handle");
+ok(!/window\.setTimeout\(cb, 400\);/.test(lightbox), "the uncancellable bare timeout path is gone");
 
 /* ---------------- 9. focus behaviour ---------------- */
 section("9. Focus containment and return");
