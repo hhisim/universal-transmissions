@@ -239,6 +239,7 @@ function LightboxOverlay({
 
   /* Reset zoom/pan and load state whenever the displayed image changes. */
   useEffect(() => {
+    dragState.current = null;
     setZoom(1);
     setPan({ x: 0, y: 0 });
     setLoadState("loading");
@@ -274,6 +275,7 @@ function LightboxOverlay({
       }
       if (e.key === "0") {
         e.preventDefault();
+        dragState.current = null;
         setZoom(1);
         setPan({ x: 0, y: 0 });
       }
@@ -357,7 +359,13 @@ function LightboxOverlay({
 
   const zoomIn = () => setZoom((z) => clamp(z * 1.5, 1, 4));
   const zoomOut = () => setZoom((z) => clamp(z / 1.5, 1, 4));
+  /**
+   * Restores the fitted view. Clears the drag state as well: leaving a stale
+   * pan offset behind means the next drag resumes from the old origin and the
+   * image appears to jump.
+   */
   const resetView = () => {
+    dragState.current = null;
     setZoom(1);
     setPan({ x: 0, y: 0 });
   };

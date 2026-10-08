@@ -177,6 +177,15 @@ ok(/e\.key === "ArrowLeft"/.test(lightbox) && /e\.key === "ArrowRight"/.test(lig
    "arrow keys navigate");
 ok(/clamp\(z \* 1\.5, 1, 4\)/.test(lightbox), "zoom is bounded 1x..4x");
 ok(/onPointerMove/.test(lightbox), "pan is implemented");
+/* Regression: Reset must clear the drag state too, or the next drag resumes from
+   a stale origin and the image jumps. Measured: reset left translate(20,10). */
+ok(/const resetView = \(\) => \{\s*dragState\.current = null;/.test(lightbox),
+   "reset clears the drag state before restoring the fitted view");
+ok(/dragState\.current = null;\s*setZoom\(1\);\s*setPan\(\{ x: 0, y: 0 \}\);\s*setLoadState\("loading"\)/.test(lightbox),
+   "changing image also clears the drag state");
+ok(/setPointerCapture/.test(lightbox), "pointer capture keeps the drag on the image");
+ok(/if \(zoom <= 1\) return;/.test(lightbox), "dragging is inert until zoomed");
+ok(/touchAction: zoom > 1 \? "none"/.test(lightbox), "touch is only captured while zoomed, so page scroll works otherwise");
 ok(/data-lightbox-loading="true"/.test(lightbox), "loading state exists");
 ok(/data-lightbox-error="true"/.test(lightbox), "failure state exists");
 ok(/onError=\{\(\) => setLoadState\("error"\)\}/.test(lightbox), "error is wired to onError");
