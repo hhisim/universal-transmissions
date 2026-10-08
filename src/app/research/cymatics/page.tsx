@@ -144,9 +144,11 @@ export default function ResearchCymaticsPage() {
                       genuinely observed and genuinely reproducible. What the pattern does
                       <em>not</em> establish is that vibration originates form, heals the body, or
                       carries a fixed meaning. The step from a nodal figure to a mandala, a cell or a
-                      symbol is an analogy made by an observer. In Jenny&apos;s own account those forms
-                      seemed to manifest an invisible force field — that was his stated belief, and
-                      it was not a measurement.
+                      symbol is an analogy made by an observer. Jenny himself ruled that step out: he
+                      held that this work must proceed &quot;on strictly empirical and phenomenological
+                      lines&quot; and that &quot;all interpretative or analogical thinking will be out of
+                      place.&quot; In the portion of his text examined here he does not treat the figures
+                      as a force field or any other force.
                     </p>
                   </div>
                 </div>
@@ -175,9 +177,11 @@ export default function ResearchCymaticsPage() {
                       Ernst Chladni (1756–1827) introduced the method systematically, in 1787, in
                       <em>Entdeckungen über die Theorie des Klanges</em> — scattering fine sand on
                       smooth plates and drawing a violin bow across the edge. The powder collects at
-                      the nodes, so the mode of vibration becomes a visible figure. Galileo had made
-                      comparable observations around 1630 and Robert Hooke saw nodal patterns on a
-                      glass plate in 1680; the figures are still called Chladni figures.
+                      the nodes, so the mode of vibration becomes a visible figure. Leonardo da Vinci
+                      and Galileo had both noticed particles moving unevenly on a vibrating surface,
+                      though neither left a dated account; Robert Hooke sprinkled sand on a metal
+                      plate, drew a violin bow along its edge and recorded the nodal patterns on
+                      8 July 1680. The figures are still called Chladni figures.
                     </p>
                   </div>
                   <div className="ut-card p-8" style={{ background: "rgba(34, 211, 238, 0.02)" }}>
