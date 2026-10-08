@@ -307,7 +307,11 @@ function LightboxOverlay({
       if (e.shiftKey && (active === first || !dialog.contains(active))) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && active === last) {
+      } else if (!e.shiftKey && (active === last || !dialog.contains(active))) {
+        /* Forward wrap. The `!dialog.contains(active)` arm also recovers focus
+           if it has ended up outside the dialog (autofill, extensions, a stray
+           programmatic focus), which otherwise lets Tab continue into the page
+           behind the modal. */
         e.preventDefault();
         first.focus();
       }

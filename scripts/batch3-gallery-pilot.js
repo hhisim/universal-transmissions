@@ -175,6 +175,13 @@ ok(/dialogRef/.test(lightbox), "dialog ref exists");
 ok(/closeRef\.current\?\.focus\(\)/.test(lightbox), "focus moves into the dialog on open");
 ok(/e\.key !== "Tab"/.test(lightbox), "Tab is intercepted for containment");
 ok(/!dialog\.contains\(active\)/.test(lightbox), "containment checks dialog membership");
+ok(/!e\.shiftKey && \(active === last \|\| !dialog\.contains\(active\)\)/.test(lightbox),
+   "forward Tab also recovers when focus is outside the dialog");
+ok(/e\.shiftKey && \(active === first \|\| !dialog\.contains\(active\)\)/.test(lightbox),
+   "backward Tab also recovers when focus is outside the dialog");
+ok(/addEventListener\("keydown", onKeyDown, true\)/.test(lightbox),
+   "containment listens in the capture phase so it intercepts before default Tab");
+ok(/button:not\(\[disabled\]\)/.test(lightbox), "disabled controls are excluded from the tab ring");
 ok(/last\.focus\(\)/.test(lightbox) && /first\.focus\(\)/.test(lightbox), "focus wraps at both ends");
 ok(/returnFocusRef/.test(explorer), "caller records the activating element");
 ok(/triggerRefs\.current\[lightboxIndex\]/.test(explorer), "return target is the activating thumbnail");
