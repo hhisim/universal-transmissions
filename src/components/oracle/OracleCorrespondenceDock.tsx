@@ -297,6 +297,18 @@ export default function OracleCorrespondenceDock({
 
   const showFocusedNode = query.trim() || surface === "matrix" || surface === "symbols" || surface === "clusters";
 
+  /* Names the secondary surface currently in the aside so the collapsed
+  control still tells the visitor what tapping it will reveal. */
+  const contextLabel =
+  query.trim() ? "Show search results"
+  : surface === "letters" ? "Show letters"
+  : surface === "decode" ? "Show decode"
+  : surface === "chakra" ? "Show chakra"
+  : surface === "symbols" ? "Show symbols"
+  : surface === "clusters" ? "Show clusters"
+  : showFocusedNode ? "Show node detail"
+  : "Show collections";
+
   const focusedNodePanel = (
     <div className="oracle-system-focus oracle-system-focus-live">
       <div className="oracle-dock-kicker">Focused Node - {actionMode}</div>
@@ -396,7 +408,7 @@ export default function OracleCorrespondenceDock({
         {children ? <div className="oracle-dock-oracle-center">{children}</div> : <div className="oracle-dock-primary">{renderSurface()}</div>}
 
         <aside className="oracle-dock-context oracle-v12-right">
-          {/* Focused-node detail is the tallest secondary block (1180px on
+          {/* Every surface in this aside (focused node, search, letters, decode,
               narrow screens). On mobile it is collapsed to its summary line so
               the conversation follows immediately; the other surfaces in this
               aside (search, letters, decode, chakra, modes) are unaffected. */}
@@ -408,7 +420,7 @@ export default function OracleCorrespondenceDock({
             onClick={() => setContextOpen((v) => !v)}
           >
             <span className="oracle-dock-secondary-label">
-              {contextOpen ? "Hide node detail" : "Show node detail"}
+              {contextOpen ? "Hide tools" : contextLabel}
             </span>
             <span className="oracle-dock-secondary-chevron" aria-hidden="true">
               {contextOpen ? "\u2212" : "+"}
@@ -420,8 +432,6 @@ export default function OracleCorrespondenceDock({
             data-open={contextOpen ? "true" : "false"}
             hidden={!contextOpen && !desktopLayout}
           >
-          {showFocusedNode && focusedNodePanel}
-          </div>
           {query.trim() ? (
             <>
               <div className="oracle-dock-kicker">Responsive Search</div>
@@ -444,6 +454,7 @@ export default function OracleCorrespondenceDock({
               {lastMaterialized.length > 0 && <NodeList entries={lastMaterialized} selected={selected} onSelect={selectEntry} onRun={runMode} compact />}
             </>
           )}
+          </div>
         </aside>
       </div>
 
