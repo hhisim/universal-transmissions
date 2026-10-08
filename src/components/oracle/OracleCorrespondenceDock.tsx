@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { codex, type CodexEntry } from "@/lib/codex-data";
 import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
@@ -205,6 +205,23 @@ export default function OracleCorrespondenceDock({
   const [synthesisMode, setSynthesisMode] = useState<SynthesisMode>("oracle");
   const [synthesisOpen, setSynthesisOpen] = useState(false);
   const [surfaceOpen, setSurfaceOpen] = useState(false);
+  /* Secondary tools start expanded on desktop. On narrow screens the effect
+     below closes them once, so the conversation is what a visitor meets
+     first. Desktop never runs that close. */
+  const [toolsOpen, setToolsOpen] = useState(true);
+  const [desktopLayout, setDesktopLayout] = useState(true);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const query = window.matchMedia("(min-width: 901px)");
+    const apply = (isDesktop: boolean) => {
+      setDesktopLayout(isDesktop);
+      setToolsOpen(isDesktop);
+    };
+    apply(query.matches);
+    const onChange = (event: MediaQueryListEvent) => apply(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
   const [matrixOpen, setMatrixOpen] = useState(false);
 
   const systemEntries = useMemo(() => codex.filter((entry) => entry.sys === selectedSystem), [selectedSystem]);
@@ -315,6 +332,32 @@ export default function OracleCorrespondenceDock({
     >
       <div className="oracle-dock-body">
         <aside className="oracle-dock-left oracle-v12-left">
+          {/* Secondary tools. On mobile these sit below the conversation and are
+              revealed by this control, so they never stand between a visitor
+              and the composer. Desktop leaves them permanently expanded. */}
+          <button
+            type="button"
+            className="oracle-dock-secondary-toggle"
+            aria-expanded={toolsOpen}
+            aria-controls="oracle-secondary-tools"
+            onClick={() => setToolsOpen((v) => !v)}
+          >
+            <span className="oracle-dock-secondary-label">
+              {toolsOpen ? "Hide tools" : "Show tools"}
+            </span>
+            <span className="oracle-dock-secondary-hint">
+              Modes, search, menus and the 27-system lattice
+            </span>
+            <span className="oracle-dock-secondary-chevron" aria-hidden="true">
+              {toolsOpen ? "\u2212" : "+"}
+            </span>
+          </button>
+          <div
+            id="oracle-secondary-tools"
+            className="oracle-dock-secondary"
+            data-open={toolsOpen ? "true" : "false"}
+            hidden={!toolsOpen && !desktopLayout}
+          >
           <div className="oracle-dock-kicker">v12 Action Modes</div>
           <div className="oracle-v12-action-row">
             {(["ENTANGLE", "DECODE", "ORACLE"] as ActionMode[]).map((item) => (
@@ -343,6 +386,7 @@ export default function OracleCorrespondenceDock({
           <button className="oracle-open-surface" onClick={() => setSurfaceOpen(true)}>Open {surface}</button>
           <div className="oracle-dock-status">{status} - {mode}</div>
           <div className="oracle-dock-count">{rows || codex.length} shared entities</div>
+          </div>
         </aside>
 
         {children ? <div className="oracle-dock-oracle-center">{children}</div> : <div className="oracle-dock-primary">{renderSurface()}</div>}
@@ -836,11 +880,65 @@ export default function OracleCorrespondenceDock({
         .oracle-v12-field-row b { font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:.16em; text-transform:uppercase; color:color-mix(in srgb,var(--dock-color) 68%,rgba(237,233,246,.42)); }
         .oracle-v12-token-cloud { display:flex; flex-wrap:wrap; gap:5px; }
         .oracle-v12-token-cloud button, .oracle-v12-token-cloud em { border:1px solid color-mix(in srgb,var(--chip-color,var(--dock-color)) 36%,rgba(255,255,255,.08)); background:color-mix(in srgb,var(--chip-color,var(--dock-color)) 8%,rgba(0,0,0,.32)); color:color-mix(in srgb,var(--chip-color,var(--dock-color)) 76%,rgba(237,233,246,.78)); font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.06em; line-height:1.25; padding:4px 6px; text-align:left; }
+        /* Secondary-tools disclosure. Desktop keeps the tools permanently
+           expanded, so the control itself is not rendered there. */
+        .oracle-dock-secondary-toggle { display: none; }
+        .oracle-dock-secondary { display: block; }
         @media (max-width: 900px) {
           .oracle-dock-body { grid-template-columns: 1fr; }
-          .oracle-dock-context { order: -1; }
+          /* Mobile arrival order: selected context, then the conversation
+             itself, then secondary tools behind a disclosure.
+             Previously only .oracle-dock-context was lifted (order:-1) and
+             the 1401px modes panel stayed in source order ABOVE the
+             composer, which put the composer ~4559px down the page. */
+          .oracle-dock-context { order: -2; }
+          .oracle-dock-oracle-center,
+          .oracle-dock-primary { order: -1; }
+          .oracle-dock-left { order: 0; }
           .oracle-letter-grid { grid-template-columns: repeat(7,1fr); }
           .oracle-dock-head { align-items: flex-start; flex-direction: column; }
+          /* The disclosure control replaces the always-open panel here. */
+          .oracle-dock-secondary-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            margin-top: 4px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 12px;
+            background: linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.22));
+            color: rgba(237,233,246,.62);
+            font-family:'JetBrains Mono',monospace;
+            font-size: 9px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            text-align: left;
+            cursor: pointer;
+          }
+          .oracle-dock-secondary-toggle:focus-visible {
+            outline: 2px solid color-mix(in srgb,var(--dock-color) 70%,transparent);
+            outline-offset: 2px;
+          }
+          .oracle-dock-secondary-label { flex: 0 0 auto; }
+          .oracle-dock-secondary-hint {
+            flex: 1 1 auto;
+            min-width: 0;
+            font-size: 8px;
+            letter-spacing: .04em;
+            text-transform: none;
+            color: rgba(237,233,246,.42);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .oracle-dock-secondary-chevron {
+            flex: 0 0 auto;
+            font-size: 13px;
+            line-height: 1;
+            color: color-mix(in srgb,var(--dock-color) 62%,rgba(237,233,246,.6));
+          }
         }
       `}</style>
     </section>
