@@ -1,0 +1,15 @@
+const fs = require('fs');
+const assert = require('assert');
+const s = fs.readFileSync('src/app/oracle/page-client.tsx', 'utf8');
+const dock = fs.readFileSync('src/components/oracle/OracleCorrespondenceDock.tsx', 'utf8');
+const mobile = s.slice(s.indexOf('@media (max-width: 640px) {'), s.indexOf('/* Glitch title */'));
+assert(mobile.includes('.oracle-oracle-column {'), 'mobile column must reorder its primary chat before secondary controls');
+assert(mobile.includes('.oracle-chat-glass-card {'), 'mobile card must own visible arrival order');
+assert(mobile.includes('.oracle-artwork-context'), 'selected context must be before mobile composer');
+assert(mobile.includes('.oracle-chat-input'), 'mobile composer must have an explicit order');
+assert(mobile.includes('.oracle-scroll'), 'transcript must remain accessible after the composer');
+assert(mobile.includes('.oracle-question-seed-deck'), 'question seeds must not preempt mobile arrival');
+assert(s.includes('className="oracle-chat-input"'), 'composer wrapper needs a stable class');
+assert(dock.includes('aria-expanded={toolsOpen}') && dock.includes('aria-expanded={contextOpen}'), 'secondary panels need disclosures');
+assert(dock.includes('hidden={!contextOpen && !desktopLayout}'), 'context panel must collapse only on mobile');
+console.log('PASS 9 mobile-arrival source contracts');

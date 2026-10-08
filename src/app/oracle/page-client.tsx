@@ -1596,7 +1596,7 @@ export default function OraclePage() {
               )}
 
               {/* ═══ Input ═══ */}
-              <div style={{ padding: "0 24px 20px", borderTop: `1px solid rgba(255,255,255,0.04)` }}>
+              <div className="oracle-chat-input" style={{ padding: "0 24px 20px", borderTop: `1px solid rgba(255,255,255,0.04)` }}>
                 {atLimit && (
                   <div className="text-center py-3">
                     <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{tier === "guest" ? "Daily limit reached. Create a free account for 25/day." : "Daily limit reached."}</span>
@@ -2391,6 +2391,25 @@ export default function OraclePage() {
           .oracle-seed-card {
             min-height: 74px;
           }
+          /* Arrival: show the selected context and editable composer before
+             transcript, modes and question seeds. Desktop keeps source order. */
+          .oracle-oracle-column {
+            display: flex;
+            flex-direction: column;
+          }
+          .oracle-chat-glass-card {
+            order: -1;
+            display: flex;
+            flex-direction: column;
+          }
+          .oracle-inline-controls,
+          .oracle-question-seed-deck { order: 1; }
+          .oracle-chat-card-head { order: 0; }
+          .oracle-artwork-context,
+          .oracle-context-notice { order: 1; }
+          .oracle-chat-input { order: 2; }
+          .oracle-scroll { order: 3; }
+          .oracle-spectrum-ribbon { order: 4; }
         }
 
         /* Glitch title */
