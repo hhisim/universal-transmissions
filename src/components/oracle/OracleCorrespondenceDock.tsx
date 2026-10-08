@@ -209,6 +209,9 @@ export default function OracleCorrespondenceDock({
      below closes them once, so the conversation is what a visitor meets
      first. Desktop never runs that close. */
   const [toolsOpen, setToolsOpen] = useState(true);
+  /* Expanded on desktop. Narrow screens start collapsed so arrival shows the
+     summary and the conversation, not 1180px of node detail. */
+  const [contextOpen, setContextOpen] = useState(true);
   const [desktopLayout, setDesktopLayout] = useState(true);
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -216,6 +219,7 @@ export default function OracleCorrespondenceDock({
     const apply = (isDesktop: boolean) => {
       setDesktopLayout(isDesktop);
       setToolsOpen(isDesktop);
+      setContextOpen(isDesktop);
     };
     apply(query.matches);
     const onChange = (event: MediaQueryListEvent) => apply(event.matches);
@@ -392,7 +396,32 @@ export default function OracleCorrespondenceDock({
         {children ? <div className="oracle-dock-oracle-center">{children}</div> : <div className="oracle-dock-primary">{renderSurface()}</div>}
 
         <aside className="oracle-dock-context oracle-v12-right">
+          {/* Focused-node detail is the tallest secondary block (1180px on
+              narrow screens). On mobile it is collapsed to its summary line so
+              the conversation follows immediately; the other surfaces in this
+              aside (search, letters, decode, chakra, modes) are unaffected. */}
+          <button
+            type="button"
+            className="oracle-dock-context-toggle"
+            aria-expanded={contextOpen}
+            aria-controls="oracle-context-detail"
+            onClick={() => setContextOpen((v) => !v)}
+          >
+            <span className="oracle-dock-secondary-label">
+              {contextOpen ? "Hide node detail" : "Show node detail"}
+            </span>
+            <span className="oracle-dock-secondary-chevron" aria-hidden="true">
+              {contextOpen ? "\u2212" : "+"}
+            </span>
+          </button>
+          <div
+            id="oracle-context-detail"
+            className="oracle-dock-context-detail"
+            data-open={contextOpen ? "true" : "false"}
+            hidden={!contextOpen && !desktopLayout}
+          >
           {showFocusedNode && focusedNodePanel}
+          </div>
           {query.trim() ? (
             <>
               <div className="oracle-dock-kicker">Responsive Search</div>
@@ -884,6 +913,8 @@ export default function OracleCorrespondenceDock({
            expanded, so the control itself is not rendered there. */
         .oracle-dock-secondary-toggle { display: none; }
         .oracle-dock-secondary { display: block; }
+        .oracle-dock-context-toggle { display: none; }
+        .oracle-dock-context-detail { display: block; }
         @media (max-width: 900px) {
           .oracle-dock-body { grid-template-columns: 1fr; }
           /* Mobile arrival order: selected context, then the conversation
@@ -939,6 +970,32 @@ export default function OracleCorrespondenceDock({
             line-height: 1;
             color: color-mix(in srgb,var(--dock-color) 62%,rgba(237,233,246,.6));
           }
+          .oracle-dock-context-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 8px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 12px;
+            background: linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.22));
+            color: rgba(237,233,246,.62);
+            font-family:'JetBrains Mono',monospace;
+            font-size: 9px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            text-align: left;
+            cursor: pointer;
+          }
+          .oracle-dock-context-toggle:focus-visible {
+            outline: 2px solid color-mix(in srgb,var(--dock-color) 70%,transparent);
+            outline-offset: 2px;
+          }
+          /* Collapsed on mobile: the summary line stays, the 1180px of node
+             detail does not occupy the page until it is asked for. */
+          .oracle-dock-context-detail[hidden] { display: none; }
         }
       `}</style>
     </section>
