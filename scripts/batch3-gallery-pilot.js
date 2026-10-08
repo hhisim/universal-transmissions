@@ -148,6 +148,13 @@ section("10. Reduced motion respected");
 ok(/prefers-reduced-motion/.test(lightbox), "reduced-motion query used");
 ok(/usePrefersReducedMotion/.test(lightbox), "reduced motion is a real hook");
 ok(/transition === "none" \? "none"/.test(lightbox), "transform transition disabled under reduced motion");
+/* The thumbnail hover scale is ALSO a transform transition and must be gated. */
+ok(/usePrefersReducedMotion/.test(explorer), "explorer tracks reduced motion too");
+ok(/prefersReducedMotion\s*\n?\s*\?\s*""/.test(explorer),
+   "thumbnail hover transition is suppressed under reduced motion");
+ok(!/className="ut-detail-img object-cover transition-transform/.test(explorer),
+   "unconditional transition-transform on the thumbnail is gone");
+ok(/motion-safe:transition-transform/.test(explorer), "a motion-safe variant remains for normal motion");
 ok(!/animate-|autoplay/i.test(explorer), "no forced animation or autoplay in the pilot");
 
 /* ---------------- 11. mobile controls ---------------- */

@@ -60,6 +60,8 @@ export default function ProgressiveDetailExplorer({
     return details.filter((d) => seed.has(d.registryIndex)).map((d) => d.registryIndex);
   });
 
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const triggerRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -160,7 +162,14 @@ export default function ProgressiveDetailExplorer({
                      instead of downloading the ~400KB original for a small tile. */
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                   quality={62}
-                  className="ut-detail-img object-cover transition-transform duration-500 group-hover:scale-105"
+                  className={
+                    "ut-detail-img object-cover group-hover:scale-105" +
+                    /* Honour prefers-reduced-motion: the hover scale is a
+                       transform transition, so it must be suppressed too. */
+                    (prefersReducedMotion
+                      ? ""
+                      : " transition-transform duration-500 motion-safe:transition-transform")
+                  }
                 />
                 <span
                   className="absolute bottom-1 right-1 font-mono text-[9px] px-1.5 py-0.5 pointer-events-none"
@@ -212,4 +221,19 @@ export default function ProgressiveDetailExplorer({
       )}
     </section>
   );
+}
+
+/** Tracks prefers-reduced-motion so transform transitions can be suppressed. */
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if (!mq) return;
+    setReduced(mq.matches);
+    const listener = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener?.("change", listener);
+    return () => mq.removeEventListener?.("change", listener);
+  }, []);
+  return reduced;
 }
