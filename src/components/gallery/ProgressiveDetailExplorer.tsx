@@ -19,7 +19,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Lightbox from "@/components/gallery/Lightbox";
+import Lightbox, { type LightboxItem } from "@/components/gallery/Lightbox";
 
 /** Details revealed per activation. */
 const BATCH_SIZE = 6;
@@ -80,14 +80,28 @@ export default function ProgressiveDetailExplorer({
     [details, revealedSet]
   );
 
+  /**
+   * Appends the next un-revealed details in registry order.
+   *
+   * Order is deliberately NOT re-sorted on reveal. The seeded batch holds
+   * non-consecutive registry positions (1,2,3,35,37,38); re-sorting would move
+   * those already-visible thumbnails out from under the visitor when the next
+   * batch arrives, even though the page scroll position never changes. Existing
+   * tiles therefore keep their slot, and new ones are added after them.
+   *
+   * `registryIndex` remains the canonical identity in every case; it is never
+   * derived from the display position.
+   */
   const handleReveal = useCallback(() => {
     setRevealed((prev) => {
-      const next = new Set(prev);
+      const seen = new Set(prev);
+      const additions: number[] = [];
       for (const d of details) {
-        if (next.size >= prev.length + BATCH_SIZE) break;
-        next.add(d.registryIndex);
+        if (additions.length >= BATCH_SIZE) break;
+        if (seen.has(d.registryIndex)) continue;
+        additions.push(d.registryIndex);
       }
-      return details.filter((d) => next.has(d.registryIndex)).map((d) => d.registryIndex);
+      return [...prev, ...additions];
     });
   }, [details]);
 
@@ -119,8 +133,19 @@ export default function ProgressiveDetailExplorer({
     return () => document.removeEventListener("keydown", onKey);
   }, [lightboxIndex, closeDetail]);
 
-  // Only the revealed slice is mounted in the viewer, so an unopened detail is
-  // never requested by the overlay.
+  /**
+   * The viewer navigates the COMPLETE collection. Passing the whole registry
+   * here is what lets Previous/Next reach all 42 originals while only six
+   * thumbnails are mounted: the overlay requests the original for whichever
+   * detail is being viewed, so mounting it is unnecessary.
+   *
+   * This does not cause eager fetching — the overlay renders a single <img> for
+   * the current entry only, and neighbours are preloaded at idle.
+   */
+  const navigationItems: LightboxItem[] = useMemo(
+    () => details.map((d) => ({ src: d.src, registryIndex: d.registryIndex })),
+    [details]
+  );
   const revealedSources = visible.map((d) => d.src);
   const remaining = pending.length;
 
@@ -196,9 +221,11 @@ export default function ProgressiveDetailExplorer({
           <p
             className="font-mono text-[9px] tracking-[0.2em] uppercase"
             style={{ color: "var(--ut-white-faint)" }}
+            data-reveal-copy="true"
           >
-            Showing {revealed.length} of {total} · {Math.min(BATCH_SIZE, remaining)} more
-            available
+            Showing {revealed.length} of {total} · Reveal{" "}
+            {Math.min(BATCH_SIZE, remaining)} more
+            {remaining > BATCH_SIZE ? ` (${remaining} unrevealed)` : ""}
           </p>
         </div>
       ) : (
@@ -214,6 +241,8 @@ export default function ProgressiveDetailExplorer({
       {lightboxIndex !== null && (
         <Lightbox
           images={revealedSources}
+          items={navigationItems}
+          initialRegistryIndex={visible[lightboxIndex]?.registryIndex}
           title={`${title} — details`}
           initialIndex={lightboxIndex}
           onRequestClose={closeDetail}

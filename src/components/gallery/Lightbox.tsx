@@ -4,8 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
+export interface LightboxItem {
+  src: string;
+  /** 1-based canonical registry position, independent of display order. */
+  registryIndex: number;
+}
+
 interface LightboxProps {
   images: string[];
+  /**
+   * The complete collection the viewer may navigate. When supplied, navigation
+   * is not limited to the thumbnails that happen to be revealed: Previous/Next
+   * walk the whole archive and the counter describes THAT collection, so a
+   * "n / 6" counter can never be shown while browsing 42 originals.
+   */
+  items?: LightboxItem[];
+  /** Canonical 1-based position of the detail being opened. */
+  initialRegistryIndex?: number;
   title: string;
   /**
    * Zero-based index to open at. Omitted keeps the existing behaviour of
@@ -27,20 +42,43 @@ interface ImageThumbProps {
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
-export default function Lightbox({ images, title, initialIndex, onRequestClose }: LightboxProps) {
+export default function Lightbox({
+  images,
+  items,
+  initialRegistryIndex,
+  title,
+  initialIndex,
+  onRequestClose,
+}: LightboxProps) {
   const [open, setOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex ?? 0);
   const [mounted, setMounted] = useState(false);
+
+  /** Effective navigation set: the full collection when provided. */
+  const collection: string[] = items?.length ? items.map((i) => i.src) : images;
+  /** Canonical 1-based position for the entry at a given index. */
+  const positionOf = useCallback(
+    (index: number) => items?.[index]?.registryIndex ?? index + 1,
+    [items]
+  );
+  /** Resolve the entry to open: canonical identity first, then explicit index. */
+  const openAt =
+    items?.length && initialRegistryIndex !== undefined
+      ? Math.max(
+          0,
+          items.findIndex((i) => i.registryIndex === initialRegistryIndex)
+        )
+      : (initialIndex ?? 0);
 
   useEffect(() => { setMounted(true); }, []);
 
   /* Controlled mode: the parent owns visibility and closing. */
   useEffect(() => {
-    if (onRequestClose && initialIndex !== undefined) setCurrentIndex(initialIndex);
-  }, [onRequestClose, initialIndex]);
+    if (onRequestClose && openAt >= 0) setCurrentIndex(openAt);
+  }, [onRequestClose, openAt]);
 
   const handleOpen = () => {
-    setCurrentIndex(initialIndex ?? 0);
+    setCurrentIndex(openAt);
     setOpen(true);
   };
 
@@ -85,11 +123,12 @@ export default function Lightbox({ images, title, initialIndex, onRequestClose }
       {/* Lightbox portal */}
       {mounted && visible && createPortal(
         <LightboxOverlay
-          images={images}
+          images={collection}
           currentIndex={currentIndex}
           onClose={handleClose}
           onNavigate={(idx) => setCurrentIndex(idx)}
           title={title}
+          positionOf={positionOf}
         />,
         document.body
       )}
@@ -126,6 +165,7 @@ export function ImageThumb({ src, alt }: ImageThumbProps) {
           onClose={() => setOpen(false)}
           onNavigate={() => {}}
           title={alt}
+          positionOf={() => 1}
         />,
         document.body
       )}
@@ -140,12 +180,15 @@ function LightboxOverlay({
   onClose,
   onNavigate,
   title,
+  positionOf,
 }: {
   images: string[];
   currentIndex: number;
   onClose: () => void;
   onNavigate: (index: number) => void;
   title: string;
+  /** Canonical 1-based registry position for the entry at an index. */
+  positionOf: (index: number) => number;
 }) {
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < images.length - 1;
@@ -162,6 +205,30 @@ function LightboxOverlay({
   const [statusMsg, setStatusMsg] = useState("");
 
   const prefersReducedMotion = usePrefersReducedMotion();
+
+  /**
+   * Preload the neighbouring originals at idle. This only runs while the viewer
+   * is open, so it cannot turn an unopened detail into a request during page
+   * load; it simply keeps Previous/Next responsive across a large collection.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const idle = (cb: () => void) => {
+      const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: unknown) => number })
+        .requestIdleCallback;
+      if (ric) ric(cb, { timeout: 1500 });
+      else window.setTimeout(cb, 400);
+    };
+    idle(() => {
+      for (const i of [currentIndex - 1, currentIndex + 1]) {
+        const src = images[i];
+        if (!src) continue;
+        const im = new window.Image();
+        im.decoding = "async";
+        im.src = src;
+      }
+    });
+  }, [images, currentIndex]);
 
   /* Capture the element that had focus before the overlay opened. */
   useEffect(() => {
@@ -308,7 +375,11 @@ function LightboxOverlay({
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-label={images.length > 1 ? `${title}, image ${currentIndex + 1} of ${images.length}` : title}
+      aria-label={
+          images.length > 1
+            ? `${title}, detail ${positionOf(currentIndex)} of ${images.length}`
+            : title
+        }
       className="fixed inset-0 z-[200] flex items-center justify-center"
       style={{ background: "rgba(5,5,7,0.95)", touchAction: zoom > 1 ? "none" : undefined }}
       onClick={onClose}
@@ -320,7 +391,11 @@ function LightboxOverlay({
           style={{ color: "var(--ut-white-dim)" }}
           data-lightbox-counter="true"
         >
-          <span data-lightbox-position="true">{currentIndex + 1} / {images.length}</span>
+          {/* Canonical registry position, so a non-consecutive seeded set reports
+              the true detail number rather than its display slot. */}
+          <span data-lightbox-position="true">
+            {positionOf(currentIndex)} / {images.length}
+          </span>
           <span className="block mt-1 text-[9px] opacity-60" style={{ color: "var(--ut-white-faint)" }}>
             {title}
           </span>

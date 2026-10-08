@@ -62,13 +62,23 @@ ok(details.length === 42, "registry declares 42 details", "got " + details.lengt
 ok(/registryIndex: i \+ 1/.test(page), "registry index is derived 1-based from registry order");
 ok(!/\.sort\(/.test(explorer), "component does not re-sort the registry order");
 ok(!/reverse\(/.test(explorer), "component does not reverse the registry order");
-ok(/details\.filter\(\(d\) => next\.has\(d\.registryIndex\)\)/.test(explorer),
-   "reveal writes back in registry order");
+/* Review correction: reveal must APPEND, never re-sort. Re-sorting moves the
+   seeded non-consecutive tiles (35/37/38) even though scrollY is unchanged. */
+ok(/return \[\.\.\.prev, \.\.\.additions\];/.test(explorer),
+   "reveal appends instead of rebuilding a sorted list");
+ok(/const additions: number\[\] = \[\]/.test(explorer), "additions collected separately");
+ok(/if \(seen\.has\(d\.registryIndex\)\) continue;/.test(explorer),
+   "already-revealed details are skipped, never re-added");
+ok(!/details\.filter\(\(d\) => next\.has\(d\.registryIndex\)\)/.test(explorer),
+   "reveal no longer rebuilds the list in registry order");
+ok(!/\.sort\(/.test(explorer), "no sort anywhere in the explorer");
+ok(!/\.reverse\(/.test(explorer), "no reverse anywhere in the explorer");
+ok(/registryIndex: i \+ 1/.test(page), "canonical identity stays registry-derived, not slot-derived");
 
 /* ---------------- 4. batch size and counts ---------------- */
 section("4. Six per activation, accurate counts");
 ok(/const BATCH_SIZE = 6;/.test(explorer), "BATCH_SIZE is 6");
-ok(/next\.size >= prev\.length \+ BATCH_SIZE/.test(explorer),
+ok(/if \(additions\.length >= BATCH_SIZE\) break;/.test(explorer),
    "reveal is capped at BATCH_SIZE new entries");
 ok(/\{revealed\.length\} of \{total\} revealed/.test(explorer), "revealed/total is displayed");
 ok(/data-detail-count="true"/.test(explorer), "count carries an addressable hook");
@@ -78,11 +88,19 @@ ok(/Explore more details/.test(explorer), "control is labelled in plain language
 ok(/remaining > 0/.test(explorer), "control hidden once everything is revealed");
 ok(/data-detail-complete="true"/.test(explorer), "completion state is explicit");
 ok(!/Math\.ceil\(total\s*\/\s*BATCH_SIZE\)/.test(explorer), "no fake batch count arithmetic");
+/* Review correction: copy must not imply only one batch remains. */
+ok(/data-reveal-copy="true"/.test(explorer), "reveal copy is addressable");
+ok(/Showing \{revealed\.length\} of \{total\} · Reveal/.test(explorer),
+   "copy reads Showing N of M · Reveal K more");
+ok(!/more\s*available/i.test(explorer), "'more available' wording removed");
+ok(/\{remaining > BATCH_SIZE \? ` \(\$\{remaining\} unrevealed\)` : ""\}/.test(explorer),
+   "when more than one batch remains the copy states the unrevealed total");
 
 /* ---------------- 5. nothing is lost ---------------- */
 section("5. Every original detail stays reachable");
-ok(/Math\.min\(n \+ BATCH_SIZE, total\)|next\.size >= prev\.length \+ BATCH_SIZE/.test(explorer),
-   "reveal cannot overshoot the total");
+ok(/if \(additions\.length >= BATCH_SIZE\) break;/.test(explorer) &&
+   /if \(seen\.has\(d\.registryIndex\)\) continue;/.test(explorer),
+   "reveal cannot overshoot: it stops at BATCH_SIZE and skips known indices");
 ok(/details\.length === total|const total = details\.length/.test(explorer),
    "total is the full registry length");
 const finalReveal = explorer.slice(explorer.indexOf("handleReveal"));
@@ -108,6 +126,24 @@ ok(/images=\{revealedSources\}/.test(explorer), "viewer receives only revealed s
 ok(/const revealedSources = visible\.map\(\(d\) => d\.src\)/.test(explorer),
    "viewer sources derive from the revealed subset");
 ok(/unoptimized/.test(lightbox), "inspection uses the original, not the thumb variant");
+/* Review correction: the viewer navigates the FULL registry, not the revealed set. */
+ok(/items=\{navigationItems\}/.test(explorer), "viewer is given the complete collection");
+ok(/details\.map\(\(d\) => \(\{ src: d\.src, registryIndex: d\.registryIndex \}\)\)/.test(explorer),
+   "navigation items cover every registry detail, revealed or not");
+ok(/initialRegistryIndex=\{visible\[lightboxIndex\]\?\.registryIndex\}/.test(explorer),
+   "the opened detail is identified by canonical registry position");
+ok(/items\?\.length \? items\.map\(\(i\) => i\.src\) : images/.test(lightbox),
+   "overlay prefers the full collection when supplied");
+ok(/items\.findIndex\(\(i\) => i\.registryIndex === initialRegistryIndex\)/.test(lightbox),
+   "opening resolves the entry by canonical identity, not display slot");
+ok(/\{positionOf\(currentIndex\)\} \/ \{images\.length\}/.test(lightbox),
+   "counter shows canonical position over collection size");
+ok(!/\{currentIndex \+ 1\} \/ \{images\.length\}/.test(lightbox),
+   "counter no longer uses the display slot");
+ok(/detail \$\{positionOf\(currentIndex\)\} of \$\{images\.length\}/.test(lightbox),
+   "dialog name reports the canonical position");
+ok(/requestIdleCallback/.test(lightbox), "neighbours preload at idle while the viewer is open");
+ok(/images\[i\]/.test(lightbox), "preload only touches immediate neighbours");
 
 /* ---------------- 8. viewer requirements ---------------- */
 section("8. Deliberate inspection");
@@ -115,7 +151,8 @@ ok(/role="dialog"/.test(lightbox), "overlay is a dialog");
 ok(/aria-modal="true"/.test(lightbox), "dialog is modal");
 ok(/aria-label/.test(lightbox), "dialog has an accessible name");
 ok(/data-lightbox-position="true"/.test(lightbox), "current position is shown");
-ok(/\{currentIndex \+ 1\} \/ \{images\.length\}/.test(lightbox), "position is N of M");
+ok(/positionOf\(currentIndex\)\} \/ \{images\.length\}/.test(lightbox),
+   "position is canonical N of M");
 ok(/aria-label="Previous image"/.test(lightbox), "previous control is named");
 ok(/aria-label="Next image"/.test(lightbox), "next control is named");
 ok(/aria-label="Close"/.test(lightbox), "close control is named");
