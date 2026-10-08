@@ -73,7 +73,17 @@ for (const marker of ["OBSERVED", "HISTORICAL", "UT ARTISTIC INTERPRETATION"]) {
 }
 ok("summary states the DNA claim is unsupported", /no established evidence/i.test(cyFlat));
 ok("summary names 528 Hz DNA repair as a claim NOT supported", /528 Hz repairs DNA/i.test(cyFlat));
-ok("summary marks Jenny's force field as belief, not measurement", /not a measurement/i.test(cyFlat));
+// The unverified "force field as Jenny's belief" attribution was removed after
+// searching all 135 PDF pages of the 2001 scan. Lock in the correction.
+ok("page does not attribute a force field to Jenny",
+  !/manifest an invisible force field/i.test(cyFlat));
+ok("grounding block does not attribute a force field to Jenny",
+  !/manifestation of an invisible force/i.test(joined(topics)));
+ok("grounding cites Jenny's own empirical-only method statement",
+  /strictly empirical and phenomenological lines/i.test(joined(topics)));
+ok("unsupported Galileo date 1630 is absent", !/around 1630/.test(cyFlat));
+ok("Jenny Volume II dated 1974, not his death year 1972",
+  /Volume 2, 1974/i.test(joined(topics)) && !/second volume in 1972/i.test(joined(topics)));
 ok("summary separates observation from analogy",
   /is an analogy,\s*not an\s+experimental result/i.test(joined(cyBlock)));
 ok("prompt block forbids medical/frequency claims", /do not offer medical or healing claims/i.test(topicsFlat));
