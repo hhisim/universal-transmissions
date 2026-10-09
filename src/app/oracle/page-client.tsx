@@ -12,6 +12,8 @@ import OracleCorrespondenceDock from "@/components/oracle/OracleCorrespondenceDo
 // buildOracleCodexContext is deliberately NOT imported: corpus context is composed
 // server-side now. codexRowCount still drives the dock's visible row counter.
 import { codexRowCount } from "@/codex/oracle-context";
+// Batch 9: visitor-facing counts are derived from the dataset, never hand-copied.
+import { CORPUS_SUMMARY, corpusRecordsLine } from "@/lib/corpus-summary";
 import { artworks } from "@/data/artworks";
 import {
   resolveResearchTopic,
@@ -99,7 +101,7 @@ const KM_KEYS = Object.keys(KM);
 const T: Record<string, Record<string, string>> = {
   en: {
     subtitle: "[ Universal Transmissions · Codex Oracle ]", heading: "̵̊̚C̭̣̆̒o̯̻̊̇n̶̘̉̉s̝̀̾̚ů̙̻̈l̙̂̾̕t̯ ̸́̀O̤̼̊̀r̴̨̓̐ȃ̘̃̾ċ̗̺̏ĺ̡̇͂e̟",
-    desc: "150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a 1000+ entry correspondence codex. The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.",
+    desc: "150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a " + corpusRecordsLine() + " codex. The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.",
     begin: "Begin with a question about the Codex", transmit: "TRANSMIT", placeholder: "Ask the Codex Oracle...",
     receiving: "RECEIVING TRANSMISSION", deepProc: "DEEP PROCESSING",
     engine: "Engine", fast: "FAST", deep: "DEEP", language: "Language", voice: "Voice", female: "FEMALE", male: "MALE",
@@ -124,7 +126,7 @@ const T: Record<string, Record<string, string>> = {
   },
   tr: {
     subtitle: "[ Evrensel İletimler · Kodeks Kehaneti ]", heading: "Kehânete Danış",
-    desc: "150 sayfa ksenolinguistik sanat, aşkın geometri ve hiperboyutsal iletimler — beş veri katmanı, pan-boyutsal bir dilbilim mistiği ve 1000+ girişli bir korespondans kodeksi aracılığıyla çözümlenir. Veri kümesi her gün sürekli evrilir; algoritma kendini yinelemeli bir yenilik motoru içinde yeniden icat eder.",
+    desc: "150 sayfa ksenolinguistik sanat, aşkın geometri ve hiperboyutsal iletimler — beş veri katmanı, pan-boyutsal bir dilbilim mistiği ve " + corpusRecordsLine() + " kodeksi aracılığıyla çözümlenir. Veri kümesi her gün sürekli evrilir; algoritma kendini yinelemeli bir yenilik motoru içinde yeniden icat eder.",
     begin: "Kodeks hakkında bir soru ile başlayın", transmit: "İLET", placeholder: "Kodeks Kehanetine sor...",
     receiving: "İLETİM ALINIYOR", deepProc: "DERİN İŞLEM",
     engine: "Motor", fast: "HIZLI", deep: "DERİN", language: "Dil", voice: "Ses", female: "KADIN", male: "ERKEK",
@@ -145,7 +147,7 @@ const T: Record<string, Record<string, string>> = {
   },
   ru: {
     subtitle: "[ Универсальные Трансляции · Оракул Кодекса ]", heading: "Обратиться к Оракулу",
-    desc: "150 страниц ксенолингвистического искусства, трансцендентной геометрии и гиперпространственных передач — расшифрованных через пять слоев данных, пан-измерительного лингвистического мистика и кодекс соответствий на 1000+ записей. Набор данных постоянно развивается каждый день, а алгоритм заново изобретает себя через рекурсивный двигатель новизны.",
+    desc: "150 страниц ксенолингвистического искусства, трансцендентной геометрии и гиперпространственных передач — расшифрованных через пять слоев данных, пан-измерительного лингвистического мистика и кодекс соответствий: " + corpusRecordsLine() + ". Набор данных постоянно развивается каждый день, а алгоритм заново изобретает себя через рекурсивный двигатель новизны.",
     begin: "Начните с вопроса о Кодексе", transmit: "ПЕРЕДАТЬ", placeholder: "Спросите Оракула Кодекса...",
     receiving: "ПРИЁМ ПЕРЕДАЧИ", deepProc: "ГЛУБОКАЯ ОБРАБОТКА",
     engine: "Движок", fast: "БЫСТРО", deep: "ГЛУБОКО", language: "Язык", voice: "Голос", female: "ЖЕНСКИЙ", male: "МУЖСКОЙ",
@@ -633,6 +635,9 @@ function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
         ))}
       </dl>
       <footer className="oracle-evidence-foot">
+        <p className="oracle-evidence-note">
+          Connections express symbolic interpretation; historical and scientific claims require their own sources.
+        </p>
         <code className="oracle-evidence-id">{evidence.entityId}</code>
         {evidence.action ? (
           <span className="oracle-evidence-actions">
@@ -1254,7 +1259,7 @@ export default function OraclePage() {
   const BOOT_LINES = [
     "ESTABLISHING SECURE NEURAL LINK...",
     "CALIBRATING GINA'ABUL LINGUISTIC MATRIX...",
-    "LOADING 577 CODEX CORRESPONDENCES...",
+    `LOADING ${CORPUS_SUMMARY.sourceRecords} CODEX CORRESPONDENCES...`,
     "ALIGNING RUBIK LATTICE SURFACES...",
     "CODEX ORACLE TRANSMISSION ONLINE",
   ];
@@ -1890,6 +1895,7 @@ export default function OraclePage() {
           justify-content: space-between;
           gap: 8px;
         }
+        .oracle-evidence-note { margin:0 0 6px; font-family:'JetBrains Mono',monospace; font-size:9px; line-height:1.65; letter-spacing:.04em; color:rgba(237,233,246,.5); max-width:64ch; }
         .oracle-evidence-id {
           font-family: 'JetBrains Mono', monospace;
           font-size: 7px;

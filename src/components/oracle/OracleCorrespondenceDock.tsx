@@ -7,6 +7,7 @@ import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
 import { ontology } from "@/lib/ontology-data";
 import { buildSynthesis, findEntanglements, selectSignalStack } from "@/codex/chamber-text";
 import { cleanDisplayValue } from "@/codex/speech-normalize";
+import { CORPUS_SUMMARY } from "@/lib/corpus-summary";
 import type { SynthesisMode } from "@/codex/types";
 import { CK, CODEX_SYSTEMS, FORORDER, SYS_COLORS, getSysColor } from "@/lib/correspondence-systems";
 
@@ -455,7 +456,7 @@ export default function OracleCorrespondenceDock({
           </div>
           <button className="oracle-open-surface" onClick={() => setSurfaceOpen(true)}>Open {surface}</button>
           <div className="oracle-dock-status">{status} - {mode}</div>
-          <div className="oracle-dock-count">{rows || codex.length} shared entities</div>
+          <div className="oracle-dock-count">{rows || CORPUS_SUMMARY.sourceRecords} correspondence records</div>
           </div>
         </aside>
 
@@ -883,6 +884,7 @@ export default function OracleCorrespondenceDock({
         .oracle-system-collection { display:grid; gap:8px; max-height:none; overflow:visible; padding-right:0; }
         .oracle-system-collection button { display:grid; grid-template-columns:auto minmax(0,1fr); gap:9px; align-items:center; border:1px solid color-mix(in srgb,var(--node-color) 34%,rgba(255,255,255,.06)); background:radial-gradient(circle at 0 0,color-mix(in srgb,var(--node-color) 20%,transparent),transparent 44%),linear-gradient(90deg,color-mix(in srgb,var(--node-color) 8%,rgba(0,0,0,.46)),rgba(0,0,0,.24)); color:rgba(237,233,246,.74); padding:8px; text-align:left; }
         .oracle-system-collection button[data-active="true"], .oracle-system-collection button:hover { border-color:color-mix(in srgb,var(--node-color) 70%,rgba(255,255,255,.1)); box-shadow:inset 3px 0 0 var(--node-color),0 0 18px color-mix(in srgb,var(--node-color) 15%,transparent); }
+        .oracle-symbolic-note { margin:7px 0 0; max-width:62ch; font-family:'JetBrains Mono',monospace; font-size:8px; line-height:1.7; letter-spacing:.06em; text-transform:none; color:rgba(237,233,246,.42); }
         .oracle-system-collection strong { display:block; font-family:'Cinzel',serif; font-size:12px; letter-spacing:.11em; text-transform:uppercase; color:rgba(237,233,246,.9); }
         .oracle-system-collection em { display:block; margin-top:3px; font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:.12em; text-transform:uppercase; color:color-mix(in srgb,var(--node-color) 62%,rgba(237,233,246,.38)); font-style:normal; }
         .oracle-system-focus { margin-top:12px; border-top:1px solid rgba(255,255,255,.06); padding-top:11px; }
@@ -1110,6 +1112,9 @@ function SystemCollection({ entries, selected, system, onSelect }: { entries: Co
     <div>
       <div className="oracle-dock-kicker">System Collection - {system.replaceAll("_", " ")}</div>
       <div className="oracle-v12-right-title">{entries.length} Nodes</div>
+      <p className="oracle-symbolic-note">
+        Connections express symbolic interpretation; historical and scientific claims require their own sources.
+      </p>
       <div className="oracle-system-collection">
         {entries.map((entry) => (
           <button key={recordKey(entry)} data-active={entry.sys === selected.sys && entry.e === selected.e} onClick={() => onSelect(entry)} style={{ "--node-color": entryColor(entry) } as CSSProperties}>

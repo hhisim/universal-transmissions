@@ -7,6 +7,7 @@ import HomeVideo from "@/components/ui/HomeVideo";
 import GlitchTagline from "@/components/ui/GlitchTagline";
 import PageBackground from "@/components/scenes/PageBackground";
 import { artworks } from "@/data/artworks";
+import { corpusRecordsLine } from "@/lib/corpus-summary";
 import Image from 'next/image';
 
 const LogoHero = dynamic(
@@ -288,7 +289,7 @@ export default function HomePage() {
                 <ZalgoText text="The transmission never ends." intensity="moderate" />
               </h2>
               <p className="text-sm md:text-base text-white/60 max-w-xl mx-auto mb-8 leading-relaxed">
-                150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a 577-entry correspondence codex. The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.
+                150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a {corpusRecordsLine()} codex. The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.
               </p>
               <Link href="/oracle" className="btn-primary">
                 Consult the Oracle

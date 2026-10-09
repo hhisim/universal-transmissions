@@ -20,7 +20,7 @@ const T: Record<string, Record<string, string>> = {
   en: {
     subtitle: "[ Universal Transmissions · Codex Oracle ]",
     heading: "Consult Oracle",
-    desc: "150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a 577-entry correspondence codex.",
+    desc: "150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic, and a 577-entry correspondence codex. [Legacy surface: not linked from navigation; count not reconciled in Batch 9.]",
     begin: "Begin with a question about the Codex",
     transmit: "TRANSMIT",
     placeholder: "Ask the Codex Oracle...",
