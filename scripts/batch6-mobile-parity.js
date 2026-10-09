@@ -170,6 +170,28 @@ console.log("\nBatch 6: source structure (not behavioural)");
   scheck("shared client still offers a return link from ?from", /returnTo/.test(shared));
 }
 
+// ---- short-viewport sticky guard -------------------------------------------
+// Regression: .oracle-system-focus-live was position:sticky with no height
+// condition, so on a 390x500 viewport it never scrolled clear and painted over
+// the node list, intercepting the Run button (elementFromPoint -> SUMMARY).
+// The pin must be disabled only while the panel cannot fit; the disclosure and
+// all controls must remain present.
+{
+  const dock = fs.readFileSync(path.join(ROOT, 'src/components/oracle/OracleCorrespondenceDock.tsx'), 'utf8');
+  const sticky = dock.match(/\.oracle-system-focus-live\s*\{[^}]*position:\s*sticky[^}]*\}/);
+  scheck("sticky focus panel is declared position:sticky", Boolean(sticky));
+  scheck("sticky focus panel pins with top + z-index", /position:\s*sticky;[\s\S]{0,120}?top:\s*\d+px;[\s\S]{0,200}?z-index:\s*\d+/.test(sticky ? sticky[0] : ''));
+  scheck(
+    "a max-height media query disables the sticky pin",
+    /@media\s*\(max-height:\s*\d+px\)\s*\{[\s\S]{0,300}?\.oracle-system-focus-live\s*\{[\s\S]{0,160}?position:\s*static/.test(dock)
+  );
+  scheck("the short-viewport override does not hide the focus disclosure", !/max-height[\s\S]{0,400}?\.oracle-focus-details\s*\{[^}]*display:\s*none/.test(dock));
+  scheck("the short-viewport override hides no Run/Inspect control", !/@media\s*\(max-height[\s\S]{0,600}?(display:\s*none|visibility:\s*hidden)[\s\S]{0,600}?oracle-(run|inspect)/i.test(dock));
+  scheck("the override is scoped to one class, not a broad CSS reset", (dock.match(/\.oracle-system-focus-live\s*\{\s*position:\s*static/g) || []).length === 1);
+  scheck("the disclosure element itself remains", dock.includes('oracle-focus-details'));
+  scheck("Run/Inspect handlers remain", /onAskOracle/.test(dock) && /onRun/.test(dock));
+}
+
 console.log(`\n  behavioural assertions: ${behavioral - behavioralFailures.length}/${behavioral}`);
 console.log(`  source-structure checks: ${structural - structuralFailures.length}/${structural}`);
 if (behavioralFailures.length || structuralFailures.length) {

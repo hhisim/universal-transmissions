@@ -831,6 +831,16 @@ export default function OracleCorrespondenceDock({
         .oracle-focus-details {
           margin-top: 10px;
         }
+        /* A sticky panel taller than the viewport can never scroll clear, so it
+           stays painted over the node list and swallows the Run button. Pin it
+           only while it actually fits; otherwise let it scroll with the content.
+           Keeps the disclosure and every control intact. */
+        @media (max-height: 700px) {
+          .oracle-system-focus-live {
+            position: static;
+            top: auto;
+          }
+        }
         .oracle-focus-details summary {
           cursor: pointer;
           list-style: none;
