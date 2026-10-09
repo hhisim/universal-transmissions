@@ -14,8 +14,9 @@
  * Everything asserted here is the shipped handler and the shipped registry. The
  * only stubbed boundary is the Oracle backend HTTP call on `global.fetch`.
  *
- * KNOWN COHERENCE GAP — reported, not asserted (see FINDING below). Assertions
- * here cover only contracts the route's own comments state as intended.
+ * The coherence gap this file originally reported is now fixed and asserted: the
+ * route exposes `activeAnchor`, withholds evidence for a displaced record, and
+ * reports that record as `displaced` rather than `unknown`.
  */
 const path = require("path");
 const { registerTsModules } = require("./lib/ut-ts-require.cjs");
@@ -61,6 +62,26 @@ async function post(body) {
   return { res, payload: await res.json(), sent: captured };
 }
 
+// The backend is also used to return a model answer that cites a link. That makes
+// the citation channel observable end to end: if a displaced record's href were
+// still permitted, the link would survive into the rendered answer text.
+function setModelAnswer(text) {
+  modelAnswer = text;
+}
+let modelAnswer = "OK";
+global.fetch = async (url, init) => {
+  if (String(url).includes("/chat")) {
+    captured = { url: String(url), body: JSON.parse(init.body) };
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ response: modelAnswer }),
+      text: async () => modelAnswer,
+    };
+  }
+  return realFetch(url, init);
+};
+
 (async () => {
   console.log("Batch 2 — research anchor precedence (real /api/oracle handler)\n");
 
@@ -88,6 +109,9 @@ async function post(body) {
     eq(turn.payload.groundedResearch.title, topic.title, "response carries the server-resolved research title");
     eq(turn.payload.groundedResearch.route, topic.route, "response carries the canonical research route");
     eq(turn.payload.groundedArtworkId, null, "the superseded artwork is not reported as grounded");
+    eq(turn.payload.activeAnchor, "research", "research is named as the active anchor");
+    eq(turn.payload.entityStatus, "absent", "no entry status is invented when no entry was sent");
+    eq(turn.payload.evidence, null, "artwork grounding is not dressed up as correspondence evidence");
   }
 
   // ── 2. precedence: research displaces the correspondence entry in the prompt ──
@@ -105,15 +129,18 @@ async function post(body) {
     ok(!sent.includes(THOTH), "the displaced entry id is not sent upstream");
     ok(!sent.includes("UT corpus material"), "no displaced entry grounding reaches the model");
 
-    // Reported, not asserted: the route still resolves and returns the entry even
-    // though `if (entry && !topic)` suppressed its grounding from the prompt. See
-    // the FINDING block printed at the end of this run.
-    if (turn.payload.entityStatus === "resolved" && turn.payload.evidence) {
-      findings.push(
-        `research + entry sent together → entityStatus=${turn.payload.entityStatus}, ` +
-        `evidence.entityId=${turn.payload.evidence.entityId}, while the prompt omitted that entry's grounding`
-      );
-    }
+    // The displaced record must not appear as support anywhere: not as evidence,
+    // not as an inspect action, and not mislabelled as an unknown record.
+    eq(turn.payload.entityStatus, "displaced", "the entry is displaced, not unknown");
+    eq(turn.payload.evidence, null, "no evidence is returned for a displaced entry");
+    eq(turn.payload.activeAnchor, "research", "the research topic is the active anchor");
+    ok(turn.payload.displacedEntry && turn.payload.displacedEntry.entityId === THOTH,
+      "the skipped record is still named honestly");
+    ok(turn.payload.displacedEntry && !("fields" in turn.payload.displacedEntry),
+      "the disclosure carries no evidence fields");
+    ok(turn.payload.displacedEntry && !("action" in turn.payload.displacedEntry),
+      "the disclosure carries no inspect action");
+
   }
 
   // ── 3. an unknown research identifier must NOT fall back to artwork ──────
@@ -136,6 +163,31 @@ async function post(body) {
     eq(turn.payload.groundedArtworkId, null, "no artwork is reported as grounded");
   }
 
+  // — unknown research + a correspondence entry —
+  // The entry is a KNOWN, resolvable record that the precedence rule skipped. It
+  // must not be presented as the answer's support, and it must not be reported as
+  // unknown either — that would tell the visitor a working record is broken.
+  {
+    const turn = await post({
+      message: "Tell me about it.",
+      researchTopicId: "research-v1:definitely-not-a-topic",
+      entityId: THOTH,
+      entityType: "correspondence_entry",
+    });
+    const sent = turn.sent.body.message;
+    ok(sent.includes("could not be resolved on the server"),
+      "the model is told the research identifier is unavailable");
+    ok(!sent.includes("UT corpus material"),
+      "the displaced entry contributes no grounding when the topic is unavailable");
+    eq(turn.payload.researchStatus, "unknown", "researchStatus is unknown");
+    eq(turn.payload.activeAnchor, "research", "the requested topic still holds the anchor slot");
+    eq(turn.payload.entityStatus, "displaced", "the known entry is displaced, not unknown");
+    eq(turn.payload.evidence, null, "no evidence is returned for the displaced entry");
+    ok(turn.payload.displacedEntry && turn.payload.displacedEntry.entityId === THOTH,
+      "the skipped entry is named in the disclosure");
+    eq(turn.payload.groundedArtworkId, null, "no artwork is reported as grounded");
+  }
+
   // ── 4. with NO research request, existing handling is untouched ───────────
   {
     const turn = await post({ message: "What is this?", artworkId: artwork.id });
@@ -144,11 +196,21 @@ async function post(body) {
     eq(turn.payload.researchStatus, "absent", "researchStatus is absent when none was requested");
     eq(turn.payload.groundedArtworkId, artwork.id, "artwork is grounded");
 
+    eq(turn.payload.activeAnchor, "artwork", "artwork-only requests name artwork as the active anchor");
+    eq(turn.payload.entityStatus, "absent", "no entry status is invented when no entry was sent");
+    eq(turn.payload.displacedEntry, null, "nothing is reported as displaced");
+
     const entry = await post({ message: "What does this hold?", entityId: THOTH, entityType: "correspondence_entry" });
     eq(entry.payload.entityStatus, "resolved", "a correspondence entry still resolves without research");
     ok(entry.sent.body.message.includes("primary anchor"), "the entry is still the primary anchor on its own");
     ok(entry.payload.evidence && entry.payload.evidence.entityId === THOTH, "evidence is returned on its own");
+    eq(entry.payload.activeAnchor, "entry", "the entry is named as the active anchor");
+    eq(entry.payload.displacedEntry, null, "nothing is reported as displaced");
     eq(entry.payload.researchStatus, "absent", "no research status is invented");
+    ok(entry.payload.evidence && Array.isArray(entry.payload.evidence.fields) && entry.payload.evidence.fields.length > 0,
+      "the correspondence inspector still has its verified fields");
+    ok(entry.payload.evidence && entry.payload.evidence.action,
+      "the correspondence inspect action is preserved");
   }
 
   // ── 5. a client-supplied research title is never trusted ──────────────────
@@ -164,10 +226,33 @@ async function post(body) {
     eq(turn.payload.groundedResearch.title, topic.title, "the registry title is used instead");
   }
 
+  // --- citation channel: displaced vs active entry href --------------------
+  {
+    const href = "/experience/correspondence-codex";
+    setModelAnswer(`See [the record](${href}) for the details.`);
+
+    const active = await post({ message: "Where is the record?", entityId: THOTH, entityType: "correspondence_entry" });
+    ok(active.payload.response.includes(`[the record](${href})`),
+      "an ACTIVE entry's inspect link may be cited");
+
+    const displaced = await post({
+      message: "Where is the record?",
+      researchTopicId: CYMATICS,
+      entityId: THOTH,
+      entityType: "correspondence_entry",
+    });
+    ok(!displaced.payload.response.includes(href),
+      "a DISPLACED entry's inspect link is stripped from the answer");
+    ok(displaced.payload.response.includes("the record"),
+      "only the unlinked label survives, so no text is silently lost");
+    eq(displaced.payload.evidence, null, "and no evidence is returned alongside it");
+    setModelAnswer("OK");
+  }
+
   global.fetch = realFetch;
   console.log(`\n${passed} assertions passed, ${failures.length} failed`);
   if (findings.length) {
-    console.log("\nFINDING (reported, not asserted):");
+    console.log("\nUNEXPECTED FINDINGS:");
     findings.forEach((f) => console.log("  - " + f));
   }
   if (failures.length) {

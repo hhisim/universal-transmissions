@@ -118,6 +118,26 @@ export async function POST(req: Request) {
        does NOT fall back to artwork context. */
     const artwork =
       researchRequested ? null : resolveArtwork(body?.artworkId);
+
+    /* ANCHOR EXCLUSIVITY — one active anchor per request.
+       A research topic that was REQUESTED is the active anchor whether or not it
+       resolved: when it resolves it grounds the answer, and when it does not it
+       occupies the anchor slot as an honest unavailable disclosure. In both cases
+       the correspondence entry and the artwork are DISPLACED records — known,
+       resolvable, and deliberately not used. They therefore contribute no
+       grounding, no permitted citation href and no evidence. This is the same
+       rule the artwork branch already applied to an unresolved topic; it now
+       applies to the entry as well, so no channel can disagree with another.
+
+       Note the asymmetry, which is deliberate: only a RESOLVED record can be
+       displaced. An identifier that failed to resolve has no record to displace,
+       so its honest "unavailable" instruction is still grounded — unless a
+       research anchor is claiming the slot, in which case the research block has
+       already told the model to answer from the general corpus. */
+    const entryDisplaced = entry !== null && researchRequested;
+    const activeAnchor: 'research' | 'entry' | 'artwork' | 'none' =
+      researchRequested ? 'research' : entry ? 'entry' : artwork ? 'artwork' : 'none';
+
     const groundingParts: string[] = [];
 
     if (topic) {
@@ -146,7 +166,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (entry && !topic) {
+    if (entry && !entryDisplaced) {
       groundingParts.push(entry.promptBlock);
     }
 
@@ -159,7 +179,11 @@ export async function POST(req: Request) {
       groundingParts.push(pageReferenceGuidance(pageRef));
     }
 
-    if (entityNotice) {
+    // A displaced record's resolution state is irrelevant to this answer: the
+    // research block already tells the model to answer from the general corpus.
+    // Two competing "the selected entry is unavailable" instructions would only
+    // compete for attention, so only the active anchor's state is grounded.
+    if (entityNotice && !entryDisplaced) {
       groundingParts.push(entityNotice);
     }
 
@@ -215,7 +239,10 @@ export async function POST(req: Request) {
 
     // Only server-supplied hrefs may be rendered as links, so the model cannot
     // invent citations or arbitrary URLs.
-    const allowedHrefs = entry?.action ? [entry.action.href] : [];
+    // Only the active anchor may be cited. A displaced entry's href is not
+    // permitted here, so the model cannot attach it to an answer it was never
+    // shown the grounds for.
+    const allowedHrefs = entry && !entryDisplaced && entry.action ? [entry.action.href] : [];
     const answer = stripUnverifiedCitations(data.response || data.answer || '', allowedHrefs);
 
     const total = timings.reduce((sum, t) => sum + t.ms, 0);
@@ -239,8 +266,14 @@ export async function POST(req: Request) {
           }
         : null,
       researchStatus: researchRequested ? (topic ? 'resolved' : 'unknown') : 'absent',
-      // Server-resolved evidence, rendered compactly by the client.
-      evidence: entry
+      // Which record actually grounded this answer. The client uses it to decide
+      // whether an evidence panel is truthful, so it is never client-inferred.
+      activeAnchor,
+      // Server-resolved evidence for the ACTIVE anchor only, rendered compactly by
+      // the client. A displaced entry gets no evidence object: showing its fields
+      // and inspect action beside an answer the model never saw it in would be
+      // fabricated support.
+      evidence: entry && !entryDisplaced
         ? {
             entityId: entry.entityId,
             entityType: entry.entityType,
@@ -251,7 +284,20 @@ export async function POST(req: Request) {
             action: entry.action,
           }
         : null,
-      entityStatus: entry ? 'resolved' : resolution.status,
+      // A resolved record that was displaced is NOT unknown and NOT absent. It is
+      // reported as displaced so a client can say "not used" rather than
+      // "unavailable" — the record exists; the precedence rule skipped it.
+      entityStatus: entryDisplaced ? 'displaced' : entry ? 'resolved' : resolution.status,
+      // Enough to name the skipped record honestly, without its fields or its
+      // action: it is a disclosure, not evidence.
+      displacedEntry: entryDisplaced && entry
+        ? {
+            entityId: entry.entityId,
+            entityType: entry.entityType,
+            title: entry.title,
+            system: entry.system,
+          }
+        : null,
       // Non-sensitive counters so the client can show honest memory state.
       conversation: {
         // What the client actually sent vs what was actually forwarded upstream.

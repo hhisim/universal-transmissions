@@ -59,11 +59,25 @@ check(
 );
 
 console.log("\nC. Text before speech");
-check(
-  "answer appended before TTS is awaited",
-  /const bubble: Msg = \{[\s\S]{0,400}?setMsgs\(\(p\) => \[\.\.\.p, bubble\]\)[\s\S]{0,800}?fetchTTS\(answer\)\.then\(/.test(pageClient),
-  "expected the answer append to precede the fire-and-forget TTS call"
-);
+// Ordered by position, not by a character budget: the invariant is that the answer
+// is appended to the transcript BEFORE the fire-and-forget TTS call is issued. A
+// \{0,N}? window is an arbitrary budget that breaks whenever unrelated code is added
+// between the two calls, which is how this assertion went stale before.
+(function () {
+  const norm = pageClient.replace(/\r\n/g, "\n");
+  const atBubble = norm.indexOf("const bubble: Msg = {");
+  const atAppend = norm.indexOf("setMsgs((p) => [...p, bubble]);");
+  const atTts = norm.indexOf("fetchTTS(answer).then(");
+  check(
+    "the answer append and the TTS call are both present",
+    atBubble !== -1 && atAppend !== -1 && atTts !== -1
+  );
+  check(
+    "answer appended before TTS is awaited",
+    atBubble !== -1 && atAppend !== -1 && atTts !== -1 && atBubble < atAppend && atAppend < atTts,
+    `expected bubble(${atBubble}) < append(${atAppend}) < tts(${atTts})`
+  );
+})();
 check(
   "the answer append is not gated on TTS resolving",
   !/await fetchTTS/.test(pageClient),

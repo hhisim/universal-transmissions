@@ -1104,14 +1104,36 @@ export default function OraclePage() {
         outputMode,
         entityId: artworkContext?.id,
         ttsPending: voiceOn && Boolean(answer),
-        evidence: (data.evidence as OracleEvidence) || undefined,
+        /* The evidence panel shows only the record the server actually grounded
+           this answer from. A research topic being the active anchor means any
+           resolved correspondence record was displaced server-side: the model
+           never saw it, so its fields are not evidence for this answer. The
+           server already withholds that object; this gate keeps the panel honest
+           even if a future response shape returned one anyway. */
+        evidence:
+          data.activeAnchor === "entry" && data.evidence
+            ? (data.evidence as OracleEvidence)
+            : undefined,
       };
       setMsgs((p) => [...p, bubble]);
       setQuestionsUsed((q) => q + 1);
       // Honest counters only — never transcript content.
       setMemory((data.conversation as OracleMemoryState) || null);
+      /* A DISPLACED record is not an unavailable one: it exists and was skipped
+         because a higher anchor took precedence. Labelling it "unavailable"
+         would tell the visitor a working record is broken. */
+      const displaced = data.displacedEntry as
+        | { entityId: string; title?: string }
+        | undefined
+        | null;
       setEntityNotice(
-        data.entityStatus && data.entityStatus !== "resolved" && data.entityStatus !== "absent"
+        data.entityStatus === "displaced"
+          ? displaced?.title
+            ? `Correspondence entry not used: ${displaced.title} \u2014 the active anchor took precedence.`
+            : "Correspondence entry not used: the active anchor took precedence."
+          : data.entityStatus &&
+              data.entityStatus !== "resolved" &&
+              data.entityStatus !== "absent"
           ? `The selected entry is unavailable (${String(data.entityStatus)}).`
           : null
       );
