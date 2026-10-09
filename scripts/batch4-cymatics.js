@@ -127,9 +127,12 @@ ok("no invented /research/ cross-links", !entries.some((h) => h.startsWith("/res
 
 // Every href must resolve in the REAL registry, not just on disk: journal and
 // gallery are dynamic [slug] routes, so a filesystem probe would be meaningless.
-const { createRequire } = require("node:module");
-const require2 = createRequire(ROOT + "/");
-const artworks = require2("/var/tmp/b4_artworks.cjs").artworks;
+// The artwork registry is TRACKED source, so it is loaded through the repaired
+// runner. An untracked /var/tmp fixture made this suite unreproducible from a fresh
+// checkout: it passed or failed depending on a scratch file another worktree happened
+// to leave behind, and it failed outright once that file was absent.
+require("./lib/ut-ts-require.cjs").registerTsModules({ root: ROOT });
+const artworks = require(path.join(ROOT, "src/data/artworks.ts")).artworks;
 const artSlugs = new Set(artworks.map((a) => a.slug));
 const blogSrc = R("src/data/blog-posts.ts");
 const blogSlugs = new Set([...blogSrc.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => m[1]));
