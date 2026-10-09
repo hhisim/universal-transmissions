@@ -55,6 +55,29 @@ const COLOR_WORDS: Record<string, string> = {
   white: "#f8fafc", black: "#64748b", grey: "#94a3b8", copper: "#f97316",
 };
 
+/* A React key must be stable across reorders AND unique among siblings.
+   `${sys}:${e}` is unique in neither sense: four DEITIES identities occur
+   twice in the source dataset, so identical sibling keys let React reuse one
+   DOM node for two records and carry rows across a re-render. We therefore
+   append the record's own position in the immutable source array, which is
+   stable for the lifetime of the dataset and never positional within a
+   filtered list.
+
+   This is a RENDER key only. The public Oracle identifier is still the
+   (sys,e) pair, so the four duplicated identities remain a single ambiguous
+   public id. Keys do not make them addressable; that is separate work. */
+const RECORD_KEYS = new Map<CodexEntry, string>();
+function recordKey(entry: CodexEntry) {
+  const cached = RECORD_KEYS.get(entry);
+  if (cached) return cached;
+  const key = `${entry.sys}:${entry.e}#${codex.indexOf(entry)}`;
+  RECORD_KEYS.set(entry, key);
+  return key;
+}
+
+/** Initial result batch. Additional matches are revealed on request. */
+const SEARCH_PAGE = 48;
+
 function entryName(entry: CodexEntry) {
   return cleanDisplayValue(entry.e);
 }
@@ -197,6 +220,7 @@ export default function OracleCorrespondenceDock({
   const [actionMode, setActionMode] = useState<ActionMode>("ORACLE");
   const [selectedSystem, setSelectedSystem] = useState("ALCHEMY");
   const [query, setQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(SEARCH_PAGE);
   const [selected, setSelected] = useState<CodexEntry>(() => codex.find((entry) => entry.e === "Citrinitas") || codex[0]);
   const [letter, setLetter] = useState("A");
   const [decodeInput, setDecodeInput] = useState("NOMMO");
@@ -229,11 +253,20 @@ export default function OracleCorrespondenceDock({
   const [matrixOpen, setMatrixOpen] = useState(false);
 
   const systemEntries = useMemo(() => codex.filter((entry) => entry.sys === selectedSystem), [selectedSystem]);
-  const matches = useMemo(() => {
+  /* The COMPLETE matching set, ranked, with no display limit applied here.
+     Truncating during the search made a 409-match query look like 48. */
+  const allMatches = useMemo(() => {
     const q = query.trim();
     if (!q) return systemEntries.map((entry) => ({ entry, score: 0 }));
-    return codex.map((entry) => ({ entry, score: scoreEntry(entry, q) })).filter((item) => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 48);
+    return codex
+      .map((entry) => ({ entry, score: scoreEntry(entry, q) }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score || codex.indexOf(a.entry) - codex.indexOf(b.entry));
   }, [query, systemEntries]);
+  /* A new query or system filter restarts the reveal at the first batch. */
+  useEffect(() => { setVisibleCount(SEARCH_PAGE); }, [query, selectedSystem]);
+  const matches = useMemo(() => allMatches.slice(0, visibleCount), [allMatches, visibleCount]);
+  const matchTotal = allMatches.length;
   const symbols = useMemo(() => codex.filter((entry) => entry.ge || entry.sy || entry.g || entry.ps).slice(0, 72), []);
   const entangled = useMemo(() => findEntanglements(selected, codex, 14), [selected]);
   const chakraEntries = useMemo(() => codex.filter((entry) => String(entry.ch || "").includes(activeChakra)).slice(0, 40), [activeChakra]);
@@ -268,6 +301,7 @@ export default function OracleCorrespondenceDock({
     setSelectedSystem(system);
     setSurface("matrix");
     setQuery("");
+    setVisibleCount(SEARCH_PAGE);
     setMatrixOpen(false);
     if (first) setSelected(first);
   };
@@ -332,7 +366,27 @@ export default function OracleCorrespondenceDock({
   );
 
   const renderSurface = () => {
-    if (surface === "matrix") return <SystemCollection entries={matches.map((item) => item.entry)} selected={selected} system={query.trim() ? "Search" : selectedSystem} onSelect={selectEntry} />;
+    if (surface === "matrix") return (
+      <>
+        <SystemCollection entries={matches.map((item) => item.entry)} selected={selected} system={query.trim() ? "Search" : selectedSystem} onSelect={selectEntry} />
+        {query.trim() ? (
+          <div className="oracle-search-progress" data-total={matchTotal} data-shown={matches.length}>
+            <span className="oracle-v12-right-title" data-total={matchTotal} data-shown={matches.length}>
+              {matchTotal === 0
+                ? "No results"
+                : matches.length < matchTotal
+                  ? `Showing ${matches.length} of ${matchTotal} results`
+                  : `All ${matchTotal} results`}
+            </span>
+            {matchTotal > matches.length && (
+              <button className="oracle-search-more" data-total={matchTotal} data-shown={matches.length}
+                onClick={() => setVisibleCount((n) => n + SEARCH_PAGE)}>Show more results</button>
+            )}
+            {matchTotal > 0 && matches.length >= matchTotal && <span className="oracle-search-complete">All {matchTotal} results shown.</span>}
+          </div>
+        ) : null}
+      </>
+    );
     if (surface === "symbols") return <SymbolPanel symbols={symbols} selected={selected} onSelect={selectEntry} />;
     if (surface === "letters") return <LetterPanel letter={letter} setLetter={setLetter} onSeedOracle={onSeedOracle} />;
     if (surface === "decode") return <DecodePanel decodeInput={decodeInput} setDecodeInput={setDecodeInput} decodeMode={decodeMode} setDecodeMode={setDecodeMode} decodedLetters={decodedLetters} onAskOracle={onAskOracle} onSelect={selectEntry} />;
@@ -435,8 +489,27 @@ export default function OracleCorrespondenceDock({
           {query.trim() ? (
             <>
               <div className="oracle-dock-kicker">Responsive Search</div>
-              <div className="oracle-v12-right-title">{matches.length} Results</div>
+              <div className="oracle-v12-right-title" data-total={matchTotal} data-shown={matches.length}>
+                {matchTotal === 0
+                  ? "No results"
+                  : matches.length < matchTotal
+                    ? `Showing ${matches.length} of ${matchTotal} results`
+                    : `All ${matchTotal} results`}
+              </div>
               <NodeList entries={matches.map((item) => item.entry)} selected={selected} onSelect={selectEntry} onRun={runMode} />
+              {matchTotal > 0 && matches.length < matchTotal && (
+                <button
+                  className="oracle-search-more"
+                  data-total={matchTotal}
+                  data-shown={matches.length}
+                  onClick={() => setVisibleCount((n) => n + SEARCH_PAGE)}
+                >
+                  Show more results
+                </button>
+              )}
+              {matchTotal > 0 && matches.length >= matchTotal && (
+                <p className="oracle-search-complete">All {matchTotal} results shown.</p>
+              )}
             </>
           ) : surface === "letters" ? (
             <LetterPanel letter={letter} setLetter={setLetter} onSeedOracle={onSeedOracle} />
@@ -1039,7 +1112,7 @@ function SystemCollection({ entries, selected, system, onSelect }: { entries: Co
       <div className="oracle-v12-right-title">{entries.length} Nodes</div>
       <div className="oracle-system-collection">
         {entries.map((entry) => (
-          <button key={`${entry.sys}:${entry.e}`} data-active={entry.sys === selected.sys && entry.e === selected.e} onClick={() => onSelect(entry)} style={{ "--node-color": entryColor(entry) } as CSSProperties}>
+          <button key={recordKey(entry)} data-active={entry.sys === selected.sys && entry.e === selected.e} onClick={() => onSelect(entry)} style={{ "--node-color": entryColor(entry) } as CSSProperties}>
             <Sigil entry={entry} />
             <span><strong>{entryName(entry)}</strong><em>{fieldValue(entry, "el") || fieldValue(entry, "pl") || entry.sys}</em></span>
           </button>
@@ -1073,7 +1146,7 @@ function FieldMatrix({ entry, onToken }: { entry: CodexEntry; onToken?: (token: 
 function NodeList({ entries, selected, onSelect, onRun, compact = false }: { entries: CodexEntry[]; selected: CodexEntry; onSelect: (entry: CodexEntry) => void; onRun: (entry: CodexEntry) => void; compact?: boolean }) {
   return (
     <div className={`oracle-dock-list oracle-v12-list-tall ${compact ? "oracle-v12-list-compact" : ""}`}>
-      {entries.map((entry) => <NodeRow key={`${entry.sys}:${entry.e}`} entry={entry} selected={selected} onSelect={onSelect} onRun={onRun} />)}
+      {entries.map((entry) => <NodeRow key={recordKey(entry)} entry={entry} selected={selected} onSelect={onSelect} onRun={onRun} />)}
     </div>
   );
 }
@@ -1094,7 +1167,7 @@ function SymbolPanel({ symbols, selected, onSelect }: { symbols: CodexEntry[]; s
       <div className="oracle-dock-kicker">Geometry / Symbol Surface</div>
       <div className="oracle-symbol-cloud">
         {symbols.map((entry) => (
-          <button key={`${entry.sys}:${entry.e}`} data-active={selected.sys === entry.sys && selected.e === entry.e} onClick={() => onSelect(entry)} style={{ "--sigil-color": entryColor(entry) } as CSSProperties}>
+          <button key={recordKey(entry)} data-active={selected.sys === entry.sys && selected.e === entry.e} onClick={() => onSelect(entry)} style={{ "--sigil-color": entryColor(entry) } as CSSProperties}>
             <Sigil entry={entry} /><span>{entryName(entry)}</span>
           </button>
         ))}
@@ -1144,7 +1217,7 @@ function DecodePanel({ decodeInput, setDecodeInput, decodeMode, setDecodeMode, d
             <div key={`${item}-${index}`} className="oracle-decode-card" style={{ "--letter-color": letterColor(item) } as CSSProperties}>
               <div className="oracle-decode-card-head"><LetterGlyph letter={item} /><div><div className="oracle-dock-kicker">{item} - {decodeMode.replace("_", " ")}</div><p>{cleanDisplayValue(active?.essence || active?.summary || "No ontology node found.")}</p></div></div>
               <div className="oracle-chip-row oracle-letter-token-row">{(active?.key || []).slice(0, 5).map((key, keyIndex) => <span key={key} style={{ "--chip-color": letterColor(String.fromCharCode(65 + keyIndex + index)) } as CSSProperties}>{cleanDisplayValue(key)}</span>)}</div>
-              {linked.length > 0 && <div className="oracle-decode-matrix-links">{linked.map((entry) => <button key={`${entry.sys}:${entry.e}`} onClick={() => onSelect(entry)} style={{ "--node-color": entryColor(entry) } as CSSProperties}><Sigil entry={entry} /><span>{entryName(entry)}</span></button>)}</div>}
+              {linked.length > 0 && <div className="oracle-decode-matrix-links">{linked.map((entry) => <button key={recordKey(entry)} onClick={() => onSelect(entry)} style={{ "--node-color": entryColor(entry) } as CSSProperties}><Sigil entry={entry} /><span>{entryName(entry)}</span></button>)}</div>}
             </div>
           );
         })}
@@ -1162,7 +1235,7 @@ function ChakraPanel({ activeChakra, setActiveChakra, entries, onSelect }: { act
   return (
     <div>
       <div className="oracle-left-chakras oracle-chakra-full">{Object.entries(CK).map(([key, item]) => <button key={key} data-active={activeChakra === key} onClick={() => setActiveChakra(key)} style={{ "--node-color": item.c } as CSSProperties}><strong>{item.n}</strong>{item.l}<span>{item.s}</span></button>)}</div>
-      <div className="oracle-dock-list oracle-v12-list-tall" style={{ marginTop: 8 }}>{entries.map((entry) => <NodeRow key={`${entry.sys}:${entry.e}`} entry={entry} selected={entries[0] || entry} onSelect={onSelect} onRun={onSelect} />)}</div>
+      <div className="oracle-dock-list oracle-v12-list-tall" style={{ marginTop: 8 }}>{entries.map((entry) => <NodeRow key={recordKey(entry)} entry={entry} selected={entries[0] || entry} onSelect={onSelect} onRun={onSelect} />)}</div>
     </div>
   );
 }
