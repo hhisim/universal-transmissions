@@ -255,13 +255,34 @@ check(
   !uaDesktop.params.has("entityTitle") && !uaDesktop.params.has("system"),
   `${uaHop}`
 );
+/* The invariant, not a copy of the old routing table: the destination must not
+   depend on the user agent, the research anchor must survive whichever audience
+   is asking, and unlisted parameters must not travel. Batch 6 asserts the
+   literal destination for every user agent. */
+const b6IphoneUa = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148";
+const b6DesktopUa = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const b6ProbeHop = { researchTopicId: "research-v1:cymatics", ...UNKNOWN_VALUES };
+chooser.setUserAgent(b6IphoneUa);
+const b6MobileResult = redirectParams(chooser.redirectFor(b6ProbeHop));
+chooser.setUserAgent(b6DesktopUa);
+const b6DesktopResult = redirectParams(chooser.redirectFor(b6ProbeHop));
+check(
+  "the destination does not depend on the user agent",
+  b6MobileResult.path === b6DesktopResult.path,
+  `mobile reached ${b6MobileResult.path}, desktop reached ${b6DesktopResult.path}`
+);
+check(
+  "a mobile user agent keeps the research anchor",
+  b6MobileResult.params.get("researchTopicId") === "research-v1:cymatics",
+  `got ${b6MobileResult.params.get("researchTopicId")}`
+);
+check(
+  "unlisted params are dropped for a mobile audience too",
+  Object.keys(UNKNOWN_VALUES).every((key) => !b6MobileResult.params.has(key)),
+  `leaked ${Object.keys(UNKNOWN_VALUES).filter((key) => b6MobileResult.params.has(key)).join(", ")}`
+);
 chooser.setUserAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148");
 const uaMobile = redirectParams(chooser.redirectFor({ researchTopicId: "research-v1:cymatics", ...UNKNOWN_VALUES }));
-check(
-  "a mobile user agent reaches the mobile client",
-  uaMobile.path === "/oracle/mobile",
-  `got ${uaMobile.path}`
-);
 check(
   "mobile user-agent hop preserves the research anchor",
   uaMobile.params.get("researchTopicId") === "research-v1:cymatics",

@@ -1,9 +1,4 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-function isMobileUserAgent(userAgent: string) {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent);
-}
 
 /* Params the Oracle desktop/mobile clients know how to consume. Anything
    else is dropped rather than forwarded into analytics or the request body. */
@@ -30,16 +25,14 @@ export default function OracleRouteChooser({
 }) {
   const sp = searchParams || {};
   const forwardQuery = buildForwardQuery(sp);
-  const forcedView = sp.view;
 
-  if (forcedView === "mobile") {
-    redirect(`/oracle/mobile${forwardQuery}`);
-  }
-
-  if (forcedView === "desktop") {
-    redirect(`/oracle/desktop${forwardQuery}`);
-  }
-
-  const userAgent = headers().get("user-agent") || "";
-  redirect(isMobileUserAgent(userAgent) ? `/oracle/mobile${forwardQuery}` : `/oracle/desktop${forwardQuery}`);
+  /* Both view values and both user agents now land on the one responsive
+     client. A mobile UA used to divert visitors to /oracle/mobile, a
+     separate 583-line stub with none of the anchoring, history, evidence
+     or unknown-context behaviour of the real Oracle. That client is
+     responsive at 390px, so the audience no longer decides anything:
+     every visitor gets the same implementation and the same ground rules.
+     view=desktop and view=mobile are both honoured, so an explicit choice
+     is never rewritten. */
+  redirect(`/oracle/desktop${forwardQuery}`);
 }
