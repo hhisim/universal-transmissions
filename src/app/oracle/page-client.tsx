@@ -1129,8 +1129,8 @@ export default function OraclePage() {
       setEntityNotice(
         data.entityStatus === "displaced"
           ? displaced?.title
-            ? `Correspondence entry not used: ${displaced.title} \u2014 the active anchor took precedence.`
-            : "Correspondence entry not used: the active anchor took precedence."
+            ? `Correspondence entry not used for this answer: ${displaced.title}.`
+            : "Correspondence entry not used for this answer."
           : data.entityStatus &&
               data.entityStatus !== "resolved" &&
               data.entityStatus !== "absent"
