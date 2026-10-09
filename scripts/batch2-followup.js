@@ -13,6 +13,7 @@
  */
 const path = require("path");
 const fs = require("fs");
+const { registerTsModules } = require("./lib/ut-ts-require.cjs");
 
 const ROOT = path.resolve(__dirname, "..");
 const SRC = path.join(ROOT, "src");
@@ -26,6 +27,11 @@ function eq(a, b, msg) { ok(a === b, `${msg} (got ${JSON.stringify(a)}, want ${J
 function section(t) { console.log("\n" + t); }
 
 // ── load the real modules ──────────────────────────────────────────────────
+// `@/*` is resolved from the repository's own tsconfig `paths` mapping and the
+// `.ts` files are transpiled by the project's installed `typescript`. These are
+// the shipped modules; only their dependencies are resolved differently from a
+// bundler's runtime.
+registerTsModules({ root: ROOT });
 const conv = require(path.join(SRC, "lib/oracle-conversation.ts"));
 const resolver = require(path.join(SRC, "lib/oracle-entry-resolver.ts"));
 

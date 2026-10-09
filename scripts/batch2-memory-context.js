@@ -25,7 +25,7 @@
        ./node_modules/.bin/tsx scripts/batch2-memory-context.js
    Plain `node` cannot resolve `next/server` from a .ts module. */
 const path = require("path");
-const Module = require("module");
+const { registerTsModules } = require("./lib/ut-ts-require.cjs");
 
 // ── tiny assertion kit ───────────────────────────────────────────────────────
 let passed = 0;
@@ -39,28 +39,18 @@ function eq(actual, expected, label) {
   ok(actual === expected, `${label} (expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)})`);
 }
 
-// ── module resolution: alias @/ → src/ ──────────────────────────────────────
-const SRC = path.resolve(__dirname, "../src");
-const origResolve = Module._resolveFilename;
-Module._resolveFilename = function (request, ...rest) {
-  if (request.startsWith("@/")) {
-    return origResolve.call(this, path.join(SRC, request.slice(2)), ...rest);
-  }
-  return origResolve.call(this, request, ...rest);
-};
-
-// ── stub NextResponse / NextRequest so the real routes can be imported ───────
-class NextResponse {
-  constructor(body, init) {
-    this._body = body;
-    this.status = (init && init.status) || 200;
-  }
-  static json(body, init) { return new NextResponse(body, init); }
-  async json() { return this._body; }
-}
-class NextRequest extends Object {}
-global.NextResponse = NextResponse;
-global.NextRequest = NextRequest;
+// ── module resolution ──────────────────────────────────────────────────────
+// `@/*` comes from the repository's own tsconfig `paths` mapping, `.ts` is
+// transpiled by the project's installed `typescript`, and `next/server` is the
+// genuinely installed framework module — so NextResponse here carries the same
+// status/json contract the handlers return, instead of a hand-written stub that
+// could mask a real response-shape change.
+//
+// The only external boundary still stubbed is the Oracle backend HTTP call,
+// installed below on `global.fetch`.
+const ROOT = path.resolve(__dirname, "..");
+const SRC = path.join(ROOT, "src");
+registerTsModules({ root: ROOT });
 
 // Import the REAL route handlers.
 const oracleRoute = require(path.join(SRC, "app/api/oracle/route.ts"));
