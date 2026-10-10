@@ -32,23 +32,28 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 })
 
-async function fetchPlan(email: string, token?: string): Promise<{ plan: PlanId; stripeCustomerId?: string }> {
+/**
+ * Resolve the plan for the VERIFIED caller.
+ *
+ * The previous version fell back to the plan-status endpoint with a caller-
+ * supplied address, which returned member data to an unauthenticated caller.
+ * The session endpoint verifies the Supabase access token when present and
+ * otherwise the NextAuth session cookie, so that single verified call replaces
+ * the fallback. The locally cached address is never sent as an identity claim.
+ */
+export async function fetchPlan(token?: string): Promise<{ plan: PlanId; stripeCustomerId?: string }> {
   try {
-    if (token) {
-      const sessionRes = await fetch('/api/billing/session', {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store',
-      })
-      if (sessionRes.ok) {
-        const data = await sessionRes.json()
-        return { plan: normalizeMemberPlan(data.plan), stripeCustomerId: data.stripeCustomerId }
-      }
-    }
-
-    const res = await fetch(`/api/billing/plan-status?email=${encodeURIComponent(email)}`, { cache: 'no-store' })
+    const res = await fetch('/api/billing/session', {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      cache: 'no-store',
+    })
     if (res.ok) {
       const data = await res.json()
-      return { plan: normalizeMemberPlan(data.plan), stripeCustomerId: data.stripeCustomerId }
+      if (data?.authenticated) {
+        return { plan: normalizeMemberPlan(data.plan), stripeCustomerId: data.stripeCustomerId }
+      }
+      // Verified as unauthenticated: report guest, expose no member data.
+      return { plan: 'guest' }
     }
   } catch {
     // fall through to guest
@@ -68,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
-      const { plan, stripeCustomerId } = await fetchPlan(session.user.email!, session.access_token)
+      const { plan, stripeCustomerId } = await fetchPlan(session.access_token)
       setState({
         user: { id: session.user.id, email: session.user.email! },
         plan,
@@ -85,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Load initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchPlan(session.user.email!, session.access_token).then(({ plan, stripeCustomerId }) => {
+        fetchPlan(session.access_token).then(({ plan, stripeCustomerId }) => {
           setState({
             user: { id: session.user.id, email: session.user.email! },
             plan,
@@ -102,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        fetchPlan(session.user.email!, session.access_token).then(({ plan, stripeCustomerId }) => {
+        fetchPlan(session.access_token).then(({ plan, stripeCustomerId }) => {
           setState({
             user: { id: session.user.id, email: session.user.email! },
             plan,

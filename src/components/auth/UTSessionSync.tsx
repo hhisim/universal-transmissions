@@ -11,44 +11,39 @@ declare global {
   }
 }
 
-async function syncCurrentSession() {
+/**
+ * Sync the global site session from the verified server session.
+ *
+ * The previous implementation fell back to `/api/billing/plan-status?email=`,
+ * which returned whichever address was supplied and therefore exposed member
+ * data to an unauthenticated caller. `/api/billing/session` already covers both
+ * credential types — a Supabase access token when one is held, otherwise the
+ * NextAuth session cookie — so the unauthenticated fallback is removed rather
+ * than replaced.
+ *
+ * Only the verified address the server reports is published to the UI; the
+ * locally cached address is never used as the label for membership state.
+ */
+export async function syncCurrentSession() {
   try {
     const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
 
-    if (session?.user?.email && session.access_token) {
-      const res = await fetch('/api/billing/session', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        cache: 'no-store',
-      })
+    const res = await fetch('/api/billing/session', {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      cache: 'no-store',
+    })
 
-      if (res.ok) {
-        const data = await res.json()
-        window.__utSetSession?.(session.user.email, normalizeMemberPlan(data?.plan))
-        return
-      }
-
-      window.__utSetSession?.(session.user.email, 'guest')
-      return
-    }
-
-    const fallbackSessionRes = await fetch('/api/session', { cache: 'no-store' })
-    if (fallbackSessionRes.ok) {
-      const fallbackSession = await fallbackSessionRes.json()
-      const email = fallbackSession?.user?.email
-      if (email) {
-        const planRes = await fetch(`/api/billing/plan-status?email=${encodeURIComponent(email)}`, { cache: 'no-store' })
-        if (planRes.ok) {
-          const planData = await planRes.json()
-          window.__utSetSession?.(email, normalizeMemberPlan(planData?.plan))
-          return
-        }
-        window.__utSetSession?.(email, 'guest')
+    if (res.ok) {
+      const data = await res.json()
+      if (data?.authenticated && data?.email) {
+        window.__utSetSession?.(data.email, normalizeMemberPlan(data?.plan))
         return
       }
     }
 
+    // Unauthenticated, rejected or failed: clear it rather than leave a
+    // previous identity's membership state cached in the UI.
     window.__utClearSession?.()
   } catch {
     window.__utClearSession?.()
