@@ -10,19 +10,19 @@ import { normalizeMemberPlan, isPaidPlan } from '@/lib/plans'
 const MEMBER_EXPERIENCE = [
   {
     title: 'Experience Portal',
-    description: 'Correspondence Codex, Correspondence Continuum, Codex pathways, member archive access, and upcoming portal instruments that are still marked coming soon.',
+    description: 'Correspondence Codex, Correspondence Continuum, and Codex pathways — open to every visitor.',
     icon: Layers3,
     color: '#22d3ee',
   },
   {
     title: 'Codex II + Private Archive',
-    description: 'Behind-the-scenes process notes, unreleased material, and paid-member-only Codex II access.',
+    description: 'The Codex II process archive: page imagery from the published Codex II volume.',
     icon: BookOpen,
     color: '#d4a847',
   },
   {
     title: 'Ask Hakan',
-    description: 'A first-class member channel for questions, reflections, and direct correspondence.',
+    description: 'Write directly to Hakan from the member hub. Replies arrive by email.',
     icon: MessageCircle,
     color: '#10b981',
   },
@@ -37,12 +37,12 @@ const TIERS = [
     borderColor: 'rgba(255,255,255,0.06)',
     price: 'Free',
     priceSub: 'No account required',
-    description: 'Enter the world with a real but limited guest pass across Oracle and correspondence surfaces',
+    description: 'The full correspondence archive and the Oracle, open without an account',
     features: [
-      { text: 'Oracle guest mode + limited correspondence exploration', included: true },
-      { text: 'A small number of real reveal / compare actions', included: true },
-      { text: 'Visual environment feels complete, but corpus depth is limited', included: true },
-      { text: 'Codex II archive, Ask Hakan, and full synthesis depth', included: false },
+      { text: 'All correspondence systems and records, open to browse and search', included: true },
+      { text: 'Oracle answers grounded in the correspondence archive', included: true },
+      { text: '10 questions per page session', included: true },
+      { text: 'Codex II archive', included: false },
     ],
     cta: 'Try the Oracle',
     ctaHref: '/oracle',
@@ -56,12 +56,12 @@ const TIERS = [
     borderColor: 'rgba(34,211,238,0.2)',
     price: 'Free',
     priceSub: 'Create an account',
-    description: 'Stay in the same world, but unlock broader corpus access and limited deeper actions',
+    description: 'The same open access, with an account that recognises your membership',
     features: [
-      { text: 'Broader correspondence access across all systems', included: true },
-      { text: 'Bookmarks / favorites + limited saved exploration', included: true },
-      { text: 'A small allowance of resonance / reveal actions', included: true },
-      { text: 'Codex II exclusives, Ask Hakan, and full deep synthesis', included: false },
+      { text: 'The same open access to every correspondence system', included: true },
+      { text: 'Oracle answers grounded in the correspondence archive', included: true },
+      { text: '10 questions per page session', included: true },
+      { text: 'Codex II archive', included: false },
     ],
     cta: 'Create Free Account',
     ctaHref: '/signup',
@@ -75,13 +75,12 @@ const TIERS = [
     borderColor: 'rgba(212,168,71,0.35)',
     price: '$3.99',
     priceSub: 'per month',
-    description: 'Full correspondence matrix, full member archive, and unlimited deep ritual interaction',
+    description: 'The Codex II process archive and a direct line to Hakan, alongside the correspondence archive that stays open to all',
     popular: true,
     features: [
-      { text: 'Unlimited Oracle and correspondence depth', included: true },
-      { text: 'Ask Hakan priority channel', included: true },
-      { text: 'Codex II long-form process archive not available anywhere online', included: true },
-      { text: 'Full matrix traversal, synthesis, saved trails, and member tools', included: true },
+      { text: 'The Codex II process archive: 23 pages of Codex II imagery', included: true },
+      { text: 'Ask Hakan \u2014 write directly from the member hub', included: true },
+      { text: 'Every correspondence system and record, open as before', included: true },
     ],
     cta: 'Begin Initiate',
     ctaHref: '#subscribe',
@@ -212,7 +211,7 @@ export default function OraclePlansPage() {
             </h1>
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(237,233,246,0.45)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
               {isInitiate
-                ? 'Your Initiate membership is active. Unlimited Oracle access, the full portal, and direct member privileges.'
+                ? 'Your Initiate membership is active. The Codex II archive and Ask Hakan are open, alongside the correspondence archive everyone can use.'
                 : isLoggedIn
                   ? 'Choose your level of access to the Oracle, member portal, and wider Codex experience.'
                   : 'Choose your level of access to the Oracle, Codex II archive, Experience Portal, and direct member communication. From exploration to initiation — all paths begin with a single question.'}
@@ -399,9 +398,9 @@ export default function OraclePlansPage() {
             <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 18, letterSpacing: '0.15em', color: 'rgba(237,233,246,0.5)', marginBottom: 28 }}>Frequently Asked</h2>
             {[
               { q: 'Can I cancel anytime?', a: 'Yes — cancel from your account portal at any time. Your access continues until the end of the billing period.' },
-              { q: 'What counts as a question?', a: 'Each message you send to the Oracle counts as one question. Voice messages also count as questions.' },
-              { q: 'What happens to my history?', a: 'Paid members keep access to the deeper member surfaces — including Ask Hakan and portal-only materials — while Oracle usage for guest/free tiers remains limited.' },
-              { q: 'What does Initiate unlock beyond Oracle?', a: 'Initiate opens the full member hub: Codex II private materials, the Experience Portal, and the Ask Hakan priority lane in addition to unlimited Oracle use.' },
+              { q: 'What counts as a question?', a: 'Each message you send to the Oracle counts as one. Ten questions are available per page session, and reloading the page starts a new one.' },
+              { q: 'What happens to my history?', a: 'Questions live in the page you are on. Reloading the page clears the conversation and starts a new session of ten questions.' },
+              { q: 'What does Initiate unlock beyond Oracle?', a: 'Initiate opens two member surfaces: the Codex II archive, holding the page imagery from the Codex II volume, and Ask Hakan, a direct message channel. The correspondence archive and the Oracle itself stay open to everyone.' },
             ].map(item => (
               <div key={item.q} style={{ marginBottom: 24, padding: '16px 20px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(17,15,26,0.3)' }}>
                 <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.1em', color: '#d946ef', marginBottom: 8 }}>{item.q}</div>

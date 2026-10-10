@@ -529,7 +529,7 @@ export default function MemberPage() {
                   <QuickAccessCard
                     icon={<MessageCircle size={22} />}
                     title="Ask Hakan"
-                    subtitle="Priority Channel"
+                    subtitle="Message Channel"
                     color="green"
                     href="#"
                     locked={!isPaid}
@@ -924,10 +924,10 @@ function MessagesTab({ profile, isPaid, messages, messagesLoading, msgForm, msgS
           <Lock size={32} style={{ color: "var(--ut-magenta)" }} />
         </div>
         <h2 className="font-display text-2xl mb-3">
-          <ZalgoText text="Priority Channel — Paid Members" intensity="moderate" />
+          <ZalgoText text="Message Channel — Initiate Members" intensity="moderate" />
         </h2>
         <p className="font-body text-base max-w-lg mx-auto mb-8" style={{ color: "var(--ut-white-dim)" }}>
-          The direct line to Hakan is reserved for Initiate members. Send your questions, ideas, and reflections — he responds at priority between creating, alongside access to the deeper private process archive.
+          The direct line to Hakan is reserved for Initiate members. Send your questions, ideas, and reflections — replies arrive by email.
         </p>
         <button onClick={() => window.location.href = '/oracle/plans'} className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
           <Crown size={14} />

@@ -36,7 +36,7 @@ export const PLAN_CONFIG: Record<PlanId, PlanConfig> = {
   initiate: {
     id: 'initiate',
     name: 'Initiate',
-    description: 'Adds the Codex II archive. Every language and Oracle mode stays open to all.',
+    description: 'Adds the Codex II archive and a direct message channel to Hakan. Every language and Oracle mode stays open to all.',
     dailyLimit: 'unlimited',
     priceMonthly: 3.99,
     stripePriceId: INITIATE_PRICE_ID,

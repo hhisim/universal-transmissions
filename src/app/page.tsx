@@ -239,10 +239,10 @@ export default function HomePage() {
                   [ Correspondence Access ]
                 </p>
                 <h2 className="font-display text-3xl md:text-4xl mb-4" style={{ color: "var(--ut-white)" }}>
-                  <ZalgoText text="One World · Three Depths" intensity="subtle" />
+                  <ZalgoText text="One World · Shared Archive" intensity="subtle" />
                 </h2>
                 <p className="font-body text-base max-w-3xl mx-auto" style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}>
-                  The Correspondence Codex and Continuum should never feel mechanically stingy. Guest, free, and Initiate all enter the same symbolic world. What changes is how deeply each person can traverse, compare, save, and synthesize it.
+                  The correspondence archive is open to everyone. Search its symbols, follow connections, and bring a selected record into conversation with the Oracle.
                 </p>
               </div>
             </SectionReveal>
@@ -255,7 +255,7 @@ export default function HomePage() {
                 },
                 {
                   title: 'Free Account',
-                  text: 'The same open access, held to your account so your membership is recognised when you return.',
+                  text: 'Create an account while keeping the same open access to the correspondence archive.',
                   color: 'var(--ut-cyan)'
                 },
                 {

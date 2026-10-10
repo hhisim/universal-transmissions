@@ -196,14 +196,14 @@ export default function CodexIIExclusiveClient() {
               </h1>
 
               <p className="font-body text-base max-w-2xl leading-relaxed mb-6" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>
-                Long-form videos, personal notes, and process materials that exist nowhere else.
-                This is the unfiltered making of Codex Vol. II — available only to those who have walked through the outer gates.
+                A working list of the process recordings and notes intended for this space.
+                The entries are named and described; the recordings themselves are not published yet. The Codex II page archive is open now, under Codex II above.
               </p>
 
               <div className="flex items-center gap-2">
                 <GlyphIcon char="I" size={14} opacity={0.3} />
                 <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
-                  {EXCLUSIVE_CONTENT.length} materials · Videos · Notes · Deep Cuts
+                  {EXCLUSIVE_CONTENT.length} entries · listed, not yet published
                 </span>
               </div>
             </SectionReveal>
