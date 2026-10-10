@@ -315,8 +315,16 @@ function assertNoMail(label) {
   ok(!/const planLabel = plan ===/.test(SRC), "plan label no longer derived from the request");
   ok(!/priority = plan/.test(SRC), "priority no longer derived from the request");
   ok(/to: HAKAN_EMAIL/.test(SRC), "recipient remains the fixed constant");
-  ok(/await auth\(\)/.test(SRC), "NextAuth session is consulted server-side");
+  // The NextAuth fallback now lives in the shared verified-identity helper, so
+  // assert the mechanism rather than its file location. The BEHAVIOUR is covered
+  // directly by B4 (NextAuth identity accepted) and B5 (NextAuth failure -> 401).
+  const IDENTITY_SRC = fs.readFileSync(path.join(ROOT, "src/lib/verified-identity.ts"), "utf8");
+  ok(/await auth\(\)/.test(IDENTITY_SRC), "NextAuth session is consulted server-side");
+  ok(/\/auth\/v1\/user/.test(IDENTITY_SRC), "Supabase token validated server-side");
+  ok(/import \{ resolveVerifiedEmail \} from "@\/lib\/verified-identity"/.test(SRC),
+    "member-message route uses the shared verified-identity helper");
   ok(!/decodeEmailFromToken/.test(SRC), "route does NOT use the unsigned decode helper");
+  ok(!/decodeEmailFromToken/.test(IDENTITY_SRC), "helper does NOT use the unsigned decode helper");
 
   console.log(`\n  PASS ${passed}   FAIL ${failures.length}`);
   if (failures.length) {

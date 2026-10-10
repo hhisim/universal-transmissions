@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { auth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { resolveVerifiedEmail } from "@/lib/verified-identity";
 import { getPlanLabel, isPaidPlan, normalizeMemberPlan } from "@/lib/plans";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 // Recipient is fixed. It is never taken from the request.
 const HAKAN_EMAIL = "hhisim@hotmail.com";
@@ -38,47 +36,6 @@ function sanitize(value: unknown): string {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
     .replace(/\r\n?/g, "\n")
     .trim();
-}
-
-/**
- * Resolve the caller's identity from a verified server-side source only.
- *
- * 1. Supabase access token -> validated by Supabase against the JWT signature
- *    at /auth/v1/user. An unsigned or forged token is rejected there.
- * 2. NextAuth session -> the JWT cookie verified with NEXTAUTH_SECRET.
- *
- * A decoded-but-unverified token is never treated as an identity.
- */
-async function resolveVerifiedEmail(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization") ?? "";
-  const bearer = authHeader.replace(/^Bearer\s+/i, "").trim();
-
-  if (bearer && SUPABASE_URL && SUPABASE_ANON_KEY) {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${bearer}` },
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const user = (await res.json()) as { email?: string | null };
-        const email = sanitize(user?.email).toLowerCase();
-        if (email) return email;
-      }
-      // A present-but-invalid token is not an identity; fall through to NextAuth.
-    } catch {
-      // Network/verification failure must not authenticate anyone.
-    }
-  }
-
-  try {
-    const session = await auth();
-    const email = sanitize(session?.user?.email).toLowerCase();
-    if (email) return email;
-  } catch {
-    // fail closed
-  }
-
-  return null;
 }
 
 /**

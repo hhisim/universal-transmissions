@@ -1,55 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
+import { supabaseAdmin } from "@/lib/supabase";
+import { resolveVerifiedIdentity } from "@/lib/verified-identity";
 
-const SUPABASE_URL = "https://opixpkquyapeqdceyczs.supabase.co";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+/**
+ * POST /api/billing/portal
+ *
+ * Identity comes from a signature-verified credential (see
+ * @/lib/verified-identity). The Stripe customer is taken ONLY from the record
+ * stored against the verified address.
+ *
+ * This route previously decoded the JWT payload without verifying its signature
+ * and then looked the customer up with the caller's own token filtered by that
+ * (forgeable) address. Because the ut_members read policy admits any
+ * authenticated user, a signed-in caller could select another member's
+ * customer id and open a billing portal for it. Selection is now bound to the
+ * verified identity, so a signed-in user can only ever reach their own record.
+ *
+ * Contract (unchanged for callers):
+ *   unverifiable caller            -> 401 { error: "Authentication required" }
+ *   no stored customer             -> 404 { error: "No billing account found..." }
+ *   lookup failure / duplicates    -> 500 (fail closed; no Stripe call, and no
+ *                                     replacement customer is ever created)
+ *   success                        -> 200 { url }
+ */
 
-// Decode email from Supabase JWT directly — no auth() needed
-function decodeEmailFromToken(token: string): string | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
-    return payload.email ?? null;
-  } catch {
-    return null;
-  }
-}
+async function lookupStripeCustomerId(email: string): Promise<string | null> {
+  // profiles.plan/stripe_customer_id is the Oracle-side record; ut_members holds
+  // manual entries. Both are read for the VERIFIED address only.
+  for (const table of ["ut_members", "profiles"] as const) {
+    const { data, error } = await supabaseAdmin
+      .from(table)
+      .select("stripe_customer_id")
+      .eq("email", email)
+      .maybeSingle();
 
-// Get stripe_customer_id via REST API (no supabase-js admin needed)
-async function getStripeCustomerId(email: string, userToken: string): Promise<string | null> {
-  // Try ut_members first — has stripe_customer_id for manual entries
-  const r = await fetch(
-    `${SUPABASE_URL}/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=stripe_customer_id&limit=1`,
-    {
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${userToken}`,
-      },
+    if (error) {
+      // Duplicates (PGRST116) and transport/relationship errors both land here.
+      // Throwing keeps the caller from choosing an arbitrary customer.
+      throw new Error(`${table} customer lookup failed: ${error.message ?? "unknown error"}`);
     }
-  );
-  if (r.ok) {
-    const data = await r.json();
-    if (Array.isArray(data) && data[0]?.stripe_customer_id) {
-      return data[0].stripe_customer_id;
-    }
-  }
 
-  // Fallback: try profiles
-  const r2 = await fetch(
-    `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=stripe_customer_id&limit=1`,
-    {
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${userToken}`,
-      },
-    }
-  );
-  if (r2.ok) {
-    const data = await r2.json();
-    if (Array.isArray(data) && data[0]?.stripe_customer_id) {
-      return data[0].stripe_customer_id;
-    }
+    const id = (data as { stripe_customer_id?: string | null } | null)?.stripe_customer_id;
+    if (id) return id;
   }
 
   return null;
@@ -57,18 +50,30 @@ async function getStripeCustomerId(email: string, userToken: string): Promise<st
 
 export async function POST(req: NextRequest) {
   try {
-    // Accept Supabase Bearer token from client
-    const authHeader = req.headers.get("authorization") ?? "";
-    const token = authHeader.replace("Bearer ", "").trim();
-    const email = decodeEmailFromToken(token);
-
-    if (!email) {
+    // Authenticate before any lookup or Stripe call.
+    const identity = await resolveVerifiedIdentity(req);
+    if (!identity) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const stripeCustomerId = await getStripeCustomerId(email, token);
+    let stripeCustomerId: string | null;
+    try {
+      stripeCustomerId = await lookupStripeCustomerId(identity.email);
+    } catch (err) {
+      // Fail closed. Never create a replacement customer on a failed lookup:
+      // doing so would mint a new billing identity for an unresolved one.
+      console.error("Billing portal customer lookup failed:", err);
+      return NextResponse.json(
+        { error: "Could not open billing portal. Please try again." },
+        { status: 500 }
+      );
+    }
+
     if (!stripeCustomerId) {
-      return NextResponse.json({ error: "No billing account found. Please contact support." }, { status: 404 });
+      return NextResponse.json(
+        { error: "No billing account found. Please contact support." },
+        { status: 404 }
+      );
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.universal-transmissions.com";
@@ -81,6 +86,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: portalSession.url });
   } catch (err) {
     console.error("Billing portal error:", err);
-    return NextResponse.json({ error: "Could not open billing portal. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not open billing portal. Please try again." },
+      { status: 500 }
+    );
   }
 }

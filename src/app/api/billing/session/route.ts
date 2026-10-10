@@ -1,75 +1,84 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeMemberPlan } from "@/lib/plans";
+import { supabaseAdmin } from "@/lib/supabase";
+import { resolveVerifiedIdentity } from "@/lib/verified-identity";
 
-const SUPABASE_URL = "https://opixpkquyapeqdceyczs.supabase.co";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+/**
+ * GET /api/billing/session
+ *
+ * Identity comes from a signature-verified credential (see
+ * @/lib/verified-identity). The address used for both membership lookups is the
+ * verified one — a client-supplied email, user id or plan is never consulted.
+ *
+ * Response contract (unchanged for callers):
+ *   anonymous / unverifiable      -> 200 { authenticated: false, plan: "guest" }
+ *   verified                      -> 200 { authenticated: true, email, plan,
+ *                                          stripeCustomerId, subscription_status,
+ *                                          current_period_end }
+ *   lookup failure / duplicates   -> 200 { authenticated: false, plan: "guest" }
+ *                                    (fail closed: no member data, no plan, no
+ *                                     customer id is exposed)
+ */
 
-function decodeEmailFromToken(token: string): string | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
-    return payload.email ?? null;
-  } catch {
-    return null;
+type Row = { plan?: string | null } & Record<string, unknown>;
+
+/**
+ * Read one row for a verified address. Returns null when there is no record and
+ * throws when the lookup fails or returns more than one row, so the caller can
+ * fail closed rather than pick an arbitrary record.
+ *
+ * Both tables are keyed on email but neither has a unique constraint on it:
+ *   0 rows -> maybeSingle() yields { data: null }         -> null
+ *   1 row  -> the row                                     -> row
+ *   >1 rows-> maybeSingle() yields PGRST116 error         -> throws
+ */
+async function lookupOne(
+  table: "profiles" | "ut_members",
+  email: string,
+  columns: string
+): Promise<Row | null> {
+  const { data, error } = await supabaseAdmin
+    .from(table)
+    .select(columns)
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`${table} lookup failed: ${error.message ?? "unknown error"}`);
   }
-}
-
-async function queryUtMembers(email: string, userToken: string) {
-  // Use the user's own token — ut_members RLS allows authenticated reads
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/ut_members?email=eq.${encodeURIComponent(email)}&select=plan,subscription_status,current_period_end`, {
-    headers: {
-      "apikey": SUPABASE_ANON_KEY,
-      "Authorization": `Bearer ${userToken}`,
-    },
-  });
-  if (!r.ok) return null;
-  const data = await r.json();
-  return Array.isArray(data) ? data[0] ?? null : null;
-}
-
-async function queryProfiles(email: string) {
-  // Requires service role key — only works if SUPABASE_SERVICE_ROLE_KEY is set
-  if (!SUPABASE_SERVICE_KEY) return null;
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=plan,stripe_customer_id`, {
-    headers: {
-      "apikey": SUPABASE_SERVICE_KEY,
-      "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
-    },
-  });
-  if (!r.ok) return null;
-  const data = await r.json();
-  return Array.isArray(data) ? data[0] ?? null : null;
+  return (data as Row | null) ?? null;
 }
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.replace("Bearer ", "");
-
-  if (!token) {
-    return NextResponse.json({ authenticated: false, plan: "guest" });
-  }
-
-  const email = decodeEmailFromToken(token);
-  if (!email) {
-    return NextResponse.json({ authenticated: false, plan: "guest" });
-  }
-
   try {
-    const [profile, member] = await Promise.all([
-      queryProfiles(email),
-      queryUtMembers(email, token),
-    ]);
+    const identity = await resolveVerifiedIdentity(req);
 
-    return NextResponse.json({
-      authenticated: true,
-      email,
-      plan: normalizeMemberPlan(profile?.plan ?? member?.plan ?? "guest"),
-      stripeCustomerId: profile?.stripe_customer_id ?? null,
-      subscription_status: member?.subscription_status ?? "inactive",
-      current_period_end: member?.current_period_end ?? null,
-    });
+    if (!identity) {
+      // Nothing verified: no member data is returned.
+      return NextResponse.json({ authenticated: false, plan: "guest" });
+    }
+
+    const email = identity.email;
+
+    try {
+      const [profile, member] = await Promise.all([
+        lookupOne("profiles", email, "plan,stripe_customer_id"),
+        lookupOne("ut_members", email, "plan,subscription_status,current_period_end"),
+      ]);
+
+      return NextResponse.json({
+        authenticated: true,
+        email,
+        plan: normalizeMemberPlan(profile?.plan ?? member?.plan ?? "guest"),
+        stripeCustomerId: profile?.stripe_customer_id ?? null,
+        subscription_status: member?.subscription_status ?? "inactive",
+        current_period_end: member?.current_period_end ?? null,
+      });
+    } catch (err) {
+      // Fail closed: a membership we could not read is never reported as data.
+      console.error("Session lookup failed:", err);
+      return NextResponse.json({ authenticated: false, plan: "guest" });
+    }
   } catch (err) {
     console.error("Session endpoint error:", err);
     return NextResponse.json({ authenticated: false, plan: "guest" }, { status: 200 });
