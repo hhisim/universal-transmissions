@@ -15,14 +15,14 @@ const MEMBER_EXPERIENCE = [
     color: '#22d3ee',
   },
   {
-    title: 'Codex II + Private Archive',
-    description: 'The Codex II process archive: page imagery from the published Codex II volume.',
+    title: 'Codex II Process Archive',
+    description: 'The Codex II process archive: Codex II process imagery.',
     icon: BookOpen,
     color: '#d4a847',
   },
   {
     title: 'Ask Hakan',
-    description: 'Write directly to Hakan from the member hub. Replies arrive by email.',
+    description: 'Write directly to Hakan from the member hub. Replies, if any, arrive by email.',
     icon: MessageCircle,
     color: '#10b981',
   },
@@ -40,7 +40,7 @@ const TIERS = [
     description: 'The full correspondence archive and the Oracle, open without an account',
     features: [
       { text: 'All correspondence systems and records, open to browse and search', included: true },
-      { text: 'Oracle answers grounded in the correspondence archive', included: true },
+      { text: 'Ask the Oracle about selected correspondence records.', included: true },
       { text: '10 questions per page session', included: true },
       { text: 'Codex II archive', included: false },
     ],
@@ -59,7 +59,7 @@ const TIERS = [
     description: 'The same open access, with an account that recognises your membership',
     features: [
       { text: 'The same open access to every correspondence system', included: true },
-      { text: 'Oracle answers grounded in the correspondence archive', included: true },
+      { text: 'Ask the Oracle about selected correspondence records.', included: true },
       { text: '10 questions per page session', included: true },
       { text: 'Codex II archive', included: false },
     ],
@@ -78,7 +78,7 @@ const TIERS = [
     description: 'The Codex II process archive and a direct line to Hakan, alongside the correspondence archive that stays open to all',
     popular: true,
     features: [
-      { text: 'The Codex II process archive: 23 pages of Codex II imagery', included: true },
+      { text: 'The Codex II process archive: Codex II process imagery', included: true },
       { text: 'Ask Hakan — write directly from the member hub', included: true },
       { text: 'Every correspondence system and record, open as before', included: true },
     ],
@@ -211,10 +211,10 @@ export default function OraclePlansPage() {
             </h1>
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'rgba(237,233,246,0.45)', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
               {isInitiate
-                ? 'Your Initiate membership is active. The Codex II archive and Ask Hakan are open, alongside the correspondence archive everyone can use.'
+                ? 'Your Initiate membership is active. The Codex II process archive and Ask Hakan are open, alongside the correspondence archive everyone can use.'
                 : isLoggedIn
                   ? 'Choose your level of access to the Oracle, member portal, and wider Codex experience.'
-                  : 'Choose your level of access to the Oracle, Codex II archive, Experience Portal, and direct member communication. From exploration to initiation — all paths begin with a single question.'}
+                  : 'The correspondence archive is open to everyone. Initiate adds the Codex II process archive and Ask Hakan, where members can write directly from the member hub.'}
             </p>
 
             <div style={{ width: 260, height: 1, margin: '32px auto 0', background: 'linear-gradient(90deg, transparent, rgba(217,70,239,0.3), rgba(212,168,71,0.5), rgba(147,51,234,0.3), transparent)' }} />
@@ -349,7 +349,7 @@ export default function OraclePlansPage() {
               maxWidth: 600, margin: '0 auto 32px',
             }}>
               <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.2em', color: '#22d3ee', marginBottom: 8 }}>
-                Current Plan: {isFree ? 'Free Account — 25 questions/day' : 'Guest — 10 questions total'}
+                Current Plan: {isFree ? 'Free Account' : 'Guest'}
               </div>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <Link href="/sanctum/member" className="btn-secondary text-xs px-6 py-2">
@@ -371,7 +371,9 @@ export default function OraclePlansPage() {
               <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.25em', color: 'rgba(212,168,71,0.5)', marginBottom: 12 }}>[ What Membership Actually Unlocks ]</div>
               <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 20, letterSpacing: '0.14em', color: 'rgba(237,233,246,0.72)', marginBottom: 10 }}>The Full Member Experience</h2>
               <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(237,233,246,0.45)', maxWidth: 700, margin: '0 auto', lineHeight: 1.7 }}>
-                UT membership is not just Oracle credits. It is the portal layer that ties together research, correspondence depth, private archive access, orders, and direct communication. Guests and free accounts stay in the same world; Initiate unlocks how deeply they can traverse and synthesize it.
+                The correspondence archive remains open to everyone.
+                Initiate adds the Codex II process archive and Ask Hakan,
+                where members can write directly from the member hub.
               </p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18 }}>
@@ -400,7 +402,7 @@ export default function OraclePlansPage() {
               { q: 'Can I cancel anytime?', a: 'Yes — cancel from your account portal at any time. Your access continues until the end of the billing period.' },
               { q: 'What counts as a question?', a: 'Each message you send to the Oracle counts as one. Ten questions are available per page session, and reloading the page starts a new one.' },
               { q: 'What happens to my history?', a: 'Questions live in the page you are on. Reloading the page clears the conversation and starts a new session of ten questions.' },
-              { q: 'What does Initiate unlock beyond Oracle?', a: 'Initiate opens two member surfaces: the Codex II archive, holding the page imagery from the Codex II volume, and Ask Hakan, a direct message channel. The correspondence archive and the Oracle itself stay open to everyone.' },
+              { q: 'What does Initiate unlock beyond Oracle?', a: 'Initiate opens two member surfaces: the Codex II process archive and Ask Hakan, a direct message channel from the member hub. The correspondence archive and the Oracle itself stay open to everyone.' },
             ].map(item => (
               <div key={item.q} style={{ marginBottom: 24, padding: '16px 20px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(17,15,26,0.3)' }}>
                 <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.1em', color: '#d946ef', marginBottom: 8 }}>{item.q}</div>

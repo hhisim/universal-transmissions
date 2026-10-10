@@ -631,7 +631,7 @@ export default function MemberPage() {
                     <ZalgoText text="Codex II — Paid Members Only" intensity="moderate" />
                   </h2>
                   <p className="font-body text-base max-w-lg mx-auto mb-8" style={{ color: "var(--ut-white-dim)" }}>
-                    Codex II exclusive content — including full non-timelapse long-form recordings of the Codex creation process, other artwork process recordings, private notes, and unreleased making-of material not available anywhere on the internet — is available to Initiate members.
+                    The Codex II process archive holds Codex II process imagery alongside the published volume. Longer process recordings are listed in the Codex II exclusive section but are not published yet. available to Initiate members.
                   </p>
                   <Link href="/sanctum/member?tab=experience" className="btn-primary text-sm px-8 py-3 inline-flex items-center gap-2">
                     <Crown size={14} />

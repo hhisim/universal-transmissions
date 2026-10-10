@@ -135,8 +135,14 @@ cosmetic counter described as an enforced limit.
 
 ## 6. Initiate → Codex II / Ask Hakan: the paid linkage, traced
 
-Source verification only. **No purchase, subscription or authenticated browser session was
-performed**, so none of this is proof of runtime behaviour for a paying member.
+Three distinct evidence classes are kept separate below. **No purchase, subscription,
+authenticated browser session or test email was performed.**
+
+| Class | What it covers | What it cannot prove |
+|---|---|---|
+| **Code inspection** | webhook branch logic, `isPaid` predicates, route guards, the message send path | that any of it executes at runtime |
+| **Live configuration read** | Vercel env targets, Stripe price object (active/$3.99/month), registered webhook endpoint + enabled events, Supabase rows | that a payment has ever completed through the flow |
+| **Browser verification** | anonymous and 390px rendering of public copy; redirect behaviour | any paid or signed-in state |
 
 ### 6.1 Does checkout charge the advertised price?
 
@@ -159,7 +165,7 @@ performed**, so none of this is proof of runtime behaviour for a paying member.
 | Plan written | route writes `plan` to **both** `ut_members` and `profiles` | yes |
 | Plan decision | `if (subscription.status === "active" \|\| "trialing") plan = "initiate"` | **status-based, not price-based** |
 | `planFromPriceId` used? | `plans.ts` exports it; **the webhook never imports it** | **unused** |
-| Gate reads | `codex-ii/page.tsx:29` `const plan = profile?.plan \|\| member?.plan` | both tables |
+| Gate reads | `codex-ii/page.tsx:29` — `const plan = profile?.plan || member?.plan`, then `page.tsx:30` — `const isPaid = plan && PLAN_CHECK.includes(plan)` with `PLAN_CHECK = ["initiate"]`. It consumes the value the webhook wrote: the webhook updates `profiles.plan` **and** `ut_members.plan` in the same handler, and this predicate reads `profiles.plan` first, falling back to `ut_members.plan`. Same column name, same literal `'initiate'`. | both tables, single source of truth is `profiles.plan` |
 | Gate value | `PLAN_CHECK = ["initiate"]` on `codex-ii`, `gallery`, `exclusive` | exact match |
 
 So the chain **is** complete in source: purchase → `checkout.session.completed` → subscription active
@@ -194,6 +200,30 @@ So the chain **is** complete in source: purchase → `checkout.session.completed
 
 ---
 
+## 6.5 Three unresolved defects (NOT fixed in this batch — code changes, not copy)
+
+**1. `POST /api/member/message` is unauthenticated and trusts a client-supplied plan.**
+The route reads `plan` from the request body, performs no token or session verification, and
+has no plan check of its own; the “priority” star in the outgoing email is decided by that
+self-declared string. Anyone who can reach the endpoint can post an arbitrary email body. The
+member tab's UI gate (`isPaidPlan(profile.plan)` in `sanctum/member/page.tsx`) hides the form in
+the browser but **does not protect the endpoint** — a direct `POST` bypasses it entirely.
+
+**2. The webhook grants `initiate` for any active subscription, with no price-specific mapping.**
+`src/app/api/stripe-webhook/route.ts` branches on `subscription.status === 'active' ||
+'trialing'` only. The account holds 10 active monthly prices ($3.99–$29). `planFromPriceId()`
+exists in `src/lib/plans.ts` and is **never imported by the webhook**. Any future Stripe product
+therefore also grants Initiate.
+
+**3. The Codex II archive images are publicly accessible.**
+All 23 files live in `public/images/codex2/`, served as static assets — verified HTTP 200 on
+production. The route is gated; the files are not. Nothing in copy may describe them as private,
+protected or unavailable to non-members.
+
+All three are out of scope for a copy batch and are recorded here for a separate fix.
+
+---
+
 ## 7. Corrections applied in this revision
 
 | Surface | Before this revision | Now |
@@ -208,6 +238,18 @@ So the chain **is** complete in source: purchase → `checkout.session.completed
 | Plans FAQ | "Ask Hakan priority lane", "unlimited Oracle use", "Oracle usage … remains limited" | names Codex II + Ask Hakan; states the archive stays open to all |
 | Member hub locked screen | "Priority Channel — Paid Members", "he responds at priority … deeper private process archive" | "Message Channel — Initiate Members", "replies arrive by email" |
 | Codex II exclusive page | "Long-form videos, personal notes, and process materials that exist nowhere else." + "6 materials · Videos · Notes · Deep Cuts" | "A working list … the recordings themselves are not published yet" + "6 entries · listed, not yet published" |
+
+| Homepage Initiate card | “Initiate adds the Codex II archive — the behind-the-scenes process material held for members” | “Initiate adds the Codex II process archive, plus Ask Hakan — write directly from the member hub.” |
+| Plans page narrative | “UT membership is not just Oracle credits … correspondence depth, private archive access, orders … Initiate unlocks how deeply they can traverse and synthesize it.” | The supplied replacement introduction, verbatim |
+| Plans Initiate feature | “The Codex II process archive: 23 pages of Codex II imagery” | “The Codex II process archive: Codex II process imagery” — **the 23 files are square 1000×1000 / 1200×1200 web exports named `page-151`…`page-173`, not 23 scanned pages**, so the count claim was dropped |
+| Plans member-experience card | “Codex II + Private Archive” / “page imagery from the published Codex II volume” | “Codex II Process Archive” / “The Codex II process archive: Codex II process imagery.” |
+| Plans Guest + Free feature | “Oracle answers grounded in the correspondence archive” | “Ask the Oracle about selected correspondence records.” — the verified entry-grounding journey |
+| Plans signed-in “Current Plan” | “Free Account — 25 questions/day” / “Guest — 10 questions total” | “Free Account” / “Guest” — the allowance numbers described a quota that does not exist |
+| Plans anonymous banner | listed “Codex II archive, Experience Portal, and direct member communication” | the open-archive + Initiate introduction |
+| Plans Ask Hakan card | “Replies arrive by email.” | “Replies, if any, arrive by email.” — no guarantee of a reply |
+| Member hub locked screen | promised “full non-timelapse long-form recordings … not available anywhere on the internet” | states the archive holds process imagery and that longer recordings are listed but **not yet published** |
+| codex-ii route locked copy | “This collection is reserved for Initiate members” | “An Initiate membership is required to open this page” — describes the route gate, not file protection |
+| `src/lib/plans.ts` header comment | claimed “Free: 25 questions/day (Supabase per-user counter)” | records that `dailyLimit` is **not server-enforced** and that the only real limit is the client-side per-page-session counter |
 
 **Preserved unchanged:** `$3.99`, `priceSub`, every `cta`/`ctaHref`, `handleInitiateCheckout`,
 `NEXT_PUBLIC_STRIPE_PRICE_INITIATE_MONTHLY`, `dailyLimit`/`guestTotalLimit` values, the 10-question

@@ -25,7 +25,7 @@ export default function CodexPage() {
           {[
             "Guest: the entire codex — all 27 systems and all 824 records — open to browse, search and question, with no account.",
             "Free account: the same open access, held to your account so your membership is recognised when you return.",
-            "Initiate: everything above, plus the Codex II archive — the behind-the-scenes process material held for members."
+            "Initiate: everything above, plus the Codex II process archive and Ask Hakan — write directly from the member hub."
           ].map((text, index) => (
             <div key={index} style={{ padding: "12px 14px", border: "1px solid rgba(212,168,71,0.14)", background: "rgba(17,15,26,0.55)", color: "rgba(237,233,246,0.78)", fontSize: 13, letterSpacing: "0.02em" }}>
               {text}

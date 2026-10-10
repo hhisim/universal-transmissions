@@ -45,7 +45,7 @@ export default async function CodexIIPage() {
             </div>
             <h2 className="font-display text-2xl mb-4 text-white">Codex II — Behind the Veil</h2>
             <p className="font-body text-base mb-6" style={{ color: "var(--ut-white-dim)" }}>
-              This collection is reserved for Initiate members. Upgrade your membership to access.
+              This collection is part of the Codex II member archive. An Initiate membership is required to open this page.
             </p>
             <a href="/sanctum" className="btn-primary px-8 py-3 inline-flex items-center gap-2 font-mono text-xs">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

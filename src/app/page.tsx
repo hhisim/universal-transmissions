@@ -260,7 +260,7 @@ export default function HomePage() {
                 },
                 {
                   title: 'Initiate',
-                  text: 'Initiate adds the Codex II archive — the behind-the-scenes process material held for members. The correspondence codex itself stays open to everyone.',
+                  text: 'Initiate adds the Codex II process archive, plus Ask Hakan — write directly from the member hub. The correspondence codex itself stays open to everyone.',
                   color: 'var(--ut-gold)'
                 }
               ].map((item) => (
