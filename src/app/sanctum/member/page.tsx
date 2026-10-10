@@ -322,14 +322,19 @@ export default function MemberPage() {
     setMsgStatus('sending');
     setMsgError('');
     try {
+      /* The route authenticates the request server-side and derives both the
+         reply address and the plan label from the verified account. The
+         session email and plan are deliberately NOT sent: a client-supplied
+         identity or entitlement is not authorization. */
       const res = await fetch('/api/member/message', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(userToken ? { Authorization: `Bearer ${userToken}` } : {}),
+        },
         body: JSON.stringify({
-          email: session.user.email,
           subject: msgForm.subject,
           content: msgForm.content,
-          plan: profile?.plan || 'free',
         }),
       });
       if (res.ok) {
@@ -338,7 +343,14 @@ export default function MemberPage() {
         fetchMessages(userToken);
       } else {
         setMsgStatus('error');
-        setMsgError('Failed to send message. Please try again.');
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          setMsgError('Please sign in again to send a message.');
+        } else if (res.status === 403) {
+          setMsgError('Ask Hakan is available to Initiate members.');
+        } else {
+          setMsgError(data?.error || 'Failed to send message. Please try again.');
+        }
       }
     } catch {
       setMsgStatus('error');
