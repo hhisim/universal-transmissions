@@ -85,6 +85,20 @@ async function resolveVerifiedEmail(request: Request): Promise<string | null> {
  * Look up the stored plan for a verified email. Mirrors /api/billing/session:
  * profiles.plan takes precedence, ut_members.plan is the fallback.
  *
+ * Identity -> row contract (verified against the deployed schema, 2026-10-10):
+ *   - The key is the VERIFIED EMAIL from resolveVerifiedEmail(), never anything
+ *     from the request body. profiles.user_id (its primary key) is not used,
+ *     because the membership rows this route must read are keyed by email in
+ *     both tables and the verified email is the only identifier both share.
+ *   - NEITHER table has a unique constraint on email (profiles PK is user_id,
+ *     ut_members PK is id). Cardinality is therefore enforced by maybeSingle():
+ *       0 rows -> { data: null }  -> no record -> treated as "guest" -> 403
+ *       1 row  -> the row         -> normal policy evaluation
+ *       >1 row -> PGRST116 error  -> lookup_failed -> 500 fail closed
+ *     A duplicated email therefore denies service rather than silently
+ *     selecting whichever row PostgREST returned first, so it can never
+ *     escalate a member to a plan another row might carry.
+ *
  * Returns a discriminated result so a lookup FAILURE is never confused with an
  * ineligible member.
  */
