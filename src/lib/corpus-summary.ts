@@ -59,3 +59,24 @@ export const CORPUS_SUMMARY: CorpusSummary = summarize(codex);
 export function corpusRecordsLine(s: CorpusSummary = CORPUS_SUMMARY): string {
   return `${s.sourceRecords} correspondence records across ${s.systemCount} systems`;
 }
+
+/**
+ * The same figures as a clause that finishes a sentence. Used where the
+ * preferred wording would otherwise collide with the surrounding grammar
+ * ("a 824 correspondence records ... codex").
+ */
+export function corpusRecordsClause(s: CorpusSummary = CORPUS_SUMMARY): string {
+  return `The correspondence codex holds ${s.sourceRecords} records across ${s.systemCount} systems`;
+}
+
+/**
+ * Localized variants. Each is a complete clause in its own language, so a
+ * sentence can never end up quoting an English fragment mid-sentence.
+ */
+export function corpusRecordsClauseTr(s: CorpusSummary = CORPUS_SUMMARY): string {
+  return `${s.sourceRecords} yazılı kayıt, ${s.systemCount} sistemde bir arada`;
+}
+
+export function corpusRecordsClauseRu(s: CorpusSummary = CORPUS_SUMMARY): string {
+  return `${s.sourceRecords} записей в ${s.systemCount} системах`;
+}
