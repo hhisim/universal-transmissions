@@ -74,9 +74,22 @@ export function corpusRecordsClause(s: CorpusSummary = CORPUS_SUMMARY): string {
  * sentence can never end up quoting an English fragment mid-sentence.
  */
 export function corpusRecordsClauseTr(s: CorpusSummary = CORPUS_SUMMARY): string {
-  return `${s.sourceRecords} yazılı kayıt, ${s.systemCount} sistemde bir arada`;
+  return `Karşılıklar kodeksi, ${s.systemCount} sistemde ${s.sourceRecords} kayıt içerir`;
+}
+
+/** Russian cardinal agreement for a counted noun: 1/11 -> one, 2-4/12-14 -> few,
+ *  0/5-10/15+ -> many. Selected from the count so a corpus change cannot ship
+ *  an inflected noun that disagrees with the number. */
+function ruPlural(n: number, one: string, few: string, many: string): string {
+  const n100 = n % 100;
+  const n10 = n % 10;
+  if (n100 >= 11 && n100 <= 14) return many;
+  if (n10 === 1) return one;
+  if (n10 >= 2 && n10 <= 4) return few;
+  return many;
 }
 
 export function corpusRecordsClauseRu(s: CorpusSummary = CORPUS_SUMMARY): string {
-  return `${s.sourceRecords} записей в ${s.systemCount} системах`;
+  const record = ruPlural(s.sourceRecords, "запись", "записи", "записей");
+  return `Кодекс соответствий содержит ${s.sourceRecords} ${record} в ${s.systemCount} системах`;
 }

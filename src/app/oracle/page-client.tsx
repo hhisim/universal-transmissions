@@ -101,7 +101,7 @@ const KM_KEYS = Object.keys(KM);
 const T: Record<string, Record<string, string>> = {
   en: {
     subtitle: "[ Universal Transmissions · Codex Oracle ]", heading: "̵̊̚C̭̣̆̒o̯̻̊̇n̶̘̉̉s̝̀̾̚ů̙̻̈l̙̂̾̕t̯ ̸́̀O̤̼̊̀r̴̨̓̐ȃ̘̃̾ċ̗̺̏ĺ̡̇͂e̟",
-    desc: "150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic. " + corpusRecordsClause() + ". The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.",
+    desc: "150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic. " + corpusRecordsClause() + ". The dataset is constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.",
     begin: "Begin with a question about the Codex", transmit: "TRANSMIT", placeholder: "Ask the Codex Oracle...",
     receiving: "RECEIVING TRANSMISSION", deepProc: "DEEP PROCESSING",
     engine: "Engine", fast: "FAST", deep: "DEEP", language: "Language", voice: "Voice", female: "FEMALE", male: "MALE",
@@ -1888,7 +1888,7 @@ export default function OraclePage() {
           color: rgba(237, 233, 246, 0.72);
           overflow-wrap: anywhere;
         }
-        .oracle-evidence-note { margin:0 0 6px; font-family:'JetBrains Mono',monospace; font-size:9px; line-height:1.65; letter-spacing:.04em; color:rgba(237,233,246,.5); max-width:64ch; }
+        .oracle-evidence-note { margin:0 0 6px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; letter-spacing:.01em; color:rgba(237,233,246,.78); max-width:64ch; }
         .oracle-evidence-foot {
           display: flex;
           flex-wrap: wrap;

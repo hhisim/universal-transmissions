@@ -289,7 +289,7 @@ export default function HomePage() {
                 <ZalgoText text="The transmission never ends." intensity="moderate" />
               </h2>
               <p className="text-sm md:text-base text-white/60 max-w-xl mx-auto mb-8 leading-relaxed">
-                150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic. {corpusRecordsClause()}. The dataset constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.
+                150 pages of xenolinguistic art, transcendent geometry, and hyperdimensional transmissions — decoded through five data layers, a pan-dimensional linguistic mystic. {corpusRecordsClause()}. The dataset is constantly evolving every day, the algorithm reinventing itself through a recursive novelty engine.
               </p>
               <Link href="/oracle" className="btn-primary">
                 Consult the Oracle
