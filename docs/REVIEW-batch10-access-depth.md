@@ -255,3 +255,39 @@ All three are out of scope for a copy batch and are recorded here for a separate
 `NEXT_PUBLIC_STRIPE_PRICE_INITIATE_MONTHLY`, `dailyLimit`/`guestTotalLimit` values, the 10-question
 `atLimit` gate, `isPaidPlan`, `PLAN_CHECK`, all `src/app/api` code, the corpus, all public IDs, and
 global CSS. Only copy strings and one label were touched.
+---
+
+## 8. Counter-unit verification (Batch 10 follow-up, verified live)
+
+**Released SHA checked:** `5eb3c01` — **verdict: the counter measures QUESTIONS, one per
+answered question. The "0 → 2" reading in the release report is a reporting mistake; the code is correct.**
+
+Source: `src/app/oracle/page-client.tsx`
+
+```
+ 923|  const [questionsUsed, setQuestionsUsed] = useState(0);
+ 935|  const atLimit = questionsUsed >= limit;
+1124|    setQuestionsUsed((q) => q + 1);     // the ONLY increment site
+```
+
+It is not derived from `msgs.length`. Each question appends TWO messages (user at 1055,
+oracle at 1123), so a message-based counter would advance by 2. It advances by 1.
+
+Observed live at universal-transmissions.com/oracle, provider mocked so no real requests were spent:
+`0/10` initial → **`1/10` after exactly one question** → `2/10` after a second →
+NEW CONVERSATION → **`2/10` unchanged** (transcript cleared, quota not restored) →
+reload → **`0/10`** → … → `10/10` → 11th attempt **blocked** (no increment, no POST,
+`textarea.disabled === true`).
+
+Resets only on page load: no `localStorage`/`sessionStorage` anywhere in `page-client.tsx`,
+and `startNewConversation()` deliberately leaves `questionsUsed` untouched.
+
+**Copy correction** (copy only — quota, history, reset and entitlement logic untouched):
+`plans/page.tsx` line 403 said "Each **message** you send to the Oracle counts as one".
+The word *message* named a unit that does not exist. Replaced with wording that states the
+real unit, that the count lands once the answer arrives, and that New Conversation does not
+restore the allowance. Line 404 (reload resets the session) was verified correct and is
+unchanged. The Oracle badge, its limit banner and the EN/TR/RU equivalents already say
+"questions" and are accurate — left alone.
+
+New SHA `e05fd4b`, preview verified in the rendered DOM.
