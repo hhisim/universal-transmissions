@@ -42,6 +42,13 @@
 --     deliberately not addressed; it needs its own change.
 --   * The sibling project mqixjzolgrdzbwzkrzxz (arcana-vault) is not touched.
 --
+-- VERSION NOTE
+--   MAINTAIN exists only from PostgreSQL 17. Every privilege list here is built
+--   at run time and extended with array_append, never with the `||` operator:
+--   `text[] || 'MAINTAIN'` is parsed as anyarray || anyarray and fails with
+--   "malformed array literal", which would abort this migration on PostgreSQL 17
+--   while passing unnoticed on 16.
+--
 -- REVERSAL
 --   Re-applying the previous grants and the read policy restores cross-member
 --   disclosure and the TRUNCATE privilege. That is not a neutral rollback.
@@ -104,7 +111,9 @@ drop policy if exists "allow_authenticated_read" on public.ut_members;
 -- ---------------------------------------------------------------------------
 -- 2. Withdraw table privileges from the unauthenticated and authenticated roles.
 --    REVOKE ALL covers every privilege applicable to the running server version,
---    which includes MAINTAIN on PostgreSQL 17 and later.
+--    which includes MAINTAIN on PostgreSQL 17 and later. It also removes
+--    column-level grants of the same name, since revoking a table-level
+--    privilege revokes the corresponding column privileges.
 -- ---------------------------------------------------------------------------
 revoke all privileges on table public.ut_members from anon, authenticated, public;
 revoke all privileges on table public.profiles   from anon, authenticated, public;
@@ -118,10 +127,16 @@ revoke select, insert, update, delete, truncate, references, trigger
   on table public.profiles from anon, authenticated;
 
 -- ---------------------------------------------------------------------------
--- 3. Independently granted COLUMN privileges.
---    A table-level REVOKE does not remove privileges granted on individual
---    columns, and none of these tables has any today. This block removes them if
---    they ever appear, so the migration cannot be defeated by a column grant.
+-- 3. Independence for column-level grants.
+--    Table-level REVOKE does remove column privileges of the same name, so this
+--    block is defence in depth rather than the primary mechanism: it exists so a
+--    column grant cannot survive if that behaviour is ever relied on incorrectly.
+--
+--    It is written as REVOKE ALL PRIVILEGES (col) ON TABLE ... deliberately.
+--    The alternative form `REVOKE SELECT, INSERT, UPDATE, REFERENCES (col)`
+--    binds the column list to the LAST privilege only — it reads as though the
+--    list covered every privilege, and it is only correct by accident, because
+--    the table-level revoke of SELECT/INSERT/UPDATE happens to cascade.
 -- ---------------------------------------------------------------------------
 do $$
 declare
@@ -142,7 +157,7 @@ begin
       and (x.grantee = 0 or pg_get_userbyid(x.grantee) in ('anon', 'authenticated'))
   loop
     execute format(
-      'revoke select, insert, update, references (%I) on table public.%I from %s',
+      'revoke all privileges (%I) on table public.%I from %s',
       r.col, r.tbl,
       case when r.grantee = 'PUBLIC' then 'public' else quote_ident(r.grantee) end);
     n := n + 1;
@@ -159,13 +174,18 @@ do $$
 declare
   privs text[] := array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'];
   n int;
+  expected int;
   detail text;
 begin
-  -- MAINTAIN exists only from PostgreSQL 17; include it where it does.
+  -- MAINTAIN exists only from PostgreSQL 17. array_append, never `||`.
   if current_setting('server_version_num')::int >= 170000 then
-    privs := privs || 'MAINTAIN';
+    privs := array_append(privs, 'MAINTAIN');
   end if;
+  expected := array_length(privs, 1) * 2;   -- two tables
+  raise notice 'Batch13: asserting % table privileges on PostgreSQL %',
+    expected, current_setting('server_version');
 
+  -- 4a. no anon/authenticated table privilege of ANY kind
   select count(*), string_agg(rr.rolname || '|' || t.tablename || '|' || p.priv, ', ')
     into n, detail
   from (values ('anon'),('authenticated')) rr(rolname)
@@ -176,6 +196,20 @@ begin
     raise exception 'Batch13 verification failed: table privileges still held: %', detail;
   end if;
 
+  -- 4b. no anon/authenticated privilege on ANY column, inherited access included.
+  --     has_any_column_privilege also returns true when the privilege is held
+  --     via a table-level grant, so this covers both routes.
+  select count(*), string_agg(rr.rolname || '|' || t.tablename || '|' || p.priv, ', ')
+    into n, detail
+  from (values ('anon'),('authenticated')) rr(rolname)
+  cross join (values ('profiles'),('ut_members')) t(tablename)
+  cross join unnest(array['SELECT','INSERT','UPDATE','REFERENCES']) p(priv)
+  where has_any_column_privilege(rr.rolname, 'public.' || t.tablename, p.priv);
+  if n > 0 then
+    raise exception 'Batch13 verification failed: column-level access still held: %', detail;
+  end if;
+
+  -- 4c. raw attacl must also be clean, for the tables we touch
   select count(*), string_agg(c.relname || '.' || a.attname, ', ')
     into n, detail
   from pg_attribute a
@@ -186,9 +220,10 @@ begin
     and a.attnum > 0 and a.attacl is not null
     and (x.grantee = 0 or pg_get_userbyid(x.grantee) in ('anon', 'authenticated'));
   if n > 0 then
-    raise exception 'Batch13 verification failed: column privileges still held: %', detail;
+    raise exception 'Batch13 verification failed: attacl entries remain: %', detail;
   end if;
 
+  -- 4d. the unrestricted policy is gone
   select count(*) into n from pg_policies
   where schemaname = 'public' and tablename = 'ut_members'
     and policyname = 'allow_authenticated_read';
@@ -196,17 +231,21 @@ begin
     raise exception 'Batch13 verification failed: the unrestricted read policy is still present';
   end if;
 
-  -- service_role is BYPASSRLS here, so its access depends on these grants.
-  select count(*) into n
+  -- 4e. service_role must hold the COMPLETE privilege set on BOTH tables.
+  --     16 on PostgreSQL 17, 14 on 16. service_role is BYPASSRLS here, so its
+  --     access depends entirely on these grants.
+  select count(*), string_agg(t.tablename || '|' || p.priv, ', ')
+    into n, detail
   from (values ('profiles'),('ut_members')) t(tablename)
-  cross join unnest(array['SELECT','INSERT','UPDATE','DELETE']) p(priv)
+  cross join unnest(privs) p(priv)
   where has_table_privilege('service_role', 'public.' || t.tablename, p.priv);
-  if n <> 8 then
+  if n <> expected then
     raise exception
-      'Batch13 verification failed: service_role lost access (expected 8 privileges, found %)', n;
+      'Batch13 verification failed: service_role holds % of % expected privileges: %',
+      n, expected, detail;
   end if;
 
-  raise notice 'Batch13: post-conditions satisfied on PostgreSQL %',
+  raise notice 'Batch13: all post-conditions satisfied on PostgreSQL %',
     current_setting('server_version');
 end $$;
 

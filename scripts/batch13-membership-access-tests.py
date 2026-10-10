@@ -24,15 +24,27 @@ Safety conventions
 
 Synthetic rows only.
 """
-import re, subprocess, sys
+import os, re, subprocess, sys
 
 DB = "b13test"
 A = "11111111-1111-1111-1111-111111111111"
 A_MAIL = "member-a@example.invalid"
 B_MAIL = "member-b@example.invalid"
 
+def _psql_base():
+    """psql prefix. B13_PGHOST / B13_PGPORT let the same suite run against the
+    PostgreSQL 16 system cluster or the isolated PostgreSQL 17 instance."""
+    cmd = ["sudo", "-u", "postgres", "psql"]
+    h = os.environ.get("B13_PGHOST")
+    p = os.environ.get("B13_PGPORT")
+    if h:
+        cmd += ["-h", h]
+    if p:
+        cmd += ["-p", p]
+    return cmd
+
 def psql(sql):
-    p = subprocess.run(["sudo", "-u", "postgres", "psql", "-d", DB, "-t", "-A",
+    p = subprocess.run(_psql_base() + ["-d", DB, "-t", "-A",
                         "-v", "ON_ERROR_STOP=0", "-c", sql],
                        capture_output=True, text=True, timeout=120)
     out = ((p.stdout or "") + (p.stderr or "")).strip()

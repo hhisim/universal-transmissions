@@ -6,14 +6,24 @@ PostgreSQL documents that referential-integrity checks bypass row security; the
 open question this settles empirically is whether they also survive the
 referencing role losing all privileges on the referenced table.
 """
-import re, subprocess, sys
+import os, re, subprocess, sys
 
 DB = "b13test"
 A = "11111111-1111-1111-1111-111111111111"
 B = "22222222-2222-2222-2222-222222222222"
 
+def _psql_base():
+    cmd = ["sudo", "-u", "postgres", "psql"]
+    h = os.environ.get("B13_PGHOST")
+    p = os.environ.get("B13_PGPORT")
+    if h:
+        cmd += ["-h", h]
+    if p:
+        cmd += ["-p", p]
+    return cmd
+
 def psql(sql):
-    p = subprocess.run(["sudo", "-u", "postgres", "psql", "-d", DB, "-t", "-A",
+    p = subprocess.run(_psql_base() + ["-d", DB, "-t", "-A",
                         "-v", "ON_ERROR_STOP=0", "-c", sql],
                        capture_output=True, text=True, timeout=120)
     return ((p.stdout or "") + (p.stderr or "")).strip(), ("ERROR" in ((p.stdout or "") + (p.stderr or "")))
