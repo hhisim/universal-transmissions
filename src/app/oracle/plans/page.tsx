@@ -79,7 +79,7 @@ const TIERS = [
     popular: true,
     features: [
       { text: 'The Codex II process archive: 23 pages of Codex II imagery', included: true },
-      { text: 'Ask Hakan \u2014 write directly from the member hub', included: true },
+      { text: 'Ask Hakan — write directly from the member hub', included: true },
       { text: 'Every correspondence system and record, open as before', included: true },
     ],
     cta: 'Begin Initiate',
