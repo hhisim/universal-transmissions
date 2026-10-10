@@ -400,7 +400,7 @@ export default function OraclePlansPage() {
             <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 18, letterSpacing: '0.15em', color: 'rgba(237,233,246,0.5)', marginBottom: 28 }}>Frequently Asked</h2>
             {[
               { q: 'Can I cancel anytime?', a: 'Yes — cancel from your account portal at any time. Your access continues until the end of the billing period.' },
-              { q: 'What counts as a question?', a: 'Each message you send to the Oracle counts as one. Ten questions are available per page session, and reloading the page starts a new one.' },
+              { q: 'What counts as a question?', a: 'Each question you send to the Oracle counts as one, once it has been answered. Ten questions are available per page session, and reloading the page starts a new one. Starting a new conversation without reloading does not restore them.' },
               { q: 'What happens to my history?', a: 'Questions live in the page you are on. Reloading the page clears the conversation and starts a new session of ten questions.' },
               { q: 'What does Initiate unlock beyond Oracle?', a: 'Initiate opens two member surfaces: the Codex II process archive and Ask Hakan, a direct message channel from the member hub. The correspondence archive and the Oracle itself stay open to everyone.' },
             ].map(item => (
