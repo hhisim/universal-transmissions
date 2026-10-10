@@ -634,7 +634,7 @@ function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
           </div>
         ))}
       </dl>
-      <footer className="oracle-evidence-foot">
+      <footer className="oracle-evidence-foot">
         <p className="oracle-evidence-note">
           Connections express symbolic interpretation; historical and scientific claims require their own sources.
         </p>
@@ -1888,6 +1888,7 @@ export default function OraclePage() {
           color: rgba(237, 233, 246, 0.72);
           overflow-wrap: anywhere;
         }
+        .oracle-evidence-note { margin:0 0 6px; font-family:'JetBrains Mono',monospace; font-size:9px; line-height:1.65; letter-spacing:.04em; color:rgba(237,233,246,.5); max-width:64ch; }
         .oracle-evidence-foot {
           display: flex;
           flex-wrap: wrap;
@@ -1895,7 +1896,6 @@ export default function OraclePage() {
           justify-content: space-between;
           gap: 8px;
         }
-        .oracle-evidence-note { margin:0 0 6px; font-family:'JetBrains Mono',monospace; font-size:9px; line-height:1.65; letter-spacing:.04em; color:rgba(237,233,246,.5); max-width:64ch; }
         .oracle-evidence-id {
           font-family: 'JetBrains Mono', monospace;
           font-size: 7px;
