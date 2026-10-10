@@ -139,7 +139,7 @@ function AccountPageContent() {
                     <CheckCircle size={14} style={{ color: '#22d3ee' }} />
                     <span className="font-heading text-sm tracking-wider" style={{ color: '#22d3ee' }}>Initiate Activated</span>
                   </div>
-                  <p className="font-body text-sm" style={{ color: 'var(--ut-white-dim)' }}>Welcome to Initiate. Your Oracle access is now unlimited.</p>
+                  <p className="font-body text-sm" style={{ color: 'var(--ut-white-dim)' }}>Welcome to Initiate. Your Initiate membership is active, and the Codex II archive is open.</p>
                 </div>
               )}
               <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-3" style={{ color: 'var(--ut-gold)', opacity: 0.6 }}>
@@ -200,9 +200,9 @@ function AccountPageContent() {
                 <div className="p-4 border" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
                   <div className="font-mono text-[9px] tracking-widest uppercase mb-1" style={{ color: 'var(--ut-white-faint)' }}>Today</div>
                   <div className="font-heading text-xl" style={{ color: 'var(--ut-white)' }}>
-                    {todayUsage}{isInitiate ? '' : ` / ${cfg.dailyLimit}`}
+                    {todayUsage}{isInitiate ? '' : ' this session'}
                   </div>
-                  {isInitiate && <div className="font-mono text-[8px] tracking-widest uppercase mt-0.5" style={{ color: '#d4a847' }}>Unlimited</div>}
+                  {isInitiate && <div className="font-mono text-[8px] tracking-widest uppercase mt-0.5" style={{ color: '#d4a847' }}>Codex II open</div>}
                 </div>
                 {session.current_period_end && (
                   <div className="p-4 border" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>

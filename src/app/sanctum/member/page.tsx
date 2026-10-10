@@ -107,7 +107,7 @@ const EXPERIENCE_TOOLS = [
   {
     id: 'correspondence-codex',
     name: 'The UT Correspondence Codex',
-    description: 'A visually complete but corpus-limited explorer. Guests sample the real Codex, free broadens access, and Initiate unlocks the full matrix.',
+    description: 'The whole codex — every system and every entry — open to every visitor. Initiate adds the Codex II archive.',
     status: 'live',
     icon: <BookOpen size={20} />,
     href: '/experience/correspondence-codex',
@@ -560,7 +560,7 @@ export default function MemberPage() {
                           <ZalgoText text="UT Experience Portal" intensity="subtle" />
                         </h3>
                         <p className="font-body text-sm leading-relaxed mb-4" style={{ color: "var(--ut-white-dim)" }}>
-                          Enter the full correspondence environment at different depths. Guests should feel the real world with limited reveals and compares. Free members keep all systems visible while gaining broader corpus access, bookmarks, and a few deeper actions. Initiate unlocks the full correspondence matrix, synthesis depth, and member archive.
+                          Enter the full correspondence environment at different depths. The correspondence environment is open to everyone today — every system, every entry, as many questions as you want to ask. Initiate opens the Codex II archive alongside it.
                         </p>
                         <Link href="/sanctum/member?tab=experience" className="btn-primary text-xs px-6 py-2 inline-flex items-center gap-2">
                           <Zap size={12} />
@@ -605,7 +605,7 @@ export default function MemberPage() {
                               <h3 className="font-heading text-sm tracking-wider mb-1" style={{ color: "var(--ut-white)" }}>{tool.name}</h3>
                               <p className="font-body text-xs leading-relaxed mb-3" style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}>{tool.description}</p>
                               <div className="flex items-center gap-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "var(--ut-gold)", opacity: 0.5 }}>
-                                <span>Unlimited Access</span>
+                                <span>Open Access</span>
                                 <ChevronRight size={10} />
                               </div>
                             </div>
@@ -802,7 +802,7 @@ function ExperiencePortalTab({ profile, isPaid }: { profile: MemberProfile | nul
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ background: "var(--ut-magenta)" }} />
             <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "var(--ut-magenta)" }}>
-              Paid: Unlimited Everything
+              Paid: Codex II archive
             </span>
           </div>
         </div>

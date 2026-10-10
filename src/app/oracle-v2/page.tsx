@@ -38,9 +38,9 @@ const T: Record<string, Record<string, string>> = {
     goDesc: "The Codex Oracle is one gateway. Vault of Arcana holds six living traditions.",
     enterVault: "Enter the Vault",
     getBook: "Get the Book",
-    guestLimit: "Guest · {n}/10 today",
-    freeLimit: "Free · {n}/25 today",
-    initiateActive: "Initiate · Unlimited",
+    guestLimit: "Guest · {n}/10 this session",
+    freeLimit: "Free account · {n}/10 this session",
+    initiateActive: "Initiate · Codex II archive open",
     upgrade: "UPGRADE",
     enterHint: "ENTER to send · SHIFT+ENTER for new line",
     you: "YOU",
@@ -71,9 +71,9 @@ const T: Record<string, Record<string, string>> = {
     goDesc: "Kodeks Kehaneti tek bir kapıdır. Vault of Arcana altı canlı geleneği barındırır.",
     enterVault: "Kasaya Gir",
     getBook: "Kitabı Al",
-    guestLimit: "Misafir · {n}/10 bugün",
-    freeLimit: "Ücretsiz · {n}/25 bugün",
-    initiateActive: "Mürit · Sınırsız",
+    guestLimit: "Misafir · bu oturumda {n}/10",
+    freeLimit: "Ücretsiz hesap · bu oturumda {n}/10",
+    initiateActive: "Mürit · Codex II arşivi açık",
     upgrade: "YÜKSELT",
     enterHint: "ENTER gönder · SHIFT+ENTER yeni satır",
     you: "SEN",
@@ -104,9 +104,9 @@ const T: Record<string, Record<string, string>> = {
     goDesc: "Оракул Кодекса — лишь одни врата.",
     enterVault: "Войти",
     getBook: "Книгу",
-    guestLimit: "Гость · {n}/10",
-    freeLimit: "Бесплатно · {n}/25",
-    initiateActive: "Посвящённый · ∞",
+    guestLimit: "Гость · в этой сессии {n}/10",
+    freeLimit: "Бесплатный · в этой сессии {n}/10",
+    initiateActive: "Посвящённый · архив Codex II открыт",
     upgrade: "УЛУЧШИТЬ",
     enterHint: "ENTER отправить · SHIFT+ENTER строка",
     you: "ВЫ",
@@ -474,7 +474,7 @@ export default function OracleV2Page() {
               <div style={{ padding: "0 24px 20px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
                 {atLimit && (
                   <div className="text-center py-3">
-                    <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{tier === "guest" ? "Daily limit reached. Create a free account for 25/day." : "Daily limit reached."}</span>
+                    <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{"10 questions in this session. Reload the page to begin a new one."}</span>
                     {tier !== "initiate" && <a href="/oracle/plans" className="ml-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "#d946ef" }}>{t.upgrade}</a>}
                   </div>
                 )}

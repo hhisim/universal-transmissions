@@ -250,17 +250,17 @@ export default function HomePage() {
               {[
                 {
                   title: 'Guest',
-                  text: 'A visually complete but corpus-limited explorer: real browsing, featured entries, and a very small number of advanced actions.',
+                  text: 'The whole correspondence codex — all 27 systems, all 824 records — open to read, search and question without an account.',
                   color: 'var(--ut-white-dim)'
                 },
                 {
                   title: 'Free Account',
-                  text: 'The same world, broader access: all systems visible, more entries unlocked, bookmarks, and a few deeper reveals / resonance actions.',
+                  text: 'The same open access, held to your account so your membership is recognised when you return.',
                   color: 'var(--ut-cyan)'
                 },
                 {
                   title: 'Initiate',
-                  text: 'The full correspondence matrix: unlimited node opening, synthesis depth, saved trails, private archive access, and the deepest ritual interactions.',
+                  text: 'Initiate adds the Codex II archive — the behind-the-scenes process material held for members. The correspondence codex itself stays open to everyone.',
                   color: 'var(--ut-gold)'
                 }
               ].map((item) => (

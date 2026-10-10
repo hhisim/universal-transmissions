@@ -25,7 +25,7 @@ export default function CorrespondenceContinuumPage() {
 
       <div style={{ maxWidth: 1600, margin: "0 auto", padding: "10px 12px 0" }}>
         <div style={{ padding: "10px 12px", border: "1px solid rgba(212,168,71,0.12)", background: "rgba(17,15,26,0.22)", color: "rgba(237,233,246,0.74)", fontSize: 12.5, letterSpacing: "0.02em" }}>
-          Best experienced on laptop or desktop. On phones, use the Correspondence Codex for the lighter mobile correspondence layer. Guest should be able to browse the real Continuum, open a limited set of entries, and perform a small number of compare / reveal actions. Free expands depth and saved pathways. Initiate unlocks the full matrix and unlimited synthesis.
+          Best experienced on laptop or desktop. On phones, use the Correspondence Codex for the lighter mobile correspondence layer. The Continuum is open in full to every visitor — browse the real surface and open as many entries as you like. Initiate adds the Codex II archive.
         </div>
       </div>
     </section>

@@ -21,7 +21,7 @@ export const PLAN_CONFIG: Record<PlanId, PlanConfig> = {
   guest: {
     id: 'guest',
     name: 'Guest',
-    description: '10 questions total. No account needed.',
+    description: 'The full correspondence codex and the Oracle, open without an account.',
     dailyLimit: 10,
     guestTotalLimit: 10,
     priceMonthly: 0,
@@ -29,14 +29,14 @@ export const PLAN_CONFIG: Record<PlanId, PlanConfig> = {
   free: {
     id: 'free',
     name: 'Free',
-    description: '25 questions per day. Create an account to unlock more.',
+    description: 'The same open access, with an account that recognises your membership.',
     dailyLimit: 25,
     priceMonthly: 0,
   },
   initiate: {
     id: 'initiate',
     name: 'Initiate',
-    description: 'Unlimited questions. All languages, all Oracle modes.',
+    description: 'Adds the Codex II archive. Every language and Oracle mode stays open to all.',
     dailyLimit: 'unlimited',
     priceMonthly: 3.99,
     stripePriceId: INITIATE_PRICE_ID,

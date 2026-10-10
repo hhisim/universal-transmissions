@@ -15,7 +15,7 @@ export default function CodexPage() {
             The UT Correspondence Codex
           </h1>
           <p style={{ margin: "12px 0 0", maxWidth: 980, color: "rgba(237,233,246,0.72)", lineHeight: 1.7, fontSize: 15 }}>
-            A visually complete but corpus-limited explorer. Guests should feel the reality of the Codex, free accounts should gain broader traversal and a few deeper actions, and Initiate opens the full correspondence matrix with deeper ritual interaction.
+            The Codex in full — every system and every entry, open to browse, search and question without an account. Initiate opens the Codex II archive alongside it.
           </p>
         </div>
 
@@ -23,9 +23,9 @@ export default function CodexPage() {
 
         <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
           {[
-            "Guest: full visual environment, all systems visible, teaser-state corpus access, and a small number of real interactions.",
-            "Free account: broader corpus access, favorites / bookmarks, limited compare and oracle-style reveals, and a small saved-history layer.",
-            "Initiate: full matrix access, unlimited deep reveals, resonance, synthesis, saved trails, and advanced traversal."
+            "Guest: the entire codex — all 27 systems and all 824 records — open to browse, search and question, with no account.",
+            "Free account: the same open access, held to your account so your membership is recognised when you return.",
+            "Initiate: everything above, plus the Codex II archive — the behind-the-scenes process material held for members."
           ].map((text, index) => (
             <div key={index} style={{ padding: "12px 14px", border: "1px solid rgba(212,168,71,0.14)", background: "rgba(17,15,26,0.55)", color: "rgba(237,233,246,0.78)", fontSize: 13, letterSpacing: "0.02em" }}>
               {text}
