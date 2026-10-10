@@ -1,17 +1,15 @@
 # Batch 13 — Membership database access repair
 
 Migration: `supabase/migrations/20261010_membership_access_hardening.sql`
+Read-only production verification: `scripts/batch13-membership-access-verify-production.sql`
+Isolated (destructive) fixture runner: `scripts/batch13-membership-access-verify.sh`
 Baseline: `3d86846dfb474dbb664cc695d936f7c25b50a048`
-Database: Supabase project `opixpkquyapeqdceyczs` (Universal Transmissions)
-Status: **prepared and tested against an isolated local reproduction — not applied to production**
+Database: Supabase project `opixpkquyapeqdceyczs` — **PostgreSQL 17.6** (confirmed by read-only query)
+Status: **prepared and tested against an isolated reproduction — not applied to production**
 
 ---
 
 ## 1. Access trace: who actually reads and writes these tables
-
-Every access path in the application was traced by grepping the tree for the two table
-names and for the supabase client factories, then classifying each hit as a browser
-module or a server module and identifying its key.
 
 | Caller | File | Operation | Columns | Client | Role |
 |---|---|---|---|---|---|
@@ -22,225 +20,189 @@ module or a server module and identifying its key.
 | Member record | `src/app/api/member/route.ts` | SELECT, INSERT, UPDATE | `*`; `insert(email,oracle_access)`; `update(last_login)` | `supabaseAdmin` | service_role |
 | Checkout | `src/app/api/billing/checkout/route.ts` | SELECT, UPSERT | `ut_members.stripe_customer_id`; upsert `email,stripe_customer_id,plan` in both | `supabaseAdmin` + explicit service client | service_role |
 | Free activation | `src/app/api/billing/activate-free/route.ts` | UPSERT | `profiles(email,plan)` | `supabaseAdmin` | service_role |
-| Stripe webhook | `src/app/api/stripe-webhook/route.ts` | SELECT, UPDATE, UPSERT | `ut_members.plan,subscription_status,stripe_subscription_id,current_period_end`; `profiles.plan,email,stripe_customer_id` | explicit service client (`UT_SUPABASE_SERVICE_ROLE_KEY`) | service_role |
+| Stripe webhook | `src/app/api/stripe-webhook/route.ts` | SELECT, UPDATE, UPSERT | `ut_members.plan,subscription_status,stripe_subscription_id,current_period_end`; `profiles.plan,email,stripe_customer_id` | explicit service client | service_role |
 | Integration | `src/app/api/integration/plan/route.ts` | SELECT | `ut_members.plan,subscription_status`; `profiles.plan` | `supabaseAdmin` | service_role |
-| Oracle usage | `src/app/api/oracle/usage/route.ts`, `oracle-v2/usage/route.ts`, `experience/usage/route.ts` | SELECT | `profiles.plan` | `supabaseAdmin` | service_role |
+| Oracle usage | `api/oracle/usage`, `api/oracle-v2/usage`, `api/experience/usage` | SELECT | `profiles.plan` | `supabaseAdmin` | service_role |
 | Member pages | `src/app/sanctum/member/codex-ii/{page,gallery,exclusive}/page.tsx` | SELECT | `profiles.plan,subscription_status`; `ut_members.plan` | `supabaseAdmin` (server components) | service_role |
-| **Browser** | `src/lib/supabase-client.ts` (anon key) | **no table access** — used only for Supabase Auth (`getSession`, `onAuthStateChange`) | — | supabase-js anon | anon |
+| **Browser** | `src/lib/supabase-client.ts` (anon key) | **no table access** — Supabase Auth only | — | supabase-js anon | anon |
 
-**Conclusion: every legitimate membership access is server-mediated.** There is no
-`supabase.from(...)` call on the browser client anywhere in `src/`. The anon browser
-client exists for authentication only.
+**Every legitimate membership access is server-mediated.** There is no `supabase.from(...)` on the browser client anywhere in `src/`.
 
-Two further identity consumers were checked and are unaffected:
+Unaffected identity consumers: the NextAuth `SupabaseAdapter` (`next_auth` schema, service-role secret), and the `SECURITY DEFINER` `increment_*_usage` RPCs (`ut_oracle_usage` / `ut_guest_usage`; `pg_proc.prosrc` contains no reference to either membership table).
 
-* **NextAuth** (`src/lib/auth.ts`) installs `SupabaseAdapter` from
-  `@auth/supabase-adapter` with the service-role secret. It reads and writes the
-  `next_auth` schema, not `public.profiles` / `public.ut_members`.
-* **RPCs** `increment_oracle_usage` and `increment_guest_usage` are `SECURITY DEFINER`
-  and touch `ut_oracle_usage` / `ut_guest_usage`. `pg_proc.prosrc` contains no
-  reference to either membership table.
+UT production was confirmed to point at this project: `NEXT_PUBLIC_SUPABASE_URL` and `UT_SUPABASE_URL` in the Vercel production environment both resolve to `opixpkquyapeqdceyczs`. (A stale `.vercel/.env.production.local` inside the UT working directory names the *sibling* project; it is a leftover local artifact, not the deployed configuration. Worth cleaning up separately.)
 
 ---
 
 ## 2. Access matrix: role → required operations → enforcement
 
-| Role | Operations required on `profiles` | Operations required on `ut_members` | Enforcement after this migration |
+| Role | Required on `profiles` | Required on `ut_members` | Enforcement after this migration |
 |---|---|---|---|
-| `service_role` | SELECT, INSERT, UPDATE, DELETE, UPSERT | SELECT, INSERT, UPDATE, DELETE, UPSERT | Table grants **retained** (all 7 privileges). Also `BYPASSRLS`, so the `srv_*` policies are documentation, not the control. |
+| `service_role` | SELECT, INSERT, UPDATE, DELETE, UPSERT | same | Table grants **retained** (all privileges). Also `BYPASSRLS`, so the `srv_*` policies are documentation rather than the control. |
 | `postgres` (owner) | full | full | Ownership. Untouched. |
 | `authenticated` | **none** | **none** | Privileges **revoked**; the `allow_authenticated_read` policy is **dropped**. |
 | `anon` | **none** | **none** | Privileges **revoked**. |
 | `PUBLIC` | none | none | No grant existed; `REVOKE ... FROM public` applied to make the invariant explicit. |
 
-### Why privileges, not just RLS
+---
 
-`anon` and `authenticated` held **all** table privileges (`arwdDxtm`) on both tables.
-Row level security is not the only control that matters here:
+## 3. Corrected threat assessment for the TRUNCATE privilege
 
-* **TRUNCATE is not subject to row level security.** A role holding the TRUNCATE
-  privilege can empty the table regardless of any policy. Measured on the
-  reproduction: as `anon`, `TRUNCATE public.ut_members` succeeded and the row count
-  went 2 → 0. That was reachable with the public anon key alone.
-* **REFERENCES and TRIGGER** are likewise grant-controlled, not policy-controlled.
+These are three different claims and they must not be merged.
 
-So the defect had two independent halves, and fixing only the policy would have left
-the destructive half open. Both are closed.
+**(a) Demonstrated database privilege.** In an isolated database reproduction, a session executing as `anon` successfully ran `TRUNCATE public.ut_members` and the row count went 2 → 0. The same held for `profiles` and for `authenticated`. This is a measured fact about grants: **RLS does not apply to TRUNCATE**, so the privilege is the only control. `anon` and `authenticated` held `arwdDxtm` — every privilege.
 
-### The policies involved (deployed, verbatim)
+**(b) Proven HTTP/RPC reachability: none found.** The earlier phrasing "reachable with the public anon key alone" **is withdrawn** — it was an inference, not a demonstrated path. What was checked:
 
-```
-profiles   srv_profiles               ALL    TO public  USING (auth.role() = 'service_role')
-ut_members Service role full access   ALL    TO public  USING (auth.role() = 'service_role')
-ut_members srv_ut_members             ALL    TO public  USING (auth.role() = 'service_role')
-ut_members allow_authenticated_read   SELECT TO public  USING (auth.uid() IS NOT NULL)   <-- dropped
-```
+* `anon` and `authenticated` have `rolcanlogin = false`. They cannot open a SQL session; they are only reachable by `SET ROLE` from `authenticator`, i.e. through PostgREST.
+* PostgREST maps HTTP verbs to SELECT / INSERT / UPDATE / DELETE. It exposes **no TRUNCATE operation**, so the anon key cannot reach TRUNCATE through the REST API.
+* Every function `anon` or `authenticated` may `EXECUTE` was enumerated: `increment_guest_usage`, `increment_oracle_usage`, `increment_view_count`, `update_post_reply_stats`, `freeze_hh_pinterest_pin_identity`, `set_hh_pinterest_pin_dedupe_key`, `update_updated_at`, plus `graphql_public.graphql`. **None contains `TRUNCATE`, and none builds dynamic SQL** (`EXECUTE format(...)` etc.), so no RPC reaches a utility statement. `pg_graphql` exposes select/insert/update/delete only.
 
-`ut_members.id` is `gen_random_uuid()` and is **not** `auth.uid()`; the table has no
-`user_id` column at all. An ownership policy for it would therefore have to key on
-`email`, whose trust assumptions are not sound: `email` has no unique constraint, and
-a policy comparing it to a JWT claim would make entitlement depend on an unverified,
-non-unique string. The server-mediated route is the correct enforcement point, so no
-replacement policy is introduced.
+**(c) Potential exposure if an execution path is introduced later.** The privilege is a latent capability. Any future function that executes a utility statement, any additional connection path, or any leaked credential for a login-capable role would turn it into direct, unpoliced data destruction. The same reasoning applies to `REFERENCES` and `TRIGGER` — grant-controlled, not policy-controlled, and unnecessary here.
+
+**Conclusion.** The privilege is real and unnecessary and is removed on least-privilege grounds. It was **not** shown to be reachable over HTTP, and the migration's justification does not depend on it being so.
 
 ---
 
-## 3. Compatibility findings
+## 4. What the migration does, and why each part is there
 
-Checked read-only against the deployed database before writing the migration.
+| Concern | Handling |
+|---|---|
+| Removes the unrestricted policy | `drop policy if exists "allow_authenticated_read"` on `ut_members`. |
+| Revokes **table** privileges | `revoke all privileges ... from anon, authenticated, public`, plus an explicit named list. `REVOKE ALL` covers `MAINTAIN` where it exists (PG 17+). |
+| Revokes **column** privileges | A plpgsql block walks `pg_attribute.attacl` and revokes any column-level grant to `anon`/`authenticated`/`PUBLIC`. PostgreSQL does **not** remove column grants with a table-level REVOKE, so this is handled explicitly rather than assumed. None exist today. |
+| PUBLIC / inherited | `REVOKE ... FROM public`; role membership is inspected and verified to add no path. |
+| Preserves service-role access | `service_role` grants untouched, and asserted in the post-conditions as an 8-privilege set across both tables. |
+| No rows, ownership, columns, indexes, default privileges | The migration contains only `DROP POLICY` and `REVOKE`. No DML, no DDL beyond the policy. |
+| Atomic | Wrapped in `BEGIN`/`COMMIT`; any error or failed post-condition rolls the whole thing back. |
+| Bounded lock waits | `SET LOCAL lock_timeout = '10s'`, `statement_timeout = '60s'`. `DROP POLICY`/`REVOKE` take ACCESS EXCLUSIVE locks, so a contended run aborts cleanly instead of queueing behind production traffic. |
+| Catalog drift | Preconditions assert both tables exist as tables with RLS enabled, and that if `allow_authenticated_read` is present it has exactly the expected predicate. A differently-defined policy of the same name aborts the migration rather than removing something unexpected. |
 
-| Dependency | Finding | Impact of this migration |
+---
+
+## 5. Compatibility
+
+### This project (Universal Transmissions)
+
+| Dependency | Finding | Impact |
 |---|---|---|
-| **Realtime** | Neither table is a member of the `supabase_realtime` publication (`puballtables = false`). | None. Realtime subscribers would have broken had they existed; they do not. |
-| **Foreign keys** | `conversations.user_id` → `profiles.user_id`, `ON DELETE CASCADE`. | **Verified unaffected** — see below. |
-| **Views / matviews** | None depend on either table. | None. |
-| **Functions** | No `public` function references either table. | None. |
-| **Policies on other tables** | No policy elsewhere references these tables. | None. |
-| **Other grantees** | Only `anon`, `authenticated`, `postgres`, `service_role`. No `PUBLIC` grant. | None. |
-| **NextAuth adapter** | Uses the `next_auth` schema with the service role. | None. |
-| **PostgREST** | `public` is exposed. Requests from the anon/authenticated roles to these two tables will now return a permission error instead of data. | Intended. No shipped caller makes such a request. |
+| Realtime | Neither table is in `supabase_realtime` (`puballtables = false`). | None. |
+| Foreign keys | `conversations.user_id` → `profiles.user_id`, `ON DELETE CASCADE`. | **Verified unaffected** — see §6. |
+| Views / matviews | None depend on either table. | None. |
+| Functions | No `public` function references either table. | None. |
+| Policies on other tables | None reference these tables. | None. |
+| Other grantees | Only `anon`, `authenticated`, `postgres`, `service_role`. No `PUBLIC` grant. | None. |
+| Column ACLs | None anywhere in `public`. | None. |
+| PostgREST | Requests from anon/authenticated to these two tables will return a permission error instead of data. | Intended; no shipped caller makes such a request. |
 
-### The `conversations` foreign key, explicitly
+### The sibling application — corrected
 
-`public.conversations` belongs to a sibling application on the same project — the
-Universal Transmissions app never touches it (no `.from("conversations")` in `src/`).
-It holds a `FOR ALL` policy `auth.uid() = user_id` and broad grants of its own. Because
-it references `profiles`, withdrawing privileges on `profiles` had to be proven safe
-for it. Tested on the reproduction, both before and after the revoke:
+The previous report said `conversations` "belongs to a sibling application on the same project". That was directionally right but imprecise. What the evidence actually shows:
 
-* `authenticated` can still insert its **own** conversation row — PASS both states.
-* `authenticated` still cannot insert a row for another user — PASS both states.
-* The FK still rejects a non-existent profile — PASS both states.
-* `service_role` can still insert — PASS both states.
-* `ON DELETE CASCADE` from `profiles` still fires — PASS both states.
+* The account holds **two separate Supabase projects**: `universal-transmissions` = `opixpkquyapeqdceyczs` (ap-northeast-1) and `arcana-vault` = `mqixjzolgrdzbwzkrzxz` (eu-west-1).
+* **Vault of Arcana (`arcana-vault`, repo `hhisim/arcana-vault`) is the sibling whose schema `conversations` matches** — its `Conversation` type is an exact column-for-column match with the table in the UT project.
+* **But the current `arcana-vault` source no longer points at the UT project.** 82 references in its source, and its `.env`, resolve to `mqixjzolgrdzbwzkrzxz`; the repository never references the UT project ref. Its own project contains its own `conversations`, `messages`, `profiles` and `ut_members`.
+* Within the UT project, `conversations` holds **11 rows, last written 2026-05-11** (~5 months before this review); `messages` holds 27 rows from the same date; `forum_posts` is empty; `agora_threads` holds 5 rows from 2026-04-05. So the VOA-shaped tables in the UT project are best described as a **dormant remnant of an earlier shared-project arrangement**, not an actively written set.
+* The UT application never touches them (no `.from("conversations")` anywhere in `src/`), and no local ops script was found that references them.
 
-PostgreSQL performs referential-integrity checks without requiring the referencing
-role to hold privileges on the referenced table, which is what these probes confirm.
-`conversations` was **not modified** by this migration.
+**Which revocations could affect a consumer of those tables.** The migration touches `profiles` and `ut_members` only. `conversations` keeps its own policy and grants untouched. The single coupling is the foreign key from `conversations.user_id` to `profiles.user_id`.
 
-### Deferred, recorded separately
+Traced consumers of the sibling project's *own* `profiles` (i.e. the same code paths, in its own database): `lib/account.ts` (SELECT/UPDATE by `user_id`), `app/api/billing/{activate-free,checkout,activate-trial,webhook}`, `app/api/auth/callback` — **all via `getAdminSupabase()`, the service role**. Its browser client reaches `conversations` and forum tables directly, not `profiles`/`ut_members`.
 
-The broad grants are not a one-off mistake: the project's default privileges for
-schema `public` grant all privileges on new tables to `anon` and `authenticated`
-(`pg_default_acl`). Every newly created table inherits this. Changing default
-privileges is a project-wide decision beyond this migration and is **not** done here.
-The same pattern is visible on `conversations` and other tables.
+Note also that the sibling project is configured differently: its `profiles` carries genuine ownership policies — `Users can view own profile` and `Users can update own profile`, both `auth.uid() = user_id` — and its `ut_members` carries only a service-role policy with no unrestricted read. That pattern is the correct one, and it is what the UT project's `ut_members` was missing.
+
+### Remaining uncertainty — stated plainly
+
+1. The deployed `arcana-vault` Vercel environment variables are returned **encrypted** (`decrypt=false`), so the live value of `NEXT_PUBLIC_SUPABASE_URL` for that project was **not read**. The repository and its local `.env` both say `mqixjzolgrdzbwzkrzxz`, and the repo never references the UT project, but I cannot fully exclude a stale *deployment* still configured against the UT project.
+2. If such a deployment existed, its browser code issues `SELECT`/`UPDATE` on `conversations` as `authenticated` — **which this migration does not touch**. The only exposure would be through the FK, which is verified unaffected.
+3. I make **no claim of project-wide compatibility**. The statement supported by evidence is narrower: no consumer of `profiles` or `ut_members` in the UT project requires direct anon/authenticated access, and the one cross-table dependency in the shared project (the `conversations` FK) survives the change.
+4. Separately noted, **not touched**: the sibling project `mqixjzolgrdzbwzkrzxz` carries the same broad-grant pattern (its `profiles` and `ut_members` grant to `anon` and `authenticated`). Its ownership policies on `profiles` mean the browser reads there are legitimately intended, so any hardening there is a different piece of work.
 
 ---
 
-## 4. Applying to production
+## 6. Foreign-key compatibility evidence
 
-The change is **SQL only**. A Vercel preview cannot prove database enforcement — there
-is no application code change to deploy, and the migration's effect is entirely inside
-PostgreSQL. Verification must be performed against the database itself.
+Tested on the isolated reproduction in both states (before and after the revoke), 5/5 passing each time:
 
-### Steps
+* `authenticated` can still insert its **own** conversation row.
+* `authenticated` still cannot insert a row for another user (ownership policy holds).
+* The FK still rejects a non-existent profile.
+* `service_role` can still insert.
+* `ON DELETE CASCADE` from `profiles` still fires.
 
-1. Confirm the baseline deployment is unchanged (`dpl_DYVBSEF14NUiv4tvkSEasuwst4nh` /
-   `3d86846d`) — this change does not depend on it.
-2. Record the pre-state for the record:
-   ```sql
-   select c.relname, coalesce(r.rolname,'PUBLIC') grantee, a.privilege_type
-   from pg_class c join pg_namespace n on n.oid=c.relnamespace
-   cross join lateral aclexplode(c.relacl) a
-   left join pg_roles r on r.oid=a.grantee
-   where n.nspname='public' and c.relname in ('profiles','ut_members') order by 1,2,3;
-   ```
-3. Apply `20261010_membership_access_hardening.sql` in a single transaction (the file
-   is already wrapped in `BEGIN`/`COMMIT`).
-4. Run the verification below.
-
-### Verification (read-only, no member rows returned)
-
-```sql
--- V1: anon and authenticated must hold nothing on either table  -> expect 0 rows
-select r.rolname, t.tablename, p.priv
-from (values ('anon'),('authenticated')) r(rolname)
-cross join (values ('profiles'),('ut_members')) t(tablename)
-cross join (values ('SELECT'),('INSERT'),('UPDATE'),('DELETE'),('TRUNCATE'),
-                    ('REFERENCES'),('TRIGGER')) p(priv)
-where has_table_privilege(r.rolname, 'public.'||t.tablename, p.priv);
-
--- V2: the unrestricted read policy must be gone                  -> expect 0 rows
-select policyname from pg_policies
-where schemaname='public' and tablename='ut_members'
-  and policyname = 'allow_authenticated_read';
-
--- V3: service_role must still hold everything                    -> expect 14 rows
-select r.rolname, t.tablename, p.priv
-from (values ('service_role')) r(rolname)
-cross join (values ('profiles'),('ut_members')) t(tablename)
-cross join (values ('SELECT'),('INSERT'),('UPDATE'),('DELETE'),('TRUNCATE'),
-                    ('REFERENCES'),('TRIGGER')) p(priv)
-where has_table_privilege(r.rolname, 'public.'||t.tablename, p.priv);
-
--- V4: no PUBLIC grant                                             -> expect 0 rows
-select t.tablename, p.priv
-from (values ('profiles'),('ut_members')) t(tablename)
-cross join (values ('SELECT'),('INSERT'),('UPDATE'),('DELETE'),('TRUNCATE')) p(priv)
-where has_table_privilege('public', 'public.'||t.tablename, p.priv);
-```
-
-Then exercise the application read paths, which all use the service role and must be
-unaffected: `/api/billing/session`, `/api/billing/plan-status`, `/api/member/message`,
-`/account`, `/oracle/plans`, `/sanctum/member` and the three `codex-ii` pages. These
-must behave exactly as before; no member-visible behaviour changes.
+PostgreSQL performs referential-integrity checks without requiring the referencing role to hold privileges on the referenced table, which is what these probes establish. `conversations` is not modified by this migration.
 
 ---
 
-## 5. Reproducing the tests
+## 7. Verification — two separate procedures
+
+**Do not mix them.** The fixture runner deliberately destroys data inside a rolled-back transaction; it must never be pointed at production.
+
+### 7a. Isolated fixture (destructive probes, throw-away database)
 
 ```bash
 scripts/batch13-membership-access-verify.sh
 ```
 
-The script builds a throw-away PostgreSQL database, reproduces the deployed schema,
-ACLs, policies and `auth.*` shims, then runs `scripts/batch13-membership-access-tests.py`
-against it in three states: as deployed, after the migration, and after the reversal.
-Synthetic rows only; destructive probes run in a transaction that is rolled back.
+Builds a temporary PostgreSQL database reproducing the deployed schema, ACLs, policies and `auth.*` shims, then runs `scripts/batch13-membership-access-tests.py` in three states plus the FK compatibility suite. Synthetic rows only; every destructive probe is rolled back. This is the procedure that demonstrates the defect and proves the migration closes it.
 
-**Scope of the evidence: database-role simulation.** The probes `SET ROLE` to
-`anon`/`authenticated`/`service_role` and supply `request.jwt.claim.*` so that
-`auth.uid()`/`auth.role()` behave as under PostgREST. No Supabase JWT is minted and
-PostgREST is not in the path. This is what establishes RLS semantics and effective
-privileges. It is **not** a real authenticated end-to-end integration test, and the
-authenticated success paths of the application routes remain mocked-boundary evidence
-from Batches 11 and 12.
+### 7b. Production (read-only, catalog only)
 
-### Results
+```bash
+psql "$PROD_URL" -f scripts/batch13-membership-access-verify-production.sql
+```
+
+Only SELECTs against `pg_catalog`, `pg_policies` and the `has_*_privilege()` functions. It reads no member rows, changes nothing, and takes no lock that blocks writers. It is version-aware, covering all eight table privileges — `SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN` — adding `MAINTAIN` only when `server_version_num >= 170000`.
+
+Expectations: V1, V2, V3 and V5 return no rows; V4 shows `service_role` holding everything (16 rows on PG 17, 14 on PG 16); V4b lists only `postgres` and `service_role`; V6/V7 show no inheritance or login path for `anon`/`authenticated`. Any other result means the migration did not take effect as intended.
+
+### Version note
+
+The isolated fixture runs on **PostgreSQL 16.15** (the newest available to this environment); production is **PostgreSQL 17.6**. `MAINTAIN` does not exist before 17, so **the fixture could not test it, and no claim is made that it did**. The fixture's privilege inventory covers the seven privileges that exist on 16. `MAINTAIN` is revoked on production by `REVOKE ALL` (which covers every applicable privilege) and is asserted there by the read-only verification, which includes it on 17.
+
+### Results (isolated fixture, PostgreSQL 16.15)
 
 | State | Membership probes | Meaning |
 |---|---|---|
-| As deployed | FAIL — cross-member read and anonymous TRUNCATE reproduce | defect confirmed |
+| As deployed | FAIL — cross-member read reproduces; TRUNCATE succeeds for `anon` and `authenticated` on both tables | defect confirmed |
 | After the migration | PASS, 0 failures | repaired |
 | After the reversal | FAIL again on the same probes | the suite detects the regression |
 
-Measured on the reproduction, as deployed:
+Measured as deployed: authenticated user A saw 2 rows of `ut_members` (its own and user B's) and read both stored `stripe_customer_id` values; `anon` `TRUNCATE public.ut_members` succeeded, row count 2 → 0.
 
-* `authenticated` user A saw **2 rows** of `ut_members` — its own and user B's — and
-  read both stored `stripe_customer_id` values.
-* `anon` `TRUNCATE public.ut_members` **succeeded**, row count 2 → 0.
+**Scope of the evidence: database-role simulation.** The probes `SET ROLE` to `anon`/`authenticated`/`service_role` and supply `request.jwt.claim.*` so `auth.uid()`/`auth.role()` behave as under PostgREST. No Supabase JWT is minted and PostgREST is not in the path. It establishes RLS semantics and effective privileges; it is **not** a real authenticated end-to-end integration test.
 
 ---
 
-## 6. Recovery plan
+## 8. Applying to production
 
-The migration is a single transaction, so a failure mid-apply leaves the database
-untouched.
+This is **SQL only**. A Vercel preview cannot prove database enforcement: there is no application code change to deploy, and the migration's effect lives entirely inside PostgreSQL.
 
-**Do not treat the inverse as a safe rollback.** `scripts/batch13-membership-access-reversal.sql`
-restores the previous grants and the `allow_authenticated_read` policy, and doing so
-reintroduces **both** defects: cross-member disclosure of every row of `ut_members`
-including billing identifiers, and anonymous TRUNCATE of both tables. Reverting to it
-trades a closed hole for an open one and is only appropriate if prior behaviour is
-deliberately chosen over the fix, e.g. to unblock a caller that unexpectedly depended
-on direct access.
+1. Confirm the baseline deployment is unchanged (`dpl_DYVBSEF14NUiv4tvkSEasuwst4nh` / `3d86846d`). This change does not depend on it.
+2. Record the pre-state by running §7b once and keeping the output.
+3. Apply `20261010_membership_access_hardening.sql` — it is already wrapped in `BEGIN`/`COMMIT` and will roll back entirely on any failed precondition or post-condition.
+4. Run §7b again and compare.
+5. Exercise the service-role paths, which must be unaffected: `/api/billing/session`, `/api/billing/plan-status`, `/api/member/message`, `/account`, `/oracle/plans`, `/sanctum/member`, and the three `codex-ii` pages.
 
-If a legitimate caller is discovered to need access after the migration, do **not**
-re-apply the broad grants. Bring the caller behind the existing verified server
-contract (`src/lib/verified-identity.ts` and the service-role routes) and leave the
-grants withdrawn.
+---
 
-A schema-level recovery point exists regardless: Supabase automated backups and PITR
-for project `opixpkquyapeqdceyczs` are unaffected by this change, since it alters
-privileges and one policy — no rows, columns or indexes.
+## 9. Recovery plan
+
+The migration is a single transaction, so a failure mid-apply leaves the database untouched.
+
+**The inverse is not a safe rollback.** `scripts/batch13-membership-access-reversal.sql` restores the previous grants and the read policy, and thereby reintroduces **both** defects: cross-member disclosure of every `ut_members` row including stored billing identifiers, and the TRUNCATE privilege on both tables. It exists to prove the test suite detects the regression, and as the literal inverse if prior behaviour is deliberately chosen over the fix.
+
+If a legitimate caller turns out to need direct access, do **not** re-apply the broad grants. Bring the caller behind the existing verified server contract (`src/lib/verified-identity.ts` and the service-role routes) and leave the grants withdrawn.
+
+Supabase automated backups and PITR for `opixpkquyapeqdceyczs` are unaffected: this change alters privileges and one policy, no rows, columns or indexes.
+
+---
+
+## 10. Deferred, recorded separately
+
+* **Email uniqueness** — no unique index on `email` in either table, so the `onConflict: "email"` upserts in checkout and activate-free fail. Needs its own change; deliberately not touched here.
+* **Project-wide default privileges** — schema `public` grants all privileges on new tables to `anon` and `authenticated`, so every newly created table starts with this pattern. Visible on `conversations` and others. A project-wide decision, not part of this migration.
+* **Sibling project `mqixjzolgrdzbwzkrzxz`** — same broad-grant pattern on its `profiles`/`ut_members`; its ownership policies make the browser reads legitimate, so hardening it is separate work.
+* **Dormant VOA-era tables in this project** (`conversations`, `messages`, `agora_*`, `forum_*`) — unmaintained since May 2026; whether to drop or archive them is a product decision.
+* **Stale `.vercel/.env.production.local`** in the UT working directory naming the sibling project — a local artifact that could mislead a local build; worth deleting.
+* Webhook price mapping.
