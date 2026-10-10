@@ -2,7 +2,9 @@
 // NOTE: dailyLimit values below are NOT enforced by any server route. /api/oracle has no
 // plan/quota/tier check, and the Oracle client pins tier to 'guest'. The only real limit is a
 // client-side counter that resets on page load. Copy must not describe these as quotas.
-// Guest: 10 questions per page session (client-side, resets on reload)
+// Guest: 10 answered questions per page session. The counter advances once per
+// answer the Oracle actually returns (page-client.tsx send(), after setMsgs), so an
+// interrupted request does not consume it. Client-side only, resets on reload.
 // Free: same client-side behaviour; no additional allowance exists
 // Initiate: $3.99/month; adds Codex II process archive + Ask Hakan
 

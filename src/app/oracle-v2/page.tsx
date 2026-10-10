@@ -474,7 +474,7 @@ export default function OracleV2Page() {
               <div style={{ padding: "0 24px 20px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
                 {atLimit && (
                   <div className="text-center py-3">
-                    <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{"10 questions in this session. Reload the page to begin a new one."}</span>
+                    <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{"10 answers in this session. Reload the page to begin a new one."}</span>
                     {tier !== "initiate" && <a href="/oracle/plans" className="ml-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "#d946ef" }}>{t.upgrade}</a>}
                   </div>
                 )}

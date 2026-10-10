@@ -114,7 +114,7 @@ const T: Record<string, Record<string, string>> = {
     remembering: "REMEMBERING {n} TURNS",
     goDeeper: "Go Deeper", goDesc: "The Codex Oracle is one gateway. Vault of Arcana holds six living traditions — Tao, Tarot, Tantra, Entheogens, Dreamwalker, and the Codex — with more awakening.",
     enterVault: "Enter the Vault", getBook: "Get the Book",
-    guestLimit: "Guest · {n}/10 this session", freeLimit: "Free account · {n}/10 this session", initiateActive: "Initiate · Codex II archive open",
+    guestLimit: "Guest · {n}/10 answers this session", freeLimit: "Free account · {n}/10 answers this session", initiateActive: "Initiate · Codex II archive open",
     upgrade: "UPGRADE", enterHint: "ENTER to send · SHIFT+ENTER for new line",
     you: "YOU", oracleLabel: "CODEX ORACLE",
     decodeName: "Energetic signature of your name", decodeBtn: "DECODE", decodeHint: "Type any name to reveal its letter-by-letter energetic decode",
@@ -135,7 +135,7 @@ const T: Record<string, Record<string, string>> = {
     remembering: "{n} TURLUK HATIRLANIYOR",
     goDeeper: "Daha Derine", goDesc: "Kodeks Kehaneti tek bir kapıdır. Vault of Arcana altı canlı geleneği barındırır.",
     enterVault: "Kasaya Gir", getBook: "Kitabı Al",
-    guestLimit: "Misafir · bu oturumda {n}/10", freeLimit: "Ücretsiz hesap · bu oturumda {n}/10", initiateActive: "Mürit · Codex II arşivi açık",
+    guestLimit: "Misafir · bu oturumda {n}/10 yanıt", freeLimit: "Ücretsiz hesap · bu oturumda {n}/10 yanıt", initiateActive: "Mürit · Codex II arşivi açık",
     upgrade: "YÜKSELT", enterHint: "ENTER gönder · SHIFT+ENTER yeni satır",
     you: "SEN", oracleLabel: "KODEKS KEHANETİ",
     decodeName: "İsminin enerji imzası", decodeBtn: "ÇÖZ", decodeHint: "Harf harf enerji çözümlemesi için bir isim girin",
@@ -156,7 +156,7 @@ const T: Record<string, Record<string, string>> = {
     remembering: "ПОМНЮ {n} ОБМЕНОВ",
     goDeeper: "Глубже", goDesc: "Оракул Кодекса — лишь одни врата.",
     enterVault: "Войти", getBook: "Книгу",
-    guestLimit: "Гость · в этой сессии {n}/10", freeLimit: "Бесплатный · в этой сессии {n}/10", initiateActive: "Посвящённый · архив Codex II открыт",
+    guestLimit: "Гость · в этой сессии {n}/10 ответов", freeLimit: "Бесплатный · в этой сессии {n}/10 ответов", initiateActive: "Посвящённый · архив Codex II открыт",
     upgrade: "УЛУЧШИТЬ", enterHint: "ENTER отправить · SHIFT+ENTER строка",
     you: "ВЫ", oracleLabel: "ОРАКУЛ КОДЕКСА",
     decodeName: "Энергетическая подпись имени", decodeBtn: "РАСШИФРОВАТЬ", decodeHint: "Введите имя для побуквенной расшифровки",
@@ -1626,7 +1626,7 @@ export default function OraclePage() {
               <div className="oracle-chat-input" style={{ padding: "0 24px 20px", borderTop: `1px solid rgba(255,255,255,0.04)` }}>
                 {atLimit && (
                   <div className="text-center py-3">
-                    <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{"10 questions in this session. Reload the page to begin a new one."}</span>
+                    <span className="font-mono text-[9px]" style={{ color: "#f59e0b" }}>{"10 answers in this session. Reload the page to begin a new one."}</span>
                     {tier !== "initiate" && <a href="/pricing" className="ml-3 font-mono text-[9px] tracking-widest uppercase" style={{ color: "#d946ef" }}>{t.upgrade}</a>}
                   </div>
                 )}

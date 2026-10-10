@@ -41,7 +41,7 @@ const TIERS = [
     features: [
       { text: 'All correspondence systems and records, open to browse and search', included: true },
       { text: 'Ask the Oracle about selected correspondence records.', included: true },
-      { text: '10 questions per page session', included: true },
+      { text: '10 answers per page session', included: true },
       { text: 'Codex II archive', included: false },
     ],
     cta: 'Try the Oracle',
@@ -60,7 +60,7 @@ const TIERS = [
     features: [
       { text: 'The same open access to every correspondence system', included: true },
       { text: 'Ask the Oracle about selected correspondence records.', included: true },
-      { text: '10 questions per page session', included: true },
+      { text: '10 answers per page session', included: true },
       { text: 'Codex II archive', included: false },
     ],
     cta: 'Create Free Account',
@@ -400,8 +400,8 @@ export default function OraclePlansPage() {
             <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 18, letterSpacing: '0.15em', color: 'rgba(237,233,246,0.5)', marginBottom: 28 }}>Frequently Asked</h2>
             {[
               { q: 'Can I cancel anytime?', a: 'Yes — cancel from your account portal at any time. Your access continues until the end of the billing period.' },
-              { q: 'What counts as a question?', a: 'Each message you send to the Oracle counts as one. Ten questions are available per page session, and reloading the page starts a new one.' },
-              { q: 'What happens to my history?', a: 'Questions live in the page you are on. Reloading the page clears the conversation and starts a new session of ten questions.' },
+              { q: 'What counts as a question?', a: 'Each answer the Oracle returns counts as one. Ten answers are available per page session, and reloading the page starts a new one. A question that is interrupted before the Oracle answers does not count.' },
+              { q: 'What happens to my history?', a: 'Questions live in the page you are on. Reloading the page clears the conversation and starts a new session of ten answers. Starting a new conversation without reloading keeps the same count.' },
               { q: 'What does Initiate unlock beyond Oracle?', a: 'Initiate opens two member surfaces: the Codex II process archive and Ask Hakan, a direct message channel from the member hub. The correspondence archive and the Oracle itself stay open to everyone.' },
             ].map(item => (
               <div key={item.q} style={{ marginBottom: 24, padding: '16px 20px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(17,15,26,0.3)' }}>

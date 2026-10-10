@@ -110,7 +110,7 @@ cosmetic counter described as an enforced limit.
 | `plans.ts` Initiate | "Unlimited questions. All languages, all Oracle modes." | "Adds the Codex II archive. All languages and Oracle modes stay open to everyone." |
 | Oracle tier badge | "Guest · {n}/10 today" | "Correspondence codex — open to all" |
 | Oracle limit warning | "Daily limit reached. Create a free account for 25/day." | removed (unreachable) |
-| Question allowance wording | implied a daily/paid quota | "this session" — a **client-enforced counter for the current page session**, not a server-enforced entitlement. Behaviour unchanged. |
+| Question allowance wording | implied a daily/paid quota | "this session" — a **client-enforced counter for the current page session**, not a server-enforced entitlement. The unit is the **answer**: the counter advances once per answer the Oracle returns. Behaviour unchanged. |
 | codex / continuum / sanctum descriptions | corpus-limited / teaser-state / deeper-only-for-paid | open-corpus description, Codex II named as the member gate |
 | plans page features | bookmarks, saved trails, synthesis depth, tier-exclusive matrix depth | removed from purchase copy; retained here |
 | plans page features | Ask Hakan | **kept** — it is implemented; only the *priority* claim was removed |
@@ -252,6 +252,51 @@ All three are out of scope for a copy batch and are recorded here for a separate
 | `src/lib/plans.ts` header comment | claimed “Free: 25 questions/day (Supabase per-user counter)” | records that `dailyLimit` is **not server-enforced** and that the only real limit is the client-side per-page-session counter |
 
 **Preserved unchanged:** `$3.99`, `priceSub`, every `cta`/`ctaHref`, `handleInitiateCheckout`,
-`NEXT_PUBLIC_STRIPE_PRICE_INITIATE_MONTHLY`, `dailyLimit`/`guestTotalLimit` values, the 10-question
+(`NEXT_PUBLIC_STRIPE_PRICE_INITIATE_MONTHLY`, `dailyLimit`/`guestTotalLimit` values, the 10-answer
 `atLimit` gate, `isPaidPlan`, `PLAN_CHECK`, all `src/app/api` code, the corpus, all public IDs, and
 global CSS. Only copy strings and one label were touched.
+
+
+## Counter unit verification (post-release)
+
+Traced after release, because the release report claimed one question and answer
+advanced the badge `0 → 2/10`. That was a **measurement error in the report**, not a
+second increment. Source and observation both show a single increment of `+1`.
+
+**Source (exact, `src/app/oracle/page-client.tsx`):**
+
+- `923  const [questionsUsed, setQuestionsUsed] = useState(0);` — one state, no setter.
+- `934  const limit = tier === "initiate" ? Infinity : tier === "free" ? 25 : 10;`
+- `935  const atLimit = questionsUsed >= limit;`
+- `1047 if (!m || loading || atLimit) return;` — early return in `send()`.
+- `1123 setMsgs((p) => [...p, bubble]);`   // answer appended
+- `1124 setQuestionsUsed((q) => q + 1);`   // the ONLY increment, AFTER the answer
+
+`grep -rn "setQuestionsUsed" src/` returns exactly two hits: the `useState` declaration
+and line 1124. The increment is inside the `try` block **after** the successful answer,
+so the `catch` path (`1164`, "The transmission was interrupted.") never spends quota.
+
+**What increments it:** one `send()` that returns a non-error `/api/oracle` response.
+Every UI path routes through `send()` — Enter (`1257`), TRANSMIT (`1639`), starter
+prompts (`1443`, `1520`), follow-ups (`1556`), and dock asks (`1205`, `1215`).
+
+**What resets it:** only a page load. `grep` finds no `setQuestionsUsed(0)` anywhere —
+**NEW CONVERSATION does not reset the counter.**
+
+**Observed (fresh browser, production, one submission):**
+
+| Moment | Badge |
+|---|---|
+| initial | `Guest · 0/10 this session` |
+| immediately after click, +2s…+12s (pending) | `0/10` — unchanged |
+| +15s, after the answer landed | `1/10` |
+| after NEW CONVERSATION | `1/10` — **not reset** |
+| after reload | `0/10` |
+
+`src/app/oracle-v2/page.tsx` has the same `useState` and the same `atLimit`, but **no
+increment site at all**, so its badge is permanently `0/10` and `atLimit` is never
+reached. Its limit text is corrected for consistency only; no logic was added.
+
+**Copy corrected to the real unit ("answers"):** badge in en/tr/ru, the `atLimit`
+message on both Oracle surfaces, both plans feature rows, two plans FAQs, and the
+`src/lib/plans.ts` header comment. No quota, reset, history or entitlement logic changed.
