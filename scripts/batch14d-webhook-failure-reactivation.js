@@ -28,12 +28,25 @@ function dbClient() {
     from(table) {
       const ctx = { table, filters: [], payload: null, op: null };
       const rows = () => state.tables[table];
-      const match = () => rows().filter((r) => ctx.filters.every(([c, v]) => r[c] === v));
+      const match = () => rows().filter((r) => {
+        if (!ctx.filters.every(([c, v]) => r[c] === v)) return false;
+        if (ctx.orSpec) {
+          return ctx.orSpec.split(",").some((clause) => {
+            const m = clause.trim().match(/^(\w+)\.(eq|is)\.(.+)$/);
+            if (!m) return true;
+            const [, col, op, val] = m;
+            return op === "is" && val === "null" ? r[col] === null : String(r[col]) === val;
+          });
+        }
+        return true;
+      });
       const err = (c, m) => ({ code: c, message: m, details: null, hint: null });
       const api = {
         select() { if (!ctx.op) ctx.op = "select"; return api; },
         eq(c, v) { ctx.filters.push([c, v]); return api; },
         is(c, v) { ctx.filters.push([c, v]); return api; },
+        neq(c, v) { ctx.neq = [c, v]; return api; },
+        or(spec) { ctx.orSpec = spec; return api; },
         limit(n) {
           state.events.push("select:" + table);
           if (state.fail.lookup) return Promise.resolve({ data: null, error: err("XX000", "lookup failed") });
@@ -72,7 +85,9 @@ function dbClient() {
             resolve({ data: null, error: err(forced.code || "XX000", forced.message || "update failed") });
             return;
           }
-          match().forEach((r) => Object.assign(r, ctx.payload));
+          let target = match();
+          if (ctx.neq) target = target.filter((r) => r[ctx.neq[0]] !== ctx.neq[1]);
+          target.forEach((r) => Object.assign(r, ctx.payload));
           resolve({ data: null, error: null });
           return;
         }

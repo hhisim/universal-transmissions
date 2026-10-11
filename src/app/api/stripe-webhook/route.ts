@@ -61,6 +61,10 @@ export async function POST(req: NextRequest) {
   // success. Failures are collected here and the handler answers non-2xx so
   // Stripe retries the delivery, instead of logging and returning 200.
   const membershipFailures: string[] = [];
+  // Optional writes (Oracle profile mirrors) are reported but must NOT fail the
+  // delivery: under option 3 Stripe cannot supply a verified userId, so they can
+  // never be made permanently satisfiable and endless retries would be harmful.
+  const membershipWarnings: string[] = [];
 
   let event: Stripe.Event;
 
@@ -270,7 +274,13 @@ export async function POST(req: NextRequest) {
             stripe_subscription_id: null,
             current_period_end: null,
           })
-          .eq("stripe_customer_id", customerId);
+          .eq("stripe_customer_id", customerId)
+          // Only the CURRENT subscription may revoke. A late `subscription.deleted`
+          // belonging to a superseded subscription must not revoke an active
+          // membership. Ordering comes from trusted STORED linkage, not from the
+          // event timestamp or delivery order. Rows with no linkage recorded
+          // (legacy) keep the previous behaviour.
+          .or(`stripe_subscription_id.eq.${subscription.id},stripe_subscription_id.is.null`);
         if (revertError) {
           membershipFailures.push(`cancel-ut_members:${revertError.message}`);
           console.error("Failed to cancel ut_members subscription:", revertError.message);
@@ -282,21 +292,29 @@ export async function POST(req: NextRequest) {
         console.error("Failed to cancel ut_members subscription:", err);
       }
 
-      // Revert profiles (Oracle) — find by stripe_customer_id
+      // Revert profiles (Oracle).
+      //
+      // `profiles` has NO `id` column — its primary key is `user_id` — so the
+      // previous `.select("id")` and `.eq("id", profile.id)` could never match a
+      // deployed row, and both errors were discarded. The Stripe customer
+      // linkage is what this event actually owns, so update on that.
+      //
+      // OPTIONAL: this is an Oracle-side mirror, not the membership record the
+      // readers consult. A failure is recorded as a warning, not a failure, so
+      // a permanently unsatisfiable mirror is not retried forever.
       try {
-        const { data: profile } = await utSupabaseAdmin
+        const { error: profileRevertError } = await utSupabaseAdmin
           .from("profiles")
-          .select("id")
+          .update({ plan: "free" })
           .eq("stripe_customer_id", customerId)
-          .maybeSingle()
-        if (profile) {
-          await utSupabaseAdmin
-            .from("profiles")
-            .update({ plan: "free" })
-            .eq("id", profile.id)
-          console.log(`profiles reverted to free: ${profile.id}`);
+        if (profileRevertError) {
+          membershipWarnings.push(`cancel-profiles:${profileRevertError.message}`);
+          console.error("Failed to revert Oracle profile:", profileRevertError.message);
+        } else {
+          console.log("profiles reverted to free (by stripe_customer_id)");
         }
       } catch (err) {
+        membershipWarnings.push("cancel-profiles:threw");
         console.error("Failed to revert Oracle profile:", err);
       }
 
@@ -317,13 +335,22 @@ export async function POST(req: NextRequest) {
       console.log(`Invoice payment failed for customer ${customerId}: ${invoice.id}`);
 
       try {
-        await utSupabaseAdmin
+        const { error: pastDueError } = await utSupabaseAdmin
           .from("ut_members")
           .update({ subscription_status: "past_due" })
-          .eq("stripe_customer_id", customerId);
-
-        console.log("Member marked as past_due");
+          .eq("stripe_customer_id", customerId)
+          // Dunning must not overwrite a recorded cancellation. `past_due` is not
+          // a revoking state, so writing it over `canceled` would DESTROY the
+          // revocation record and could let a stale invoice resurrect access.
+          .neq("subscription_status", "canceled");
+        if (pastDueError) {
+          membershipFailures.push(`past_due:${pastDueError.message}`);
+          console.error("Failed to mark past_due:", pastDueError.message);
+        } else {
+          console.log("Member marked as past_due (cancelled records left intact)");
+        }
       } catch (err) {
+        membershipFailures.push("past_due:threw");
         console.error("Failed to mark past_due:", err);
       }
       break;
@@ -383,13 +410,21 @@ export async function POST(req: NextRequest) {
             { protectPaidPlan: false }
           );
           if (!profileWrite.ok) {
+            // OPTIONAL mirror. The helper requires a verified userId for a
+            // profiles INSERT, which a Stripe event does not carry (and which
+            // must not be fabricated), so this can legitimately be refused.
+            // Recorded as a warning; it never fails the delivery.
+            membershipWarnings.push(`invoice-profiles:${profileWrite.reason}`);
             console.error(
-              "invoice.payment_succeeded: profiles write failed:",
+              "invoice.payment_succeeded: profiles mirror skipped:",
               profileWrite.reason,
               profileWrite.detail
             );
           }
         } catch (err) {
+          // A THROWN error here means the required ut_members write did not
+          // happen either, so it must fail the delivery rather than answer 200.
+          membershipFailures.push("invoice-ut_members:threw");
           console.error("Failed to upsert member on invoice.payment_succeeded:", err);
         }
       }
@@ -409,6 +444,12 @@ export async function POST(req: NextRequest) {
       { received: true, membershipFailures, retry: true },
       { status: 500 }
     );
+  }
+
+  if (membershipWarnings.length > 0) {
+    // Reported for observability, but ack'd: these are optional mirrors.
+    console.warn("Stripe webhook: optional membership mirrors skipped:", membershipWarnings.join("; "));
+    return NextResponse.json({ received: true, membershipWarnings });
   }
 
   return NextResponse.json({ received: true });

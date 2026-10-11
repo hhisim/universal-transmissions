@@ -24,9 +24,19 @@
  *     insert-complete. Its identity in every caller is the address.
  *
  * So this module does an explicit, error-checked read-then-write instead of an
- * upsert. That is correct with or without a unique index, and it lets us
+ * upsert. This is correct for the SEQUENTIAL case on its own, and it lets us
  * distinguish "no row" from "lookup failed" — which `.maybeSingle()` conflates
  * with `data: null`.
+ *
+ * It is NOT sufficient under concurrency. Measured on PostgreSQL 17: two
+ * simultaneous first-time writes for one canonical address each read zero rows
+ * and both INSERT, producing TWO rows for the same member. The unique index on
+ * `lower(btrim(email))` is therefore a RELEASE PREREQUISITE for correctness, not
+ * merely a data-integrity nicety — an earlier version of this comment claimed
+ * the code was "correct with or without" it and that claim was wrong.
+ *
+ * Concurrent UPDATES are a separate hazard and are handled here by the
+ * compare-and-set below; the index does nothing for a lost update.
  *
  * Rules enforced here:
  *   - A lookup failure is never treated as "no row"; the write fails closed.
