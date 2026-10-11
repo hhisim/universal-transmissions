@@ -187,8 +187,10 @@ begin
     end if;
 
     -- ------------------------------------------------------------------
-    -- (1) RE-LOCATE inside the transaction, holding what is found. The only
-    -- read, used solely to confirm the caller's snapshot is still current.
+    -- (1) RE-LOCATE inside the transaction, holding what is found. This is the
+    -- only read that LOCATES rows, and it exists solely to confirm that the
+    -- caller's snapshot is still current. It never decides what to write.
+    -- (Guard validation in step 4 does perform further reads — one per entry.)
     -- ------------------------------------------------------------------
     if v_name = 'ut_members' then
       select coalesce(array_agg(t.id order by t.id), '{}') into v_located
@@ -226,14 +228,14 @@ begin
               detail  = format('located=%s seen=%s', v_located, v_seen);
     end if;
 
-    if coalesce(array_length(v_located, 1), 0) = 0 then
-      target := v_name; outcome := 'absent'; affected := 0; located_pks := v_located;
-      return next;
-      continue;
-    end if;
-
     -- ------------------------------------------------------------------
-    -- (3) SNAPSHOT VALIDATION — independent of which rows get an UPDATE.
+    -- (3) PAYLOAD VALIDATION — deliberately BEFORE the absent short-circuit.
+    --
+    -- Absence must not be a way to skip the payload contract. If the absent
+    -- branch returned first, a caller could put anything at all in `entries`
+    -- (a non-array, an entry naming a row this linkage does not own, repeated
+    -- or pk-less entries) as long as the linkage happened to be empty — and the
+    -- call would be reported as a clean `absent` no-op.
     -- ------------------------------------------------------------------
     v_entries := coalesce(v_target->'entries', '[]'::jsonb);
     if jsonb_typeof(v_entries) <> 'array' then
@@ -261,16 +263,21 @@ begin
       select (e->>'pk')::uuid from jsonb_array_elements(v_entries) e order by 1
     );
 
-    -- An update that located rows but supplied none is a specific mistake and
-    -- gets a specific name. A SKIP that supplied none is a coverage failure
-    -- below, because every located row would be missing its guards.
-    if v_intent = 'update' and coalesce(array_length(v_entry_pks, 1), 0) = 0 then
+    -- An update that LOCATED rows but supplied none is a specific mistake and
+    -- gets a specific name. The located-count condition matters: an absent
+    -- target with no entries is legitimate and must stay a no-op. A SKIP that
+    -- supplied none is a coverage failure below, because every located row would
+    -- be missing its guards.
+    if v_intent = 'update'
+       and coalesce(array_length(v_located, 1), 0) > 0
+       and coalesce(array_length(v_entry_pks, 1), 0) = 0 then
       raise exception 'BATCH14 EMPTY_UPDATE: target % located % row(s) but supplied no entries',
         v_name, array_length(v_located, 1)
         using errcode = '22023';
     end if;
 
-    -- An entry must belong to the linkage the caller declared.
+    -- An entry must belong to the linkage the caller declared. For an ABSENT
+    -- target the located set is empty, so any entry at all lands here.
     if exists (select 1 from unnest(v_entry_pks) x where x <> all (v_located)) then
       raise exception 'BATCH14 ENTRY_NOT_LOCATED: target % has an entry outside the located set', v_name
         using errcode = '40001';
@@ -286,6 +293,17 @@ begin
               detail  = format('located=%s entries=%s', v_located, v_entry_pks);
     end if;
 
+    -- Absence is only a no-op now that the payload has been validated.
+    if coalesce(array_length(v_located, 1), 0) = 0 then
+      target := v_name; outcome := 'absent'; affected := 0; located_pks := v_located;
+      return next;
+      continue;
+    end if;
+
+    -- ------------------------------------------------------------------
+    -- (4) PER-ENTRY RULES — only reachable when a row is actually located, so
+    -- every entry here is already known to be in the located set.
+    -- ------------------------------------------------------------------
     for v_entry in select jsonb_array_elements(v_entries) loop
       v_pk   := (v_entry->>'pk')::uuid;
       v_orig := v_entry->'original';
@@ -328,7 +346,7 @@ begin
     end loop;
 
     -- ------------------------------------------------------------------
-    -- (4) GUARD VALIDATION for EVERY entry, update or skip. The rows are held
+    -- (5) GUARD VALIDATION for EVERY entry, update or skip. The rows are held
     -- from the re-location, so this is a stable read. A skipped row whose
     -- snapshot moved on is a conflict, not a quiet no-op.
     -- ------------------------------------------------------------------
@@ -365,8 +383,8 @@ begin
     end if;
 
     -- ------------------------------------------------------------------
-    -- (5) APPLY the subset selected for UPDATE, still conditioned on the
-    -- snapshot so a writer that slips past the phase-4 read cannot be lost.
+    -- (6) APPLY the subset selected for UPDATE, still conditioned on the
+    -- snapshot so a writer that slips past the phase-5 read cannot be lost.
     -- ------------------------------------------------------------------
     v_affected := 0;
     for v_entry in select jsonb_array_elements(v_entries) loop

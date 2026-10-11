@@ -103,6 +103,30 @@ want_error() { # want_error "<label>" "<payload>" "<substring>"
   else FAIL=$((FAIL + 1)); echo "  FAIL: $1 (rc=$LAST_RC, out=$(printf '%s' "$LAST_OUT" | head -1))"; fi
 }
 wait_for() { local f="$1" n=0; until [ -f "$f" ] || [ $n -ge 600 ]; do sleep 0.05; n=$((n + 1)); done; }
+# Controlled barriers: wait until the cluster actually shows the expected lock
+# state, instead of sleeping and hoping. Timeouts fail loudly.
+wait_advisory() { # wait_advisory granted|waiting
+  local want="$1" n=0 cnt=""
+  until [ $n -ge 400 ]; do
+    if [ "$want" = granted ]; then
+      cnt=$(q "select count(*) from pg_locks where locktype='advisory' and granted")
+    else
+      cnt=$(q "select count(*) from pg_locks where locktype='advisory' and not granted")
+    fi
+    [ "${cnt:-0}" -ge 1 ] && return 0
+    sleep 0.05; n=$((n + 1))
+  done
+  return 1
+}
+wait_txlock() { # a second caller blocked on another transaction's row locks
+  local n=0 cnt=""
+  until [ $n -ge 400 ]; do
+    cnt=$(q "select count(*) from pg_locks where locktype='transactionid' and not granted")
+    [ "${cnt:-0}" -ge 1 ] && return 0
+    sleep 0.05; n=$((n + 1))
+  done
+  return 1
+}
 
 M1='11111111-1111-1111-1111-111111111111'
 M2='22222222-2222-2222-2222-222222222222'
@@ -263,28 +287,69 @@ want_error "N7 a profiles EMPTY_UPDATE is refused" "[$(prof_t "$(u_m "\"$P1\"" '
 want_error "N8 a profiles skip whose guards moved is refused" "[$(prof_t "\"seen_pks\":[\"$P1\"],\"intent\":\"skip\",\"entries\":[{\"pk\":\"$P1\",\"original\":{\"plan\":\"guest\",\"subscription_status\":\"active\",\"stripe_customer_id\":\"cus_1\",\"stripe_subscription_id\":\"sub_A\"}}]")]" 'BATCH14 CONFLICT'
 
 echo
+echo "=== F. ABSENT targets must still obey the payload contract ==="
+# Absence must not short-circuit validation: an early return before the payload
+# checks lets a caller put anything at all in `entries` as long as the linkage
+# happens to be empty.
+psql -q -c "truncate public.ut_members, public.profiles;" >/dev/null
+ABS_M='"seen_pks":[],"intent":"update"'
+want_error "F1 an absent ut_members target with NON-ARRAY entries is refused" "[$(mem_t "$ABS_M,\"entries\":{\"nope\":1}")]" 'BATCH14 INVALID_ENTRIES'
+want_error "F2 an absent ut_members target with STRING entries is refused" "[$(mem_t "$ABS_M,\"entries\":\"nope\"")]" 'BATCH14 INVALID_ENTRIES'
+want_error "F3 an absent ut_members target with an entry OUTSIDE its empty set is refused" "[$(mem_t "$ABS_M,\"entries\":[$(e_m "$M1" ",\"set\":$REVOKE_SET")]")]" 'BATCH14 ENTRY_NOT_LOCATED'
+want_error "F4 an absent ut_members target with a pk-less entry is refused" "[$(mem_t "$ABS_M,\"entries\":[{\"original\":{$GM},\"set\":$REVOKE_SET}]")]" 'BATCH14 MISSING_PK'
+want_error "F5 an absent ut_members target with REPEATED pks is refused" "[$(mem_t "$ABS_M,\"entries\":[$(e_m "$M1" ",\"set\":$REVOKE_SET"),$(e_m "$M1" ",\"set\":$REVOKE_SET")]")]" 'BATCH14 DUPLICATE_PK'
+
+PS_M='"seen_pks":[],"intent":"update"'
+want_error "F6 an absent profiles target with NON-ARRAY entries is refused" "[$(prof_t "$PS_M,\"entries\":{\"nope\":1}")]" 'BATCH14 INVALID_ENTRIES'
+want_error "F7 an absent profiles target with an entry OUTSIDE its empty set is refused" "[$(prof_t "$PS_M,\"entries\":[$(e_p "$P1" ',"set":{"plan":"free"}')]")]" 'BATCH14 ENTRY_NOT_LOCATED'
+want_error "F8 an absent profiles target with REPEATED pks is refused" "[$(prof_t "$PS_M,\"entries\":[$(e_p "$P1" ',"set":{"plan":"free"}'),$(e_p "$P1" ',"set":{"plan":"free"}')]")]" 'BATCH14 DUPLICATE_PK'
+
+# a valid first-table update followed by an invalid absent second target
+psql -q -c "truncate public.ut_members, public.profiles; insert into public.ut_members (id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id) values ('$M1','a@x','initiate','active','cus_1','sub_A');" >/dev/null
+want_error "F9 a valid first-table update followed by an invalid absent target is refused" \
+  "[$(mem_t "$(u_m "\"$M1\"" "$(e_m "$M1" ",\"set\":$REVOKE_SET")")"),$(prof_t "$PS_M,\"entries\":{\"nope\":1}")]" 'BATCH14 INVALID_ENTRIES'
+chk "F9b the first table's write was ROLLED BACK" "initiate/active/cus_1/sub_A" "$(mem_state)"
+
+# legitimate absence is still a no-op
+psql -q -c "truncate public.ut_members, public.profiles;" >/dev/null
+chk "F10 legitimate absence with empty entries stays a no-op" "profiles:absent:0,ut_members:absent:0" \
+  "$(rpc "[$(mem_t "$ABS_M,\"entries\":[]"),$(prof_t "$PS_M,\"entries\":[]")]")"
+
+echo
 echo "=== CON. two real connections, barriers, BOTH orders ==="
 P_FREE="[$(mem_t "$(u_m "\"$M1\"" "$(e_m "$M1" ',"set":{"plan":"free"}')")")]"
 P_GUEST="[$(mem_t "$(u_m "\"$M1\"" "$(e_m "$M1" ",\"set\":$REVOKE_SET")")")]"
 
-run_order() { # run_order <label> <first-payload> <second-payload> <expected-final-state>
-  local label="$1" p1="$2" p2="$3" want="$4"
-  rm -f "$BARRIER/one"
+run_order() { # run_order <label> <gate-key> <first-payload> <second-payload> <expected-final-state>
+  local label="$1" gate="$2" p1="$3" p2="$4" want="$5"
   cat > "$BASE/first.sql" <<SQL
 begin;
 select string_agg(target||':'||outcome||':'||affected, ',' order by target) from public.apply_lifecycle_update(\$j\$$p1\$j\$);
-\! touch $BARRIER/one
-select pg_sleep(3);
+select pg_advisory_lock($gate);
 commit;
 SQL
   cat > "$BASE/second.sql" <<SQL
 select string_agg(target||':'||outcome||':'||affected, ',' order by target) from public.apply_lifecycle_update(\$j\$$p2\$j\$);
 SQL
+  # 1. a holder session takes the gate so the first caller cannot pass it.
+  psql -Atq -c "select pg_advisory_lock($gate); select pg_sleep(60);" >/dev/null 2>&1 &
+  local hpid=$!
+  wait_advisory granted \
+    || { FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: no gate holder"; }
+  # 2. the first caller applies, then blocks on the gate.
   psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/first.sql" >"$BASE/first.out" 2>&1 &
-  local pid=$!
-  wait_for "$BARRIER/one"
-  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/second.sql" >"$BASE/second.out" 2>&1; local rc2=$?
-  wait "$pid"; local rc1=$?
+  local p1pid=$!
+  wait_advisory waiting \
+    || { FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: the first caller never blocked on the gate"; }
+  # 3. the second caller starts and blocks on the row lock the first one holds.
+  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/second.sql" >"$BASE/second.out" 2>&1 &
+  local p2pid=$!
+  if wait_txlock; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: the second caller never waited on the row lock"; fi
+  # 4. release the gate: the first caller commits, the second re-evaluates and loses.
+  kill "$hpid" 2>/dev/null; wait "$hpid" 2>/dev/null
+  wait "$p1pid"; local rc1=$?
+  wait "$p2pid"; local rc2=$?
   chk "$label: the FIRST committer exits 0" "0" "$rc1"
   chk "$label: the FIRST committer reports updated:1" "ut_members:updated:1" "$(head -1 "$BASE/first.out")"
   chk "$label: the SECOND caller exits non-zero" "non-zero" "$([ $rc2 -ne 0 ] && echo non-zero || echo zero)"
@@ -292,37 +357,64 @@ SQL
   chk "$label: the first committer's state stands" "$want" "$(mem_state)"
 }
 
-seed; run_order "CON1 free-first" "$P_FREE" "$P_GUEST" "free/active/cus_1/sub_A"
-seed; run_order "CON2 guest-first" "$P_GUEST" "$P_FREE" "guest/canceled/cus_1/<null>"
+seed; run_order "CON1 free-first" 4101 "$P_FREE" "$P_GUEST" "free/active/cus_1/sub_A"
+seed; run_order "CON2 guest-first" 4102 "$P_GUEST" "$P_FREE" "guest/canceled/cus_1/<null>"
 
 echo
-echo "=== R. absence races with deterministic barriers (KNOWN LIMITS) ==="
+echo "=== R. absence races with CONTROLLED barriers (KNOWN LIMITS) ==="
+# The racing transaction must be PROVEN to commit before the first transaction
+# is released. The racer holds an advisory lock, the first transaction blocks on
+# that same lock, and the racer only proceeds once the cluster shows the first
+# transaction actually WAITING — then commits, then releases. No sleeps.
 ABSENT="[$(mem_t "\"seen_pks\":[],\"intent\":\"update\",\"entries\":[]")]"
-race() { # race <label> <barrier-name> <racer-sql> <outfile>
-  local label="$1" bname="$2" racer="$3" out="$4"
-  rm -f "$BARRIER/$bname"
-  cat > "$BASE/race_$bname.sql" <<SQL
+race() { # race <label> <advisory-key> <racer-work-sql> <outfile>
+  local label="$1" key="$2" work="$3" out="$4"
+  cat > "$BASE/racer.sql" <<SQL
+select pg_advisory_lock($key);
+do \$do\$
+declare n int; i int;
+begin
+  for i in 1..600 loop
+    select count(*) into n from pg_locks where locktype='advisory' and not granted;
+    exit when n > 0;
+    perform pg_sleep(0.05);
+  end loop;
+  if n = 0 then raise exception 'BARRIER TIMEOUT: the first transaction never began waiting'; end if;
+end
+\$do\$;
+begin;
+$work
+commit;
+select pg_advisory_unlock($key);
+SQL
+  cat > "$BASE/s1.sql" <<SQL
 begin;
 select string_agg(target||':'||outcome||':'||affected, ',' order by target) from public.apply_lifecycle_update(\$j\$$ABSENT\$j\$);
-\! touch $BARRIER/$bname
-select pg_sleep(3);
+select pg_advisory_lock($key);
 commit;
 SQL
-  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/race_$bname.sql" >"$out" 2>&1 &
-  local pid=$!
-  wait_for "$BARRIER/$bname"
-  psql -q -c "$racer" >/dev/null
-  wait "$pid"; local rc=$?
-  chk "$label: the racing caller exits 0" "0" "$rc"
+  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/racer.sql" >"$BASE/racer_$key.out" 2>&1 &
+  local rpid=$!
+  wait_advisory granted \
+    || { FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: the racer never held its lock"; }
+  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/s1.sql" >"$out" 2>&1 &
+  local spid=$!
+  wait "$rpid"; local rrc=$?
+  wait "$spid"; local src=$?
+  # The racer only reaches its COMMIT if it observed the first transaction
+  # waiting, so a zero exit here is the proof that the competing change landed
+  # first. A timeout raises inside the racer and is caught here.
+  chk "$label: the racer committed BEFORE releasing the first transaction" "0" "$rrc"
+  chk "$label: the first transaction exits 0" "0" "$src"
   chk "$label: it reported absent (its snapshot was genuinely empty)" "ut_members:absent:0" "$(head -1 "$out")"
 }
 
 psql -q -c "truncate public.ut_members, public.profiles;" >/dev/null
-race "R1" "r1" "insert into public.ut_members (id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id) values ('$M1','a@x','initiate','active','cus_1','sub_A');" "$BASE/race1.out"
+race "R1" 9101 "insert into public.ut_members (id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id) values ('$M1','a@x','initiate','active','cus_1','sub_A');" "$BASE/race1.out"
 chk "R1c RACE REPRODUCED: a matching row now exists that the call never saw" "1" "$(q "select count(*) from public.ut_members where stripe_customer_id='cus_1';")"
 
 psql -q -c "truncate public.ut_members, public.profiles; insert into public.ut_members (id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id) values ('$M1','a@x','guest','canceled',null,null);" >/dev/null
-race "R2" "r2" "update public.ut_members set stripe_customer_id='cus_1', stripe_subscription_id='sub_A' where id='$M1';" "$BASE/race2.out"
+race "R2" 9102 "update public.ut_members set stripe_customer_id='cus_1', stripe_subscription_id='sub_A' where id='$M1';" "$BASE/race2.out"
 chk "R2c RACE REPRODUCED: an existing row became linked, unseen" "1" "$(q "select count(*) from public.ut_members where stripe_customer_id='cus_1';")"
 
 echo

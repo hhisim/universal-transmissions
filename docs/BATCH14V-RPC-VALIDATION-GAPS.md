@@ -93,6 +93,14 @@ have slipped through.
 **Coverage is what makes `updated` mean something.** Without it a caller could
 name one row, omit another, and still be told the update succeeded.
 
+> **Correction (Batch 14w).** Batch 14v did **not** implement an advisory-lock
+> barrier. It used a `\! touch` marker plus a **fixed `pg_sleep(3)` window**: the
+> racer ran inside that window and, in practice, committed first — but nothing
+> *proved* it. Real controlled barriers (lock-state observation, with timeouts
+> that fail the run) are implemented in Batch 14w, which also replaces the
+> CON1/CON2 sleeps. The claim below that the ordering was "forced, not timed" was
+> true of the intent and not of the code.
+
 ---
 
 ## 3. The absence races, reproduced with deterministic barriers
@@ -130,10 +138,15 @@ and that the unseen row is there afterwards (cases R1c/R2c).
 
 - a row with a *different* email but the same `stripe_subscription_id` is not
   blocked by an email index at all;
-- R2 is an **UPDATE** of an existing row, which no insert-time unique index
-  constrains, ever;
-- and the re-location's `FOR UPDATE` holds only the rows it **found** — it cannot
-  lock a row that does not exist yet, nor one that is about to be relinked.
+- R2 is a change to an existing row's **linkage**, and the index keys on the
+  email column, which the race never touches.
+
+**Precision (Batch 14w).** Unique indexes *do* constrain UPDATEs — a unique
+index is enforced on UPDATE exactly as on INSERT, so "an update escapes the
+index" would be the wrong reason. The right reason is narrower: the index is on
+**email**, and this race is about which rows a **linkage** owns. A unique index
+on the email column cannot see a row being relinked, and cannot see a second row
+appearing under the same subscription under a different address.
 
 So the race is not "two rows with the same email"; it is "the set of rows owned by
 a linkage changed between the snapshot and the commit". No index on either column
@@ -226,8 +239,10 @@ do not.
 
 ## 6. Mutations
 
-Twelve mutations of the SQL, each run through the same harness. Every one is
-detected.
+**Ten mutations were executed** — MU1–MU9 and MU11. **Corrected in Batch 14w:**
+this section originally said "twelve", but the table below also carries a
+placeholder row for an MU12 that was never written or run. There were ten, all
+detected, each exiting non-zero.
 
 | # | Mutation | Result |
 |---|---|---|
@@ -240,8 +255,13 @@ detected.
 | **MU7** | remove the `DUPLICATE_PK` check | exit 1 — 3 |
 | **MU8** | remove the guard-validation pass (rely on the UPDATE's own guard) | exit 1 — 2 (V5, N8: a **skipped** row's moved guards went unnoticed) |
 | **MU9** | remove `begin;`/`commit;` | exit 1 — 1 (J3: the CREATE was **not** rolled back) |
-| **MU11** | remove the `DUPLICATE_TARGET` check | exit 1 — 1 |
-| MU12 | *(not applicable)* | — |
+| MU11 | remove the `DUPLICATE_TARGET` check | exit 1 — 1 |
+| ~~MU12~~ | *placeholder — never written and never run; the "twelve" count above was wrong* | — |
+
+**Correction (Batch 14w):** guard validation performs **additional reads**. The
+re-location is the only read that *locates* rows; §2 phase (4) then performs one
+further read **per entry** to check the guards. Batch 14u/14v described the
+re-location as "the only read", which understated the primitive's reads.
 
 MU6 is worth noting: removing coverage makes the layer-5 invariant fire, so the
 "never report `updated` when an update was omitted" guarantee has **two**
