@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resolveVerifiedEmail } from "@/lib/verified-identity";
 import { getPlanLabel, isPaidPlan, normalizeMemberPlan } from "@/lib/plans";
-import { planRank } from "@/lib/membership-plan";
+import { resolveMembershipPlan } from "@/lib/membership-plan";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
@@ -64,44 +64,15 @@ async function lookupPlan(
   email: string
 ): Promise<{ ok: true; plan: string } | { ok: false; reason: "lookup_failed" }> {
   try {
-    const [profiles, members] = await Promise.all([
-      supabaseAdmin
-        .from("profiles")
-        .select("plan")
-        .eq("email", email)
-        .maybeSingle()
-        .then((r) => (r.error ? { error: r.error } : { data: r.data })),
-      supabaseAdmin
-        .from("ut_members")
-        .select("plan")
-        .eq("email", email)
-        .maybeSingle()
-        .then((r) => (r.error ? { error: r.error } : { data: r.data })),
-    ]);
-
-    const p = "data" in profiles ? profiles.data : null;
-    const m = "data" in members ? members.data : null;
-    const errP = "error" in profiles ? profiles.error : null;
-    const errM = "error" in members ? members.error : null;
-
-    if (errP || errM) {
-      console.error("Member message plan lookup failed:", errP ?? errM);
+    // The SAME resolver every other reader uses, so a recorded revocation
+    // reaches this gate too. Ranking raw plans here would have let a stale
+    // paid row keep Ask Hakan access after a legitimate cancellation.
+    const resolved = await resolveMembershipPlan(supabaseAdmin, email);
+    if (!resolved.ok) {
+      console.error("Member message plan lookup failed:", resolved.detail);
       return { ok: false, reason: "lookup_failed" };
     }
-
-    const stored = p?.plan ?? m?.plan ?? null;
-    if (stored === null) {
-      // No membership record at all: authenticated, but not a member.
-      return { ok: true, plan: "guest" };
-    }
-
-    // Highest entitlement across both tables, matching every other reader.
-    return {
-      ok: true,
-      plan: planRank(p?.plan) >= planRank(m?.plan)
-        ? normalizeMemberPlan(p?.plan ?? null)
-        : normalizeMemberPlan(m?.plan ?? null),
-    };
+    return { ok: true, plan: resolved.membership.plan };
   } catch (err) {
     console.error("Member message plan lookup error:", err);
     return { ok: false, reason: "lookup_failed" };

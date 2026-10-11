@@ -60,7 +60,8 @@ export type WriteFailure =
   | "update_failed"
   | "missing_identity"
   | "downgrade_refused"
-  | "identity_mismatch";
+  | "identity_mismatch"
+  | "concurrent_modification";
 
 /**
  * Canonical address form. `resolveVerifiedIdentity()` already normalises
@@ -215,15 +216,38 @@ export async function writeMembershipRow(
       return { ok: true, row: found.row, action: "unchanged" };
     }
 
-    const { data, error } = await client
+    // Compare-and-set: only replace the plan we actually read.
+    //
+    // Without this, two concurrent writers that both read plan='free' both pass
+    // the guard above, and whichever commits last wins — so a paid upgrade can
+    // be overwritten back to 'free' by an activation that evaluated a stale
+    // value. A unique index prevents duplicate INSERTs; it does nothing for a
+    // lost UPDATE. Because this is a single statement, the comparison and the
+    // write are atomic with respect to the row.
+    const readPlan = (found.row.plan as string | null) ?? null;
+    let updateQuery = client
       .from(table)
       .update(payload)
-      .eq(pkColumn, found.row[pkColumn] as string)
-      .select()
-      .single();
+      .eq(pkColumn, found.row[pkColumn] as string);
+    updateQuery =
+      readPlan === null ? updateQuery.is("plan", null) : updateQuery.eq("plan", readPlan);
+
+    const { data, error } = await updateQuery.select().single();
 
     if (error) {
-      return { ok: false, reason: "update_failed", detail: error.message, code: error.code };
+      // With a compare-and-set, "no row matched" means the row changed underneath
+      // us rather than that it is missing. Reported distinctly so the caller can
+      // re-read and decide, instead of silently losing the other writer's change.
+      const code = (error as { code?: string }).code;
+      if (code === "PGRST116") {
+        return {
+          ok: false,
+          reason: "concurrent_modification",
+          detail: "the row changed after it was read; re-read and retry",
+          code: "CONCURRENT_MODIFICATION",
+        };
+      }
+      return { ok: false, reason: "update_failed", detail: error.message, code };
     }
     return { ok: true, row: data as Record<string, unknown>, action: "updated" };
   }

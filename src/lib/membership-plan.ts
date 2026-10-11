@@ -42,12 +42,43 @@ export interface MembershipRow {
 }
 
 export interface ResolvedMembership {
-  /** Highest-entitlement plan observed across both tables, normalised. */
+  /** Effective plan after revocation is applied. */
   plan: MemberPlan;
   profile: MembershipRow | null;
   member: MembershipRow | null;
   /** Raw stored value the reported plan came from, for diagnostics. */
-  source: "profiles" | "ut_members" | "none";
+  source: "profiles" | "ut_members" | "none" | "revoked";
+  /** Which table(s) recorded a revoking subscription status. */
+  revokedBy?: string[];
+}
+
+/**
+ * Subscription states that REVOKE entitlement.
+ *
+ * Taken from what the application already writes and from Stripe's terminal
+ * states — not invented here:
+ *   - `canceled` is written by the `customer.subscription.deleted` handler.
+ *   - `incomplete_expired` and `unpaid` are Stripe's terminal non-paying states.
+ *
+ * Deliberately NOT revoking:
+ *   - `past_due`  — the existing `invoice.payment_failed` handler sets this
+ *                   WITHOUT changing the plan, so dunning keeps access. Treating
+ *                   it as a revocation would change billing behaviour.
+ *   - `active`, `trialing` — paying or in trial.
+ *   - `inactive`  — `profiles.subscription_status` defaults to this, and nine
+ *                   deployed profiles carry it (eight at `guest`, one at
+ *                   `free`). Treating it as a revocation would be a new policy
+ *                   and is unnecessary: those rows grant no paid plan anyway.
+ *   - NULL — no lifecycle signal recorded.
+ *
+ * Deployed data at the time of writing: zero rows in any revoking state, the
+ * only paid rows being one `profiles.initiate` and one `ut_members.initiate`,
+ * both `active`. So this rule removes access from nobody today.
+ */
+export const REVOKING_STATUSES = new Set(["canceled", "incomplete_expired", "unpaid"]);
+
+export function isRevokingStatus(status?: string | null): boolean {
+  return typeof status === "string" && REVOKING_STATUSES.has(status.trim().toLowerCase());
 }
 
 export type PlanResolution =
@@ -110,6 +141,19 @@ export async function resolveMembershipPlan(
 
     const profile = profiles[0] ?? null;
     const member = members[0] ?? null;
+
+    // A recorded revocation is an AUTHORITY signal, not another plan to rank.
+    // Without this, a stale paid row would keep granting access after a
+    // legitimate cancellation whose write to the other table failed.
+    const revokedBy: string[] = [];
+    if (isRevokingStatus(profile?.subscription_status)) revokedBy.push("profiles");
+    if (isRevokingStatus(member?.subscription_status)) revokedBy.push("ut_members");
+    if (revokedBy.length > 0) {
+      return {
+        ok: true,
+        membership: { plan: "guest", profile, member, source: "revoked", revokedBy },
+      };
+    }
 
     const profileRank = planRank(profile?.plan);
     const memberRank = planRank(member?.plan);

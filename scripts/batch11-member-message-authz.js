@@ -72,6 +72,21 @@ function makeDbClient() {
     const self = {
       select() { return self; },
       eq(col, val) { if (col === "email") email = val; return self; },
+      // The shared resolver reads with .limit(2) and needs the status fields.
+      async limit(n) {
+        state.queries.push({ table, email });
+        if (state.dbThrows) throw new Error("db unavailable");
+        const spec =
+          table === "profiles"
+            ? { plan: state.profilesPlan, error: state.profilesError, status: state.profilesStatus }
+            : { plan: state.membersPlan, error: state.membersError, status: state.membersStatus };
+        if (spec.error) return { data: null, error: spec.error };
+        if (spec.plan === undefined) return { data: [], error: null };
+        return {
+          data: [{ plan: spec.plan, subscription_status: spec.status ?? null }].slice(0, n),
+          error: null,
+        };
+      },
       async maybeSingle() {
         state.queries.push({ table, email });
         if (state.dbThrows) throw new Error("db unavailable");

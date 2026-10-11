@@ -59,6 +59,7 @@ function dbClient() {
       const api = {
         select() { if (!ctx.op) ctx.op = "select"; return api; },
         eq(col, val) { ctx.filters.push([col, val]); return api; },
+        is(col, val) { ctx.filters.push([col, val]); return api; },
         limit(n) {
           state.queries.push({ table, filters: ctx.filters.map((f) => f[1]), op: "select" });
           state.events.push("db:select:" + table);

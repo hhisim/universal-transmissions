@@ -8,7 +8,7 @@ const PLAN_CHECK = ["initiate"];
 
 export default async function CodexIIGalleryPage() {
   // Use NextAuth session — UT uses NextAuth (magic link), NOT Supabase Auth directly
-  const { planRank } = await import("@/lib/membership-plan");
+  const { resolveMembershipPlan } = await import("@/lib/membership-plan");
   const { auth } = await import("@/lib/auth");
   const session = await auth();
 
@@ -16,22 +16,9 @@ export default async function CodexIIGalleryPage() {
     redirect("/sanctum/member/login?redirect=/sanctum/member/codex-ii/gallery");
   }
 
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("plan, subscription_status")
-    .eq("email", session.user.email)
-    .maybeSingle();
-
-  const { data: member } = await supabaseAdmin
-    .from("ut_members")
-    .select("plan")
-    .eq("email", session.user.email)
-    .maybeSingle();
-
-  // Highest entitlement across both tables, matching every other reader.
-  const plan = planRank(profile?.plan) >= planRank(member?.plan)
-    ? profile?.plan ?? null
-    : member?.plan ?? null;
+  // The same revocation-aware resolver as every other reader.
+  const resolved = await resolveMembershipPlan(supabaseAdmin, session.user.email!);
+  const plan = resolved.ok ? resolved.membership.plan : null;
   const isPaid = plan && PLAN_CHECK.includes(plan);
 
   return (
