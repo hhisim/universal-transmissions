@@ -143,13 +143,13 @@ mockModule("@/lib/stripe", {
           e.statusCode = 404;
           throw e;
         }
-        return { id: requested, status: subs[requested], customer: "cus_1" };
+        return { id: requested, status: subs[requested], customer: CUSTOMER };
       },
       list: async () => {
         if (state.stripeFail) throw new Error("stripe unreachable");
         const subs = subsOf();
         return {
-          data: Object.entries(subs).map(([id, status]) => ({ id, status, customer: "cus_1" })),
+          data: Object.entries(subs).map(([id, status]) => ({ id, status, customer: CUSTOMER })),
           has_more: false,
         };
       },
@@ -183,9 +183,18 @@ async function body(res) {
   if (res && typeof res.json === "function") { try { return await res.json(); } catch { return {}; } }
   return {};
 }
-const post = () => webhook.POST(new Request("https://ut.test/api/stripe-webhook", {
-  method: "POST", headers: { "stripe-signature": "sig" }, body: "{}",
-}));
+const post = async () => {
+  const res = await webhook.POST(new Request("https://ut.test/api/stripe-webhook", {
+    method: "POST", headers: { "stripe-signature": "sig" }, body: "{}",
+  }));
+  try {
+    const b = await res.clone().json();
+    console.error("    DIAG status=" + res.status +
+      " failures=" + JSON.stringify(b.membershipFailures || []) +
+      " warnings=" + JSON.stringify(b.membershipWarnings || []));
+  } catch (e) { console.error("    DIAG status=" + res.status + " (unreadable body)"); }
+  return res;
+};
 function member(email, plan, status) {
   state.tables.ut_members.push({ id: "m1", email, plan, subscription_status: status, stripe_customer_id: CUSTOMER, stripe_subscription_id: SUB_ID });
 }
