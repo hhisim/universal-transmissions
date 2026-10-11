@@ -67,7 +67,29 @@ contradiction lives in the *second* table (`profiles`) while the first
 `state.writes.length === 0` — no avoidable first-table write precedes the
 rejection.
 
-### Evidence (mocked boundaries)
+### Reproduced against the pre-repair handler (`c583918`)
+
+The pre-repair module has a different internal API, so the committed suite cannot
+import it. A probe drives the same scenario through the real route and the same
+boundary mocks:
+
+```
+BEFORE  profiles = {"plan":"free","status":"canceled","cust":"cus_OTHER","sub":"sub_A"}
+AFTER   profiles = {"plan":"initiate","status":"canceled","cust":"cus_1","sub":"sub_A"}
+http               = 200
+membershipFailures = []
+entitlement        = initiate
+writes             = ["ut_members/update/matched=1","profiles/update/matched=1"]
+
+DEFECT REPRODUCED: 200=true customer rewritten to cus_1=true initiate granted=true
+=> the pre-repair handler silently repaired the contradiction, exactly as the brief states.
+```
+
+Note the write list: the **writable first table was written before the second was
+even validated**, which is the second half of the defect and the reason the
+repair is three-phase rather than a guard bolted onto a single write.
+
+### Evidence after the repair (mocked boundaries)
 
 ```
 batch14r-lifecycle-authorization
