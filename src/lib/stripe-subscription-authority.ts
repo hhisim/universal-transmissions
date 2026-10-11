@@ -26,7 +26,8 @@ export type StoredLinkage = {
 export type LinkageReason =
   | "linkage_lookup_failed"
   | "duplicate_rows"
-  | "conflicting_linkage";
+  | "conflicting_linkage"
+  | "no_lookup_key";
 
 export type LinkageResult =
   | { ok: true; linkage: StoredLinkage }
@@ -110,8 +111,23 @@ export async function readStoredLinkage(
   // a narrow structural type is not assignable from SupabaseClient.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   client: { from: (table: string) => any },
-  email: string
+  key: { email?: string | null; customerId?: string | null }
 ): Promise<LinkageResult> {
+  // Resolve by address when the event carries one; otherwise fall back to the
+  // TRUSTED stored customer linkage. Querying email='' silently matched nothing
+  // and turned "we have no key" into apparent membership absence.
+  const email = typeof key.email === "string" && key.email.length > 0 ? key.email : null;
+  const customerId =
+    typeof key.customerId === "string" && key.customerId.length > 0 ? key.customerId : null;
+  if (!email && !customerId) {
+    return {
+      ok: false,
+      reason: "no_lookup_key",
+      detail: "event carries neither an address nor a customer id",
+    };
+  }
+  const column = email ? "email" : "stripe_customer_id";
+  const value = email ?? (customerId as string);
   const seen: Array<{ table: "ut_members" | "profiles"; id: string | null; plan: string | null; status: string | null }> = [];
 
   for (const table of ["ut_members", "profiles"] as const) {
@@ -120,7 +136,7 @@ export async function readStoredLinkage(
       res = await client
         .from(table)
         .select("stripe_subscription_id,plan,subscription_status")
-        .eq("email", email)
+        .eq(column, value)
         .limit(2);
     } catch (err) {
       return {
@@ -271,7 +287,31 @@ export async function resolveAuthoritativeSubscription(
         detail: err instanceof Error ? err.message : String(err),
       };
     }
-    const rows = Array.isArray(res.data) ? res.data : [];
+    // An incomplete or unusable enumeration must NEVER become authoritative
+    // absence: data:null, an empty page claiming more results, or a missing
+    // cursor all mean we could not enumerate, which is a failure.
+    if (!Array.isArray(res.data)) {
+      return {
+        ok: false,
+        reason: "stripe_lookup_failed",
+        detail: "subscription list returned no usable data array",
+      };
+    }
+    const rows = res.data;
+    if (rows.length === 0 && res.has_more) {
+      return {
+        ok: false,
+        reason: "stripe_lookup_failed",
+        detail: "list returned an empty page while claiming more results",
+      };
+    }
+    if (res.has_more && (!rows[rows.length - 1] || !rows[rows.length - 1].id)) {
+      return {
+        ok: false,
+        reason: "stripe_lookup_failed",
+        detail: "list claimed more results but supplied no usable cursor",
+      };
+    }
     for (const sub of rows) {
       // Verified ownership is REQUIRED for every enumerated candidate too, not
       // just for the stored one. A row whose customer cannot be read is not

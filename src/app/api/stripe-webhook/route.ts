@@ -207,7 +207,10 @@ export async function POST(req: NextRequest) {
       // Stripe's own state, NEVER from delivery order or event.created.
       // Capture the stored linkage BEFORE asking Stripe, so the write can be
       // conditioned on the state this decision was actually made from.
-      const lifecycleLinkage = await readStoredLinkage(utSupabaseAdmin, email ?? "");
+      const lifecycleLinkage = await readStoredLinkage(utSupabaseAdmin, {
+        email,
+        customerId,
+      });
       if (!lifecycleLinkage.ok) {
         // A linkage READ failure is not absence: refuse to change entitlement.
         membershipFailures.push(`linkage:${lifecycleLinkage.reason}`);
@@ -323,7 +326,10 @@ export async function POST(req: NextRequest) {
       // profiles-only member, whose plan was rewritten to free without a single
       // Stripe query.
       const deleteEmail = subscription.metadata?.email ?? "";
-      const deleteLinkage = await readStoredLinkage(utSupabaseAdmin, deleteEmail);
+      const deleteLinkage = await readStoredLinkage(utSupabaseAdmin, {
+        email: deleteEmail,
+        customerId,
+      });
       if (!deleteLinkage.ok) {
         membershipFailures.push(`linkage:${deleteLinkage.reason}`);
         console.error("Could not read stored linkage on deletion:", deleteLinkage.detail);
@@ -434,7 +440,10 @@ export async function POST(req: NextRequest) {
       // this customer is genuinely past_due. A delayed payment_failed used to
       // rewrite `unpaid` / `incomplete_expired` (both revocations) to `past_due`,
       // which restored entitlement.
-      const pastDueLinkage = await readStoredLinkage(utSupabaseAdmin, (invoice as any).customer_email ?? "");
+      const pastDueLinkage = await readStoredLinkage(utSupabaseAdmin, {
+        email: (invoice as any).customer_email,
+        customerId,
+      });
       if (!pastDueLinkage.ok) {
         membershipFailures.push(`linkage:${pastDueLinkage.reason}`);
         console.error("Could not read stored linkage:", pastDueLinkage.detail);
@@ -488,7 +497,10 @@ export async function POST(req: NextRequest) {
 
         // AUTHORITY: an older invoice must not replace the current subscription
         // id, and must not resurrect a revoked membership.
-        const invoiceLinkage = await readStoredLinkage(utSupabaseAdmin, customerEmail);
+        const invoiceLinkage = await readStoredLinkage(utSupabaseAdmin, {
+          email: customerEmail,
+          customerId,
+        });
         if (!invoiceLinkage.ok) {
           membershipFailures.push(`linkage:${invoiceLinkage.reason}`);
           console.error("Could not read stored linkage:", invoiceLinkage.detail);
