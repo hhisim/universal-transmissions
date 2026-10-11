@@ -200,8 +200,10 @@ function seedProfile(plan, status) {
   state.event = ev("customer.subscription.deleted", { id: SUB, customer: CUS, metadata: { email: EMAIL } });
   state.failUpdate = { profiles: { message: "mirror down" } };
   r = await post(); b = await body(r);
-  ok(r.status === 200, "E2 a failed OPTIONAL profile mirror still acknowledges (200)");
-  ok(Array.isArray(b.membershipWarnings) && b.membershipWarnings.length > 0, "E2 the mirror failure is surfaced, not ignored");
+  // The cancellation mirror is REQUIRED: a failed mirror leaves access paid, so
+  // the delivery must be refused rather than acknowledged.
+  ok(r.status === 500, "E2 a failed cancellation mirror is refused, not acknowledged (got " + r.status + ")");
+  ok(Array.isArray(b.membershipFailures) && b.membershipFailures.length > 0, "E2 the failure is named in the response");
 
   // E3 — payment_failed returned error
   reset(); seedMember("initiate", "active");

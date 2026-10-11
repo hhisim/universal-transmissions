@@ -6,6 +6,7 @@ import {
   resolveAuthoritativeSubscription,
   eventGovernsCurrentSubscription,
   isRevokingStatusValue,
+  entitlementFromAuthority,
 } from "@/lib/stripe-subscription-authority";
 
 // ── Telegram notification helper ────────────────────────────────────────────
@@ -182,7 +183,7 @@ export async function POST(req: NextRequest) {
       console.log(`Subscription ${event.type}: ${subscription.id} for customer ${customerId}`);
 
       // Determine plan and status
-      let plan: 'free' | 'initiate' = 'free';
+      let plan: 'guest' | 'free' | 'initiate' = 'free';
       // widened from Stripe's `Status` union: the reconciled authority
       // supplies a plain string
       let subscriptionStatus: string = subscription.status;
@@ -219,15 +220,16 @@ export async function POST(req: NextRequest) {
         console.log(`Ignoring a stale lifecycle snapshot for superseded ${subscription.id}`);
         break;
       }
-      if (lifecycleAuthority.status) {
-        subscriptionStatus = lifecycleAuthority.status;
-        if (lifecycleAuthority.status === "past_due") {
-          plan = "initiate";
-        } else if (isRevokingStatusValue(lifecycleAuthority.status)) {
-          plan = "free";
-          subscriptionStatus = "canceled";
-        }
+      // Derive plan AND status from the SAME validated state, so a historical
+      // payload field can never leak into the update.
+      const lifecycleEntitlement = entitlementFromAuthority(lifecycleAuthority);
+      if (!lifecycleEntitlement) {
+        membershipFailures.push("reconcile:ambiguous_status");
+        console.error("Ambiguous authoritative status; refusing to change entitlement");
+        break;
       }
+      plan = lifecycleEntitlement.plan;
+      subscriptionStatus = lifecycleEntitlement.status;
 
       // Get period end
       const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString();
@@ -350,13 +352,17 @@ export async function POST(req: NextRequest) {
           .update({ plan: "free" })
           .eq("stripe_customer_id", customerId)
         if (profileRevertError) {
-          membershipWarnings.push(`cancel-profiles:${profileRevertError.message}`);
+          // REQUIRED, not optional. The shared reader ranks `profiles.plan`, so a
+          // failed mirror leaves access PAID while the revocation looks done.
+          // Reproduced: a profiles-only member kept `initiate` and the delivery
+          // was acknowledged 200. Failing here makes Stripe retry.
+          membershipFailures.push(`cancel-profiles:${profileRevertError.message}`);
           console.error("Failed to revert Oracle profile:", profileRevertError.message);
         } else {
           console.log("profiles reverted to free (by stripe_customer_id)");
         }
       } catch (err) {
-        membershipWarnings.push("cancel-profiles:threw");
+        membershipFailures.push("cancel-profiles:threw");
         console.error("Failed to revert Oracle profile:", err);
       }
 
@@ -438,14 +444,20 @@ export async function POST(req: NextRequest) {
           console.error("Could not reconcile the current subscription:", invoiceAuthority.detail);
           break;
         }
-        if (isRevokingStatusValue(invoiceAuthority.status)) {
-          membershipWarnings.push(`invoice-ignored:${invoiceAuthority.status}`);
-          console.log("Ignoring a stale invoice for a revoked subscription");
+        // Absence is authoritative: with no current subscription there is
+        // nothing to entitle, and an old invoice must not install its id.
+        const invoiceEntitlement = entitlementFromAuthority(invoiceAuthority);
+        if (!invoiceEntitlement) {
+          membershipFailures.push("reconcile:ambiguous_status");
+          console.error("Ambiguous authoritative status on an invoice; refusing to act");
           break;
         }
-        const currentSubscriptionId = invoiceAuthority.found
-          ? invoiceAuthority.subscriptionId
-          : subscriptionId;
+        if (invoiceEntitlement.basis !== "active" && invoiceEntitlement.basis !== "past_due") {
+          membershipWarnings.push(`invoice-ignored:${invoiceEntitlement.basis}`);
+          console.log("Ignoring an invoice whose subscription is not current and paid");
+          break;
+        }
+        const currentSubscriptionId = invoiceAuthority.subscriptionId;
 
         try {
           // Neither table has a unique index on email, so the previous

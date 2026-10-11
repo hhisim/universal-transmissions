@@ -15,6 +15,48 @@
  * This module performs no writes and no Stripe mutations.
  */
 
+export type EntitlementState = {
+  /** The plan the reader will rank. */
+  plan: "guest" | "free" | "initiate";
+  /** The status to persist. `canceled` is the canonical revocation. */
+  status: string;
+  /** Why this state was chosen — for logs and tests. */
+  basis: "active" | "past_due" | "revoked" | "absent" | "other";
+};
+
+/**
+ * Derive the COMPLETE entitlement update from validated current state.
+ *
+ * A lifecycle payload is historical; mixing its fields with the authoritative
+ * status produced a wrong plan (reproduced: authority `active` + delayed payload
+ * `unpaid` yielded status `active` but plan `free`). Every field is therefore
+ * taken from one source of truth.
+ *
+ * Absence is distinguished from failure: `found: false` means Stripe reports no
+ * current subscription, which is authoritative — it grants nothing. Only a
+ * genuine lookup failure yields null, and the caller must then refuse to
+ * acknowledge the delivery.
+ */
+export function entitlementFromAuthority(
+  authoritative: Extract<AuthoritativeSubscription, { ok: true }>
+): EntitlementState | null {
+  if (!authoritative.found || !authoritative.subscriptionId) {
+    return { plan: "guest", status: "canceled", basis: "absent" };
+  }
+  const status = (authoritative.status ?? "").toLowerCase();
+  if (status === "active" || status === "trialing") {
+    return { plan: "initiate", status, basis: "active" };
+  }
+  if (status === "past_due") {
+    return { plan: "initiate", status: "past_due", basis: "past_due" };
+  }
+  if (REVOKING.has(status)) {
+    return { plan: "guest", status: "canceled", basis: "revoked" };
+  }
+  if (!status) return null;               // ambiguous: no status to act on
+  return { plan: "guest", status, basis: "other" };
+}
+
 export type AuthoritativeSubscription =
   | { ok: true; found: boolean; subscriptionId: string | null; status: string | null }
   | { ok: false; reason: "stripe_lookup_failed"; detail: string };
