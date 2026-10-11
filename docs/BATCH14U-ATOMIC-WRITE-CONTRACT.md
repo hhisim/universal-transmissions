@@ -3,6 +3,21 @@
 Baseline: `c360bc911404fecf5615f8a506f48e3988f08916` (`c360bc9`)
 Branch: `omni/batch14-membership-write-contract`
 
+> ## ⚠ Superseded in part (Batch 14v)
+>
+> **Assertion and mutation counts in this document are stale.** The harness has
+> grown from 39 → 43 → **86 assertions**; every per-mutation count below was
+> measured against the smaller case set. The authoritative figures, the corrected
+> claims and the new evidence are in
+> **`docs/BATCH14V-RPC-VALIDATION-GAPS.md`**.
+>
+> Specifically corrected there: the claim that *"only a uniqueness constraint on
+> the linkage would close that window"* (an index does **not** close the absence
+> races — see 14v §3, where both races are reproduced); the missing statement that
+> the primitive **cannot decide which of two callers holds the newer Stripe
+> observation** (14v §4); and its silence on whether installation is atomic
+> (14v §5).
+
 **Preparation only. No production SQL. Nothing released. Nothing wired in.**
 
 - The SQL is a **review candidate**: `supabase/migrations/20261012_apply_lifecycle_update.sql`.
@@ -106,7 +121,8 @@ every role could drive entitlement writes. Proven by **H**.
 ## 3. What the harness proves
 
 `scripts/batch14u-rpc-harness.sh` — isolated cluster, synthetic rows, the
-proposed migration applied, 39 assertions.
+proposed migration applied. **86 assertions** as of Batch 14v (this section
+originally reported 39; see the supersession note at the top).
 
 | Required property | Case | Result |
 |---|---|---|
@@ -121,7 +137,9 @@ proposed migration applied, 39 assertions.
 
 ### Does the harness bite?
 
-Four mutations of the SQL, each run through the same harness:
+Four mutations of the SQL, each run through the same harness. **Their counts are
+stale — measured against the 43-assertion harness; Batch 14v §6 re-measures all
+of them and adds six more.**
 
 | Mutation | Harness result | What failed |
 |---|---|---|
@@ -187,9 +205,13 @@ already admitted it cannot see.
 
 - **A phantom row can escape.** The re-location holds the rows it finds
   (`FOR UPDATE`), but a row **inserted** concurrently during the call is not
-  blocked by a row lock. Such a row can be missed. Only a uniqueness constraint on
-  the linkage closes that window, which is why the unique-index migration and the
-  unlinked-row authority work remain prerequisites.
+  blocked by a row lock — and neither is an existing row that another writer
+  **relinks**. **Correction (Batch 14v §3): the unique-email index does not close
+  this.** An email index constrains INSERTs by email, while the race is about the
+  *linkage* appearing: a row with a different email but the same subscription id
+  is unaffected, and relinking an existing row is an UPDATE that no insert-time
+  index constrains. Closing it needs writer synchronization (14v §3,
+  "Synchronization proposal"), which is **not applied**.
 - **`subscription_status` values are not vocabulary-checked.** `plan` is, because
   the vocabulary is small and closed. `subscription_status` is free text in the
   deployed schema and is passed through unvalidated. If it should be constrained,

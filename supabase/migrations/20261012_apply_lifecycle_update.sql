@@ -1,5 +1,5 @@
 -- ============================================================================
--- Batch 14u — atomic lifecycle write contract.
+-- Batch 14u/14v — atomic lifecycle write contract.
 --
 -- STATUS: PREPARED AND NOT APPLIED.
 --
@@ -8,6 +8,10 @@
 -- production database, and it is NOT wired into the application: no code path
 -- calls it. Applying it is a separately authorized SQL step (a release
 -- prerequisite), and an application change may only follow that.
+--
+-- The whole file is ONE TRANSACTION. Function creation, ownership and the
+-- execution grants commit together or not at all, so a failure part-way through
+-- applying it cannot leave a half-installed function behind (harness case J).
 --
 -- WHY THIS EXISTS
 -- ---------------
@@ -34,25 +38,59 @@
 --   skipped   — the linkage owns a row, but the caller chose not to write it
 --               (present-but-ineligible); a legitimate no-op, affected = 0
 --
--- and three distinct FAILURES, each with its own SQLSTATE 40001 and message:
---   BATCH14 NEWLY_LINKED — the linkage now owns a row the snapshot did not have
---   BATCH14 DISAPPEARED  — the linkage no longer owns a row the snapshot had
---   BATCH14 CONFLICT     — a row still exists but no longer matches the
---                          caller's original values (changed)
+-- FAILURES — every one of them aborts the whole transaction
+-- --------------------------------------------------------
+--   BATCH14 NEWLY_LINKED        40001  the linkage now owns a row the snapshot did not have
+--   BATCH14 DISAPPEARED         40001  the linkage no longer owns a row the snapshot had
+--   BATCH14 SET_CHANGED         40001  the located set changed in some other way
+--   BATCH14 CONFLICT            40001  a row moved since the snapshot (guards no longer match)
+--   BATCH14 ENTRY_NOT_LOCATED   40001  an entry names a row this linkage does not own
+--   BATCH14 COVERAGE            40001  entries do not cover the located rows exactly
+--   BATCH14 INCOMPLETE_UPDATE   40001  internal invariant: fewer rows written than located
+--   BATCH14 DUPLICATE_TARGET    22023  the same table appears twice
+--   BATCH14 DUPLICATE_PK        22023  the same pk appears twice in one target
+--   BATCH14 EMPTY_UPDATE        22023  rows were located but no entries were supplied
+--   BATCH14 EMPTY_SET           22023  an update entry would write nothing
+--   BATCH14 SKIP_WITH_SET       22023  a skipped entry carries a set
+--   BATCH14 MISSING_PK          22023  an entry has no pk
+--   BATCH14 INCOMPLETE_SNAPSHOT 22023  an entry omits one of the four guard keys
+--   BATCH14 COLUMN_NOT_WRITABLE 22023  a set names a column outside the allow-list
+--   BATCH14 PLAN_VOCABULARY     22023  a set names a plan outside the vocabulary
+--   BATCH14 NO_LINKAGE          22023  a target carries neither customer nor subscription
+--
+-- EXACT SNAPSHOT COVERAGE
+-- -----------------------
+-- For a target that located rows, the caller's entries must cover the located
+-- set EXACTLY: every located row gets exactly one entry, and no entry names a row
+-- outside it. This is what makes `updated` trustworthy — without it a caller
+-- could omit a row and still be told the update succeeded.
+--
+-- Snapshot validation (is the located set still the one the caller snapshotted?)
+-- is SEPARATE from the subset actually selected for UPDATE, which is why a
+-- skipped row still has to carry its guards: `skipped` asserts "I looked at this
+-- row and chose not to write it", and that claim is checkable.
 --
 -- An absent snapshot is verified, not trusted: the caller-supplied presence is
 -- re-checked against the linkage inside the transaction, so a row that becomes
--- linked after the snapshot is detected as NEWLY_LINKED rather than silently
--- ignored. A caller-supplied flag alone cannot do that.
+-- linked after the snapshot is NEWLY_LINKED rather than silently ignored.
 --
--- RESIDUAL LIMIT (stated, not papered over)
--- -----------------------------------------
--- The re-location holds the rows it finds (FOR UPDATE), but a row INSERTED
--- concurrently during the call is not blocked by a row lock. Such a phantom can
--- escape this function's check; only a uniqueness constraint on the linkage
--- would close that window. This is one of the reasons the unique-index migration
--- and the unlinked-row authority work remain outstanding.
+-- RESIDUAL LIMIT — THE ABSENCE RACES (reproduced, harness cases R1/R2)
+-- -------------------------------------------------------------------
+-- A row that appears AFTER the re-location but BEFORE this transaction commits is
+-- not seen: the re-location holds the rows it FOUND, and a row INSERTED — or a
+-- previously unlinked row that another writer LINKS — concurrently is not blocked
+-- by a row lock. The call can therefore report `absent` and commit while a
+-- matching row now exists.
+--
+-- NO INDEX CLOSES THIS. The unique-email index constrains INSERTs by EMAIL, while
+-- these races are about the LINKAGE appearing: a row with a different email but
+-- the same subscription id is not blocked by it at all, and linking an existing
+-- row is an UPDATE, not an INSERT. Closing it needs writer synchronization — see
+-- "Synchronization proposal" in docs/BATCH14U-ATOMIC-WRITE-CONTRACT.md — which is
+-- NOT applied here and is not implemented by this file.
 -- ============================================================================
+
+begin;
 
 create or replace function public.apply_lifecycle_update(p_targets jsonb)
 returns table (
@@ -83,6 +121,8 @@ declare
   v_subs       text[];
   v_seen       uuid[];
   v_located    uuid[];
+  v_entries    jsonb;
+  v_entry_pks  uuid[];
   v_entry      jsonb;
   v_pk         uuid;
   v_orig       jsonb;
@@ -95,6 +135,19 @@ begin
      or jsonb_typeof(p_targets) <> 'array'
      or jsonb_array_length(p_targets) = 0 then
     raise exception 'BATCH14 INVALID_PAYLOAD: p_targets must be a non-empty array'
+      using errcode = '22023';
+  end if;
+
+  -- No table may be named twice: two objects for one table would let a caller
+  -- smuggle a second, unchecked write past the first.
+  if exists (
+    select 1 from (
+      select t->>'target' as n, count(*) as c
+        from jsonb_array_elements(p_targets) t
+       group by 1 having count(*) > 1
+    ) d
+  ) then
+    raise exception 'BATCH14 DUPLICATE_TARGET: a table is named more than once'
       using errcode = '22023';
   end if;
 
@@ -134,9 +187,8 @@ begin
     end if;
 
     -- ------------------------------------------------------------------
-    -- (1) RE-LOCATE inside the transaction, holding what is found.
-    -- This is the only read, and it exists solely to verify that the
-    -- caller's snapshot is still current. It never decides what to write.
+    -- (1) RE-LOCATE inside the transaction, holding what is found. The only
+    -- read, used solely to confirm the caller's snapshot is still current.
     -- ------------------------------------------------------------------
     if v_name = 'ut_members' then
       select coalesce(array_agg(t.id order by t.id), '{}') into v_located
@@ -180,23 +232,67 @@ begin
       continue;
     end if;
 
-    if v_intent = 'skip' then
-      target := v_name; outcome := 'skipped'; affected := 0; located_pks := v_located;
-      return next;
-      continue;
+    -- ------------------------------------------------------------------
+    -- (3) SNAPSHOT VALIDATION — independent of which rows get an UPDATE.
+    -- ------------------------------------------------------------------
+    v_entries := coalesce(v_target->'entries', '[]'::jsonb);
+    if jsonb_typeof(v_entries) <> 'array' then
+      raise exception 'BATCH14 INVALID_ENTRIES: target % entries must be an array', v_name
+        using errcode = '22023';
     end if;
 
-    -- ------------------------------------------------------------------
-    -- (3) Apply the caller's entries, conditioned on the snapshot.
-    -- ------------------------------------------------------------------
-    v_affected := 0;
-    for v_entry in select jsonb_array_elements(coalesce(v_target->'entries', '[]'::jsonb)) loop
+    if exists (select 1 from jsonb_array_elements(v_entries) e where e->>'pk' is null) then
+      raise exception 'BATCH14 MISSING_PK: target % has an entry with no pk', v_name
+        using errcode = '22023';
+    end if;
+
+    if exists (
+      select 1 from (
+        select e->>'pk' as p, count(*) as c
+          from jsonb_array_elements(v_entries) e
+         group by 1 having count(*) > 1
+      ) d
+    ) then
+      raise exception 'BATCH14 DUPLICATE_PK: target % repeats a pk', v_name
+        using errcode = '22023';
+    end if;
+
+    v_entry_pks := array(
+      select (e->>'pk')::uuid from jsonb_array_elements(v_entries) e order by 1
+    );
+
+    -- An update that located rows but supplied none is a specific mistake and
+    -- gets a specific name. A SKIP that supplied none is a coverage failure
+    -- below, because every located row would be missing its guards.
+    if v_intent = 'update' and coalesce(array_length(v_entry_pks, 1), 0) = 0 then
+      raise exception 'BATCH14 EMPTY_UPDATE: target % located % row(s) but supplied no entries',
+        v_name, array_length(v_located, 1)
+        using errcode = '22023';
+    end if;
+
+    -- An entry must belong to the linkage the caller declared.
+    if exists (select 1 from unnest(v_entry_pks) x where x <> all (v_located)) then
+      raise exception 'BATCH14 ENTRY_NOT_LOCATED: target % has an entry outside the located set', v_name
+        using errcode = '40001';
+    end if;
+
+    -- EXACT coverage: no located row may be left out. This is what makes
+    -- `updated` trustworthy — an omitted row can no longer ride along unseen.
+    -- It also covers a SKIP with no guards: every located row would be missing,
+    -- so the skip cannot claim it looked at anything.
+    if exists (select 1 from unnest(v_located) x where x <> all (v_entry_pks)) then
+      raise exception 'BATCH14 COVERAGE: target % omitted a located row', v_name
+        using errcode = '40001',
+              detail  = format('located=%s entries=%s', v_located, v_entry_pks);
+    end if;
+
+    for v_entry in select jsonb_array_elements(v_entries) loop
       v_pk   := (v_entry->>'pk')::uuid;
       v_orig := v_entry->'original';
-      v_set  := coalesce(v_entry->'set', '{}'::jsonb);
+      v_set  := v_entry->'set';
 
-      -- The original snapshot must be explicit. A missing guard column is not
-      -- an omitted guard, so every one of the four must be present.
+      -- The original snapshot must be explicit, for skipped rows too. A missing
+      -- guard column is not an omitted guard, so all four must be present.
       if v_orig is null
          or not (v_orig ? 'plan'
                  and v_orig ? 'subscription_status'
@@ -206,28 +302,77 @@ begin
           using errcode = '22023';
       end if;
 
-      if jsonb_typeof(v_set) <> 'object' then
-        raise exception 'BATCH14 INVALID_SET: entry % set must be an object', v_pk
-          using errcode = '22023';
-      end if;
-
-      for v_key in select jsonb_object_keys(v_set) loop
-        if v_key <> all (c_writable) then
-          raise exception 'BATCH14 COLUMN_NOT_WRITABLE: %', v_key using errcode = '22023';
+      if v_intent = 'skip' then
+        if v_set is not null and v_set <> '{}'::jsonb then
+          raise exception 'BATCH14 SKIP_WITH_SET: a skipped row (%) carries a set', v_pk
+            using errcode = '22023';
         end if;
-      end loop;
+      else
+        if v_set is null or jsonb_typeof(v_set) <> 'object' or v_set = '{}'::jsonb then
+          raise exception 'BATCH14 EMPTY_SET: update entry % would write nothing', v_pk
+            using errcode = '22023';
+        end if;
 
-      if v_set ? 'plan'
-         and v_set->>'plan' is not null
-         and (v_set->>'plan') <> all (c_plan_vocab) then
-        raise exception 'BATCH14 PLAN_VOCABULARY: %', v_set->>'plan' using errcode = '22023';
+        for v_key in select jsonb_object_keys(v_set) loop
+          if v_key <> all (c_writable) then
+            raise exception 'BATCH14 COLUMN_NOT_WRITABLE: %', v_key using errcode = '22023';
+          end if;
+        end loop;
+
+        if v_set ? 'plan'
+           and v_set->>'plan' is not null
+           and (v_set->>'plan') <> all (c_plan_vocab) then
+          raise exception 'BATCH14 PLAN_VOCABULARY: %', v_set->>'plan' using errcode = '22023';
+        end if;
+      end if;
+    end loop;
+
+    -- ------------------------------------------------------------------
+    -- (4) GUARD VALIDATION for EVERY entry, update or skip. The rows are held
+    -- from the re-location, so this is a stable read. A skipped row whose
+    -- snapshot moved on is a conflict, not a quiet no-op.
+    -- ------------------------------------------------------------------
+    for v_entry in select jsonb_array_elements(v_entries) loop
+      v_pk   := (v_entry->>'pk')::uuid;
+      v_orig := v_entry->'original';
+
+      if v_name = 'ut_members' then
+        select count(*) into v_n from public.ut_members r
+         where r.id = v_pk
+           and r.plan                   is not distinct from v_orig->>'plan'
+           and r.subscription_status    is not distinct from v_orig->>'subscription_status'
+           and r.stripe_customer_id     is not distinct from v_orig->>'stripe_customer_id'
+           and r.stripe_subscription_id is not distinct from v_orig->>'stripe_subscription_id';
+      else
+        select count(*) into v_n from public.profiles r
+         where r.user_id = v_pk
+           and r.plan                   is not distinct from v_orig->>'plan'
+           and r.subscription_status    is not distinct from v_orig->>'subscription_status'
+           and r.stripe_customer_id     is not distinct from v_orig->>'stripe_customer_id'
+           and r.stripe_subscription_id is not distinct from v_orig->>'stripe_subscription_id';
       end if;
 
-      -- The entry must belong to the linkage the caller declared.
-      if not exists (select 1 from unnest(v_located) x where x = v_pk) then
-        raise exception 'BATCH14 ENTRY_NOT_LOCATED: % is not in the located set', v_pk
+      if v_n = 0 then
+        raise exception 'BATCH14 CONFLICT: target % pk % no longer matches the snapshot', v_name, v_pk
           using errcode = '40001';
       end if;
+    end loop;
+
+    if v_intent = 'skip' then
+      target := v_name; outcome := 'skipped'; affected := 0; located_pks := v_located;
+      return next;
+      continue;
+    end if;
+
+    -- ------------------------------------------------------------------
+    -- (5) APPLY the subset selected for UPDATE, still conditioned on the
+    -- snapshot so a writer that slips past the phase-4 read cannot be lost.
+    -- ------------------------------------------------------------------
+    v_affected := 0;
+    for v_entry in select jsonb_array_elements(v_entries) loop
+      v_pk   := (v_entry->>'pk')::uuid;
+      v_orig := v_entry->'original';
+      v_set  := v_entry->'set';
 
       if v_name = 'ut_members' then
         update public.ut_members r set
@@ -266,14 +411,23 @@ begin
       v_affected := v_affected + v_n;
     end loop;
 
+    -- No caller may be told `updated` when a required update was omitted.
+    if v_affected <> coalesce(array_length(v_located, 1), 0) then
+      raise exception 'BATCH14 INCOMPLETE_UPDATE: target % wrote % of % located rows',
+        v_name, v_affected, array_length(v_located, 1)
+        using errcode = '40001';
+    end if;
+
     target := v_name; outcome := 'updated'; affected := v_affected; located_pks := v_located;
     return next;
   end loop;
 end;
 $$;
 
+alter function public.apply_lifecycle_update(jsonb) owner to postgres;
+
 comment on function public.apply_lifecycle_update(jsonb) is
-  'Batch 14u: applies a caller-decided lifecycle update for ut_members and profiles in ONE transaction. Not applied, not wired into the application.';
+  'Batch 14u/14v: applies a caller-decided lifecycle update for ut_members and profiles in ONE transaction. Not applied, not wired into the application.';
 
 -- ---------------------------------------------------------------------------
 -- Execution is service-role only.
@@ -285,3 +439,5 @@ revoke all on function public.apply_lifecycle_update(jsonb) from public;
 revoke all on function public.apply_lifecycle_update(jsonb) from anon;
 revoke all on function public.apply_lifecycle_update(jsonb) from authenticated;
 grant execute on function public.apply_lifecycle_update(jsonb) to service_role;
+
+commit;
