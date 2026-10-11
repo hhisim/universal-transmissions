@@ -33,6 +33,7 @@ S_14D = "scripts/batch14d-webhook-failure-reactivation.js"
 S_AUTH = "scripts/batch14r-lifecycle-authorization.js"
 S_CONC = "scripts/batch14r-concurrency-interleavings.js"
 S_UNLINKED = "scripts/batch14s-unlinked-row-authority.js"
+S_SNAPSHOT = "scripts/batch14t-snapshot-timing.js"
 
 AUTHORITY = "src/lib/stripe-subscription-authority.ts"
 LIFECYCLE = "src/lib/membership-lifecycle.ts"
@@ -104,7 +105,7 @@ MUTATIONS = [
   profiles: "id",""",
         "expect": {
             S_14Q: (10, ["Q1 at least one required write actually affected a row"]),
-            S_14P: (17, ["S3 profiles-only access revoked", "S1 profiles mirrored to free"]),
+            S_14P: (19, ["S3 profiles-only access revoked", "S1 profiles mirrored to free"]),
         },
     },
     {
@@ -152,38 +153,113 @@ MUTATIONS = [
     },
     {
         "id": "M7",
-        "what": "webhook: let PLANNING write, so a rejection found in the second "
-                "table follows a first-table write",
-        "file": LIFECYCLE,
-        "old": """  const resolved = await resolveLifecycleRows(client, table, authority, options.isEligible);
-  if (!resolved.ok) return resolved;
-  return {
-    ok: true,
-    table,
-    fields,
-    rows: resolved.rows,
-    resolved: resolved.matched,
-    eligible: resolved.rows.length,
-    linked: resolved.matched > 0,
-  };
-}""",
-        "new": """  const resolved = await resolveLifecycleRows(client, table, authority, options.isEligible);
-  if (!resolved.ok) return resolved;
-  const plan = {
-    ok: true as const,
-    table,
-    fields,
-    rows: resolved.rows,
-    resolved: resolved.matched,
-    eligible: resolved.rows.length,
-    linked: resolved.matched > 0,
-  };
-  // MUTATED: planning writes immediately instead of validating only.
-  await commitLifecycleUpdate(client, plan);
-  return plan;
-}""",
+        "what": "webhook: downgrade a SECOND-table snapshot failure to a warning, so "
+                "a rejection discovered there follows a first-table write",
+        "file": WEBHOOK,
+        "old": """        if (!profileSnapshot.ok) {
+          // Nothing has been written yet, so this rejection costs no work.
+          membershipFailures.push(`profiles:${profileSnapshot.reason}`);
+          console.error("Refusing the profiles write:", profileSnapshot.detail);
+          break;
+        }""",
+        "new": """        if (!profileSnapshot.ok) {
+          // MUTATED: the rejection is downgraded, so nothing stops the write.
+          membershipWarnings.push(`profiles:${profileSnapshot.reason}`);
+        }""",
         "expect": {
-            S_AUTH: (4, ["E5a NO write is attempted at all"]),
+            S_AUTH: (2, ["E5a NO write is attempted at all"]),
+        },
+    },
+    {
+        "id": "M8",
+        "what": "webhook: capture the snapshot AFTER reconciliation instead of "
+                "before it (the pre-Batch-14t ordering)",
+        "file": WEBHOOK,
+        "old": """        // (3) PLAN FROM THE PRE-RECONCILIATION SNAPSHOT — no further reads, and
+        // BOTH tables accepted before EITHER is written.
+        const memberPlan = planLifecycleUpdate(memberSnapshot, "ut_members", memberFields);
+        const profilePlan = planLifecycleUpdate(profileSnapshot, "profiles", profileFields);""",
+        "new": """        // MUTATED: re-read the rows here, after reconciliation, instead of using
+        // the snapshot taken before it.
+        const memberPlan = planLifecycleUpdate(
+          await snapshotLifecycleRows(utSupabaseAdmin, "ut_members", lifecycleAuthorityInput),
+          "ut_members",
+          memberFields
+        );
+        const profilePlan = planLifecycleUpdate(
+          await snapshotLifecycleRows(utSupabaseAdmin, "profiles", lifecycleAuthorityInput),
+          "profiles",
+          profileFields
+        );""",
+        "expect": {
+            # Reverting the LIFECYCLE path only: T2 and T3 have their own plan
+            # lines and are covered by M9 and M10.
+            S_SNAPSHOT: (3, ["T1 the installed replacement is PRESERVED"]),
+        },
+    },
+    {
+        "id": "M9",
+        "what": "webhook: the DELETION path captures its snapshot after "
+                "reconciliation instead of before it",
+        "file": WEBHOOK,
+        "old": """        const memberPlan = planLifecycleUpdate(memberSnapshot, "ut_members", {
+          plan: "guest",
+          subscription_status: "canceled",
+          stripe_subscription_id: null,
+          current_period_end: null,
+        });
+        const profilePlan = planLifecycleUpdate(profileSnapshot, "profiles", { plan: "free" });""",
+        "new": """        // MUTATED: re-read the rows here, after reconciliation.
+        const memberPlan = planLifecycleUpdate(
+          await snapshotLifecycleRows(
+            utSupabaseAdmin,
+            "ut_members",
+            deleteAuthorityInput,
+            ownsDeletedSubscription
+          ),
+          "ut_members",
+          {
+            plan: "guest",
+            subscription_status: "canceled",
+            stripe_subscription_id: null,
+            current_period_end: null,
+          }
+        );
+        const profilePlan = planLifecycleUpdate(
+          await snapshotLifecycleRows(
+            utSupabaseAdmin,
+            "profiles",
+            deleteAuthorityInput,
+            ownsDeletedSubscription
+          ),
+          "profiles",
+          { plan: "free" }
+        );""",
+        "expect": {
+            S_SNAPSHOT: (2, ["T2 the deletion is recognised as superseded"]),
+        },
+    },
+    {
+        "id": "M10",
+        "what": "webhook: the DUNNING path captures its snapshot after "
+                "reconciliation instead of before it",
+        "file": WEBHOOK,
+        "old": """        const pastDuePlan = planLifecycleUpdate(pastDueSnapshot, "ut_members", {
+          subscription_status: "past_due",
+        });""",
+        "new": """        // MUTATED: re-read the row here, after reconciliation.
+        const pastDuePlan = planLifecycleUpdate(
+          await snapshotLifecycleRows(
+            utSupabaseAdmin,
+            "ut_members",
+            pastDueAuthorityInput,
+            notAlreadyCanceled
+          ),
+          "ut_members",
+          { subscription_status: "past_due" }
+        );""",
+        "expect": {
+            S_SNAPSHOT: (3, ["T3 dunning did NOT stamp past_due"]),
         },
     },
 ]

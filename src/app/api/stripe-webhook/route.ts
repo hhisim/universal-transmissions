@@ -10,6 +10,7 @@ import {
   readStoredLinkage,
 } from "@/lib/stripe-subscription-authority";
 import {
+  snapshotLifecycleRows,
   planLifecycleUpdate,
   commitLifecycleUpdate,
   isRetryableLifecycleFailure,
@@ -271,6 +272,36 @@ export async function POST(req: NextRequest) {
           subscriptionIds: lifecycleLocationIds(subscription.id, lifecycleStored),
         };
 
+        // (1b) THE UPDATE SNAPSHOT — BOTH tables, read HERE, before the provider.
+        //
+        // `readStoredLinkage` above is NOT this: it returns ids and a plan/status
+        // summary, not the rows. Reading the rows after reconciliation instead
+        // would let a change that lands during the Stripe call be absorbed into
+        // the snapshot, so the conditional write would match the NEW values,
+        // report success, and overwrite the newer state with a decision made from
+        // the old one that never saw it.
+        const memberSnapshot = await snapshotLifecycleRows(
+          utSupabaseAdmin,
+          "ut_members",
+          lifecycleAuthorityInput
+        );
+        if (!memberSnapshot.ok) {
+          membershipFailures.push(`ut_members:${memberSnapshot.reason}`);
+          console.error("Refusing the ut_members write:", memberSnapshot.detail);
+          break;
+        }
+        const profileSnapshot = await snapshotLifecycleRows(
+          utSupabaseAdmin,
+          "profiles",
+          lifecycleAuthorityInput
+        );
+        if (!profileSnapshot.ok) {
+          // Nothing has been written yet, so this rejection costs no work.
+          membershipFailures.push(`profiles:${profileSnapshot.reason}`);
+          console.error("Refusing the profiles write:", profileSnapshot.detail);
+          break;
+        }
+
         // (2) Reconcile against Stripe's CURRENT state.
         const lifecycleAuthority = await resolveAuthoritativeSubscription(
           getStripe(),
@@ -326,30 +357,10 @@ export async function POST(req: NextRequest) {
           stripe_subscription_id: governedSubscriptionId,
         };
 
-        // (3) VALIDATE BOTH TABLES BEFORE WRITING EITHER.
-        const memberPlan = await planLifecycleUpdate(
-          utSupabaseAdmin,
-          "ut_members",
-          lifecycleAuthorityInput,
-          memberFields
-        );
-        if (!memberPlan.ok) {
-          membershipFailures.push(`ut_members:${memberPlan.reason}`);
-          console.error("Refusing the ut_members write:", memberPlan.detail);
-          break;
-        }
-        const profilePlan = await planLifecycleUpdate(
-          utSupabaseAdmin,
-          "profiles",
-          lifecycleAuthorityInput,
-          profileFields
-        );
-        if (!profilePlan.ok) {
-          // Nothing has been written yet, so this rejection costs no work.
-          membershipFailures.push(`profiles:${profilePlan.reason}`);
-          console.error("Refusing the profiles write:", profilePlan.detail);
-          break;
-        }
+        // (3) PLAN FROM THE PRE-RECONCILIATION SNAPSHOT — no further reads, and
+        // BOTH tables accepted before EITHER is written.
+        const memberPlan = planLifecycleUpdate(memberSnapshot, "ut_members", memberFields);
+        const profilePlan = planLifecycleUpdate(profileSnapshot, "profiles", profileFields);
 
         // (4) COMMIT, conditioned on the snapshot taken in (1).
         const lifecycleMemberWrite = await commitLifecycleUpdate(utSupabaseAdmin, memberPlan);
@@ -450,6 +461,30 @@ export async function POST(req: NextRequest) {
           subscriptionIds: lifecycleLocationIds(subscription.id, deleteLinkage.linkage),
         };
 
+        // (1b) THE UPDATE SNAPSHOT — BOTH tables, read HERE, before the provider.
+        const memberSnapshot = await snapshotLifecycleRows(
+          utSupabaseAdmin,
+          "ut_members",
+          deleteAuthorityInput,
+          ownsDeletedSubscription
+        );
+        if (!memberSnapshot.ok) {
+          membershipFailures.push(`cancel-ut_members:${memberSnapshot.reason}`);
+          console.error("Refusing to cancel ut_members:", memberSnapshot.detail);
+          break;
+        }
+        const profileSnapshot = await snapshotLifecycleRows(
+          utSupabaseAdmin,
+          "profiles",
+          deleteAuthorityInput,
+          ownsDeletedSubscription
+        );
+        if (!profileSnapshot.ok) {
+          membershipFailures.push(`cancel-profiles:${profileSnapshot.reason}`);
+          console.error("Refusing to revert the Oracle profile:", profileSnapshot.detail);
+          break;
+        }
+
         // (2) Reconcile against Stripe's CURRENT state.
         const deleteAuthority = await resolveAuthoritativeSubscription(
           getStripe(),
@@ -475,40 +510,20 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        // (3) VALIDATE BOTH TABLES BEFORE WRITING EITHER.
-        const memberPlan = await planLifecycleUpdate(
-          utSupabaseAdmin,
-          "ut_members",
-          deleteAuthorityInput,
-          {
-            plan: "guest",
-            subscription_status: "canceled",
-            stripe_subscription_id: null,
-            current_period_end: null,
-          },
-          { isEligible: ownsDeletedSubscription }
-        );
-        if (!memberPlan.ok) {
-          membershipFailures.push(`cancel-ut_members:${memberPlan.reason}`);
-          console.error("Refusing to cancel ut_members:", memberPlan.detail);
-          break;
-        }
+        // (3) PLAN FROM THE PRE-RECONCILIATION SNAPSHOT — no further reads, and
+        // BOTH tables accepted before EITHER is written.
+        //
         // `profiles` has NO `id` column — its primary key is `user_id` — so the
         // previous `.select("id")` and `.eq("id", profile.id)` could never match
         // a deployed row, and both errors were discarded. The row is addressed by
         // `user_id`, taken from the row the VERIFIED Stripe linkage resolved.
-        const profilePlan = await planLifecycleUpdate(
-          utSupabaseAdmin,
-          "profiles",
-          deleteAuthorityInput,
-          { plan: "free" },
-          { isEligible: ownsDeletedSubscription }
-        );
-        if (!profilePlan.ok) {
-          membershipFailures.push(`cancel-profiles:${profilePlan.reason}`);
-          console.error("Refusing to revert the Oracle profile:", profilePlan.detail);
-          break;
-        }
+        const memberPlan = planLifecycleUpdate(memberSnapshot, "ut_members", {
+          plan: "guest",
+          subscription_status: "canceled",
+          stripe_subscription_id: null,
+          current_period_end: null,
+        });
+        const profilePlan = planLifecycleUpdate(profileSnapshot, "profiles", { plan: "free" });
 
         // (4) COMMIT, conditioned on the snapshot taken in (1).
         const memberRevoke = await commitLifecycleUpdate(utSupabaseAdmin, memberPlan);
@@ -586,6 +601,24 @@ export async function POST(req: NextRequest) {
           ),
         };
 
+        // Dunning must not overwrite a recorded cancellation. `past_due` is not a
+        // revoking state, so writing it over `canceled` would DESTROY the
+        // revocation record and could let a stale invoice resurrect access.
+        const notAlreadyCanceled = (row: Record<string, unknown>) =>
+          row.subscription_status !== "canceled";
+        // (1b) THE UPDATE SNAPSHOT — read HERE, before the provider.
+        const pastDueSnapshot = await snapshotLifecycleRows(
+          utSupabaseAdmin,
+          "ut_members",
+          pastDueAuthorityInput,
+          notAlreadyCanceled
+        );
+        if (!pastDueSnapshot.ok) {
+          membershipFailures.push(`past_due:${pastDueSnapshot.reason}`);
+          console.error("Refusing to mark past_due:", pastDueSnapshot.detail);
+          break;
+        }
+
         // (2) Reconcile against Stripe's CURRENT state. Dunning may only be
         // applied when Stripe says this customer is genuinely past_due: a
         // delayed payment_failed used to rewrite `unpaid` / `incomplete_expired`
@@ -606,23 +639,11 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        // (3) VALIDATE, then (4) COMMIT — conditioned on the snapshot above.
-        const pastDuePlan = await planLifecycleUpdate(
-          utSupabaseAdmin,
-          "ut_members",
-          pastDueAuthorityInput,
-          { subscription_status: "past_due" },
-          // Dunning must not overwrite a recorded cancellation. `past_due` is
-          // not a revoking state, so writing it over `canceled` would DESTROY
-          // the revocation record and could let a stale invoice resurrect
-          // access.
-          { isEligible: (row) => row.subscription_status !== "canceled" }
-        );
-        if (!pastDuePlan.ok) {
-          membershipFailures.push(`past_due:${pastDuePlan.reason}`);
-          console.error("Refusing to mark past_due:", pastDuePlan.detail);
-          break;
-        }
+        // (3) PLAN FROM THE PRE-RECONCILIATION SNAPSHOT (no further reads),
+        // then (4) COMMIT conditioned on it.
+        const pastDuePlan = planLifecycleUpdate(pastDueSnapshot, "ut_members", {
+          subscription_status: "past_due",
+        });
         const pastDueWrite = await commitLifecycleUpdate(utSupabaseAdmin, pastDuePlan);
         if (
           !pastDueWrite.ok &&

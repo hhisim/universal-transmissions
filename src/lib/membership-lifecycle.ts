@@ -19,16 +19,21 @@
  *
  * Three-phase shape
  * -----------------
- *   1. `resolveLifecycleRows`  — LOCATE the rows a verified relationship owns,
- *      from the AUTHORIZATION SNAPSHOT, before any Stripe call. Captures the
- *      values the write will be conditioned on.
- *   2. `planLifecycleUpdate`   — VALIDATE and accept the whole write for ONE
- *      table. Performs no write at all.
+ *   1. `snapshotLifecycleRows` — THE AUTHORIZATION SNAPSHOT. Read the rows a
+ *      verified relationship owns and capture their primary keys plus the
+ *      original plan / status / customer / subscription values. **Before any
+ *      provider call.**
+ *   2. `planLifecycleUpdate`   — accept the whole write for ONE table from that
+ *      snapshot. Pure: no I/O, and structurally unable to re-read the rows.
  *   3. `commitLifecycleUpdate` — WRITE, conditioned on the step-1 snapshot.
  *
- * The split is load-bearing. Planning BOTH tables before committing EITHER means
- * a rejection discovered while validating the second table can never follow an
- * avoidable write to the first.
+ * The split is load-bearing twice over. Planning BOTH tables before committing
+ * EITHER means a rejection discovered while validating the second table can never
+ * follow an avoidable write to the first. And because step 2 cannot read, the only
+ * way to condition a write on a snapshot is to have taken it BEFORE the caller
+ * consulted the provider — reading the rows afterwards is not a snapshot of the
+ * state the decision was made from, it is a snapshot of a state that decision
+ * never saw.
  *
  * Authorisation, and what it is not
  * ---------------------------------
@@ -230,8 +235,20 @@ async function selectLinked(
 }
 
 /**
- * Resolve the EXISTING rows a lifecycle event is allowed to write, from the
- * AUTHORIZATION SNAPSHOT.
+ * THE AUTHORIZATION SNAPSHOT.
+ *
+ * Read the EXISTING rows a lifecycle event is allowed to write, and capture
+ * their primary keys plus the original `plan`, `subscription_status`,
+ * `stripe_customer_id` and `stripe_subscription_id` — the values the conditional
+ * write will be conditioned on.
+ *
+ * **This must run BEFORE the provider is consulted.** It is not the same thing as
+ * reading stored linkage: a linkage read returns ids and a plan/status summary,
+ * not the rows. Re-reading the rows after reconciliation is not equivalent and is
+ * actively wrong — a change that lands during the provider call would be absorbed
+ * into the snapshot, the conditional write would then match the NEW values, the
+ * delivery would report success, and a decision made from the OLD values would
+ * overwrite the newer state it never saw.
  *
  * Both linkage families are consulted, because a row may carry only one of them:
  * the verified customer, and each subscription id the event legitimately owns.
@@ -243,7 +260,7 @@ async function selectLinked(
  * the verified one is a CONTRADICTION and fails closed — it is never repaired,
  * and no subscription-only match is allowed to override the customer it names.
  */
-export async function resolveLifecycleRows(
+export async function snapshotLifecycleRows(
   client: SupabaseClient,
   table: LifecycleTable,
   authority: LifecycleAuthority,
@@ -326,30 +343,29 @@ export async function resolveLifecycleRows(
 }
 
 /**
- * Validate and accept the whole write for ONE table. Performs NO write.
+ * Accept the whole write for ONE table from a snapshot ALREADY CAPTURED.
+ *
+ * Pure by construction: it performs no I/O and cannot re-read the rows, so there
+ * is no way for it to "helpfully" pick up a newer state than the one the decision
+ * was made from. The snapshot must have been taken BEFORE reconciliation.
  *
  * Separating this from the commit is what lets the caller validate every table
  * before writing any of them.
  */
-export async function planLifecycleUpdate(
-  client: SupabaseClient,
+export function planLifecycleUpdate(
+  snapshot: LifecycleResolve,
   table: LifecycleTable,
-  authority: LifecycleAuthority,
-  fields: Record<string, unknown>,
-  options: {
-    isEligible?: (row: Record<string, unknown>) => boolean;
-  } = {}
-): Promise<LifecyclePlan> {
-  const resolved = await resolveLifecycleRows(client, table, authority, options.isEligible);
-  if (!resolved.ok) return resolved;
+  fields: Record<string, unknown>
+): LifecyclePlan {
+  if (!snapshot.ok) return snapshot;
   return {
     ok: true,
     table,
     fields,
-    rows: resolved.rows,
-    resolved: resolved.matched,
-    eligible: resolved.rows.length,
-    linked: resolved.matched > 0,
+    rows: snapshot.rows,
+    resolved: snapshot.matched,
+    eligible: snapshot.rows.length,
+    linked: snapshot.matched > 0,
   };
 }
 

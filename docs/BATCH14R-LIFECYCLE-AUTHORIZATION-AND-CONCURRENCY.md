@@ -8,6 +8,27 @@ Production remains `ac49ce062d66` on `main`. **No production SQL was run and
 nothing was released.** The Q1/Q2 repair and the authenticated writer's ownership
 checks are preserved (§7).
 
+> ## ⚠ Correction (Batch 14t) — item 2 of this batch is SUPERSEDED
+>
+> The claim below that item 2 — *E4 and the stale-reconciliation races* — was
+> **repaired is withdrawn.** The per-row conditional write and the bounded
+> re-resolution were real, but the snapshot they conditioned on was taken
+> **after** the Stripe call: `readStoredLinkage` before Stripe is not the UPDATE
+> snapshot, and `planLifecycleUpdate` re-queried the rows after reconciliation. A
+> change landing during the provider call was therefore absorbed into the
+> snapshot, the conditional write matched the NEW values, the delivery reported
+> success, and a decision made from the OLD values **overwrote the newer state**.
+>
+> Reproduced: `scripts/batch14t-snapshot-timing.js` fails 8 assertions against
+> this revision, the headline being `sub_A` written back over an installed
+> `sub_B`. See `docs/BATCH14T-PRE-RECONCILIATION-SNAPSHOT.md`.
+>
+> Two further corrections: §6's *"the retry loop converges it"* is **withdrawn**
+> (no evidence of convergence under contention), and the real-PostgreSQL evidence
+> in §8 supports **conditional UPDATE semantics only** — it does not validate the
+> handler's snapshot timing and does not validate any atomic RPC, because none
+> exists.
+
 ---
 
 ## 1. What this batch adds
@@ -17,7 +38,7 @@ Three things, in the order they were asked for:
 | # | Item | State |
 |---|---|---|
 | 1 | **E5** — contradictory non-null customer linkage fails closed, and both tables are validated before either is written | **repaired**, `batch14r-lifecycle-authorization.js` 21/0 |
-| 2 | **E4 and the stale-reconciliation races** — snapshot before the provider call, conditional writes, re-resolution on conflict | **repaired**, `batch14r-concurrency-interleavings.js` 41/0 |
+| 2 | **E4 and the stale-reconciliation races** — conditional writes and re-resolution on conflict | **SUPERSEDED** — see the correction above. The conditional writes and the bounded re-resolution are real; the snapshot they conditioned on was taken after the provider call, so the race was not closed. Corrected in Batch 14t. |
 | 3 | **E2b** — unlinked rows in the other table | **promoted to a committed FAILING regression** (`batch14s-unlinked-row-authority.js`, 8 pass / 2 fail) with a bounded proposal in §5 that is **not implemented** |
 
 Plus a transaction/versioning proposal (§6) that is **prepared and not applied**.
@@ -393,8 +414,10 @@ not have provided it.
 
 - **The unlinked-row cases are not fixed** (§5). They are pinned red by a
   committed regression and depend on your decision.
-- **The two-table write is not atomic** (§6). The retry loop converges it; the
-  window is real and documented.
+- **The two-table write is not atomic** (§6). **Superseded claim:** the retry
+  loop was said to converge it. It does not — no evidence shows convergence under
+  contention, a repeated lost race refuses the delivery, and a half-write stands
+  until the RPC in §6 exists.
 - **`MAX_LIFECYCLE_ATTEMPTS = 2`.** A second consecutive lost race refuses the
   delivery rather than looping. That is deliberate: repeated losses mean
   something else is actively rewriting the row, and guessing is worse than a

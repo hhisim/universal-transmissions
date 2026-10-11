@@ -35,6 +35,7 @@ function createHarness(ROOT) {
     stripe: {},
     failUpdate: {},
     beforeUpdate: null,
+    afterStripe: null,
   };
 
   function reset() {
@@ -43,6 +44,7 @@ function createHarness(ROOT) {
     state.stripe = {};
     state.failUpdate = {};
     state.beforeUpdate = null;
+    state.afterStripe = null;
   }
 
   function dbClient() {
@@ -138,12 +140,21 @@ function createHarness(ROOT) {
         retrieve: async (id) => {
           const o = (state.stripe || {})[id];
           if (!o) { const e = new Error("no such subscription"); e.statusCode = 404; throw e; }
-          return { id, status: o.status, customer: o.customer };
+          const result = { id, status: o.status, customer: o.customer };
+          // Fires AFTER the provider has answered and BEFORE the caller acts on
+          // it: the deterministic window for "another writer installs B while we
+          // are still holding the reconciliation we just read".
+          if (state.afterStripe) state.afterStripe();
+          return result;
         },
-        list: async () => ({
-          data: Object.entries(state.stripe || {}).map(([id, o]) => ({ id, status: o.status, customer: o.customer })),
-          has_more: false,
-        }),
+        list: async () => {
+          const result = {
+            data: Object.entries(state.stripe || {}).map(([id, o]) => ({ id, status: o.status, customer: o.customer })),
+            has_more: false,
+          };
+          if (state.afterStripe) state.afterStripe();
+          return result;
+        },
       },
     }),
   }, { root: ROOT });
