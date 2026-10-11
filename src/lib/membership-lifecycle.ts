@@ -14,43 +14,59 @@
  * A profiles-only member (legal under option 3) therefore had the `ut_members`
  * statement match ZERO rows, the `profiles` statement never run at all, and the
  * delivery was acknowledged `200`. A cancellation left the member PAID and a
- * reactivation left them unentitled, with no error anywhere.
+ * reactivation left them unentitled, with no error anywhere. Batch 14q closed
+ * that; this revision closes the two holes that remained.
  *
- * This module is the explicit update path for rows that ALREADY EXIST. It is
- * deliberately separate from `writeMembershipRow`:
+ * Three-phase shape
+ * -----------------
+ *   1. `resolveLifecycleRows`  — LOCATE the rows a verified relationship owns,
+ *      from the AUTHORIZATION SNAPSHOT, before any Stripe call. Captures the
+ *      values the write will be conditioned on.
+ *   2. `planLifecycleUpdate`   — VALIDATE and accept the whole write for ONE
+ *      table. Performs no write at all.
+ *   3. `commitLifecycleUpdate` — WRITE, conditioned on the step-1 snapshot.
  *
- *   - `writeMembershipRow` is the AUTHENTICATED writer. Its `profiles` branch
- *     refuses to touch a row unless the caller supplies an auth user id that
- *     matches the stored one, because an address match alone does not authorise
- *     a write. Nothing here weakens that check, and this module never calls it.
- *   - A Stripe lifecycle event carries no auth user id (and one must never be
- *     fabricated). Its authority is a DIFFERENT one: the Stripe customer and
- *     subscription relationship the caller has ALREADY verified against
- *     Stripe's own current state.
+ * The split is load-bearing. Planning BOTH tables before committing EITHER means
+ * a rejection discovered while validating the second table can never follow an
+ * avoidable write to the first.
  *
- * So the authorisation here is: the row must itself carry the VERIFIED Stripe
- * linkage. A row is addressable only when its stored `stripe_customer_id` (or a
- * stored `stripe_subscription_id` this event legitimately owns) equals a value
- * the caller verified. An address from the event payload is NOT an authority
- * and is never used to select a row. In particular `profiles.user_id` is read
- * off the row the verified linkage resolved, and is used only as that row's
- * primary key — it is never presented as, or substituted for, an authenticated
- * identity.
+ * Authorisation, and what it is not
+ * ---------------------------------
+ * `writeMembershipRow` is the AUTHENTICATED writer: its `profiles` branch
+ * refuses to touch a row unless the caller supplies an auth user id that matches
+ * the stored one, because an address match alone does not authorise a write.
+ * Nothing here weakens that check and this module never calls it.
  *
- * What this module guarantees
- * ---------------------------
- *   - A lookup failure is never absence. An unusable response is a failure.
- *   - More than one row for one verified relationship fails closed.
- *   - Every resolved row is updated by its ACTUAL primary key
- *     (`ut_members.id`, `profiles.user_id`), never by an address filter.
- *   - The number of rows the database reports as updated is CHECKED. A resolved
- *     row that fails to update is a failure, so the delivery is refused and
- *     Stripe retries — zero matches never count as completion.
- *   - Rows are never INSERTED. Creating a row to make an update succeed would
- *     invent a membership, so there is no insert branch at all.
- *   - A table in which no row carries the verified linkage has nothing to
- *     update; that is reported as `linked: false` and `updated: 0` rather than
- *     disguised as an affected-row success.
+ * A Stripe lifecycle event carries no auth user id. Its authority is a different
+ * one: the Stripe customer and subscription relationship the caller has ALREADY
+ * verified against Stripe's own current state. So the authorisation here is: the
+ * row must itself carry the VERIFIED Stripe linkage. An address from the event
+ * payload is not an authority, is never used to select a row, and is never used
+ * to "repair" one. `profiles.user_id` is read off the row the verified linkage
+ * resolved and used only as that row's primary key — it is never presented as,
+ * or substituted for, an authenticated identity, and never fabricated.
+ *
+ * Contradictory linkage fails closed
+ * ----------------------------------
+ * A row whose stored `stripe_customer_id` is non-null and DIFFERENT from the
+ * verified customer is not a row to repair by matching on a subscription id. It
+ * is a contradiction: two identity claims about one row, and this module cannot
+ * know which is stale. It fails closed (`lifecycle_contradictory_linkage`) and
+ * writes nothing, rather than silently rewriting the row's customer to the one
+ * Stripe just told us about.
+ *
+ * Conditional writes
+ * ------------------
+ * Every write is conditioned on the snapshot's `plan`, `subscription_status`,
+ * `stripe_customer_id` and `stripe_subscription_id` (null-safe `IS NULL` /
+ * `= value` comparisons) plus the row's real primary key. A statement that
+ * affects no row means the row changed after the snapshot was taken — a
+ * CONFLICT, reported distinctly (`lifecycle_write_conflict`) so the caller
+ * re-resolves from fresh linkage and fresh provider state instead of reusing a
+ * decision made from values that no longer hold.
+ *
+ * Bounded work: at most MAX_LINKAGE_IDS subscription ids, at most two rows per
+ * lookup, no insert branch anywhere.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -66,18 +82,31 @@ export const LIFECYCLE_PK: Record<LifecycleTable, "id" | "user_id"> = {
 /**
  * The verified Stripe relationship a lifecycle write is authorised by.
  *
- * `customerId` and `subscriptionIds` must already have been checked against
- * Stripe's current state by the caller; this module does not re-query Stripe.
+ * Every id here must already be known WITHOUT asking Stripe again: the customer
+ * from the event, and the subscription ids the event owns plus the ones the
+ * trusted tables recorded. Locating rows must not depend on the result of the
+ * reconciliation whose snapshot exists to condition the write.
  */
 export interface LifecycleAuthority {
   customerId?: string | null;
   subscriptionIds?: Array<string | null | undefined>;
 }
 
+/** The original values a write is conditioned on. Read BEFORE any Stripe call. */
+export interface LifecycleGuard {
+  plan: string | null;
+  subscription_status: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+}
+
 export interface LifecycleRow {
   table: LifecycleTable;
   pkColumn: "id" | "user_id";
   pkValue: string;
+  /** Snapshot captured at resolve time; the write is conditioned on it. */
+  guard: LifecycleGuard;
+  /** The full row as read, for eligibility predicates. */
   row: Record<string, unknown>;
 }
 
@@ -86,8 +115,10 @@ export type LifecycleFailure =
   | "lifecycle_lookup_failed"
   | "lifecycle_duplicate_rows"
   | "lifecycle_unidentified_row"
+  | "lifecycle_contradictory_linkage"
   | "lifecycle_update_failed"
-  | "lifecycle_row_not_updated";
+  | "lifecycle_row_not_updated"
+  | "lifecycle_write_conflict";
 
 export type LifecycleResolve =
   | {
@@ -101,18 +132,29 @@ export type LifecycleResolve =
     }
   | { ok: false; reason: LifecycleFailure; detail: string; code?: string };
 
+export type LifecyclePlan =
+  | {
+      ok: true;
+      table: LifecycleTable;
+      fields: Record<string, unknown>;
+      rows: LifecycleRow[];
+      resolved: number;
+      eligible: number;
+      linked: boolean;
+    }
+  | { ok: false; reason: LifecycleFailure; detail: string; code?: string };
+
 export type LifecycleWrite =
   | {
       ok: true;
       table: LifecycleTable;
-      /** Rows carrying the verified linkage, before the eligibility filter. */
       resolved: number;
-      /** Resolved rows this write was willing to change. */
       eligible: number;
-      /** Rows the database reported as updated. */
+      /** Rows the database reported as updated. The only verified-complete count. */
       updated: number;
-      /** False when no row in this table carries the verified linkage. */
       linked: boolean;
+      /** Rows whose conditional write lost its race and were not changed. */
+      conflicted: number;
     }
   | { ok: false; reason: LifecycleFailure; detail: string; code?: string };
 
@@ -120,8 +162,25 @@ export type LifecycleWrite =
 const MAX_LINKAGE_IDS = 4;
 const LOOKUP_LIMIT = 2;
 
+/** Columns every lifecycle write is conditioned on, on both tables. */
+const GUARD_COLUMNS: Array<keyof LifecycleGuard> = [
+  "plan",
+  "subscription_status",
+  "stripe_customer_id",
+  "stripe_subscription_id",
+];
+
 function key(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function guardOf(row: Record<string, unknown>): LifecycleGuard {
+  return {
+    plan: key(row.plan),
+    subscription_status: key(row.subscription_status),
+    stripe_customer_id: key(row.stripe_customer_id),
+    stripe_subscription_id: key(row.stripe_subscription_id),
+  };
 }
 
 type RawSelect =
@@ -171,14 +230,18 @@ async function selectLinked(
 }
 
 /**
- * Resolve the EXISTING rows a lifecycle event is allowed to write.
+ * Resolve the EXISTING rows a lifecycle event is allowed to write, from the
+ * AUTHORIZATION SNAPSHOT.
  *
- * Both families of verified linkage are consulted, because a row may carry only
- * one of them: the Stripe customer, and each subscription id the event
- * legitimately owns (the governing one plus the ids the trusted tables already
- * recorded). Results are deduplicated by primary key; two DISTINCT rows in one
- * table that both match the same verified relationship is a data conflict and
- * fails closed rather than being resolved by picking one.
+ * Both linkage families are consulted, because a row may carry only one of them:
+ * the verified customer, and each subscription id the event legitimately owns.
+ * Results are deduplicated by primary key; two DISTINCT rows in one table that
+ * both match the same verified relationship is a data conflict and fails closed
+ * rather than being resolved by picking one.
+ *
+ * A row reached through a subscription id whose stored customer disagrees with
+ * the verified one is a CONTRADICTION and fails closed — it is never repaired,
+ * and no subscription-only match is allowed to override the customer it names.
  */
 export async function resolveLifecycleRows(
   client: SupabaseClient,
@@ -199,7 +262,7 @@ export async function resolveLifecycleRows(
     };
   }
 
-  const byPk = new Map<string, Record<string, unknown>>();
+  const byPk = new Map<string, LifecycleRow>();
   const pkColumn = LIFECYCLE_PK[table];
   let lookedUp = 0;
 
@@ -230,7 +293,23 @@ export async function resolveLifecycleRows(
           detail: `${table}: a row matched the verified ${query.column} but carries no ${pkColumn}`,
         };
       }
-      byPk.set(pk, row);
+      if (query.column === "stripe_subscription_id" && customerId) {
+        // Two identity claims about one row: the subscription says this customer
+        // owns it, the row names another. Neither is provably the stale one, so
+        // refuse — never "repair" the customer from a subscription-only match.
+        const recorded = key(row.stripe_customer_id);
+        if (recorded !== null && recorded !== customerId) {
+          return {
+            ok: false,
+            reason: "lifecycle_contradictory_linkage",
+            detail:
+              `${table}: the row recording subscription ${query.value} names customer ${recorded}, ` +
+              `but ${query.value} belongs to ${customerId}`,
+            code: "CONTRADICTORY_LINKAGE",
+          };
+        }
+      }
+      byPk.set(pk, { table, pkColumn, pkValue: pk, guard: guardOf(row), row });
     }
     if (byPk.size > 1) {
       return {
@@ -241,54 +320,97 @@ export async function resolveLifecycleRows(
     }
   }
 
-  const all: LifecycleRow[] = Array.from(byPk.entries()).map(([pkValue, row]) => ({
-    table,
-    pkColumn,
-    pkValue,
-    row,
-  }));
+  const all = Array.from(byPk.values());
   const rows = isEligible ? all.filter((entry) => isEligible(entry.row)) : all;
   return { ok: true, rows, matched: all.length, lookedUp };
 }
 
 /**
- * Apply one lifecycle update to the rows a verified Stripe relationship owns.
+ * Validate and accept the whole write for ONE table. Performs NO write.
  *
- * Update-only by construction: there is no insert branch. Each resolved row is
- * written by its own primary key so the database can report exactly how many
- * rows it changed, and that count is checked.
+ * Separating this from the commit is what lets the caller validate every table
+ * before writing any of them.
  */
-export async function applyLifecycleUpdate(
+export async function planLifecycleUpdate(
   client: SupabaseClient,
   table: LifecycleTable,
   authority: LifecycleAuthority,
   fields: Record<string, unknown>,
-  options: { isEligible?: (row: Record<string, unknown>) => boolean } = {}
-): Promise<LifecycleWrite> {
+  options: {
+    isEligible?: (row: Record<string, unknown>) => boolean;
+  } = {}
+): Promise<LifecyclePlan> {
   const resolved = await resolveLifecycleRows(client, table, authority, options.isEligible);
   if (!resolved.ok) return resolved;
+  return {
+    ok: true,
+    table,
+    fields,
+    rows: resolved.rows,
+    resolved: resolved.matched,
+    eligible: resolved.rows.length,
+    linked: resolved.matched > 0,
+  };
+}
+
+type UpdateFilter = {
+  eq: (column: string, value: unknown) => UpdateFilter;
+  is: (column: string, value: null) => UpdateFilter;
+  select: () => PromiseLike<{
+    data?: unknown;
+    error?: { message?: string; code?: string } | null;
+  }>;
+};
+
+function condition(
+  query: UpdateFilter,
+  column: keyof LifecycleGuard,
+  value: string | null
+): UpdateFilter {
+  // Null safe: `IS NULL` for a snapshot that held no value, `= value` otherwise.
+  return value === null ? query.is(column, null) : query.eq(column, value);
+}
+
+/**
+ * Apply a plan, conditioned on the snapshot the plan was built from.
+ *
+ * Update-only by construction: there is no insert branch. Each row is written by
+ * its own primary key plus the four guard columns, so the database can report
+ * exactly how many rows it changed and can refuse one that moved underneath us.
+ */
+export async function commitLifecycleUpdate(
+  client: SupabaseClient,
+  plan: LifecyclePlan
+): Promise<LifecycleWrite> {
+  if (!plan.ok) return plan;
 
   let updated = 0;
-  for (const target of resolved.rows) {
+  let conflicted = 0;
+
+  for (const target of plan.rows) {
+    let query = client
+      .from(plan.table)
+      .update(plan.fields)
+      .eq(target.pkColumn, target.pkValue) as unknown as UpdateFilter;
+    for (const column of GUARD_COLUMNS) {
+      query = condition(query, column, target.guard[column]);
+    }
+
     let res: { data?: unknown; error?: { message?: string; code?: string } | null };
     try {
-      res = await client
-        .from(table)
-        .update(fields)
-        .eq(target.pkColumn, target.pkValue)
-        .select();
+      res = await query.select();
     } catch (err) {
       return {
         ok: false,
         reason: "lifecycle_update_failed",
-        detail: `${table}.${target.pkColumn}: ${err instanceof Error ? err.message : String(err)}`,
+        detail: `${plan.table}.${target.pkColumn}: ${err instanceof Error ? err.message : String(err)}`,
       };
     }
     if (res && res.error) {
       return {
         ok: false,
         reason: "lifecycle_update_failed",
-        detail: `${table}.${target.pkColumn}: ${res.error.message ?? "update failed"}`,
+        detail: `${plan.table}.${target.pkColumn}: ${res.error.message ?? "update failed"}`,
         code: res.error.code,
       };
     }
@@ -297,30 +419,50 @@ export async function applyLifecycleUpdate(
       return {
         ok: false,
         reason: "lifecycle_row_not_updated",
-        detail: `${table}.${target.pkColumn}: the update reported no usable affected-row data`,
+        detail: `${plan.table}.${target.pkColumn}: the update reported no usable affected-row data`,
         code: "NO_AFFECTED_ROWS",
       };
     }
+    if (data.length === 0) {
+      // The row matched the verified linkage and the snapshot when it was read,
+      // and no longer matches the snapshot. That is a lost race, not an empty
+      // success: re-resolve rather than reuse this decision.
+      conflicted += 1;
+      continue;
+    }
     if (data.length !== 1) {
-      // The row was resolved from verified linkage and then not written. That is
-      // a failure, not an empty success: the caller must refuse the delivery so
-      // Stripe retries. Zero matches never count as completion.
       return {
         ok: false,
         reason: "lifecycle_row_not_updated",
-        detail: `${table}.${target.pkColumn}: ${data.length} row(s) affected, expected exactly 1`,
+        detail: `${plan.table}.${target.pkColumn}: ${data.length} row(s) affected, expected exactly 1`,
         code: "NO_AFFECTED_ROWS",
       };
     }
     updated += 1;
   }
 
+  if (conflicted > 0) {
+    return {
+      ok: false,
+      reason: "lifecycle_write_conflict",
+      detail:
+        `${plan.table}: ${conflicted} of ${plan.rows.length} row(s) changed after the snapshot was read`,
+      code: "WRITE_CONFLICT",
+    };
+  }
+
   return {
     ok: true,
-    table,
-    resolved: resolved.matched,
-    eligible: resolved.rows.length,
+    table: plan.table,
+    resolved: plan.resolved,
+    eligible: plan.eligible,
     updated,
-    linked: resolved.matched > 0,
+    linked: plan.linked,
+    conflicted: 0,
   };
+}
+
+/** True when a failure means "re-resolve from fresh state", not "give up". */
+export function isRetryableLifecycleFailure(reason: string): boolean {
+  return reason === "lifecycle_write_conflict";
 }

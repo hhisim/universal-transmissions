@@ -48,7 +48,16 @@ function dbClient() {
       const ctx = { table, filters: [], payload: null, op: null };
       const rows = () => state.tables[table];
       const match = () => rows().filter((r) => {
-        if (!ctx.filters.every(([c, v]) => r[c] === v)) return false;
+        if (
+          !ctx.filters.every(([c, v, op]) => {
+            // `IS NULL` matches a SQL NULL; a fixture row models that either as
+            // an explicit null or by omitting the column.
+            if (op === "is" && v === null) return r[c] === null || r[c] === undefined;
+            return r[c] === v;
+          })
+        ) {
+          return false;
+        }
         if (ctx.orSpec) {
           return ctx.orSpec.split(",").some((clause) => {
             const m = clause.trim().match(/^(\w+)\.(eq|is)\.(.+)$/);
@@ -63,8 +72,8 @@ function dbClient() {
       const api = {
         select() { if (!ctx.op) ctx.op = "select"; if (ctx.op === "update") ctx.returning = true;
           return api; },
-        eq(c, v) { ctx.filters.push([c, v]); return api; },
-        is(c, v) { ctx.filters.push([c, v]); return api; },
+        eq(c, v) { ctx.filters.push([c, v, "eq"]); return api; },
+        is(c, v) { ctx.filters.push([c, v, "is"]); return api; },
         neq(c, v) { ctx.neq = [c, v]; return api; },
         or(spec) { ctx.orSpec = spec; return api; },
         limit(n) {

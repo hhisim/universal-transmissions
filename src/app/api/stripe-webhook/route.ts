@@ -8,30 +8,30 @@ import {
   isRevokingStatusValue,
   entitlementFromAuthority,
   readStoredLinkage,
-  type AuthoritativeSubscription,
-  type StoredLinkage,
 } from "@/lib/stripe-subscription-authority";
-import { applyLifecycleUpdate } from "@/lib/membership-lifecycle";
+import {
+  planLifecycleUpdate,
+  commitLifecycleUpdate,
+  isRetryableLifecycleFailure,
+} from "@/lib/membership-lifecycle";
 
 /**
- * Every subscription id a lifecycle event legitimately owns.
+ * Every subscription id a lifecycle event may use to LOCATE a row.
  *
- * These are CANDIDATES for locating a row — never an authority on their own. A
- * row is only addressable if it already records one of them (or the verified
- * Stripe customer), so a stale id can only ever address the row that recorded
- * it. The governing id is taken from Stripe's CURRENT state, not from the event
- * payload, which is why a superseded id cannot win here.
+ * These are CANDIDATES, never an authority on their own: a row is addressable
+ * only when it already records one of them (or the verified Stripe customer), so
+ * a stale id can only ever address the row that recorded it.
+ *
+ * Only ids already known WITHOUT asking Stripe — the event's own subscription id
+ * and whatever the trusted tables recorded. The GOVERNING id is taken from
+ * Stripe's CURRENT state, but it is never used to find rows: locating a row must
+ * not depend on the reconciliation whose write it conditions.
  */
-function lifecycleSubscriptionIds(
-  authoritative: Extract<AuthoritativeSubscription, { ok: true }>,
-  stored: StoredLinkage | null
+function lifecycleLocationIds(
+  eventSubscriptionId: string | null | undefined,
+  stored: { subscriptionId?: string | null; alternates?: string[] } | null
 ): Array<string | null | undefined> {
-  return [
-    authoritative.subscriptionId,
-    ...authoritative.candidates,
-    stored?.subscriptionId ?? null,
-    ...(stored?.alternates ?? []),
-  ];
+  return [eventSubscriptionId, stored?.subscriptionId ?? null, ...(stored?.alternates ?? [])];
 }
 
 /** Epoch seconds -> ISO string, or null when Stripe supplies no usable value. */
@@ -40,6 +40,18 @@ function periodEndOf(value: unknown): string | null {
     ? new Date(value * 1000).toISOString()
     : null;
 }
+
+/**
+ * How many times a lifecycle delivery may reconcile-and-write before giving up.
+ *
+ * A conditional write that affects no row means the state moved between the
+ * authorization snapshot and the write. That is recoverable exactly once by
+ * re-resolving from FRESH linkage and FRESH provider state; beyond that the
+ * delivery is refused so Stripe retries it, because a second failure means the
+ * row is being actively rewritten by something else and guessing would be worse
+ * than a retry.
+ */
+const MAX_LIFECYCLE_ATTEMPTS = 2;
 
 
 // ── Telegram notification helper ────────────────────────────────────────────
@@ -215,144 +227,166 @@ export async function POST(req: NextRequest) {
 
       console.log(`Subscription ${event.type}: ${subscription.id} for customer ${customerId}`);
 
-      // Determine plan and status
-      let plan: 'guest' | 'free' | 'initiate' = 'free';
-      // widened from Stripe's `Status` union: the reconciled authority
-      // supplies a plain string
-      let subscriptionStatus: string = subscription.status;
-
-      if (subscription.status === "active" || subscription.status === "trialing") {
-        plan = "initiate";
-      } else if (subscription.status === "past_due") {
-        subscriptionStatus = "past_due";
-        plan = "initiate"; // keep plan but mark status
-      } else if (subscription.status === "canceled" || subscription.status === "unpaid") {
-        plan = "free";
-        subscriptionStatus = "canceled";
-      }
-
-      // AUTHORITY: ask Stripe what the customer's CURRENT subscription is.
+      // ── AUTHORIZATION SNAPSHOT, then Stripe, then a CONDITIONAL write ─────
+      //
+      // The ordering is load-bearing:
+      //
+      //   1. The rows, and the exact values the write is conditioned on, are
+      //      read BEFORE Stripe is asked anything. A snapshot taken after the
+      //      lookup is not an authorization snapshot — it would condition the
+      //      write on state that was already stale when the decision was made.
+      //   2. BOTH tables are validated before EITHER is written, so a rejection
+      //      discovered while validating the second table cannot follow an
+      //      avoidable write to the first.
+      //   3. A conditional write that affects no row is a LOST RACE: it
+      //      re-resolves from fresh linkage AND fresh Stripe state rather than
+      //      reusing an authority Stripe's own state just proved wrong.
       //
       // The event payload is a snapshot taken when the event was created, so a
       // delayed delivery carries stale state — an old `active` snapshot would
       // otherwise resurrect a cancelled subscription. Recency comes from
       // Stripe's own state, NEVER from delivery order or event.created.
-      // Capture the stored linkage BEFORE asking Stripe, so the write can be
-      // conditioned on the state this decision was actually made from.
-      const lifecycleLinkage = await readStoredLinkage(utSupabaseAdmin, {
-        email,
-        customerId,
-      });
-      if (!lifecycleLinkage.ok) {
-        // A linkage READ failure is not absence: refuse to change entitlement.
-        membershipFailures.push(`linkage:${lifecycleLinkage.reason}`);
-        console.error("Could not read stored linkage:", lifecycleLinkage.detail);
-        break;
-      }
-      const lifecycleStored = lifecycleLinkage.linkage;
-      const lifecycleAuthority = await resolveAuthoritativeSubscription(
-        getStripe(),
-        customerId,
-        lifecycleStored
-      );
-      if (!lifecycleAuthority.ok) {
-        // Never acknowledge a required membership update we could not determine.
-        membershipFailures.push(`reconcile:${lifecycleAuthority.reason}`);
-        console.error("Could not reconcile the current subscription:", lifecycleAuthority.detail);
-        break;
-      }
-      if (!eventGovernsCurrentSubscription(lifecycleAuthority, subscription.id)) {
-        membershipWarnings.push(`stale-lifecycle:${subscription.id}`);
-        console.log(`Ignoring a stale lifecycle snapshot for superseded ${subscription.id}`);
-        break;
-      }
-      // Derive plan AND status from the SAME validated state, so a historical
-      // payload field can never leak into the update.
-      const lifecycleEntitlement = entitlementFromAuthority(lifecycleAuthority);
-      if (!lifecycleEntitlement) {
-        membershipFailures.push("reconcile:ambiguous_status");
-        console.error("Ambiguous authoritative status; refusing to change entitlement");
-        break;
-      }
-      plan = lifecycleEntitlement.plan;
-      subscriptionStatus = lifecycleEntitlement.status;
-
-      const periodEnd = periodEndOf((subscription as any).current_period_end);
-
-      // ── Update the membership rows THIS VERIFIED CUSTOMER OWNS ────────────
-      //
-      // Reported rather than disguised as an affected-row success: a table with
-      // no row carrying the verified linkage has nothing to update.
-      //
-      // Previously both statements were set-based: `ut_members` filtered on
-      // `stripe_customer_id` and `profiles` on the event's `metadata.email`, the
-      // latter skipped entirely when the payload carried no address. A
-      // profiles-only member therefore had the ut_members statement match ZERO
-      // rows, the profiles statement never run at all, and the delivery
-      // acknowledged 200 — a cancellation left them paid.
-      const lifecycleAuthorityInput = {
-        customerId,
-        subscriptionIds: lifecycleSubscriptionIds(lifecycleAuthority, lifecycleStored),
-      };
-      // The GOVERNING subscription from Stripe's CURRENT state. On a revocation
-      // there is none, so the stored linkage is cleared rather than left stale.
-      const governedSubscriptionId = lifecycleAuthority.subscriptionId;
-
-      const memberFields: Record<string, unknown> = {
-        plan,
-        subscription_status: subscriptionStatus,
-        stripe_subscription_id: governedSubscriptionId,
-        current_period_end: periodEnd,
-        stripe_customer_id: customerId,
-      };
-      const lifecycleMemberWrite = await applyLifecycleUpdate(
-        utSupabaseAdmin,
-        "ut_members",
-        lifecycleAuthorityInput,
-        memberFields
-      );
+      let plan: 'guest' | 'free' | 'initiate' = 'free';
+      let subscriptionStatus: string = subscription.status;
       let memberNote = "";
-      if (!lifecycleMemberWrite.ok) {
-        membershipFailures.push(`ut_members:${lifecycleMemberWrite.reason}`);
-        console.error("Failed to update ut_members subscription:", lifecycleMemberWrite.detail);
-      } else if (!lifecycleMemberWrite.linked) {
-        console.log("ut_members: no row carries the verified Stripe linkage; nothing to update");
-      } else {
-        console.log(
-          `ut_members updated: plan=${plan}, status=${subscriptionStatus}, rows=${lifecycleMemberWrite.updated}`
-        );
-        memberNote = "✅ Member record updated";
-      }
 
-      // profiles (Oracle members). Also written through the VERIFIED linkage,
-      // never through the event's address: the event's `metadata.email` is not
-      // an authority, so it no longer selects the row it lands on.
-      //
-      // `profiles.user_id` is the row's PRIMARY KEY and is used only as that
-      // key — it is never presented as, or substituted for, an authenticated
-      // identity, and it is never fabricated. `subscription_status` is
-      // deliberately NOT written on this table: the shared reader ignores it for
-      // entitlement, and a value written there could never be cleared.
-      const profileFields: Record<string, unknown> = {
-        plan,
-        stripe_customer_id: customerId,
-        stripe_subscription_id: governedSubscriptionId,
-      };
-      const lifecycleProfileWrite = await applyLifecycleUpdate(
-        utSupabaseAdmin,
-        "profiles",
-        lifecycleAuthorityInput,
-        profileFields
-      );
-      if (!lifecycleProfileWrite.ok) {
-        // REQUIRED, not optional. The shared reader ranks `profiles.plan`, so a
-        // failed mirror leaves access PAID while the update looks done.
-        membershipFailures.push(`profiles:${lifecycleProfileWrite.reason}`);
-        console.error("Failed to update Oracle profile subscription:", lifecycleProfileWrite.detail);
-      } else if (!lifecycleProfileWrite.linked) {
-        console.log("profiles: no row carries the verified Stripe linkage; nothing to update");
-      } else {
-        console.log(`profiles updated: plan=${plan}, rows=${lifecycleProfileWrite.updated}`);
+      for (let attempt = 1; attempt <= MAX_LIFECYCLE_ATTEMPTS; attempt += 1) {
+        // (1) AUTHORIZATION SNAPSHOT — taken before the provider is consulted.
+        const lifecycleLinkage = await readStoredLinkage(utSupabaseAdmin, {
+          email,
+          customerId,
+        });
+        if (!lifecycleLinkage.ok) {
+          // A linkage READ failure is not absence: refuse to change entitlement.
+          membershipFailures.push(`linkage:${lifecycleLinkage.reason}`);
+          console.error("Could not read stored linkage:", lifecycleLinkage.detail);
+          break;
+        }
+        const lifecycleStored = lifecycleLinkage.linkage;
+        // Only ids already known WITHOUT Stripe: the event's own subscription,
+        // and the linkage the trusted tables recorded. Locating a row must not
+        // depend on the reconciliation whose write it conditions.
+        const lifecycleAuthorityInput = {
+          customerId,
+          subscriptionIds: lifecycleLocationIds(subscription.id, lifecycleStored),
+        };
+
+        // (2) Reconcile against Stripe's CURRENT state.
+        const lifecycleAuthority = await resolveAuthoritativeSubscription(
+          getStripe(),
+          customerId,
+          lifecycleStored
+        );
+        if (!lifecycleAuthority.ok) {
+          // Never acknowledge a required membership update we could not determine.
+          membershipFailures.push(`reconcile:${lifecycleAuthority.reason}`);
+          console.error("Could not reconcile the current subscription:", lifecycleAuthority.detail);
+          break;
+        }
+        if (!eventGovernsCurrentSubscription(lifecycleAuthority, subscription.id)) {
+          membershipWarnings.push(`stale-lifecycle:${subscription.id}`);
+          console.log(`Ignoring a stale lifecycle snapshot for superseded ${subscription.id}`);
+          break;
+        }
+        // Derive plan AND status from the SAME validated state, so a historical
+        // payload field can never leak into the update.
+        const lifecycleEntitlement = entitlementFromAuthority(lifecycleAuthority);
+        if (!lifecycleEntitlement) {
+          membershipFailures.push("reconcile:ambiguous_status");
+          console.error("Ambiguous authoritative status; refusing to change entitlement");
+          break;
+        }
+        plan = lifecycleEntitlement.plan;
+        subscriptionStatus = lifecycleEntitlement.status;
+
+        // The GOVERNING subscription from Stripe's CURRENT state. On a
+        // revocation there is none, so the stored linkage is cleared rather
+        // than left stale.
+        const governedSubscriptionId = lifecycleAuthority.subscriptionId;
+        const periodEnd = periodEndOf((subscription as any).current_period_end);
+
+        const memberFields: Record<string, unknown> = {
+          plan,
+          subscription_status: subscriptionStatus,
+          stripe_subscription_id: governedSubscriptionId,
+          current_period_end: periodEnd,
+          stripe_customer_id: customerId,
+        };
+        // profiles (Oracle members). Written through the VERIFIED linkage, never
+        // through the event's address: `metadata.email` is not an authority and
+        // no longer selects the row it lands on. `profiles.user_id` is the row's
+        // PRIMARY KEY and is used only as that key — never presented as, or
+        // substituted for, an authenticated identity, and never fabricated.
+        // `subscription_status` is deliberately NOT written on this table: the
+        // shared reader ignores it for entitlement, and a value written there
+        // could never be cleared.
+        const profileFields: Record<string, unknown> = {
+          plan,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: governedSubscriptionId,
+        };
+
+        // (3) VALIDATE BOTH TABLES BEFORE WRITING EITHER.
+        const memberPlan = await planLifecycleUpdate(
+          utSupabaseAdmin,
+          "ut_members",
+          lifecycleAuthorityInput,
+          memberFields
+        );
+        if (!memberPlan.ok) {
+          membershipFailures.push(`ut_members:${memberPlan.reason}`);
+          console.error("Refusing the ut_members write:", memberPlan.detail);
+          break;
+        }
+        const profilePlan = await planLifecycleUpdate(
+          utSupabaseAdmin,
+          "profiles",
+          lifecycleAuthorityInput,
+          profileFields
+        );
+        if (!profilePlan.ok) {
+          // Nothing has been written yet, so this rejection costs no work.
+          membershipFailures.push(`profiles:${profilePlan.reason}`);
+          console.error("Refusing the profiles write:", profilePlan.detail);
+          break;
+        }
+
+        // (4) COMMIT, conditioned on the snapshot taken in (1).
+        const lifecycleMemberWrite = await commitLifecycleUpdate(utSupabaseAdmin, memberPlan);
+        const lifecycleProfileWrite = await commitLifecycleUpdate(utSupabaseAdmin, profilePlan);
+        const lostRace = [lifecycleMemberWrite, lifecycleProfileWrite].some(
+          (result) => !result.ok && isRetryableLifecycleFailure(result.reason)
+        );
+        if (lostRace && attempt < MAX_LIFECYCLE_ATTEMPTS) {
+          console.warn(
+            `Lifecycle write for ${subscription.id} lost its race; re-resolving from fresh linkage and fresh Stripe state`
+          );
+          continue;
+        }
+
+        if (!lifecycleMemberWrite.ok) {
+          membershipFailures.push(`ut_members:${lifecycleMemberWrite.reason}`);
+          console.error("Failed to update ut_members subscription:", lifecycleMemberWrite.detail);
+        } else if (!lifecycleMemberWrite.linked) {
+          console.log("ut_members: no row carries the verified Stripe linkage; nothing to update");
+        } else {
+          console.log(
+            `ut_members updated: plan=${plan}, status=${subscriptionStatus}, rows=${lifecycleMemberWrite.updated}`
+          );
+          memberNote = "✅ Member record updated";
+        }
+
+        if (!lifecycleProfileWrite.ok) {
+          // REQUIRED, not optional. The shared reader ranks `profiles.plan`, so
+          // a failed mirror leaves access PAID while the update looks done.
+          membershipFailures.push(`profiles:${lifecycleProfileWrite.reason}`);
+          console.error("Failed to update Oracle profile subscription:", lifecycleProfileWrite.detail);
+        } else if (!lifecycleProfileWrite.linked) {
+          console.log("profiles: no row carries the verified Stripe linkage; nothing to update");
+        } else {
+          console.log(`profiles updated: plan=${plan}, rows=${lifecycleProfileWrite.updated}`);
+        }
+        break;
       }
 
       // ── Telegram notification ────────────────────────────────────────────
@@ -376,113 +410,141 @@ export async function POST(req: NextRequest) {
 
       console.log(`Subscription deleted: ${subscription.id} for customer ${customerId}`);
 
-      // RECONCILE BEFORE CHANGING ANYTHING. Deletion was the only lifecycle path
-      // that never asked Stripe, so a delayed `deleted` for an OLD subscription
-      // removed access governed by a still-live newer one — including for a
-      // profiles-only member, whose plan was rewritten to free without a single
-      // Stripe query.
-      const deleteEmail = subscription.metadata?.email ?? "";
-      const deleteLinkage = await readStoredLinkage(utSupabaseAdmin, {
-        email: deleteEmail,
-        customerId,
-      });
-      if (!deleteLinkage.ok) {
-        membershipFailures.push(`linkage:${deleteLinkage.reason}`);
-        console.error("Could not read stored linkage on deletion:", deleteLinkage.detail);
-        break;
-      }
-      const deleteAuthority = await resolveAuthoritativeSubscription(
-        getStripe(),
-        customerId,
-        deleteLinkage.linkage
-      );
-      if (!deleteAuthority.ok) {
-        membershipFailures.push(`reconcile:${deleteAuthority.reason}`);
-        console.error("Could not reconcile on deletion:", deleteAuthority.detail);
-        break;
-      }
-      if (
-        deleteAuthority.found &&
-        deleteAuthority.subscriptionId &&
-        deleteAuthority.subscriptionId !== subscription.id
-      ) {
-        // The deleted subscription is not the governing one: this is a stale
-        // event and must not downgrade either table.
-        membershipWarnings.push(`stale-deletion:${subscription.id}`);
-        console.log(
-          `Ignoring deletion of superseded ${subscription.id}; ${deleteAuthority.subscriptionId} still governs`
-        );
-        break;
-      }
-
-      // ── Revoke the rows that carry THIS subscription's verified linkage ────
+      // RECONCILE BEFORE CHANGING ANYTHING — and RE-RESOLVE rather than reuse a
+      // decision whose conditional write lost its race.
       //
-      // Only the CURRENT subscription may revoke. A late `subscription.deleted`
-      // belonging to a superseded subscription must not revoke an active
-      // membership. Ordering comes from trusted STORED linkage, not from the
-      // event timestamp or delivery order; rows with no linkage recorded
-      // (legacy) keep the previous behaviour.
+      // Deletion was the only lifecycle path that never asked Stripe, so a
+      // delayed `deleted` for an OLD subscription removed access governed by a
+      // still-live newer one — including for a profiles-only member, whose plan
+      // was rewritten to free without a single Stripe query.
       //
       // The eligibility rule is the previous `.or(eq(id), is(null))` filter made
       // explicit: a row recording a DIFFERENT subscription is superseded and is
-      // left untouched. Every eligible row is written by its real primary key
-      // and the affected-row count is CHECKED, so a row that is in scope but not
-      // written fails the delivery instead of passing silently.
-      const deleteAuthorityInput = {
-        customerId,
-        subscriptionIds: lifecycleSubscriptionIds(deleteAuthority, deleteLinkage.linkage),
-      };
+      // left untouched. Every eligible row is written by its real primary key,
+      // conditioned on the snapshot taken BEFORE Stripe was consulted, and the
+      // affected-row count is CHECKED.
       const ownsDeletedSubscription = (row: Record<string, unknown>): boolean => {
         const recorded = row.stripe_subscription_id;
-        return recorded === null || recorded === undefined || recorded === "" || recorded === subscription.id;
+        return (
+          recorded === null ||
+          recorded === undefined ||
+          recorded === "" ||
+          recorded === subscription.id
+        );
       };
 
-      const memberRevoke = await applyLifecycleUpdate(
-        utSupabaseAdmin,
-        "ut_members",
-        deleteAuthorityInput,
-        {
-          plan: "guest",
-          subscription_status: "canceled",
-          stripe_subscription_id: null,
-          current_period_end: null,
-        },
-        { isEligible: ownsDeletedSubscription }
-      );
-      if (!memberRevoke.ok) {
-        membershipFailures.push(`cancel-ut_members:${memberRevoke.reason}`);
-        console.error("Failed to cancel ut_members subscription:", memberRevoke.detail);
-      } else if (!memberRevoke.linked) {
-        console.log("ut_members: no row carries the verified Stripe linkage; nothing to revoke");
-      } else {
-        console.log(`ut_members reverted to guest (rows=${memberRevoke.updated})`);
-      }
+      for (let attempt = 1; attempt <= MAX_LIFECYCLE_ATTEMPTS; attempt += 1) {
+        // (1) AUTHORIZATION SNAPSHOT — taken before the provider is consulted.
+        const deleteEmail = subscription.metadata?.email ?? "";
+        const deleteLinkage = await readStoredLinkage(utSupabaseAdmin, {
+          email: deleteEmail,
+          customerId,
+        });
+        if (!deleteLinkage.ok) {
+          membershipFailures.push(`linkage:${deleteLinkage.reason}`);
+          console.error("Could not read stored linkage on deletion:", deleteLinkage.detail);
+          break;
+        }
+        const deleteAuthorityInput = {
+          customerId,
+          subscriptionIds: lifecycleLocationIds(subscription.id, deleteLinkage.linkage),
+        };
 
-      // Revert profiles (Oracle).
-      //
-      // `profiles` has NO `id` column — its primary key is `user_id` — so the
-      // previous `.select("id")` and `.eq("id", profile.id)` could never match a
-      // deployed row, and both errors were discarded. The row is addressed by
-      // `user_id`, taken from the row the VERIFIED Stripe linkage resolved.
-      //
-      // REQUIRED, not optional. The shared reader ranks `profiles.plan`, so a
-      // failed mirror leaves access PAID while the revocation looks done.
-      // Reproduced: a profiles-only member kept `initiate` and the delivery was
-      // acknowledged 200. Failing here makes Stripe retry.
-      const profileRevoke = await applyLifecycleUpdate(
-        utSupabaseAdmin,
-        "profiles",
-        deleteAuthorityInput,
-        { plan: "free" },
-        { isEligible: ownsDeletedSubscription }
-      );
-      if (!profileRevoke.ok) {
-        membershipFailures.push(`cancel-profiles:${profileRevoke.reason}`);
-        console.error("Failed to revert Oracle profile:", profileRevoke.detail);
-      } else if (!profileRevoke.linked) {
-        console.log("profiles: no row carries the verified Stripe linkage; nothing to revert");
-      } else {
-        console.log(`profiles reverted to free (rows=${profileRevoke.updated})`);
+        // (2) Reconcile against Stripe's CURRENT state.
+        const deleteAuthority = await resolveAuthoritativeSubscription(
+          getStripe(),
+          customerId,
+          deleteLinkage.linkage
+        );
+        if (!deleteAuthority.ok) {
+          membershipFailures.push(`reconcile:${deleteAuthority.reason}`);
+          console.error("Could not reconcile on deletion:", deleteAuthority.detail);
+          break;
+        }
+        if (
+          deleteAuthority.found &&
+          deleteAuthority.subscriptionId &&
+          deleteAuthority.subscriptionId !== subscription.id
+        ) {
+          // The deleted subscription is not the governing one: this is a stale
+          // event and must not downgrade either table.
+          membershipWarnings.push(`stale-deletion:${subscription.id}`);
+          console.log(
+            `Ignoring deletion of superseded ${subscription.id}; ${deleteAuthority.subscriptionId} still governs`
+          );
+          break;
+        }
+
+        // (3) VALIDATE BOTH TABLES BEFORE WRITING EITHER.
+        const memberPlan = await planLifecycleUpdate(
+          utSupabaseAdmin,
+          "ut_members",
+          deleteAuthorityInput,
+          {
+            plan: "guest",
+            subscription_status: "canceled",
+            stripe_subscription_id: null,
+            current_period_end: null,
+          },
+          { isEligible: ownsDeletedSubscription }
+        );
+        if (!memberPlan.ok) {
+          membershipFailures.push(`cancel-ut_members:${memberPlan.reason}`);
+          console.error("Refusing to cancel ut_members:", memberPlan.detail);
+          break;
+        }
+        // `profiles` has NO `id` column — its primary key is `user_id` — so the
+        // previous `.select("id")` and `.eq("id", profile.id)` could never match
+        // a deployed row, and both errors were discarded. The row is addressed by
+        // `user_id`, taken from the row the VERIFIED Stripe linkage resolved.
+        const profilePlan = await planLifecycleUpdate(
+          utSupabaseAdmin,
+          "profiles",
+          deleteAuthorityInput,
+          { plan: "free" },
+          { isEligible: ownsDeletedSubscription }
+        );
+        if (!profilePlan.ok) {
+          membershipFailures.push(`cancel-profiles:${profilePlan.reason}`);
+          console.error("Refusing to revert the Oracle profile:", profilePlan.detail);
+          break;
+        }
+
+        // (4) COMMIT, conditioned on the snapshot taken in (1).
+        const memberRevoke = await commitLifecycleUpdate(utSupabaseAdmin, memberPlan);
+        const profileRevoke = await commitLifecycleUpdate(utSupabaseAdmin, profilePlan);
+        const lostRace = [memberRevoke, profileRevoke].some(
+          (result) => !result.ok && isRetryableLifecycleFailure(result.reason)
+        );
+        if (lostRace && attempt < MAX_LIFECYCLE_ATTEMPTS) {
+          console.warn(
+            `Deletion of ${subscription.id} lost its race; re-resolving from fresh linkage and fresh Stripe state`
+          );
+          continue;
+        }
+
+        if (!memberRevoke.ok) {
+          membershipFailures.push(`cancel-ut_members:${memberRevoke.reason}`);
+          console.error("Failed to cancel ut_members subscription:", memberRevoke.detail);
+        } else if (!memberRevoke.linked) {
+          console.log("ut_members: no row carries the verified Stripe linkage; nothing to revoke");
+        } else {
+          console.log(`ut_members reverted to guest (rows=${memberRevoke.updated})`);
+        }
+
+        // REQUIRED, not optional. The shared reader ranks `profiles.plan`, so a
+        // failed mirror leaves access PAID while the revocation looks done.
+        // Reproduced: a profiles-only member kept `initiate` and the delivery was
+        // acknowledged 200. Failing here makes Stripe retry.
+        if (!profileRevoke.ok) {
+          membershipFailures.push(`cancel-profiles:${profileRevoke.reason}`);
+          console.error("Failed to revert Oracle profile:", profileRevoke.detail);
+        } else if (!profileRevoke.linked) {
+          console.log("profiles: no row carries the verified Stripe linkage; nothing to revert");
+        } else {
+          console.log(`profiles reverted to free (rows=${profileRevoke.updated})`);
+        }
+        break;
       }
 
       // ── Telegram notification ──────────────────────────────────────────────
@@ -505,53 +567,84 @@ export async function POST(req: NextRequest) {
       // this customer is genuinely past_due. A delayed payment_failed used to
       // rewrite `unpaid` / `incomplete_expired` (both revocations) to `past_due`,
       // which restored entitlement.
-      const pastDueLinkage = await readStoredLinkage(utSupabaseAdmin, {
-        email: (invoice as any).customer_email,
-        customerId,
-      });
-      if (!pastDueLinkage.ok) {
-        membershipFailures.push(`linkage:${pastDueLinkage.reason}`);
-        console.error("Could not read stored linkage:", pastDueLinkage.detail);
-        break;
-      }
-      const pastDueAuthority = await resolveAuthoritativeSubscription(
-        getStripe(),
-        customerId,
-        pastDueLinkage.linkage
-      );
-      if (!pastDueAuthority.ok) {
-        membershipFailures.push(`reconcile:${pastDueAuthority.reason}`);
-        console.error("Could not reconcile the current subscription:", pastDueAuthority.detail);
-        break;
-      }
-      if (pastDueAuthority.status !== "past_due") {
-        membershipWarnings.push(`payment_failed-ignored:${pastDueAuthority.status ?? "none"}`);
-        console.log("Ignoring a stale payment failure; current status is not past_due");
-        break;
-      }
-
-      const pastDueWrite = await applyLifecycleUpdate(
-        utSupabaseAdmin,
-        "ut_members",
-        {
+      for (let attempt = 1; attempt <= MAX_LIFECYCLE_ATTEMPTS; attempt += 1) {
+        // (1) AUTHORIZATION SNAPSHOT — taken before the provider is consulted.
+        const pastDueLinkage = await readStoredLinkage(utSupabaseAdmin, {
+          email: (invoice as any).customer_email,
           customerId,
-          subscriptionIds: lifecycleSubscriptionIds(pastDueAuthority, pastDueLinkage.linkage),
-        },
-        { subscription_status: "past_due" },
-        // Dunning must not overwrite a recorded cancellation. `past_due` is not
-        // a revoking state, so writing it over `canceled` would DESTROY the
-        // revocation record and could let a stale invoice resurrect access.
-        { isEligible: (row) => row.subscription_status !== "canceled" }
-      );
-      if (!pastDueWrite.ok) {
-        membershipFailures.push(`past_due:${pastDueWrite.reason}`);
-        console.error("Failed to mark past_due:", pastDueWrite.detail);
-      } else if (!pastDueWrite.linked) {
-        console.log("ut_members: no row carries the verified Stripe linkage; nothing to mark past_due");
-      } else {
-        console.log(
-          `Member marked as past_due (cancelled records left intact, rows=${pastDueWrite.updated})`
+        });
+        if (!pastDueLinkage.ok) {
+          membershipFailures.push(`linkage:${pastDueLinkage.reason}`);
+          console.error("Could not read stored linkage:", pastDueLinkage.detail);
+          break;
+        }
+        const pastDueAuthorityInput = {
+          customerId,
+          subscriptionIds: lifecycleLocationIds(
+            (invoice as any).subscription,
+            pastDueLinkage.linkage
+          ),
+        };
+
+        // (2) Reconcile against Stripe's CURRENT state. Dunning may only be
+        // applied when Stripe says this customer is genuinely past_due: a
+        // delayed payment_failed used to rewrite `unpaid` / `incomplete_expired`
+        // (both revocations) to `past_due`, restoring entitlement.
+        const pastDueAuthority = await resolveAuthoritativeSubscription(
+          getStripe(),
+          customerId,
+          pastDueLinkage.linkage
         );
+        if (!pastDueAuthority.ok) {
+          membershipFailures.push(`reconcile:${pastDueAuthority.reason}`);
+          console.error("Could not reconcile the current subscription:", pastDueAuthority.detail);
+          break;
+        }
+        if (pastDueAuthority.status !== "past_due") {
+          membershipWarnings.push(`payment_failed-ignored:${pastDueAuthority.status ?? "none"}`);
+          console.log("Ignoring a stale payment failure; current status is not past_due");
+          break;
+        }
+
+        // (3) VALIDATE, then (4) COMMIT — conditioned on the snapshot above.
+        const pastDuePlan = await planLifecycleUpdate(
+          utSupabaseAdmin,
+          "ut_members",
+          pastDueAuthorityInput,
+          { subscription_status: "past_due" },
+          // Dunning must not overwrite a recorded cancellation. `past_due` is
+          // not a revoking state, so writing it over `canceled` would DESTROY
+          // the revocation record and could let a stale invoice resurrect
+          // access.
+          { isEligible: (row) => row.subscription_status !== "canceled" }
+        );
+        if (!pastDuePlan.ok) {
+          membershipFailures.push(`past_due:${pastDuePlan.reason}`);
+          console.error("Refusing to mark past_due:", pastDuePlan.detail);
+          break;
+        }
+        const pastDueWrite = await commitLifecycleUpdate(utSupabaseAdmin, pastDuePlan);
+        if (
+          !pastDueWrite.ok &&
+          isRetryableLifecycleFailure(pastDueWrite.reason) &&
+          attempt < MAX_LIFECYCLE_ATTEMPTS
+        ) {
+          console.warn(`Dunning for ${customerId} lost its race; re-resolving from fresh state`);
+          continue;
+        }
+        if (!pastDueWrite.ok) {
+          membershipFailures.push(`past_due:${pastDueWrite.reason}`);
+          console.error("Failed to mark past_due:", pastDueWrite.detail);
+        } else if (!pastDueWrite.linked) {
+          console.log(
+            "ut_members: no row carries the verified Stripe linkage; nothing to mark past_due"
+          );
+        } else {
+          console.log(
+            `Member marked as past_due (cancelled records left intact, rows=${pastDueWrite.updated})`
+          );
+        }
+        break;
       }
       break;
     }
