@@ -238,6 +238,9 @@ export async function resolveAuthoritativeSubscription(
   const recordedIds = storedId
     ? [storedId, ...((typeof stored === "object" && stored?.alternates) || []).filter((a) => a !== storedId)]
     : [];
+  // Collect EVERY live recorded candidate before choosing. Returning on the first
+  // one skipped validation of the rest, so a genuine tie could not be detected.
+  const liveRecorded: Array<{ id: string; status: string | null }> = [];
   for (const recordedId of recordedIds) {
     try {
       const sub = await stripe.subscriptions.retrieve(recordedId);
@@ -257,16 +260,9 @@ export async function resolveAuthoritativeSubscription(
         };
       }
       if (LIVE.has((sub.status ?? "").toLowerCase())) {
-        return {
-          ok: true,
-          found: true,
-          subscriptionId: sub.id,
-          status: sub.status ?? null,
-          selectedBy: "stored",
-          candidates: [],
-        };
+        liveRecorded.push({ id: sub.id, status: sub.status ?? null });
       }
-      // terminal stored subscription: fall through to look for a replacement
+      // a terminal recorded subscription falls through to replacement enumeration
     } catch (err) {
       const statusCode = (err as { statusCode?: number } | null)?.statusCode;
       if (statusCode !== 404) {
@@ -278,6 +274,29 @@ export async function resolveAuthoritativeSubscription(
       }
       // 404: gone; a replacement may exist
     }
+  }
+
+  // Decide from the FULL recorded set before considering any replacement.
+  if (liveRecorded.length > 1) {
+    // Two recorded subscriptions that are both live and both ownership-verified:
+    // the policy cannot choose one, so fail closed rather than pick a winner.
+    return {
+      ok: false,
+      reason: "multiple_candidates",
+      detail:
+        `${liveRecorded.length} recorded subscriptions are live for this customer; ` +
+        `the policy does not choose one: ${liveRecorded.map((c) => c.id).join(", ")}`,
+    };
+  }
+  if (liveRecorded.length === 1) {
+    return {
+      ok: true,
+      found: true,
+      subscriptionId: liveRecorded[0].id,
+      status: liveRecorded[0].status,
+      selectedBy: "stored",
+      candidates: [],
+    };
   }
 
   // 2. enumerate non-terminal subscriptions
