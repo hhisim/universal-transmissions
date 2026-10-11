@@ -128,7 +128,9 @@ const allScoped = (s) => s.calls.length > 0 && s.calls.every((c) => c.customer =
       "P7 page-limit exhaustion reports ambiguity, not absence (got " + JSON.stringify(r) + ")");
     ok(s.calls.length === 5, "P7 enumeration is bounded at 5 pages (got " + s.calls.length + ")");
     ok(allScoped(s), "P7 every list call is scoped to the customer");
-    ok(s.calls[4] && s.calls[4].starting_after === "d4", "P7 the cursor advances on every page");
+    const cursors = s.calls.slice(1).map((c) => c.starting_after);
+    ok(JSON.stringify(cursors) === JSON.stringify(["d1", "d2", "d3", "d4"]),
+      "P7 every page after the first carries the previous page's last id as its cursor (got " + JSON.stringify(cursors) + ")");
   });
 
   console.log("");
