@@ -36,6 +36,17 @@ pass because of the other.
 `owns_key`, runs the whole harness, requires the named assertion to fail, restores
 the file from the bytes it read at start, and verifies the restore by sha256.
 
+> **Correction (Batch 14z).** That mechanism **wrote to the tracked harness**:
+> it mutated `scripts/batch14u-rpc-harness.sh` in place and restored it afterwards.
+> The results below are valid, but the method left a real hole — a SIGKILL, a
+> crash, or a host failure between the mutation and the restore would have left
+> the tracked artifact mutated, and the restore step itself was the only thing
+> standing between an experiment and a corrupted file. Batch 14z removes the hole
+> rather than narrowing it: the runner now mutates **disposable copies** in a
+> private temp directory, passes the original migration path explicitly, and never
+> writes to the tracked harness at all. There is therefore no restore step to get
+> wrong. The 14z re-run reproduces the same two detections with the safe method.
+
 ```
 harness sha256 (original): fb07130a08a1c0306d19c4e85b2419cde0d64bc14ebf172e1d0ba18a8b6bba6e
 
