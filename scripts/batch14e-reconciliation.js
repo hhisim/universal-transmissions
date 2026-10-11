@@ -133,7 +133,7 @@ mockModule("@/lib/stripe", {
     customers: { create: async () => ({ id: "cus_new" }) },
     checkout: { sessions: { create: async () => ({ url: "x" }) } },
       subscriptions: {
-        retrieve: async () => ({ id: state.currentSub || "sub_1", status: state.stripeStatus || "active" }),
+        retrieve: async () => ({ id: state.currentSub || "sub_1", status: state.stripeStatus || "active", customer: "cus_1" }),
         list: async () => {
           let status = state.stripeStatus;
           if (status === undefined) {
@@ -146,7 +146,7 @@ mockModule("@/lib/stripe", {
           }
           const row = state.tables.ut_members[0] || {};
           const obj = state.event && state.event.data && state.event.data.object;
-          return { data: [{ id: (obj && obj.id) || row.stripe_subscription_id || "sub_1", status, customer: obj && obj.customer }] };
+          return { data: [{ id: (obj && obj.id) || row.stripe_subscription_id || "sub_1", status, customer: "cus_1" }] };
         },
       },
   }),

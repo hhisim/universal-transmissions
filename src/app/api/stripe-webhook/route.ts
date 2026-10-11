@@ -7,6 +7,7 @@ import {
   eventGovernsCurrentSubscription,
   isRevokingStatusValue,
   entitlementFromAuthority,
+  readStoredLinkage,
 } from "@/lib/stripe-subscription-authority";
 
 // ── Telegram notification helper ────────────────────────────────────────────
@@ -204,10 +205,14 @@ export async function POST(req: NextRequest) {
       // delayed delivery carries stale state — an old `active` snapshot would
       // otherwise resurrect a cancelled subscription. Recency comes from
       // Stripe's own state, NEVER from delivery order or event.created.
+      // Capture the stored linkage BEFORE asking Stripe, so the write can be
+      // conditioned on the state this decision was actually made from.
+      const lifecycleStored = await readStoredLinkage(utSupabaseAdmin, email ?? "");
+      const lifecycleSnapshot = lifecycleStored.subscriptionId;
       const lifecycleAuthority = await resolveAuthoritativeSubscription(
         getStripe(),
         customerId,
-        null
+        lifecycleStored
       );
       if (!lifecycleAuthority.ok) {
         // Never acknowledge a required membership update we could not determine.
@@ -386,10 +391,11 @@ export async function POST(req: NextRequest) {
       // this customer is genuinely past_due. A delayed payment_failed used to
       // rewrite `unpaid` / `incomplete_expired` (both revocations) to `past_due`,
       // which restored entitlement.
+      const pastDueStored = await readStoredLinkage(utSupabaseAdmin, (invoice as any).customer_email ?? "");
       const pastDueAuthority = await resolveAuthoritativeSubscription(
         getStripe(),
         customerId,
-        null
+        pastDueStored
       );
       if (!pastDueAuthority.ok) {
         membershipFailures.push(`reconcile:${pastDueAuthority.reason}`);
@@ -434,10 +440,11 @@ export async function POST(req: NextRequest) {
 
         // AUTHORITY: an older invoice must not replace the current subscription
         // id, and must not resurrect a revoked membership.
+        const invoiceStored = await readStoredLinkage(utSupabaseAdmin, customerEmail);
         const invoiceAuthority = await resolveAuthoritativeSubscription(
           getStripe(),
           customerId,
-          null
+          invoiceStored
         );
         if (!invoiceAuthority.ok) {
           membershipFailures.push(`reconcile:${invoiceAuthority.reason}`);
