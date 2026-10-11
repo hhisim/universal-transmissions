@@ -86,8 +86,12 @@ The test now **asserts** each of these; before, four of them were merely printed
 | 9 | the **workspace was removed** |
 | 10 | the **discovery pointer was removed** |
 | 11 | the tracked harness is **byte-identical** |
-| 12 | **negative control:** a SIGTERM-ignoring worker **is rejected** by the same check |
-| 13 | the same check reports a **SIGKILLed** worker as gone (the check can also pass) |
+| 12 | **negative control:** the SIGTERM-ignoring worker **is RUNNING** before the check |
+| 13 | **negative control:** it **is rejected** by the same termination check |
+| 14 | the same check reports a **SIGKILLed** worker as gone (the check can also pass) |
+
+Fourteen assertions in total — the count the run reports. The review as first
+committed in this batch listed thirteen, having omitted row 12; corrected here.
 
 ### Results
 
