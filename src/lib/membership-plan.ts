@@ -57,7 +57,9 @@ export interface ResolvedMembership {
  *
  * Taken from what the application already writes and from Stripe's terminal
  * states — not invented here:
- *   - `canceled` is written by the `customer.subscription.deleted` handler.
+ *   - `canceled` is written by the `customer.subscription.deleted` handler
+ *     into `ut_members.subscription_status`, the column the subscription events
+ *     own (see the AUTHORITY SCOPE note in resolveMembershipPlan).
  *   - `incomplete_expired` and `unpaid` are Stripe's terminal non-paying states.
  *
  * Deliberately NOT revoking:
@@ -145,8 +147,18 @@ export async function resolveMembershipPlan(
     // A recorded revocation is an AUTHORITY signal, not another plan to rank.
     // Without this, a stale paid row would keep granting access after a
     // legitimate cancellation whose write to the other table failed.
+    // AUTHORITY SCOPE: `ut_members.subscription_status` ONLY.
+    //
+    // No code path writes `profiles.subscription_status` — the Stripe handlers
+    // set `profiles.plan` and nothing else. A value written there could never be
+    // cleared, so treating it as a revocation authority would revoke an account
+    // PERMANENTLY, even after a legitimate reactivation. The subscription
+    // events DO own `ut_members.subscription_status`, and they clear it on
+    // reactivation, so that is the single authority for revocation.
+    //
+    // `profiles.subscription_status` is therefore ignored for entitlement and is
+    // recorded as an unmaintained column requiring a separate decision.
     const revokedBy: string[] = [];
-    if (isRevokingStatus(profile?.subscription_status)) revokedBy.push("profiles");
     if (isRevokingStatus(member?.subscription_status)) revokedBy.push("ut_members");
     if (revokedBy.length > 0) {
       return {

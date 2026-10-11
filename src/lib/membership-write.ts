@@ -224,13 +224,24 @@ export async function writeMembershipRow(
     // value. A unique index prevents duplicate INSERTs; it does nothing for a
     // lost UPDATE. Because this is a single statement, the comparison and the
     // write are atomic with respect to the row.
+    // Guard EVERY field that authorises the write, not just the one being
+    // changed. `subscription_status` is what grants or revokes entitlement
+    // (see membership-plan.ts), so a concurrent status change must defeat the
+    // CAS even when the plan value happens to be identical.
     const readPlan = (found.row.plan as string | null) ?? null;
+    const readStatus = (found.row.subscription_status as string | null) ?? null;
     let updateQuery = client
       .from(table)
       .update(payload)
       .eq(pkColumn, found.row[pkColumn] as string);
     updateQuery =
       readPlan === null ? updateQuery.is("plan", null) : updateQuery.eq("plan", readPlan);
+    // Both tables are read with select("*"), so subscription_status is present
+    // on the row whenever the column exists — guard it unconditionally.
+    updateQuery =
+      readStatus === null
+        ? updateQuery.is("subscription_status", null)
+        : updateQuery.eq("subscription_status", readStatus);
 
     const { data, error } = await updateQuery.select().single();
 

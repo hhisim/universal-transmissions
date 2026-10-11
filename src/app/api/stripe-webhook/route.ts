@@ -57,6 +57,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No signature" }, { status: 400 });
   }
 
+  // Batch 14d: a membership write that failed must not be acknowledged as
+  // success. Failures are collected here and the handler answers non-2xx so
+  // Stripe retries the delivery, instead of logging and returning 200.
+  const membershipFailures: string[] = [];
+
   let event: Stripe.Event;
 
   try {
@@ -187,7 +192,8 @@ export async function POST(req: NextRequest) {
       // Update ut_members (existing store members)
       let memberNote = "";
       try {
-        await utSupabaseAdmin
+        // The result was previously discarded, so a failed update was silent.
+        const { error: memberError } = await utSupabaseAdmin
           .from("ut_members")
           .update({
             plan,
@@ -197,16 +203,22 @@ export async function POST(req: NextRequest) {
             stripe_customer_id: customerId,
           })
           .eq("stripe_customer_id", customerId);
-        console.log(`ut_members updated: plan=${plan}, status=${subscriptionStatus}`);
-        memberNote = "✅ Member record updated";
+        if (memberError) {
+          membershipFailures.push(`ut_members:${memberError.message}`);
+          console.error("Failed to update ut_members subscription:", memberError.message);
+        } else {
+          console.log(`ut_members updated: plan=${plan}, status=${subscriptionStatus}`);
+          memberNote = "✅ Member record updated";
+        }
       } catch (err) {
+        membershipFailures.push("ut_members:threw");
         console.error("Failed to update ut_members subscription:", err);
       }
 
       // Update profiles table (Oracle members) — keyed by email
       if (email) {
         try {
-          await utSupabaseAdmin
+          const { error: profileError } = await utSupabaseAdmin
             .from("profiles")
             .update({
               plan,
@@ -214,8 +226,15 @@ export async function POST(req: NextRequest) {
               stripe_customer_id: customerId,
             })
             .eq("email", email);
-          console.log(`profiles updated: email=${email}, plan=${plan}`);
+          if (profileError) {
+            // A missed profile update must be reported, not swallowed.
+            membershipFailures.push(`profiles:${profileError.message}`);
+            console.error("Failed to update Oracle profile subscription:", profileError.message);
+          } else {
+            console.log(`profiles updated: email=${email}, plan=${plan}`);
+          }
         } catch (err) {
+          membershipFailures.push("profiles:threw");
           console.error("Failed to update Oracle profile subscription:", err);
         }
       }
@@ -243,7 +262,7 @@ export async function POST(req: NextRequest) {
 
       // Revert ut_members
       try {
-        await utSupabaseAdmin
+        const { error: revertError } = await utSupabaseAdmin
           .from("ut_members")
           .update({
             plan: "guest",
@@ -252,8 +271,14 @@ export async function POST(req: NextRequest) {
             current_period_end: null,
           })
           .eq("stripe_customer_id", customerId);
-        console.log("ut_members reverted to guest");
+        if (revertError) {
+          membershipFailures.push(`cancel-ut_members:${revertError.message}`);
+          console.error("Failed to cancel ut_members subscription:", revertError.message);
+        } else {
+          console.log("ut_members reverted to guest");
+        }
       } catch (err) {
+        membershipFailures.push("cancel-ut_members:threw");
         console.error("Failed to cancel ut_members subscription:", err);
       }
 
@@ -323,14 +348,23 @@ export async function POST(req: NextRequest) {
             "ut_members",
             customerEmail,
             {
+              // Deliberately does NOT set subscription_status.
+              //
+              // Subscription lifecycle events (customer.subscription.*) are the
+              // authority for status; an invoice event must not resurrect a
+              // membership. Setting status='active' here meant a stale
+              // payment-succeeded arriving after a cancellation would clear the
+              // cancellation — and the schema carries no ordering signal to
+              // distinguish that from a genuine reactivation, so the safe move
+              // is to let the invoice event own only billing artefacts.
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               plan: "initiate",
-              subscription_status: "active",
             },
             { protectPaidPlan: false }
           );
           if (!memberWrite.ok) {
+            membershipFailures.push(`invoice-ut_members:${memberWrite.reason}`);
             console.error(
               "invoice.payment_succeeded: ut_members write failed:",
               memberWrite.reason,
@@ -364,6 +398,17 @@ export async function POST(req: NextRequest) {
 
     default:
       console.log(`Unhandled event type: ${event.type}`);
+  }
+
+  // A required membership change that did not succeed must not be acknowledged
+  // as success: answer non-2xx so Stripe retries the delivery. Nothing is
+  // queued or stored locally — the retry IS the durable mechanism.
+  if (membershipFailures.length > 0) {
+    console.error("Stripe webhook: membership writes failed:", membershipFailures.join("; "));
+    return NextResponse.json(
+      { received: true, membershipFailures, retry: true },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ received: true });
