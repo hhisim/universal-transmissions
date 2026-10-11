@@ -26,11 +26,15 @@
 # Usage: bash scripts/batch14y-harness-mutations.sh
 #
 set -u
+set -m   # job control: every background job gets its OWN process group, so the
+         # parent owns a signalable group for the run it launched.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HARNESS="$ROOT/scripts/batch14u-rpc-harness.sh"
 SQL="$ROOT/supabase/migrations/20261012_apply_lifecycle_update.sql"
 PTR="/var/tmp/b14z-mutations.current"
+RUN_TIMEOUT="${RUN_TIMEOUT:-600}"
+CHILD_DEADLINE="${CHILD_DEADLINE:-10}"
 CHILD=""
 
 [ -f "$HARNESS" ] || { echo "harness not found: $HARNESS" >&2; exit 2; }
@@ -38,10 +42,40 @@ CHILD=""
 
 BASE="$(mktemp -d /var/tmp/b14z-mut-XXXXXX)"
 
+# Is the owned child still running? Reads /proc so a reaped-but-unwaited zombie
+# is not mistaken for a live process.
+child_alive() { # child_alive [pid]
+  local p="${1:-${CHILD:-}}"
+  [ -n "$p" ] || return 1
+  [ -d "/proc/$p" ] || return 1
+  local st; st=$(awk '{print $3}' "/proc/$p/stat" 2>/dev/null)
+  [ -n "$st" ] && [ "$st" != "Z" ]
+}
+
 cleanup() { # cleanup <exit-status>
   local rc="$1"
   trap - EXIT INT TERM HUP
-  [ -n "${CHILD:-}" ] && kill -TERM "$CHILD" 2>/dev/null
+
+  # 1. Terminate the run THIS invocation owns, and VERIFY it is gone before
+  #    removing anything it might still be writing to. Bounded, then escalated.
+  if child_alive; then
+    echo "  cleanup: terminating the owned run (pid $CHILD, process group -$CHILD)"
+    kill -TERM -"$CHILD" 2>/dev/null || kill -TERM "$CHILD" 2>/dev/null
+    local n=0
+    while child_alive && [ "$n" -lt $((CHILD_DEADLINE * 10)) ]; do sleep 0.1; n=$((n + 1)); done
+    if child_alive; then
+      echo "  cleanup: pid $CHILD ignored SIGTERM for ${CHILD_DEADLINE}s — escalating to SIGKILL"
+      kill -KILL -"$CHILD" 2>/dev/null || kill -KILL "$CHILD" 2>/dev/null
+      n=0
+      while child_alive && [ "$n" -lt 50 ]; do sleep 0.1; n=$((n + 1)); done
+      child_alive && echo "  cleanup: pid $CHILD STILL ALIVE after SIGKILL"
+    fi
+    wait "$CHILD" 2>/dev/null
+    CHILD=""
+    echo "  cleanup: owned run terminated"
+  fi
+
+  # 2. Remove ONLY this run's workspace and pointer.
   if [ -n "${PTR:-}" ] && [ -f "$PTR" ] && [ "$(cat "$PTR" 2>/dev/null)" = "${BASE:-}" ]; then
     find "$PTR" -maxdepth 0 -delete 2>/dev/null
   fi
@@ -69,15 +103,42 @@ echo "disposable workspace:          $BASE"
 
 DETECTED=0; MISSED=0; TOUCHED=0
 
-run_harness() { # run_harness <harness-copy> [sql-path]
+RUN_RC=0
+RUN_LOG=""
+run_harness() { # run_harness <harness-copy> [sql-path] -> sets RUN_RC, RUN_LOG
+  # Run DIRECTLY in the parent shell. It must never be called inside $(...): a
+  # command substitution runs in a subshell, so the child PID would be set in
+  # that subshell and the parent would own nothing to signal or reap. Callers
+  # read $RUN_RC and $RUN_LOG instead of capturing stdout.
+  #
+  # No `timeout` wrapper: the parent owns the harness process itself, in its own
+  # process group (see `set -m`), so `kill -TERM -$CHILD` reaches the harness and
+  # everything it spawned — and `wait` returns the harness's own status rather
+  # than a wrapper's.
   local h="$1" sql="${2:-$SQL}"
-  timeout 600 bash "$h" "$sql" >"$BASE/run.out" 2>&1 &
+  RUN_LOG="$BASE/run.$(basename "$h" .sh).out"
+  bash "$h" "$sql" >"$RUN_LOG" 2>&1 &
   CHILD=$!
-  local rc=0
-  wait "$CHILD" || rc=$?
+  echo "$CHILD" >"$BASE/child.pid"
+
+  # Bounded wait for the owned run.
+  local n=0
+  while child_alive && [ "$n" -lt $((RUN_TIMEOUT * 10)) ]; do sleep 0.1; n=$((n + 1)); done
+  if child_alive; then
+    echo "  run exceeded ${RUN_TIMEOUT}s — terminating the owned run (pid $CHILD)"
+    kill -TERM -"$CHILD" 2>/dev/null || kill -TERM "$CHILD" 2>/dev/null
+    local m=0
+    while child_alive && [ "$m" -lt $((CHILD_DEADLINE * 10)) ]; do sleep 0.1; m=$((m + 1)); done
+    child_alive && { kill -KILL -"$CHILD" 2>/dev/null || kill -KILL "$CHILD" 2>/dev/null; }
+    wait "$CHILD" 2>/dev/null
+    RUN_RC=124
+  else
+    wait "$CHILD"; RUN_RC=$?
+  fi
+
   CHILD=""
-  cat "$BASE/run.out"
-  return "$rc"
+  [ -f "$BASE/child.pid" ] && find "$BASE/child.pid" -maxdepth 0 -delete 2>/dev/null
+  return "$RUN_RC"
 }
 check_tracked() { # assert the tracked harness is still the original bytes
   local now; now=$(sha256sum "$HARNESS" | awk '{print $1}')
@@ -94,12 +155,14 @@ echo "=== the explicit migration path is load-bearing ==="
 # refuse. (Passing an empty string would NOT test this — "${1:-default}" treats
 # an empty argument as unset and would silently substitute the real path.)
 cp "$HARNESS" "$BASE/harness.nopath.sh"
-nopath_out=$(timeout 60 bash "$BASE/harness.nopath.sh" 2>&1); nopath_rc=$?
-if [ "$nopath_rc" -ne 0 ] && printf '%s' "$nopath_out" | grep -q 'migration not found'; then
+nopath_log="$BASE/run.nopath.out"
+timeout 60 bash "$BASE/harness.nopath.sh" >"$nopath_log" 2>&1
+nopath_rc=$?
+if [ "$nopath_rc" -ne 0 ] && grep -q 'migration not found' "$nopath_log"; then
   echo "  OK: a copy with no explicit path REFUSES (exit=$nopath_rc)"
 else
   echo "  UNEXPECTED: a copy with no explicit path did not refuse (exit=$nopath_rc)"
-  printf '%s' "$nopath_out" | head -2
+  head -2 "$nopath_log"
   MISSED=$((MISSED + 1))
 fi
 check_tracked || true
@@ -110,11 +173,11 @@ echo "control" >"$BASE/phase"
 cp "$HARNESS" "$BASE/harness.control.sh"
 CTRL_SHA=$(sha256sum "$BASE/harness.control.sh" | awk '{print $1}')
 [ "$CTRL_SHA" = "$ORIG" ] && echo "  copy is the exact original bytes" || { echo "  ERROR: copy differs from the original"; MISSED=$((MISSED + 1)); }
-out=$(run_harness "$BASE/harness.control.sh"); rc=$?
-echo "control: exit=$rc | $(printf '%s' "$out" | grep -o 'assertions passed: [0-9]*' | tail -1) | $(printf '%s' "$out" | grep -o 'assertions failed: [0-9]*' | tail -1)"
+run_harness "$BASE/harness.control.sh"; rc=$RUN_RC
+echo "control: exit=$rc | $(grep -o 'assertions passed: [0-9]*' "$RUN_LOG" | tail -1) | $(grep -o 'assertions failed: [0-9]*' "$RUN_LOG" | tail -1)"
 if [ "$rc" -ne 0 ]; then
   echo "control run FAILED — aborting before mutating anything"
-  printf '%s' "$out" | grep 'FAIL:' | head -5
+  grep 'FAIL:' "$RUN_LOG" | head -5
   exit 2
 fi
 check_tracked || true
@@ -160,17 +223,17 @@ mutation() { # mutation <label> <key|worker> <expected-failing-assertion>
   echo "  mutated COPY sha256: $mh"
 
   echo "mutated:$mode:running" >"$BASE/phase"
-  local out rc fl
-  out=$(run_harness "$copy"); rc=$?
+  local rc fl
+  run_harness "$copy"; rc=$RUN_RC
   echo "done:$mode" >"$BASE/phase"
-  fl=$(printf '%s' "$out" | grep -o 'assertions failed: [0-9]*' | tail -1)
+  fl=$(grep -o 'assertions failed: [0-9]*' "$RUN_LOG" | tail -1)
   echo "  run: exit=$rc | $fl"
-  if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -qF "FAIL: $want"; then
+  if [ "$rc" -ne 0 ] && grep -qF "FAIL: $want" "$RUN_LOG"; then
     echo "  DETECTED: '$want' failed as required"
     DETECTED=$((DETECTED + 1))
   else
     echo "  MISSED: expected '$want' to fail"
-    printf '%s' "$out" | grep 'FAIL:' | head -3
+    grep 'FAIL:' "$RUN_LOG" | head -3
     MISSED=$((MISSED + 1))
   fi
   check_tracked && echo "  tracked harness untouched (hash matches)" || true

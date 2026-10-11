@@ -74,6 +74,19 @@ flattened to 0 by the handler.
 - The exit status is `128 + signum`, so an interrupted run is never reported as a
   success.
 
+> **Correction (Batch 14aa).** Read that first bullet narrowly. At `1c4282f` it
+> was an **untested claim**: the runner's `run_harness` was invoked inside a
+> command substitution, so the child PID was recorded in a **subshell** and the
+> parent owned nothing to signal — the "terminates any child harness run" step
+> could not have worked even in principle. What had actually been demonstrated was
+> file preservation and an eventual exit of 143, not child termination. Batch 14aa
+> gives the parent real ownership of the child PID and process group and **asserts**
+> termination before removing the workspace.
+>
+> **Scope of what has been tested:** only **SIGTERM** against a
+> **runner-launched** run. INT and HUP are trapped but are **not** tested, and
+> nothing is claimed about them.
+
 **NOT guaranteed — stated plainly, not hand-waved:**
 
 - SIGKILL, a segfault, an OOM kill, or the host disappearing run no trap. In those
@@ -136,6 +149,13 @@ Three facts carry the claim:
 3. the tracked harness re-hashed **byte-identical** after the kill.
 
 Cleanup removed the workspace and the pointer, and no harness process survived.
+
+> **Correction (Batch 14aa).** Those last two clauses were **printed, not
+> asserted** — the test observed them and reported them, but nothing would have
+> failed if they had been untrue. The five assertions in that run proved
+> **file preservation and an eventual exit of 143**; they did **not** prove that
+> the launched worker terminated. Batch 14aa replaces the observations with
+> assertions and adds a negative control proving the termination check can fail.
 
 ---
 
