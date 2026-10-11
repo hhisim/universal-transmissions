@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { writeMembershipRow } from "@/lib/membership-write";
 
 // ── Telegram notification helper ────────────────────────────────────────────
 const TELEGRAM_BOT_TOKEN = process.env.AKASHA_BOT_TOKEN ?? "";
@@ -312,26 +313,48 @@ export async function POST(req: NextRequest) {
         const customerEmail = invoice.customer_email;
 
         try {
-          await utSupabaseAdmin
-            .from("ut_members")
-            .upsert(
-              {
-                email: customerEmail,
-                stripe_customer_id: customerId,
-                stripe_subscription_id: subscriptionId,
-                plan: "initiate",
-                subscription_status: "active",
-              },
-              { onConflict: "email" }
+          // Neither table has a unique index on email, so the previous
+          // `upsert(..., { onConflict: "email" })` was rejected with 42P10 and
+          // the error was swallowed. Both writes now go through the shared
+          // helper and report their outcome. The price-to-plan mapping for
+          // subscription events is deliberately untouched.
+          const memberWrite = await writeMembershipRow(
+            utSupabaseAdmin,
+            "ut_members",
+            customerEmail,
+            {
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              plan: "initiate",
+              subscription_status: "active",
+            },
+            { protectPaidPlan: false }
+          );
+          if (!memberWrite.ok) {
+            console.error(
+              "invoice.payment_succeeded: ut_members write failed:",
+              memberWrite.reason,
+              memberWrite.detail
             );
+          }
 
-          // Also upsert profiles (Oracle) — keyed by email
-          await utSupabaseAdmin
-            .from("profiles")
-            .upsert(
-              { email: customerEmail, stripe_customer_id: customerId, plan: "initiate" },
-              { onConflict: "email" }
+          // profiles is keyed by user_id, which a Stripe event does not carry.
+          // An existing row is updated; a missing one cannot be created here and
+          // that is reported rather than hidden.
+          const profileWrite = await writeMembershipRow(
+            utSupabaseAdmin,
+            "profiles",
+            customerEmail,
+            { stripe_customer_id: customerId, plan: "initiate" },
+            { protectPaidPlan: false }
+          );
+          if (!profileWrite.ok) {
+            console.error(
+              "invoice.payment_succeeded: profiles write failed:",
+              profileWrite.reason,
+              profileWrite.detail
             );
+          }
         } catch (err) {
           console.error("Failed to upsert member on invoice.payment_succeeded:", err);
         }

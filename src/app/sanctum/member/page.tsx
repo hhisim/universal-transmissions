@@ -272,7 +272,9 @@ export default function MemberPage() {
         }
       }
 
-      const memberRes = await fetch(`/api/member?email=${encodeURIComponent(email)}`);
+      // The route resolves identity from the session cookie; a client-supplied
+      // address is ignored and must not be sent as if it were a claim.
+      const memberRes = await fetch(`/api/member`);
       if (memberRes.ok) {
         const member = await memberRes.json();
         const normalizedPlan = normalizeMemberPlan(member.plan ?? 'free');
