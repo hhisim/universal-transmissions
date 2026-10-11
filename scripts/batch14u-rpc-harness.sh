@@ -573,6 +573,40 @@ race "R2" 9102 "update public.ut_members set stripe_customer_id='cus_1', stripe_
 chk "R2c RACE REPRODUCED: an existing row became linked, unseen" "1" "$(q "select count(*) from public.ut_members where stripe_customer_id='cus_1';")"
 
 echo
+echo "=== R3/R4. REVERSE order: the competing writer commits BEFORE the re-location ==="
+# Ordering here is enforced by sequencing, not by a barrier: the writer runs to
+# completion and its COMMIT is asserted (exit 0 plus the committed state) BEFORE
+# the primitive is invoked. With the original EMPTY snapshot the call must then
+# reject NEWLY_LINKED and leave the competing writer's committed state intact.
+reverse_race() { # reverse_race <label> <advisory-key> <writer-sql> <expected-committed-state>
+  local label="$1" key="$2" wsql="$3" want="$4"
+  local writerapp="${APP}-writer-${key}" rpcapp="${APP}-reverse-${key}"
+
+  PGAPPNAME="$writerapp" psql -Atq -v ON_ERROR_STOP=1 -c "$wsql" >"$BASE/rev_w_$key.out" 2>&1
+  local wrc=$?
+  chk "$label: the competing writer exits 0 (it committed FIRST)" "0" "$wrc"
+  chk "$label: its state is committed before the call" "$want" "$(mem_state)"
+
+  PGAPPNAME="$rpcapp" psql -Atq -v ON_ERROR_STOP=1 -c \
+    "select string_agg(target||':'||outcome||':'||affected, ',' order by target) from public.apply_lifecycle_update(\$j\$$ABSENT\$j\$);" \
+    >"$BASE/rev_r_$key.out" 2>&1
+  local rrc=$?
+  chk "$label: the call is REJECTED" "non-zero" "$([ $rrc -ne 0 ] && echo non-zero || echo zero)"
+  printf '%s' "$(cat "$BASE/rev_r_$key.out")" | grep -q 'BATCH14 NEWLY_LINKED' && PASS=$((PASS + 1)) || { FAIL=$((FAIL + 1)); echo "  FAIL: $label: the rejection names NEWLY_LINKED (out=$(head -1 "$BASE/rev_r_$key.out"))"; }
+  chk "$label: the competing writer's committed state is PRESERVED" "$want" "$(mem_state)"
+}
+
+psql -q -c "truncate public.ut_members, public.profiles;" >/dev/null
+reverse_race "R3 (matching INSERT commits first)" 9201 \
+  "insert into public.ut_members (id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id) values ('$M1','a@x','initiate','active','cus_1','sub_A');" \
+  "initiate/active/cus_1/sub_A"
+
+psql -q -c "truncate public.ut_members, public.profiles; insert into public.ut_members (id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id) values ('$M1','a@x','guest','canceled',null,null);" >/dev/null
+reverse_race "R4 (existing-row relink commits first)" 9202 \
+  "update public.ut_members set stripe_customer_id='cus_1', stripe_subscription_id='sub_A' where id='$M1';" \
+  "guest/canceled/cus_1/sub_A"
+
+echo
 echo "=== NEG. a barrier check is SPECIFIC, not a cluster-wide count ==="
 NEGKEY=9001
 NEGAPP="${APP}-neg"
@@ -583,9 +617,13 @@ else FAIL=$((FAIL + 1)); echo "  FAIL: NEG the unrelated holder never took its k
 chk "NEG1 the unrelated holder owns ITS OWN key" "1" "$(owns_key "$NEGKEY" "$NEGAPP")"
 chk "NEG2 a cluster-wide advisory count WOULD have been satisfied" "1" \
   "$(q "select (count(*) >= 1)::int from pg_locks where locktype = 'advisory' and granted")"
-chk "NEG3 ...but the key-specific check is NOT satisfied by the unrelated key" "0" "$(owns_key 9101 "${APP}-first-9101")"
-chk "NEG4 ...and the app-specific check is NOT satisfied by the unrelated app" "0" "$(owns_key "$NEGKEY" "${APP}-first-9101")"
-chk "NEG5 no waiter is reported on a key nobody holds" "0" "$(waits_key 9101 "${APP}-first-9101")"
+# NEG3 isolates KEY filtering: the SAME worker that is known to hold NEGKEY,
+# asked about a key it does not hold. Must be 0.
+chk "NEG3 the KNOWN HOLDER's name does not match a key it does not hold" "0" "$(owns_key 9101 "$NEGAPP")"
+# NEG4 isolates WORKER filtering: the SAME key that is known to be held, asked
+# about a worker that does not hold it. Must be 0.
+chk "NEG4 the KNOWN KEY does not match a worker that does not hold it" "0" "$(owns_key "$NEGKEY" "${APP}-first-9101")"
+chk "NEG5 no waiter is reported for that worker on a key nobody holds" "0" "$(waits_key 9101 "$NEGAPP")"
 wait_worker "$NEGJOB" 30 "NEG unrelated holder"
 chk "NEG6 the unrelated holder terminated as intended" "0" "$?"
 cleanup_workers

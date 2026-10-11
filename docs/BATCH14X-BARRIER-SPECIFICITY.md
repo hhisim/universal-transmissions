@@ -126,15 +126,24 @@ An unrelated holder takes key `9001` under a different `application_name`, and:
 |---|---|---|
 | NEG1 | the unrelated holder owns **its own** key | 1 |
 | NEG2 | a **cluster-wide** advisory count *would* have been satisfied | 1 |
-| NEG3 | …but the **key-specific** check is not satisfied by that key | 0 |
-| NEG4 | …and the **app-specific** check is not satisfied by that app | 0 |
-| NEG5 | no waiter is reported on a key nobody holds | 0 |
+| NEG3 | the **known holder's name** does not match a key it does not hold | 0 |
+| NEG4 | the **known key** does not match a worker that does not hold it | 0 |
+| NEG5 | no waiter is reported for that worker on a key nobody holds | 0 |
 | NEG6 | the unrelated holder terminated as intended | exit 0 |
 
 NEG2 and NEG3 are the point: the coarse check that the previous harness would
 have used says "yes, a holder exists", while the specific check correctly says
-"that is not my holder". The negative control makes the distinction explicit
-rather than assumed.
+"that is not my holder".
+
+> **Correction (Batch 14y).** NEG3 as first written was
+> `owns_key 9101 "${APP}-first-9101"` — it changed **both** the key *and* the
+> worker name at once, so it could not say which filter was doing the work. It is
+> now `owns_key 9101 "$NEGAPP"`: the **same worker** that is known to hold the key,
+> asked about a **different** key. NEG4 keeps the complementary shape — the
+> **same key**, asked about a **different worker** — so the two predicates are
+> isolated from each other. Batch 14y also mutation-checks each one
+> independently (removing the key filter must fail NEG3; removing the worker
+> filter must fail NEG4).
 
 ---
 
@@ -146,12 +155,24 @@ rather than assumed.
 | repeat run 1 | 130 passed / 0 failed, exit 0 |
 | repeat run 2 | 130 passed / 0 failed, exit 0 |
 
-Three consecutive clean runs, so the barriers are not flaky. The harness was run
-against the identical SQL blob (`251d8e4c…`) each time.
+Three consecutive clean runs were **observed**. That is evidence of stability
+across those three runs; it is **not** a general claim that the harness cannot be
+flaky, and no such claim is made — three runs support no statistical statement
+about a flake rate. The harness was run against the identical SQL blob
+(`251d8e4c…`) each time.
 
-R1/R2 and CON1/CON2 were re-run in **both orders** (`CON1 free-first`,
-`CON2 guest-first`; `R1` insert-after-relocation, `R2` relink-after-relocation),
-each asserting both callers' exit status, their reported results, and the final
+**What "both orders" actually meant here.** Only CON had two orderings, and they
+should have been named:
+
+- **CON1** — the `free` caller commits first, the `guest` caller second;
+- **CON2** — the `guest` caller commits first, the `free` caller second.
+
+R1 and R2 were **not** two orders of one test. Each reproduced a *different* race
+in the *same* ordering: the re-location runs first and the competing writer
+commits afterwards (R1 = matching INSERT, R2 = existing-row relink). The reverse
+ordering for both races is added in Batch 14y as R3/R4.
+
+Each case asserts both callers' exit status, their reported results, and the final
 database state.
 
 **Unchanged SQL evidence is reused, not re-derived.** The migration is the same
