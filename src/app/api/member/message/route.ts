@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resolveVerifiedEmail } from "@/lib/verified-identity";
 import { getPlanLabel, isPaidPlan, normalizeMemberPlan } from "@/lib/plans";
+import { planRank } from "@/lib/membership-plan";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
@@ -94,7 +95,13 @@ async function lookupPlan(
       return { ok: true, plan: "guest" };
     }
 
-    return { ok: true, plan: normalizeMemberPlan(stored as string) };
+    // Highest entitlement across both tables, matching every other reader.
+    return {
+      ok: true,
+      plan: planRank(p?.plan) >= planRank(m?.plan)
+        ? normalizeMemberPlan(p?.plan ?? null)
+        : normalizeMemberPlan(m?.plan ?? null),
+    };
   } catch (err) {
     console.error("Member message plan lookup error:", err);
     return { ok: false, reason: "lookup_failed" };

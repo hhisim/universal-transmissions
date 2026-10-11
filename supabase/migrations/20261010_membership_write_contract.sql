@@ -77,6 +77,26 @@ begin
       'BATCH14 ABORT: % ut_members row(s) store a non-canonical address (not lower(btrim(email))); normalise or accept them explicitly before enforcing uniqueness', drift_rows;
   end if;
 
+  -- An object already carrying the expected name is NOT accepted as the
+  -- required constraint. If it exists and is not exactly the index this
+  -- migration creates, abort rather than build on top of an unknown object.
+  declare
+    existing_def text;
+    existing_n   integer;
+  begin
+    select count(*), min(pg_get_indexdef(i.indexrelid))
+      into existing_n, existing_def
+      from pg_index i
+      join pg_class ic on ic.oid = i.indexrelid
+      join pg_namespace n2 on n2.oid = ic.relnamespace
+     where n2.nspname = 'public' and ic.relname = 'ut_members_email_lower_key';
+
+    if existing_n > 0 and existing_def not like '%lower(btrim(email))%' then
+      raise exception
+        'BATCH14 ABORT: an index named ut_members_email_lower_key already exists with an unexpected definition: %', existing_def;
+    end if;
+  end;
+
   raise notice 'BATCH14 preflight passed: no nulls, no case-normalised duplicates, no non-canonical addresses';
 end
 $batch14_preflight$;
@@ -88,17 +108,54 @@ create unique index if not exists ut_members_email_lower_key
 -- -------------------------------------------------------------- postflight --
 do $batch14_postflight$
 declare
-  idx_present boolean;
-  still_dupes integer;
+  idx_count    integer;
+  idx_unique   boolean;
+  idx_valid    boolean;
+  idx_live     boolean;
+  idx_def      text;
+  idx_expr     text;
+  still_dupes  integer;
 begin
-  select exists (
-    select 1 from pg_indexes
-     where schemaname = 'public'
-       and tablename = 'ut_members'
-       and indexname = 'ut_members_email_lower_key'
-  ) into idx_present;
-  if not idx_present then
-    raise exception 'BATCH14 ABORT: the uniqueness index was not created';
+  -- A name is not a constraint. Assert the index is unique, valid, live, and
+  -- that its expression really is lower(btrim(email)). An index left INVALID by
+  -- a failed concurrent build, or one created with a different expression under
+  -- the same name, must not be mistaken for the required constraint.
+  select count(*) into idx_count from pg_index i
+    join pg_class ic on ic.oid = i.indexrelid
+    join pg_namespace n2 on n2.oid = ic.relnamespace
+   where n2.nspname = 'public' and ic.relname = 'ut_members_email_lower_key';
+
+  if idx_count <> 1 then
+    raise exception 'BATCH14 ABORT: expected exactly one index named ut_members_email_lower_key, found %', idx_count;
+  end if;
+
+  select i.indisunique, i.indisvalid, i.indislive, pg_get_indexdef(i.indexrelid)
+    into idx_unique, idx_valid, idx_live, idx_def
+    from pg_index i
+    join pg_class ic on ic.oid = i.indexrelid
+    join pg_namespace n2 on n2.oid = ic.relnamespace
+   where n2.nspname = 'public' and ic.relname = 'ut_members_email_lower_key';
+
+  if not idx_unique then
+    raise exception 'BATCH14 ABORT: the index exists but is NOT unique; the write contract would not be enforced';
+  end if;
+  if not idx_valid then
+    raise exception 'BATCH14 ABORT: the index exists but is INVALID (a failed build leaves this state); it does not enforce anything';
+  end if;
+  if not idx_live then
+    raise exception 'BATCH14 ABORT: the index is not live';
+  end if;
+
+  -- Compare the expression the planner recorded, not a substring of the text.
+  select pg_get_expr(i.indexprs, i.indrelid) into idx_expr
+    from pg_index i
+    join pg_class ic on ic.oid = i.indexrelid
+    join pg_namespace n2 on n2.oid = ic.relnamespace
+   where n2.nspname = 'public' and ic.relname = 'ut_members_email_lower_key';
+
+  if idx_expr is null
+     or replace(idx_expr, ' ', '') not in ('lower(btrim(email))', 'lower(btrim((email)::text))') then
+    raise exception 'BATCH14 ABORT: the index expression is %, not lower(btrim(email)); it does not implement the intended rule', coalesce(idx_expr, '<none>');
   end if;
 
   select count(*) into still_dupes
@@ -108,7 +165,7 @@ begin
     raise exception 'BATCH14 ABORT: % duplicate group(s) remain after the index build', still_dupes;
   end if;
 
-  raise notice 'BATCH14 postflight passed: ut_members enforces case-insensitive address uniqueness';
+  raise notice 'BATCH14 postflight passed: a valid, live, unique index on lower(btrim(email)) is present';
 end
 $batch14_postflight$;
 

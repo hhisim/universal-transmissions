@@ -31,6 +31,14 @@ export interface VerifiedIdentity {
   email: string;
   /** Which verification mechanism established it. */
   source: IdentitySource;
+  /**
+   * The Supabase auth user id, present only when the credential actually was a
+   * Supabase access token. It is never derived from an email lookup, and it is
+   * absent for NextAuth sessions, whose JWT strategy carries only the address —
+   * so callers must treat `undefined` as "no verified uuid available" rather
+   * than substituting one.
+   */
+  userId?: string;
 }
 
 /** Strip control characters and normalise an address coming from a credential. */
@@ -67,9 +75,14 @@ export async function resolveVerifiedIdentity(
         cache: "no-store",
       });
       if (res.ok) {
-        const user = (await res.json()) as { email?: string | null };
+        const user = (await res.json()) as { email?: string | null; id?: string | null };
         const email = normaliseEmail(user?.email);
-        if (email) return { email, source: "supabase" };
+        if (email) {
+          // `id` comes from Supabase's own verified user record, so it is a
+          // trustworthy uuid; it is simply absent when Supabase does not send one.
+          const userId = typeof user?.id === "string" && user.id.trim() ? user.id.trim() : undefined;
+          return { email, source: "supabase", userId };
+        }
       }
       // A present-but-invalid token is not an identity; fall through to NextAuth.
     } catch {

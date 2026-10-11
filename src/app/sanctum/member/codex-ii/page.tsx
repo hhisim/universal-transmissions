@@ -7,6 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 const PLAN_CHECK = ["initiate"];
 
 export default async function CodexIIPage() {
+  const { planRank } = await import("@/lib/membership-plan");
   const { auth } = await import("@/lib/auth");
   const session = await auth();
 
@@ -26,7 +27,10 @@ export default async function CodexIIPage() {
     .eq("email", session.user.email)
     .maybeSingle();
 
-  const plan = profile?.plan || member?.plan;
+  // Highest entitlement across both tables, matching every other reader.
+  const plan = planRank(profile?.plan) >= planRank(member?.plan)
+    ? profile?.plan ?? null
+    : member?.plan ?? null;
   const isPaid = plan && PLAN_CHECK.includes(plan);
 
   return (

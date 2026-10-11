@@ -1,68 +1,104 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { resolveVerifiedEmail } from '@/lib/verified-identity'
+import { resolveVerifiedIdentity } from '@/lib/verified-identity'
+import { resolveMembershipPlan } from '@/lib/membership-plan'
 import { writeMembershipRow } from '@/lib/membership-write'
 
 /**
  * Activate the free plan for the signed-in caller.
  *
- * Batch 14 changes:
- *   - Identity comes from resolveVerifiedEmail() (the Batch 12 boundary), not
- *     from a raw auth() call, so the address is normalised the same way as
- *     every other verified path.
- *   - The write goes through writeMembershipRow(), which reads first, inspects
- *     every error, refuses to downgrade a paid plan and refuses to insert a
- *     profiles row without its NOT NULL primary key.
- *   - A failed write is reported as a failure. The previous version answered
- *     `{ success: true, plan: "free" }` unconditionally, including when the
- *     upsert had been rejected with 42P10 because no unique index on email
- *     exists — so callers were told the plan had changed when nothing had.
+ * Batch 14b — option 3 (bounded identity direction):
+ *
+ *   Free activation persists membership in `ut_members`. A `profiles` row is
+ *   written ONLY when the verified credential actually carries a Supabase user
+ *   id, because `profiles.user_id` is NOT NULL with no default and its identity
+ *   is not the address. The eight `profiles` rows whose `user_id` matches no
+ *   `auth.users` row are left alone: no nullable column, no generated default,
+ *   no invented identity and no backfill.
+ *
+ *   The effective plan is resolved across BOTH tables before writing, so this
+ *   cannot downgrade a paid membership that lives in `profiles` while
+ *   `ut_members` is empty.
  */
 export async function POST(req: NextRequest) {
   try {
-    const email = await resolveVerifiedEmail(req)
-    if (!email) {
+    const identity = await resolveVerifiedIdentity(req)
+    if (!identity) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const result = await writeMembershipRow(
+    const email = identity.email
+
+    // The plan the application will actually observe, right now.
+    const current = await resolveMembershipPlan(supabaseAdmin, email)
+    if (!current.ok) {
+      // Fail closed: an unreadable membership must not be treated as "no plan".
+      console.error('[activate-free] membership lookup failed:', current.detail)
+      return NextResponse.json({ error: 'Membership lookup failed' }, { status: 503 })
+    }
+    if (current.membership.plan === 'initiate') {
+      return NextResponse.json(
+        {
+          error: 'A paid membership is already active on this account',
+          code: 'PAID_MEMBERSHIP_ACTIVE',
+          plan: current.membership.plan,
+        },
+        { status: 409 }
+      )
+    }
+
+    // The membership record the readers consult. This is the write that makes
+    // the activation observable, so a failure here is a failure of the request.
+    const memberWrite = await writeMembershipRow(
       supabaseAdmin,
-      'profiles',
+      'ut_members',
       email,
       { plan: 'free' },
       { protectPaidPlan: true }
     )
 
-    if (!result.ok) {
-      if (result.reason === 'downgrade_refused') {
-        // The account already holds a paid plan. Do not touch it, and do not
-        // claim a free activation took effect.
+    if (!memberWrite.ok) {
+      if (memberWrite.reason === 'downgrade_refused') {
         return NextResponse.json(
-          {
-            error: 'A paid membership is already active on this account',
-            code: 'PAID_MEMBERSHIP_ACTIVE',
-            plan: (result.detail.match(/"([^"]+)"/)?.[1]) ?? null,
-          },
+          { error: 'A paid membership is already active on this account', code: 'PAID_MEMBERSHIP_ACTIVE' },
           { status: 409 }
         )
       }
-      if (result.reason === 'missing_identity') {
-        // profiles.user_id is NOT NULL with no default and the NextAuth session
-        // carries no uuid, so a new profile row cannot be created here. Report
-        // that honestly instead of returning success.
-        return NextResponse.json(
-          {
-            error: 'Free activation is not available for this account yet',
-            code: 'PROFILE_IDENTITY_UNRESOLVED',
-          },
-          { status: 409 }
-        )
+      if (memberWrite.reason === 'duplicate_rows') {
+        return NextResponse.json({ error: 'Membership records are ambiguous' }, { status: 409 })
       }
-      console.error('[activate-free] write failed:', result.reason, result.detail)
+      console.error('[activate-free] ut_members write failed:', memberWrite.reason, memberWrite.detail)
       return NextResponse.json({ error: 'Failed to activate free plan' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, plan: (result.row.plan as string) ?? 'free' })
+    // The Oracle profile is optional here. It is attempted only with a verified
+    // uid, and a refusal there never turns a successful activation into a lie —
+    // nor does a missing uid become a fabricated one.
+    let profileNote: string
+    if (!identity.userId) {
+      profileNote = 'skipped_no_verified_user_id'
+    } else {
+      const profileWrite = await writeMembershipRow(
+        supabaseAdmin,
+        'profiles',
+        email,
+        { plan: 'free' },
+        { protectPaidPlan: true, userId: identity.userId }
+      )
+      if (profileWrite.ok) {
+        profileNote = profileWrite.action
+      } else {
+        profileNote = profileWrite.reason
+        console.warn('[activate-free] profiles write skipped:', profileWrite.reason, profileWrite.detail)
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      plan: 'free',
+      source: 'ut_members',
+      profile: profileNote,
+    })
   } catch (err) {
     console.error('[activate-free]', err)
     return NextResponse.json({ error: 'Failed to activate free plan' }, { status: 500 })

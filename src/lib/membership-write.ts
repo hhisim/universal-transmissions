@@ -36,17 +36,13 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { planRank } from "@/lib/membership-plan";
 
-/** Plans that grant paid entitlement and must never be overwritten by a free activation. */
-export const PAID_PLANS = new Set([
-  "initiate",
-  "adept",
-  "magister",
-  "master",
-  "seeker",
-  "full",
-  "patron",
-]);
+// The plan vocabulary is deliberately NOT redefined here. Entitlement is
+// compared with the application's own `normalizeMemberPlan` ranking (see
+// src/lib/membership-plan.ts) so this module cannot disagree with the readers
+// about what a stored plan is worth — and cannot "repair" the plan mapping as a
+// side effect of write protection.
 
 /** Plans that a free activation may legitimately set or replace. */
 export const FREE_PLANS = new Set(["guest", "free"]);
@@ -63,7 +59,8 @@ export type WriteFailure =
   | "insert_failed"
   | "update_failed"
   | "missing_identity"
-  | "downgrade_refused";
+  | "downgrade_refused"
+  | "identity_mismatch";
 
 /**
  * Canonical address form. `resolveVerifiedIdentity()` already normalises
@@ -79,10 +76,6 @@ export function normaliseMemberEmail(value: unknown): string {
     .replace(/[\u0000-\u001F\u007F]/g, "")
     .trim()
     .toLowerCase();
-}
-
-export function isPaidPlan(plan: unknown): boolean {
-  return typeof plan === "string" && PAID_PLANS.has(plan.trim().toLowerCase());
 }
 
 /**
@@ -167,16 +160,55 @@ export async function writeMembershipRow(
     const currentPlan = found.row.plan;
     const nextPlan = payload.plan;
 
-    if (options.protectPaidPlan && isPaidPlan(currentPlan) && !isPaidPlan(nextPlan)) {
-      // The row already holds a paid plan; a free activation must not touch it.
-      // This is reported as a refusal, not a failure, so the caller can answer
-      // honestly with the plan the member actually has.
+    // Refuse only a genuine downgrade in the application's own ranking.
+    // A change that RAISES the effective plan is allowed: a stored value the
+    // application does not recognise (e.g. "master") normalises to "guest", so
+    // replacing it with "free" is an upgrade, not a downgrade. Refusing that
+    // would block a legitimate transition rather than protect anyone.
+    if (
+      options.protectPaidPlan &&
+      planRank(currentPlan as string | null) > planRank(nextPlan as string | null)
+    ) {
       return {
         ok: false,
         reason: "downgrade_refused",
-        detail: `existing paid plan "${String(currentPlan)}" not replaced by "${String(nextPlan)}"`,
+        detail: `existing plan "${String(currentPlan)}" ranks above "${String(nextPlan)}"`,
         code: "DOWNGRADE_REFUSED",
       };
+    }
+
+    // `profiles` is keyed by user_id, not by an `id` column, so the previous
+    // `.eq("id", row.id)` matched nothing on that table. It is also not enough
+    // for an address lookup to authorise a write: a verified caller must own
+    // the row the address resolved to. Both are checked here.
+    let pkColumn: string;
+    if (table === "profiles") {
+      const existingUserId = (found.row.user_id as string | undefined) ?? null;
+      const claimedUserId = options.userId?.trim() || null;
+
+      if (!claimedUserId) {
+        return {
+          ok: false,
+          reason: "missing_identity",
+          detail:
+            "updating profiles requires the verified auth user id; an address match alone does not identify a row",
+          code: "NO_USER_ID",
+        };
+      }
+      if (existingUserId !== claimedUserId) {
+        // The address resolves to a DIFFERENT identity. Refuse rather than
+        // overwrite another account's row.
+        return {
+          ok: false,
+          reason: "identity_mismatch",
+          detail:
+            "the address resolves to a row owned by a different user_id; refusing to overwrite another identity",
+          code: "IDENTITY_MISMATCH",
+        };
+      }
+      pkColumn = "user_id";
+    } else {
+      pkColumn = "id";
     }
 
     if (isNoOp(found.row, payload)) {
@@ -186,7 +218,7 @@ export async function writeMembershipRow(
     const { data, error } = await client
       .from(table)
       .update(payload)
-      .eq("id", found.row.id as string)
+      .eq(pkColumn, found.row[pkColumn] as string)
       .select()
       .single();
 

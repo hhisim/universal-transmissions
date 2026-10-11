@@ -58,6 +58,19 @@ function dbClient() {
       const chain = {
         select() { return chain; },
         eq(col, val) { if (col === "email") chain._email = val; return chain; },
+        async limit(n) {
+          state.queries.push({ table, email: chain._email });
+          const spec = state.db[table];
+          if (spec.throws) throw new Error(table + " unavailable");
+          if (spec.error) return { data: null, error: spec.error };
+          const rows =
+            spec.data === undefined || spec.data === null
+              ? []
+              : Array.isArray(spec.data)
+                ? spec.data
+                : [spec.data];
+          return { data: rows.slice(0, n), error: null };
+        },
         async maybeSingle() {
           state.queries.push({ table, email: chain._email });
           const spec = state.db[table];
@@ -184,7 +197,11 @@ const FORGED = { Authorization: "Bearer forged.sig.value" };
   state.db.ut_members.data = { plan: "free" };
   state.db.profiles.data = { plan: "initiate" };
   b = await body(await getPlanStatus("", TOKEN));
-  ok(b.plan === "free", "PS4 member record takes precedence (existing behaviour preserved)");
+  // Batch 14b: precedence is now "highest entitlement wins". The previous
+  // ut_members-first rule reported this paid member (profiles: initiate) as
+  // "free" because a lower plan sat in the other table — a downgrade in the
+  // answer, and the opposite of what every other reader did.
+  ok(b.plan === "initiate", "PS4 highest entitlement wins: a paid plan is not hidden by a lower one");
 
   reset();
   state.authEmail = SYNTHETIC;

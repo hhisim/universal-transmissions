@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { normalizeMemberPlan } from "@/lib/plans";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resolveVerifiedIdentity } from "@/lib/verified-identity";
+import { resolveMembershipPlan } from "@/lib/membership-plan";
 
 /**
  * GET /api/billing/session
@@ -61,18 +62,22 @@ export async function GET(req: NextRequest) {
     const email = identity.email;
 
     try {
-      const [profile, member] = await Promise.all([
-        lookupOne("profiles", email, "plan,stripe_customer_id"),
-        lookupOne("ut_members", email, "plan,subscription_status,current_period_end"),
-      ]);
+      // One resolution rule for every reader; see src/lib/membership-plan.ts.
+      const resolved = await resolveMembershipPlan(supabaseAdmin, email);
+      if (!resolved.ok) {
+        // Fail closed: a membership we could not read is never reported as data.
+        console.error("Session lookup failed:", resolved.detail);
+        return NextResponse.json({ authenticated: false, plan: "guest" });
+      }
+      const { membership } = resolved;
 
       return NextResponse.json({
         authenticated: true,
         email,
-        plan: normalizeMemberPlan(profile?.plan ?? member?.plan ?? "guest"),
-        stripeCustomerId: profile?.stripe_customer_id ?? null,
-        subscription_status: member?.subscription_status ?? "inactive",
-        current_period_end: member?.current_period_end ?? null,
+        plan: membership.plan,
+        stripeCustomerId: membership.profile?.stripe_customer_id ?? null,
+        subscription_status: membership.member?.subscription_status ?? "inactive",
+        current_period_end: membership.member?.current_period_end ?? null,
       });
     } catch (err) {
       // Fail closed: a membership we could not read is never reported as data.

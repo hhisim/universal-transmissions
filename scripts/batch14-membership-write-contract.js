@@ -226,7 +226,10 @@ function seededProfile(userId, email, plan) {
   r = await post(activateFree, {}, {}, "https://ut.test/api/billing/activate-free");
   b = await body(r);
   ok(r.status === 200 && b.success === true && b.plan === "free", "A2 free plan activates for a guest profile");
-  ok(state.tables.profiles[0].plan === "free", "A2 profile row updated to free");
+  // Batch 14b (option 3): activation is recorded in ut_members, which is the
+  // row every reader consults, not in a profiles row keyed by address.
+  ok(state.tables.ut_members.length === 1 && state.tables.ut_members[0].plan === "free",
+     "A2 the activation is recorded in ut_members");
 
   reset();
   seededProfile("22222222-2222-2222-2222-222222222222", OWNER, "initiate");
@@ -242,10 +245,14 @@ function seededProfile(userId, email, plan) {
   state.nextAuthEmail = OWNER;
   r = await post(activateFree, {}, {}, "https://ut.test/api/billing/activate-free");
   b = await body(r);
-  ok(r.status === 409, "A4 no profile row and no verified uuid -> 409");
-  ok(b.success !== true, "A4 does NOT claim success (profiles.user_id is NOT NULL with no default)");
-  ok(b.code === "PROFILE_IDENTITY_UNRESOLVED", "A4 reports the identity limitation explicitly");
-  ok(state.tables.profiles.length === 0, "A4 no row was created");
+  // Batch 14b (option 3): a NextAuth session carries no uuid, so no profiles
+  // row can be written — but the activation still succeeds, because it is
+  // recorded where the readers look. Inventing an identity is still forbidden.
+  ok(r.status === 200 && b.success === true && b.plan === "free",
+     "A4 no profiles row and no verified uuid -> activation still succeeds (option 3)");
+  ok(state.tables.ut_members.length === 1 && state.tables.ut_members[0].plan === "free",
+     "A4 the activation is recorded in ut_members");
+  ok(state.tables.profiles.length === 0, "A4 no profiles row is invented");
 
   reset();
   seededProfile("33333333-3333-3333-3333-333333333333", OWNER, "guest");
@@ -253,7 +260,8 @@ function seededProfile(userId, email, plan) {
   state.fail.lookup = true;
   r = await post(activateFree, {}, {}, "https://ut.test/api/billing/activate-free");
   b = await body(r);
-  ok(r.status === 500, "A5 lookup failure -> 500");
+  // An unreadable membership is not "no plan"; the pre-read now distinguishes it.
+  ok(r.status === 503, "A5 lookup failure -> 503 (not treated as 'no plan')");
   ok(b.success !== true, "A5 lookup failure does NOT report success");
 
   reset();
@@ -282,7 +290,10 @@ function seededProfile(userId, email, plan) {
   b = await body(r);
   ok(r.status === 200, "M3 verified member -> 200");
   ok(b.email === OWNER, "M3 returns the VERIFIED member's own row, not the requested one");
-  ok(state.queries.length === 1 && state.queries[0].filters[0] === OWNER, "M3 the lookup used the verified address");
+  // The route now resolves across both tables, so more than one lookup is
+  // expected — but every one of them must use the verified address.
+  ok(state.queries.length >= 1 && state.queries.every((q) => q.filters[0] === OWNER),
+     "M3 every lookup used the verified address");
   ok(JSON.stringify(b).indexOf(VICTIM) === -1, "M3 the victim address appears nowhere in the response");
 
   reset();

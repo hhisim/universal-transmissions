@@ -59,6 +59,20 @@ function dbClient() {
         _columns: undefined,
         select(cols) { this._columns = cols; return this; },
         eq(col, val) { if (col === "email") this._email = val; return this; },
+        async limit(n) {
+          state.queries.push({ table, email: this._email, columns: this._columns });
+          state.events.push("db:" + table);
+          const spec = state.db[table];
+          if (spec.throws) throw new Error(table + " unavailable");
+          if (spec.error) return { data: null, error: spec.error };
+          const rows =
+            spec.data === undefined || spec.data === null
+              ? []
+              : Array.isArray(spec.data)
+                ? spec.data
+                : [spec.data];
+          return { data: rows.slice(0, n), error: null };
+        },
         async maybeSingle() {
           state.queries.push({ table, email: this._email, columns: this._columns });
           state.events.push("db:" + table);

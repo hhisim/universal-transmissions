@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { normalizeMemberPlan } from "@/lib/plans";
 import { resolveVerifiedIdentity } from "@/lib/verified-identity";
+import { resolveMembershipPlan } from "@/lib/membership-plan";
 
 export const dynamic = "force-dynamic";
 
@@ -37,21 +38,15 @@ export async function GET(req: NextRequest) {
     const email = identity.email;
 
     try {
-      const [member, profile] = await Promise.all([
-        supabaseAdmin.from("ut_members").select("plan").eq("email", email).maybeSingle(),
-        supabaseAdmin.from("profiles").select("plan").eq("email", email).maybeSingle(),
-      ]);
-
-      if (member.error || profile.error) {
-        throw new Error(member.error?.message ?? profile.error?.message ?? "lookup failed");
+      // The previous order here (ut_members first) was the opposite of every
+      // other reader. Both now use the same rule.
+      const resolved = await resolveMembershipPlan(supabaseAdmin, email);
+      if (!resolved.ok) {
+        console.error("[billing/plan-status] lookup failed:", resolved.detail);
+        return NextResponse.json({ plan: "guest" });
       }
 
-      const m = (member.data as Row | null) ?? null;
-      const p = (profile.data as Row | null) ?? null;
-
-      return NextResponse.json({
-        plan: normalizeMemberPlan(m?.plan ?? p?.plan ?? "guest"),
-      });
+      return NextResponse.json({ plan: resolved.membership.plan });
     } catch (err) {
       // Fail closed: an unreadable membership is never reported as a plan.
       console.error("[billing/plan-status] lookup failed:", err);
