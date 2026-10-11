@@ -17,6 +17,12 @@ export type EntitlementState = {
 
 export type StoredLinkage = {
   subscriptionId: string | null;
+  /**
+   * Further subscription ids recorded for the same identity, when the two
+   * tables disagree. They are CANDIDATES, not a conflict: Stripe decides which
+   * one actually governs.
+   */
+  alternates?: string[];
   /** Which table the linkage came from; null when neither carries one. */
   source: "ut_members" | "profiles" | null;
   plan: string | null;
@@ -173,19 +179,19 @@ export async function readStoredLinkage(
 
   const withId = seen.filter((s) => s.id !== null);
   const distinct = Array.from(new Set(withId.map((s) => s.id as string)));
-  if (distinct.length > 1) {
-    return {
-      ok: false,
-      reason: "conflicting_linkage",
-      detail: `tables disagree: ${withId.map((s) => `${s.table}=${s.id}`).join(", ")}`,
-    };
-  }
-
+  // A DISAGREEMENT IS NOT A FAILURE. The tables legitimately diverge after a
+  // cancellation and a reactivation, and treating that as conflicting_linkage
+  // blocked every subsequent delivery. The recorded ids become candidates and
+  // reconciliation decides; genuine ambiguity is caught later, when more than
+  // one candidate turns out to be live.
+  const ordered = withId.map((s) => s.id as string);
+  const primary = ordered[0] ?? null;
   const basis = withId[0] ?? seen[0] ?? null;
   return {
     ok: true,
     linkage: {
-      subscriptionId: distinct[0] ?? null,
+      subscriptionId: primary,
+      alternates: ordered.filter((id) => id !== primary),
       source: basis?.table ?? null,
       plan: basis?.plan ?? null,
       status: basis?.status ?? null,
@@ -225,23 +231,29 @@ export async function resolveAuthoritativeSubscription(
   const storedId =
     typeof stored === "string" ? stored : stored && stored.subscriptionId ? stored.subscriptionId : null;
 
-  // 1. stored linkage
-  if (storedId) {
+  // 1. recorded linkage — try every id the tables recorded for this identity.
+  // A disagreement between tables simply means more than one candidate; Stripe's
+  // state picks the live one. Only a genuine tie (more than one live) is
+  // ambiguous, and that is rejected in the enumeration step below.
+  const recordedIds = storedId
+    ? [storedId, ...((typeof stored === "object" && stored?.alternates) || []).filter((a) => a !== storedId)]
+    : [];
+  for (const recordedId of recordedIds) {
     try {
-      const sub = await stripe.subscriptions.retrieve(storedId);
+      const sub = await stripe.subscriptions.retrieve(recordedId);
       const owner = customerIdOf(sub.customer);
       if (owner === null) {
         return {
           ok: false,
           reason: "ownership_unverifiable",
-          detail: `stored subscription ${storedId} carries no readable customer`,
+          detail: `recorded subscription ${recordedId} carries no readable customer`,
         };
       }
       if (owner !== String(customerId)) {
         return {
           ok: false,
           reason: "ownership_mismatch",
-          detail: `stored subscription ${storedId} belongs to a different customer`,
+          detail: `recorded subscription ${recordedId} belongs to a different customer`,
         };
       }
       if (LIVE.has((sub.status ?? "").toLowerCase())) {
