@@ -77,6 +77,14 @@ Batch 14v's R1/R2 and CON1/CON2 used a `\! touch` marker plus a fixed
 gone; every ordering is now established by observing the cluster's lock state,
 and **any barrier that times out fails the run** rather than silently passing.
 
+> **Correction (Batch 14x).** These helpers were **cluster-granular**: 
+> `wait_advisory` counted *any* granted/ungranted advisory lock in the cluster and
+> `wait_txlock` counted *any* blocked transaction — they did not name the expected
+> session. Batch 14x replaces both with name-and-key-exact checks
+> (`owns_key`/`waits_key` filtered on one `application_name` and one exact
+> `classid`/`objid`, and `pg_blocking_pids` comparisons between two named PIDs)
+> and adds a negative control proving the two are not interchangeable.
+
 Helpers: `wait_advisory granted|waiting` polls `pg_locks` for the expected
 advisory-lock state; `wait_txlock` polls for a caller blocked on another
 transaction's row locks. Both give up after ~20s and record a failure.
@@ -112,8 +120,17 @@ Both remain **reproduced known limits**, not defects this batch fixes.
 4. start the second caller; wait until pg_locks shows it WAITING on the first
    caller's row locks (locktype='transactionid', not granted);
 5. only now release the gate by killing the holder;
-6. the first caller commits; the second re-evaluates its guard and loses.
+6. the first caller commits; the second re-evaluates and loses.
 ```
+
+> **Correction (Batch 14x).** Steps 3 and 4 were **cluster-granular** in this
+> pass — they asked whether *any* session was waiting on *any* advisory lock, and
+> whether *any* transaction was blocked — not whether *these* sessions were. And
+> step 5 released the gate by **killing the client PID** of a holder that was
+> sitting in `pg_sleep(60)`. Batch 14x replaces all three: the checks name the
+> expected session and key, the holder releases **its own backend** on
+> instruction from a control table, and the release is **asserted** before the
+> run proceeds. It also bounds worker completion, which this pass did not.
 
 Step 4 is the assertion Batch 14v was missing: the second caller is **provably
 already blocked** before the first is released. Every worker's **exit status**,

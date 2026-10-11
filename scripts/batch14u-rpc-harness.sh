@@ -80,6 +80,10 @@ create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin;
 grant usage on schema public to anon, authenticated, service_role;
+-- Harness control table: the gate holder polls it and releases ITSELF on
+-- instruction, instead of being killed by its client PID.
+create table public.b14x_gate (id int primary key, released boolean not null default false);
+insert into public.b14x_gate values (1, false), (2, false);
 ENVSETUP
 
 psql -q -v ON_ERROR_STOP=1 -f "$SQL" >"$BASE/migration.log" 2>&1 \
@@ -103,29 +107,98 @@ want_error() { # want_error "<label>" "<payload>" "<substring>"
   else FAIL=$((FAIL + 1)); echo "  FAIL: $1 (rc=$LAST_RC, out=$(printf '%s' "$LAST_OUT" | head -1))"; fi
 }
 wait_for() { local f="$1" n=0; until [ -f "$f" ] || [ $n -ge 600 ]; do sleep 0.05; n=$((n + 1)); done; }
-# Controlled barriers: wait until the cluster actually shows the expected lock
-# state, instead of sleeping and hoping. Timeouts fail loudly.
-wait_advisory() { # wait_advisory granted|waiting
-  local want="$1" n=0 cnt=""
-  until [ $n -ge 400 ]; do
-    if [ "$want" = granted ]; then
-      cnt=$(q "select count(*) from pg_locks where locktype='advisory' and granted")
-    else
-      cnt=$(q "select count(*) from pg_locks where locktype='advisory' and not granted")
-    fi
-    [ "${cnt:-0}" -ge 1 ] && return 0
+
+# ── controlled barriers ─────────────────────────────────────────────────────
+# Every worker gets a UNIQUE application_name, so each barrier check can name a
+# specific session instead of counting the whole cluster.
+APP="${APP_PREFIX:-b14x-$$}"
+
+# Is <app> HOLDING advisory key <key>? Matches the exact classid/objid pair the
+# bigint form of pg_advisory_lock() uses, and the session by name.
+# The ::bigint casts are load-bearing: with int4 operands PostgreSQL masks the
+# shift count, so `4101 >> 32` evaluates to 4101 and the classid never matches.
+owns_key() {
+  q "select count(*) from pg_locks l join pg_stat_activity a on a.pid = l.pid
+      where l.locktype = 'advisory' and l.granted
+        and l.classid = (($1)::bigint >> 32) and l.objid = (($1)::bigint & 4294967295)
+        and a.application_name = '$2'"
+}
+# Is <app> WAITING on advisory key <key>?
+waits_key() {
+  q "select count(*) from pg_locks l join pg_stat_activity a on a.pid = l.pid
+      where l.locktype = 'advisory' and not l.granted
+        and l.classid = (($1)::bigint >> 32) and l.objid = (($1)::bigint & 4294967295)
+        and a.application_name = '$2'"
+}
+# Is backend <1> blocked by backend <2>? Name-to-name, not a cluster count.
+# pg_blocking_pids returns int[], so it must be unnested to compare.
+blocked_by() {
+  q "select count(*) from unnest(pg_blocking_pids($1)) b where b = $2"
+}
+pid_of() { q "select coalesce(max(pid), 0) from pg_stat_activity where application_name = '$1'"; }
+
+# Bounded wait for a condition to become TRUE (>= 1). Never unbounded.
+wait_until() { # wait_until <label> "<command printing a number>" [ticks]
+  local label="$1" cmd="$2" limit="${3:-400}" n=0 v=""
+  until [ $n -ge "$limit" ]; do
+    v=$(eval "$cmd" 2>/dev/null)
+    case "$v" in ''|*[!0-9]*) v=0 ;; esac
+    [ "$v" -ge 1 ] && return 0
     sleep 0.05; n=$((n + 1))
   done
+  echo "  [barrier timeout] $label (last='$v')"
   return 1
 }
-wait_txlock() { # a second caller blocked on another transaction's row locks
-  local n=0 cnt=""
-  until [ $n -ge 400 ]; do
-    cnt=$(q "select count(*) from pg_locks where locktype='transactionid' and not granted")
-    [ "${cnt:-0}" -ge 1 ] && return 0
+# Bounded wait for a condition to become FALSE (== 0).
+wait_until_zero() { # wait_until_zero <label> "<command printing a number>" [ticks]
+  local label="$1" cmd="$2" limit="${3:-400}" n=0 v=""
+  until [ $n -ge $limit ]; do
+    v=$(eval "$cmd" 2>/dev/null)
+    case "$v" in ''|*[!0-9]*) v=-1 ;; esac
+    [ "$v" -eq 0 ] && return 0
     sleep 0.05; n=$((n + 1))
   done
+  echo "  [barrier timeout] $label never cleared (last='$v')"
   return 1
+}
+
+# Diagnostics for a failing case, preserved for inspection.
+diag_dump() { # diag_dump <label> [extra...]
+  local label="$1"; shift
+  mkdir -p "$BASE/diag"
+  {
+    echo "=== diagnostics: $label ==="
+    [ $# -gt 0 ] && echo "note: $*"
+    echo "--- pg_stat_activity (this harness's workers) ---"
+    psql -Atq -c "select pid, application_name, state, wait_event_type, wait_event, left(coalesce(query,''),80) from pg_stat_activity where application_name like '${APP}%'"
+    echo "--- their locks ---"
+    psql -Atq -c "select l.pid, a.application_name, l.locktype, l.granted, l.classid, l.objid, l.mode from pg_locks l left join pg_stat_activity a on a.pid = l.pid where a.application_name like '${APP}%'"
+    echo "--- blocking relationships ---"
+    psql -Atq -c "select pid, application_name, pg_blocking_pids(pid) from pg_stat_activity where application_name like '${APP}%'"
+  } >"$BASE/diag/$label.txt" 2>&1
+  echo "  DIAGNOSTICS PRESERVED: $BASE/diag/$label.txt"
+}
+# Free this harness's backends so a failed case cannot poison the next one.
+cleanup_workers() {
+  psql -q -c "select pg_terminate_backend(pid) from pg_stat_activity where application_name like '${APP}%'" >/dev/null 2>&1
+  sleep 0.2
+}
+# Bounded worker completion, with diagnostics and cleanup on timeout.
+wait_worker() { # wait_worker <shell-job-pid> <timeout-seconds> <label>
+  local job="$1" secs="${2:-30}" label="$3" i=0
+  while kill -0 "$job" 2>/dev/null; do
+    i=$((i + 1))
+    if [ $i -ge $((secs * 10)) ]; then
+      echo "  FAIL: $label did not finish within ${secs}s"
+      diag_dump "$label" "worker completion timeout after ${secs}s"
+      cleanup_workers
+      kill "$job" 2>/dev/null
+      FAIL=$((FAIL + 1))
+      return 1
+    fi
+    sleep 0.1
+  done
+  wait "$job"
 }
 
 M1='11111111-1111-1111-1111-111111111111'
@@ -322,6 +395,28 @@ P_GUEST="[$(mem_t "$(u_m "\"$M1\"" "$(e_m "$M1" ",\"set\":$REVOKE_SET")")")]"
 
 run_order() { # run_order <label> <gate-key> <first-payload> <second-payload> <expected-final-state>
   local label="$1" gate="$2" p1="$3" p2="$4" want="$5"
+  local holder="${APP}-holder-${gate}" first="${APP}-first-${gate}" second="${APP}-second-${gate}"
+
+  psql -q -c "update public.b14x_gate set released = false where id = 1" >/dev/null
+
+  # The holder releases ITSELF when told to, rather than being killed by client
+  # PID: it polls the control table, then calls pg_advisory_unlock on its own
+  # backend. Nothing depends on disconnect detection.
+  cat > "$BASE/holder.sql" <<SQL
+select pg_advisory_lock($gate);
+do \$do\$
+declare r boolean; i int;
+begin
+  for i in 1..2400 loop
+    select released into r from public.b14x_gate where id = 1;
+    exit when r;
+    perform pg_sleep(0.05);
+  end loop;
+  if not coalesce(r, false) then raise exception 'GATE RELEASE TIMEOUT'; end if;
+end
+\$do\$;
+select pg_advisory_unlock($gate);
+SQL
   cat > "$BASE/first.sql" <<SQL
 begin;
 select string_agg(target||':'||outcome||':'||affected, ',' order by target) from public.apply_lifecycle_update(\$j\$$p1\$j\$);
@@ -331,25 +426,46 @@ SQL
   cat > "$BASE/second.sql" <<SQL
 select string_agg(target||':'||outcome||':'||affected, ',' order by target) from public.apply_lifecycle_update(\$j\$$p2\$j\$);
 SQL
-  # 1. a holder session takes the gate so the first caller cannot pass it.
-  psql -Atq -c "select pg_advisory_lock($gate); select pg_sleep(60);" >/dev/null 2>&1 &
-  local hpid=$!
-  wait_advisory granted \
-    || { FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: no gate holder"; }
-  # 2. the first caller applies, then blocks on the gate.
-  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/first.sql" >"$BASE/first.out" 2>&1 &
-  local p1pid=$!
-  wait_advisory waiting \
-    || { FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: the first caller never blocked on the gate"; }
-  # 3. the second caller starts and blocks on the row lock the first one holds.
-  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/second.sql" >"$BASE/second.out" 2>&1 &
-  local p2pid=$!
-  if wait_txlock; then PASS=$((PASS + 1));
-  else FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: the second caller never waited on the row lock"; fi
-  # 4. release the gate: the first caller commits, the second re-evaluates and loses.
-  kill "$hpid" 2>/dev/null; wait "$hpid" 2>/dev/null
-  wait "$p1pid"; local rc1=$?
-  wait "$p2pid"; local rc2=$?
+
+  PGAPPNAME="$holder" psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/holder.sql" >"$BASE/holder.out" 2>&1 &
+  local hjob=$!
+  if wait_until "$label: the HOLDER owns key $gate" "owns_key $gate $holder"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the holder never took the gate"; diag_dump "$label" "holder never took the gate"; cleanup_workers; fi
+  local hpid; hpid=$(pid_of "$holder")
+
+  PGAPPNAME="$first" psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/first.sql" >"$BASE/first.out" 2>&1 &
+  local job1=$!
+  if wait_until "$label: the FIRST caller WAITS on key $gate" "waits_key $gate $first"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the first caller never waited on the gate"; diag_dump "$label" "first caller never waited on the gate"; cleanup_workers; fi
+  local pid1; pid1=$(pid_of "$first")
+  if wait_until "$label: the FIRST caller is blocked BY THE HOLDER" "blocked_by $pid1 $hpid"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the first caller is not blocked by the holder"; diag_dump "$label" "first caller not blocked by holder"; cleanup_workers; fi
+
+  PGAPPNAME="$second" psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/second.sql" >"$BASE/second.out" 2>&1 &
+  local job2=$!
+  # The PID must be resolved INSIDE the poll, not once when this string is built:
+  # at build time the second caller has not connected yet, so pid_of would return
+  # 0 and the check could never succeed. The escaping keeps $(pid_of ...) literal
+  # for eval to re-evaluate on every tick.
+  if wait_until "$label: the SECOND caller is blocked BY THE FIRST" "blocked_by \$(pid_of \"$second\") $pid1" 600; then
+    PASS=$((PASS + 1))
+    chk "$label: the second caller is provably blocked by the first BEFORE release" "1" "$(blocked_by "$(pid_of "$second")" "$pid1")"
+  else
+    FAIL=$((FAIL + 1)); echo "  FAIL: $label: the second caller never blocked on the first"; diag_dump "$label" "second caller not blocked by first"; cleanup_workers
+  fi
+
+  # Explicit, asserted release — not a disconnect.
+  psql -q -c "update public.b14x_gate set released = true where id = 1" >/dev/null
+  if wait_until_zero "$label: the gate is RELEASED" "owns_key $gate $holder"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the gate was never released"; diag_dump "$label" "gate release not observed"; cleanup_workers; fi
+
+  wait_worker "$hjob" 30 "$label holder"; local hrc=$?
+  wait_worker "$job1" 30 "$label first caller"; local rc1=$?
+  wait_worker "$job2" 30 "$label second caller"; local rc2=$?
+
+  # The holder terminating is the EXPECTED outcome and is recorded on its own,
+  # separately from whether the callers succeeded or failed.
+  chk "$label: HOLDER terminated as intended (exit 0)" "0" "$hrc"
   chk "$label: the FIRST committer exits 0" "0" "$rc1"
   chk "$label: the FIRST committer reports updated:1" "ut_members:updated:1" "$(head -1 "$BASE/first.out")"
   chk "$label: the SECOND caller exits non-zero" "non-zero" "$([ $rc2 -ne 0 ] && echo non-zero || echo zero)"
@@ -369,17 +485,41 @@ echo "=== R. absence races with CONTROLLED barriers (KNOWN LIMITS) ==="
 ABSENT="[$(mem_t "\"seen_pks\":[],\"intent\":\"update\",\"entries\":[]")]"
 race() { # race <label> <advisory-key> <racer-work-sql> <outfile>
   local label="$1" key="$2" work="$3" out="$4"
+  local racer="${APP}-racer-${key}" first="${APP}-first-${key}"
+
+  psql -q -c "update public.b14x_gate set released = false where id = 2" >/dev/null
+
+  # The racer holds the key, waits for the SPECIFIC first session (by
+  # application_name) to wait on the SPECIFIC key — not for "some advisory lock
+  # somewhere" — and then WAITS FOR THE HARNESS before committing and releasing.
+  # That second wait is what makes the barrier observable: without it the racer
+  # would react within one poll interval and the window would close before the
+  # harness could assert it.
   cat > "$BASE/racer.sql" <<SQL
 select pg_advisory_lock($key);
 do \$do\$
 declare n int; i int;
 begin
-  for i in 1..600 loop
-    select count(*) into n from pg_locks where locktype='advisory' and not granted;
+  for i in 1..2400 loop
+    select count(*) into n from pg_locks l join pg_stat_activity a on a.pid = l.pid
+     where l.locktype = 'advisory' and not l.granted
+       and l.classid = (($key)::bigint >> 32) and l.objid = (($key)::bigint & 4294967295)
+       and a.application_name = '$first';
     exit when n > 0;
     perform pg_sleep(0.05);
   end loop;
-  if n = 0 then raise exception 'BARRIER TIMEOUT: the first transaction never began waiting'; end if;
+  if n = 0 then raise exception 'BARRIER TIMEOUT: the expected first caller never waited on key $key'; end if;
+end
+\$do\$;
+do \$do\$
+declare r boolean; i int;
+begin
+  for i in 1..2400 loop
+    select released into r from public.b14x_gate where id = 2;
+    exit when r;
+    perform pg_sleep(0.05);
+  end loop;
+  if not coalesce(r, false) then raise exception 'BARRIER TIMEOUT: the harness never released the racer'; end if;
 end
 \$do\$;
 begin;
@@ -393,17 +533,32 @@ select string_agg(target||':'||outcome||':'||affected, ',' order by target) from
 select pg_advisory_lock($key);
 commit;
 SQL
-  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/racer.sql" >"$BASE/racer_$key.out" 2>&1 &
-  local rpid=$!
-  wait_advisory granted \
-    || { FAIL=$((FAIL + 1)); echo "  FAIL: $label barrier timeout: the racer never held its lock"; }
-  psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/s1.sql" >"$out" 2>&1 &
-  local spid=$!
-  wait "$rpid"; local rrc=$?
-  wait "$spid"; local src=$?
-  # The racer only reaches its COMMIT if it observed the first transaction
-  # waiting, so a zero exit here is the proof that the competing change landed
-  # first. A timeout raises inside the racer and is caught here.
+
+  PGAPPNAME="$racer" psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/racer.sql" >"$BASE/racer_$key.out" 2>&1 &
+  local rjob=$!
+  if wait_until "$label: the RACER holds key $key" "owns_key $key $racer"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the racer never held its key"; diag_dump "$label" "racer never held its key"; cleanup_workers; fi
+  local rpid; rpid=$(pid_of "$racer")
+
+  PGAPPNAME="$first" psql -Atq -v ON_ERROR_STOP=1 -f "$BASE/s1.sql" >"$out" 2>&1 &
+  local sjob=$!
+  if wait_until "$label: the FIRST transaction WAITS on key $key" "waits_key $key $first"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the first transaction never waited on the racer's key"; diag_dump "$label" "first transaction never waited"; cleanup_workers; fi
+  local spid; spid=$(pid_of "$first")
+  if wait_until "$label: the FIRST transaction is blocked BY THE RACER" "blocked_by $spid $rpid"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the first transaction is not blocked by the racer"; diag_dump "$label" "not blocked by the racer"; cleanup_workers; fi
+  chk "$label: the first transaction is provably blocked by the racer BEFORE release" "1" "$(blocked_by "$spid" "$rpid")"
+
+  # Explicit, asserted release of the racer.
+  psql -q -c "update public.b14x_gate set released = true where id = 2" >/dev/null
+  if wait_until_zero "$label: the RACER released key $key" "owns_key $key $racer"; then PASS=$((PASS + 1));
+  else FAIL=$((FAIL + 1)); echo "  FAIL: $label: the racer never released its key"; diag_dump "$label" "racer release not observed"; cleanup_workers; fi
+
+  wait_worker "$rjob" 30 "$label racer"; local rrc=$?
+  wait_worker "$sjob" 30 "$label first transaction"; local src=$?
+  # The racer only reaches its COMMIT after observing the expected waiter AND
+  # the harness's release, so a zero exit is the proof that the competing change
+  # landed first. A timeout raises inside the racer and surfaces here.
   chk "$label: the racer committed BEFORE releasing the first transaction" "0" "$rrc"
   chk "$label: the first transaction exits 0" "0" "$src"
   chk "$label: it reported absent (its snapshot was genuinely empty)" "ut_members:absent:0" "$(head -1 "$out")"
@@ -416,6 +571,24 @@ chk "R1c RACE REPRODUCED: a matching row now exists that the call never saw" "1"
 psql -q -c "truncate public.ut_members, public.profiles; insert into public.ut_members (id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id) values ('$M1','a@x','guest','canceled',null,null);" >/dev/null
 race "R2" 9102 "update public.ut_members set stripe_customer_id='cus_1', stripe_subscription_id='sub_A' where id='$M1';" "$BASE/race2.out"
 chk "R2c RACE REPRODUCED: an existing row became linked, unseen" "1" "$(q "select count(*) from public.ut_members where stripe_customer_id='cus_1';")"
+
+echo
+echo "=== NEG. a barrier check is SPECIFIC, not a cluster-wide count ==="
+NEGKEY=9001
+NEGAPP="${APP}-neg"
+PGAPPNAME="$NEGAPP" psql -Atq -c "select pg_advisory_lock($NEGKEY); select pg_sleep(20);" >/dev/null 2>&1 &
+NEGJOB=$!
+if wait_until "NEG: an UNRELATED holder owns key $NEGKEY" "owns_key $NEGKEY $NEGAPP"; then PASS=$((PASS + 1));
+else FAIL=$((FAIL + 1)); echo "  FAIL: NEG the unrelated holder never took its key"; diag_dump "NEG"; fi
+chk "NEG1 the unrelated holder owns ITS OWN key" "1" "$(owns_key "$NEGKEY" "$NEGAPP")"
+chk "NEG2 a cluster-wide advisory count WOULD have been satisfied" "1" \
+  "$(q "select (count(*) >= 1)::int from pg_locks where locktype = 'advisory' and granted")"
+chk "NEG3 ...but the key-specific check is NOT satisfied by the unrelated key" "0" "$(owns_key 9101 "${APP}-first-9101")"
+chk "NEG4 ...and the app-specific check is NOT satisfied by the unrelated app" "0" "$(owns_key "$NEGKEY" "${APP}-first-9101")"
+chk "NEG5 no waiter is reported on a key nobody holds" "0" "$(waits_key 9101 "${APP}-first-9101")"
+wait_worker "$NEGJOB" 30 "NEG unrelated holder"
+chk "NEG6 the unrelated holder terminated as intended" "0" "$?"
+cleanup_workers
 
 echo
 echo "=== G. replay after success ==="
