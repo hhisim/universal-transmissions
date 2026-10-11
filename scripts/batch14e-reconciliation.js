@@ -26,6 +26,7 @@ function reset() {
   state.failUpdate = {};
   state.failSelect = {};
   state.warnings = [];
+  state.stripeStatus = undefined;
 }
 
 const { registerTsModules, mockModule } = require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs"));
@@ -131,7 +132,23 @@ mockModule("@/lib/stripe", {
     webhooks: { constructEvent: () => state.event },
     customers: { create: async () => ({ id: "cus_new" }) },
     checkout: { sessions: { create: async () => ({ url: "x" }) } },
-    subscriptions: { retrieve: async () => ({ id: state.currentSub || "sub_1", status: "active" }) },
+      subscriptions: {
+        retrieve: async () => ({ id: state.currentSub || "sub_1", status: state.stripeStatus || "active" }),
+        list: async () => {
+          let status = state.stripeStatus;
+          if (status === undefined) {
+            const ev = state.event;
+            const obj = ev && ev.data && ev.data.object;
+            const isLifecycle = ev && String(ev.type).startsWith("customer.subscription.");
+            status = isLifecycle && obj && obj.status
+              ? obj.status
+              : (state.tables.ut_members[0] && state.tables.ut_members[0].subscription_status) || "active";
+          }
+          const row = state.tables.ut_members[0] || {};
+          const obj = state.event && state.event.data && state.event.data.object;
+          return { data: [{ id: (obj && obj.id) || row.stripe_subscription_id || "sub_1", status, customer: obj && obj.customer }] };
+        },
+      },
   }),
 }, { root: ROOT });
 mockModule("@/lib/auth", { auth: async () => null }, { root: ROOT });
@@ -190,6 +207,7 @@ function seedProfile(plan, status) {
   reset(); seedMember("initiate", "active");
   state.event = ev("invoice.payment_failed", { id: "in_1", customer: CUS });
   state.failUpdate = { ut_members: { message: "db down" } };
+  state.stripeStatus = "past_due";
   r = await post(); b = await body(r);
   ok(r.status === 500, "E3 payment_failed returned error -> 500 (Stripe retries)");
 
@@ -197,6 +215,7 @@ function seedProfile(plan, status) {
   reset(); seedMember("initiate", "active");
   state.event = ev("invoice.payment_failed", { id: "in_1", customer: CUS });
   state.failUpdate = {}; state.throwUpdate = { ut_members: true };
+  state.stripeStatus = "past_due";
   r = await post();
   state.throwUpdate = {};
   ok(r.status === 500, "E4 payment_failed thrown exception -> 500");
@@ -204,6 +223,7 @@ function seedProfile(plan, status) {
   // E5 — dunning must not clobber a cancellation
   reset(); seedMember("guest", "canceled");
   state.event = ev("invoice.payment_failed", { id: "in_1", customer: CUS });
+  state.stripeStatus = "past_due";
   r = await post();
   ok(r.status === 200, "E5 payment_failed on a cancelled row -> 200");
   ok(state.tables.ut_members[0].subscription_status === "canceled", "E5 a delayed payment_failed does NOT overwrite canceled");

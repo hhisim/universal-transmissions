@@ -110,6 +110,23 @@ mockModule("@/lib/supabase", { supabaseAdmin: dbClient() }, { root: ROOT });
 mockModule("@/lib/stripe", {
   getStripe: () => ({
     webhooks: { constructEvent: () => state.event },
+    subscriptions: {
+      retrieve: async () => ({ id: state.currentSub || "sub_1", status: state.stripeStatus || "active" }),
+      list: async () => {
+        let status = state.stripeStatus;
+        if (status === undefined) {
+          const ev = state.event;
+          const obj = ev && ev.data && ev.data.object;
+          const isLifecycle = ev && String(ev.type).startsWith("customer.subscription.");
+          status = isLifecycle && obj && obj.status
+            ? obj.status
+            : (state.tables.ut_members[0] && state.tables.ut_members[0].subscription_status) || "active";
+        }
+        const row = state.tables.ut_members[0] || {};
+        const obj = state.event && state.event.data && state.event.data.object;
+        return { data: [{ id: (obj && obj.id) || row.stripe_subscription_id || "sub_1", status, customer: obj && obj.customer }] };
+      },
+    },
     customers: { create: async () => ({ id: "cus_new" }) },
     checkout: { sessions: { create: async () => ({ url: "https://x" }) } },
   }),

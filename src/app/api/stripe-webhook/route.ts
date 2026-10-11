@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { writeMembershipRow } from "@/lib/membership-write";
+import {
+  resolveAuthoritativeSubscription,
+  eventGovernsCurrentSubscription,
+  isRevokingStatusValue,
+} from "@/lib/stripe-subscription-authority";
 
 // ── Telegram notification helper ────────────────────────────────────────────
 const TELEGRAM_BOT_TOKEN = process.env.AKASHA_BOT_TOKEN ?? "";
@@ -178,7 +183,9 @@ export async function POST(req: NextRequest) {
 
       // Determine plan and status
       let plan: 'free' | 'initiate' = 'free';
-      let subscriptionStatus = subscription.status;
+      // widened from Stripe's `Status` union: the reconciled authority
+      // supplies a plain string
+      let subscriptionStatus: string = subscription.status;
 
       if (subscription.status === "active" || subscription.status === "trialing") {
         plan = "initiate";
@@ -188,6 +195,38 @@ export async function POST(req: NextRequest) {
       } else if (subscription.status === "canceled" || subscription.status === "unpaid") {
         plan = "free";
         subscriptionStatus = "canceled";
+      }
+
+      // AUTHORITY: ask Stripe what the customer's CURRENT subscription is.
+      //
+      // The event payload is a snapshot taken when the event was created, so a
+      // delayed delivery carries stale state — an old `active` snapshot would
+      // otherwise resurrect a cancelled subscription. Recency comes from
+      // Stripe's own state, NEVER from delivery order or event.created.
+      const lifecycleAuthority = await resolveAuthoritativeSubscription(
+        getStripe(),
+        customerId,
+        null
+      );
+      if (!lifecycleAuthority.ok) {
+        // Never acknowledge a required membership update we could not determine.
+        membershipFailures.push(`reconcile:${lifecycleAuthority.reason}`);
+        console.error("Could not reconcile the current subscription:", lifecycleAuthority.detail);
+        break;
+      }
+      if (!eventGovernsCurrentSubscription(lifecycleAuthority, subscription.id)) {
+        membershipWarnings.push(`stale-lifecycle:${subscription.id}`);
+        console.log(`Ignoring a stale lifecycle snapshot for superseded ${subscription.id}`);
+        break;
+      }
+      if (lifecycleAuthority.status) {
+        subscriptionStatus = lifecycleAuthority.status;
+        if (lifecycleAuthority.status === "past_due") {
+          plan = "initiate";
+        } else if (isRevokingStatusValue(lifecycleAuthority.status)) {
+          plan = "free";
+          subscriptionStatus = "canceled";
+        }
       }
 
       // Get period end
@@ -299,9 +338,12 @@ export async function POST(req: NextRequest) {
       // deployed row, and both errors were discarded. The Stripe customer
       // linkage is what this event actually owns, so update on that.
       //
-      // OPTIONAL: this is an Oracle-side mirror, not the membership record the
-      // readers consult. A failure is recorded as a warning, not a failure, so
-      // a permanently unsatisfiable mirror is not retried forever.
+      // OPTIONAL: this is an Oracle-side mirror. The shared reader DOES rank
+        // `profiles.plan` for entitlement, so this write is not irrelevant — but
+        // `profiles` never carries revocation authority (no lifecycle path writes
+        // `profiles.subscription_status`), so a missed mirror can only under-grant,
+        // never wrongly revoke. A failure is a warning, not a failure, so a
+        // permanently unsatisfiable mirror is not retried forever.
       try {
         const { error: profileRevertError } = await utSupabaseAdmin
           .from("profiles")
@@ -334,6 +376,26 @@ export async function POST(req: NextRequest) {
 
       console.log(`Invoice payment failed for customer ${customerId}: ${invoice.id}`);
 
+      // AUTHORITY: dunning may only be applied when Stripe's CURRENT state for
+      // this customer is genuinely past_due. A delayed payment_failed used to
+      // rewrite `unpaid` / `incomplete_expired` (both revocations) to `past_due`,
+      // which restored entitlement.
+      const pastDueAuthority = await resolveAuthoritativeSubscription(
+        getStripe(),
+        customerId,
+        null
+      );
+      if (!pastDueAuthority.ok) {
+        membershipFailures.push(`reconcile:${pastDueAuthority.reason}`);
+        console.error("Could not reconcile the current subscription:", pastDueAuthority.detail);
+        break;
+      }
+      if (pastDueAuthority.status !== "past_due") {
+        membershipWarnings.push(`payment_failed-ignored:${pastDueAuthority.status ?? "none"}`);
+        console.log("Ignoring a stale payment failure; current status is not past_due");
+        break;
+      }
+
       try {
         const { error: pastDueError } = await utSupabaseAdmin
           .from("ut_members")
@@ -364,6 +426,27 @@ export async function POST(req: NextRequest) {
         const subscriptionId = invoiceAny.subscription as string;
         const customerEmail = invoice.customer_email;
 
+        // AUTHORITY: an older invoice must not replace the current subscription
+        // id, and must not resurrect a revoked membership.
+        const invoiceAuthority = await resolveAuthoritativeSubscription(
+          getStripe(),
+          customerId,
+          null
+        );
+        if (!invoiceAuthority.ok) {
+          membershipFailures.push(`reconcile:${invoiceAuthority.reason}`);
+          console.error("Could not reconcile the current subscription:", invoiceAuthority.detail);
+          break;
+        }
+        if (isRevokingStatusValue(invoiceAuthority.status)) {
+          membershipWarnings.push(`invoice-ignored:${invoiceAuthority.status}`);
+          console.log("Ignoring a stale invoice for a revoked subscription");
+          break;
+        }
+        const currentSubscriptionId = invoiceAuthority.found
+          ? invoiceAuthority.subscriptionId
+          : subscriptionId;
+
         try {
           // Neither table has a unique index on email, so the previous
           // `upsert(..., { onConflict: "email" })` was rejected with 42P10 and
@@ -385,7 +468,9 @@ export async function POST(req: NextRequest) {
               // distinguish that from a genuine reactivation, so the safe move
               // is to let the invoice event own only billing artefacts.
               stripe_customer_id: customerId,
-              stripe_subscription_id: subscriptionId,
+              // Only the AUTHORITATIVE current subscription may be recorded; an
+              // older invoice's id must not overwrite the stored linkage.
+              stripe_subscription_id: currentSubscriptionId,
               plan: "initiate",
             },
             { protectPaidPlan: false }
