@@ -61,7 +61,8 @@ function dbClient() {
       });
       const err = (c, m) => ({ code: c, message: m, details: null, hint: null });
       const api = {
-        select() { if (!ctx.op) ctx.op = "select"; return api; },
+        select() { if (!ctx.op) ctx.op = "select"; if (ctx.op === "update") ctx.returning = true;
+          return api; },
         eq(c, v) { ctx.filters.push([c, v]); return api; },
         is(c, v) { ctx.filters.push([c, v]); return api; },
         neq(c, v) { ctx.neq = [c, v]; return api; },
@@ -107,7 +108,7 @@ function dbClient() {
           let target = match();
           if (ctx.neq) target = target.filter((r) => r[ctx.neq[0]] !== ctx.neq[1]);
           target.forEach((r) => Object.assign(r, ctx.payload));
-          resolve({ data: null, error: null });
+          resolve({ data: ctx.returning ? target.map((r) => ({ ...r })) : null, error: null });
           return;
         }
         resolve({ data: null, error: null });
@@ -234,7 +235,10 @@ const EMAIL = "member@example.com";
   state.tables.ut_members = [];
   r = await post();
   state.tables.ut_members = realPush;
-  ok(r.status === 200, "W3 a lifecycle update that matched no row does not fail the delivery (no row = nothing to change)");
+  // W3 — a table with NO row carrying the verified linkage has nothing to
+  // update, so the delivery is acknowledged. This is NOT the same as a resolved
+  // row that the update fails to affect: that is a failure (see batch14q Q3).
+  ok(r.status === 200, "W3 a lifecycle update over a table with no LINKED row does not fail the delivery (no row = nothing to change)");
 
   reset(); member(EMAIL, "initiate", "active");
   state.event = makeEvent("customer.subscription.deleted", { id: SUB_ID, customer: CUSTOMER, current_period_end: 1900000000 });

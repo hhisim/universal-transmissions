@@ -68,6 +68,7 @@ function dbClient() {
               if (bad.length) ctx.badColumn = bad[0];
             }
           }
+          if (ctx.op === "update") ctx.returning = true;
           return api;
         },
         eq(c, v) { ctx.filters.push([c, v]); return api; },
@@ -115,7 +116,7 @@ function dbClient() {
             let target = match();
             if (ctx.neq) target = target.filter((r) => r[ctx.neq[0]] !== ctx.neq[1]);
             target.forEach((r) => Object.assign(r, ctx.payload));
-            resolve({ data: null, error: null });
+            resolve({ data: ctx.returning ? target.map((r) => ({ ...r })) : null, error: null });
             return;
           }
           if (ctx.op === "insert") {
@@ -195,8 +196,8 @@ const paid = (p) => p !== "guest" && p !== "free" && p !== "READ_ERROR";
 (async () => {
   console.log("batch14p-webhook-coverage\n");
 
-  // S1 cancel A -> reactivate B -> repeat B update
-  console.log("  --- S1 cancel A, reactivate B, repeat B ---");
+  // S1 cancel A -> reactivate B -> repeat B update, asserting BOTH tables
+  console.log("  --- S1 cancel A, reactivate B, repeat B (both tables) ---");
   reset();
   state.tables.ut_members.push({ id: "m1", email: EMAIL, plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: A });
   state.tables.profiles.push({ user_id: "u1", email: EMAIL, plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: A });
@@ -204,23 +205,31 @@ const paid = (p) => p !== "guest" && p !== "free" && p !== "READ_ERROR";
   state.stripe = { [A]: { status: "canceled", customer: CUS } };
   state.event = ev("customer.subscription.deleted", { id: A, customer: CUS, metadata: { email: EMAIL } });
   let r = await post();
+  let e1 = await eff();
   ok(r.status === 200, "S1 cancel A -> 200 (got " + r.status + ")");
-  ok(MEM().subscription_status === "canceled", "S1 member status canceled");
-  ok(await eff() !== "initiate", "S1 entitlement revoked");
+  ok(MEM().subscription_status === "canceled", "S1 ut_members status canceled");
+  ok(MEM().plan === "guest", "S1 ut_members plan is guest (got " + MEM().plan + ")");
+  ok(PROF().plan === "free", "S1 profiles mirrored to free (got " + PROF().plan + ")");
+  ok(e1 !== "initiate" && e1 !== "READ_ERROR", "S1 entitlement revoked without a read error (got " + e1 + ")");
 
   // B now exists as the live replacement.
   state.stripe[B] = { status: "active", customer: CUS };
   state.event = ev("customer.subscription.created", { id: B, customer: CUS, status: "active", current_period_end: 1900000000, metadata: { email: EMAIL } });
   r = await post();
+  let e2 = await eff();
   ok(r.status === 200, "S1 reactivate B -> 200 (got " + r.status + ")");
-  ok(MEM().stripe_subscription_id === B, "S1 member linkage is B (is " + MEM().stripe_subscription_id + ")");
-  ok(paid(await eff()), "S1 entitlement paid");
+  ok(MEM().stripe_subscription_id === B, "S1 ut_members linkage is B (is " + MEM().stripe_subscription_id + ")");
+  ok(PROF().stripe_subscription_id === B, "S1 profiles linkage is B (is " + PROF().stripe_subscription_id + ")");
+  ok(MEM().subscription_status === "active", "S1 ut_members status cleared from canceled (is " + MEM().subscription_status + ")");
+  ok(paid(e2) && e2 !== "READ_ERROR", "S1 entitlement paid (got " + e2 + ")");
 
   state.event = ev("customer.subscription.updated", { id: B, customer: CUS, status: "active", current_period_end: 1900000000, metadata: { email: EMAIL } });
   r = await post();
+  const e3 = await eff();
   ok(r.status === 200, "S1 repeat B update -> 200 (got " + r.status + ")");
-  ok(paid(await eff()), "S1 entitlement still paid");
-  ok(MEM().stripe_subscription_id === B, "S1 linkage still B");
+  ok(paid(e3) && e3 !== "READ_ERROR", "S1 entitlement still paid (got " + e3 + ")");
+  ok(MEM().stripe_subscription_id === B && PROF().stripe_subscription_id === B,
+    "S1 both tables still record B (ut_members=" + MEM().stripe_subscription_id + ", profiles=" + PROF().stripe_subscription_id + ")");
 
   // S2 no metadata.email, resolved via stored customer linkage
   console.log("  --- S2 no metadata.email ---");
@@ -241,33 +250,51 @@ const paid = (p) => p !== "guest" && p !== "free" && p !== "READ_ERROR";
   state.event = ev("customer.subscription.deleted", { id: A, customer: CUS, metadata: { email: EMAIL } });
   r = await post();
   ok(r.status === 200, "S3 profiles-only cancellation -> 200 (got " + r.status + ")");
-  ok(!paid(await eff()), "S3 profiles-only access revoked (reader says " + (await eff()) + ")");
+  const e3p = await eff();
+  ok(e3p === "guest" || e3p === "free", "S3 profiles-only access revoked to guest/free (reader says " + e3p + ")");
 
-  // S4 partial required-write failure then retry
-  console.log("  --- S4 partial failure then retry ---");
+  // S4 genuine PARTIAL success: one table is written, the other fails, then retry
+  console.log("  --- S4 partial success then failure, then retry ---");
   reset();
   state.tables.ut_members.push({ id: "m1", email: EMAIL, plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: A });
+  state.tables.profiles.push({ user_id: "u1", email: EMAIL, plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: A });
   state.stripe = { [A]: { status: "canceled", customer: CUS } };
   state.event = ev("customer.subscription.updated", { id: A, customer: CUS, status: "canceled", current_period_end: 1900000000, metadata: { email: EMAIL } });
-  state.failUpdate = { ut_members: { message: "transient" } };
+  state.failUpdate = { profiles: { message: "transient" } };
   r = await post();
-  ok(r.status === 500, "S4 failed write -> 500 (got " + r.status + ")");
+  const b4 = await bodyOf(r);
+  ok(r.status === 500, "S4 the failed mirror refuses the delivery -> 500 (got " + r.status + ")");
+  ok((b4.membershipFailures || []).some((f) => String(f).startsWith("profiles:")),
+    "S4 the failed mirror is named (got " + JSON.stringify(b4.membershipFailures || []) + ")");
+  ok(MEM().subscription_status === "canceled" && MEM().plan === "guest",
+    "S4 the ut_members write genuinely SUCCEEDED first (plan=" + MEM().plan + " status=" + MEM().subscription_status + ")");
+  ok(PROF().plan === "initiate", "S4 the profiles mirror is still stale — a real partial application (plan=" + PROF().plan + ")");
+  const e4a = await eff();
+  ok(e4a !== "initiate" && e4a !== "READ_ERROR", "S4 the member is already revoked by the write that succeeded (got " + e4a + ")");
+
   state.failUpdate = {};
   r = await post();
+  const e4b = await eff();
   ok(r.status === 200, "S4 retry -> 200 (got " + r.status + ")");
-  ok(await eff() !== "initiate", "S4 retry completed the revocation");
+  ok(PROF().plan !== "initiate", "S4 the retry completed the profiles mirror (plan=" + PROF().plan + ")");
+  ok(e4b !== "initiate" && e4b !== "READ_ERROR", "S4 the retry leaves the revocation complete (got " + e4b + ")");
 
-  // S5 delayed deletion of A after B is active
-  console.log("  --- S5 delayed deletion of A ---");
+  // S5 delayed deletion of A after B is active — BOTH tables preserved
+  console.log("  --- S5 delayed deletion of A (both tables preserved) ---");
   reset();
   state.tables.ut_members.push({ id: "m1", email: EMAIL, plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: B });
   state.tables.profiles.push({ user_id: "u1", email: EMAIL, plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: B });
   state.stripe = { [A]: { status: "canceled", customer: CUS }, [B]: { status: "active", customer: CUS } };
   state.event = ev("customer.subscription.deleted", { id: A, customer: CUS, metadata: { email: EMAIL } });
   r = await post();
+  const e5 = await eff();
   const w5 = memWrites().length;
   ok(r.status === 200, "S5 stale deletion -> 200 (got " + r.status + ")");
-  ok(MEM().stripe_subscription_id === B && paid(await eff()), "S5 access governed by B is preserved");
+  ok(MEM().stripe_subscription_id === B, "S5 ut_members still records B (is " + MEM().stripe_subscription_id + ")");
+  ok(PROF().stripe_subscription_id === B, "S5 profiles still records B (is " + PROF().stripe_subscription_id + ")");
+  ok(MEM().subscription_status === "active" && MEM().plan === "initiate" && PROF().plan === "initiate",
+    "S5 neither table was downgraded (ut_members=" + MEM().plan + "/" + MEM().subscription_status + ", profiles=" + PROF().plan + ")");
+  ok(paid(e5) && e5 !== "READ_ERROR", "S5 access governed by B is preserved (got " + e5 + ")");
   ok(w5 === 0, "S5 a rejected (stale) deletion performs ZERO membership writes (got " + w5 + ")");
 
   // S6 two recorded, ownership-verified live subscriptions -> fail closed, no writes

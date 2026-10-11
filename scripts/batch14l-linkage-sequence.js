@@ -66,6 +66,7 @@ function dbClient() {
               if (bad.length) ctx.badColumn = bad[0];
             }
           }
+          if (ctx.op === "update") ctx.returning = true;
           return api;
         },
         eq(c, v) { ctx.filters.push([c, v]); return api; },
@@ -107,7 +108,7 @@ function dbClient() {
             let target = match();
             if (ctx.neq) target = target.filter((r) => r[ctx.neq[0]] !== ctx.neq[1]);
             target.forEach((r) => Object.assign(r, ctx.payload));
-            resolve({ data: null, error: null });
+            resolve({ data: ctx.returning ? target.map((r) => ({ ...r })) : null, error: null });
             return;
           }
           if (ctx.op === "select") {
