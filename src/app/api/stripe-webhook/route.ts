@@ -207,7 +207,14 @@ export async function POST(req: NextRequest) {
       // Stripe's own state, NEVER from delivery order or event.created.
       // Capture the stored linkage BEFORE asking Stripe, so the write can be
       // conditioned on the state this decision was actually made from.
-      const lifecycleStored = await readStoredLinkage(utSupabaseAdmin, email ?? "");
+      const lifecycleLinkage = await readStoredLinkage(utSupabaseAdmin, email ?? "");
+      if (!lifecycleLinkage.ok) {
+        // A linkage READ failure is not absence: refuse to change entitlement.
+        membershipFailures.push(`linkage:${lifecycleLinkage.reason}`);
+        console.error("Could not read stored linkage:", lifecycleLinkage.detail);
+        break;
+      }
+      const lifecycleStored = lifecycleLinkage.linkage;
       const lifecycleSnapshot = lifecycleStored.subscriptionId;
       const lifecycleAuthority = await resolveAuthoritativeSubscription(
         getStripe(),
@@ -310,6 +317,42 @@ export async function POST(req: NextRequest) {
 
       console.log(`Subscription deleted: ${subscription.id} for customer ${customerId}`);
 
+      // RECONCILE BEFORE CHANGING ANYTHING. Deletion was the only lifecycle path
+      // that never asked Stripe, so a delayed `deleted` for an OLD subscription
+      // removed access governed by a still-live newer one — including for a
+      // profiles-only member, whose plan was rewritten to free without a single
+      // Stripe query.
+      const deleteEmail = subscription.metadata?.email ?? "";
+      const deleteLinkage = await readStoredLinkage(utSupabaseAdmin, deleteEmail);
+      if (!deleteLinkage.ok) {
+        membershipFailures.push(`linkage:${deleteLinkage.reason}`);
+        console.error("Could not read stored linkage on deletion:", deleteLinkage.detail);
+        break;
+      }
+      const deleteAuthority = await resolveAuthoritativeSubscription(
+        getStripe(),
+        customerId,
+        deleteLinkage.linkage
+      );
+      if (!deleteAuthority.ok) {
+        membershipFailures.push(`reconcile:${deleteAuthority.reason}`);
+        console.error("Could not reconcile on deletion:", deleteAuthority.detail);
+        break;
+      }
+      if (
+        deleteAuthority.found &&
+        deleteAuthority.subscriptionId &&
+        deleteAuthority.subscriptionId !== subscription.id
+      ) {
+        // The deleted subscription is not the governing one: this is a stale
+        // event and must not downgrade either table.
+        membershipWarnings.push(`stale-deletion:${subscription.id}`);
+        console.log(
+          `Ignoring deletion of superseded ${subscription.id}; ${deleteAuthority.subscriptionId} still governs`
+        );
+        break;
+      }
+
       // Revert ut_members
       try {
         const { error: revertError } = await utSupabaseAdmin
@@ -391,11 +434,16 @@ export async function POST(req: NextRequest) {
       // this customer is genuinely past_due. A delayed payment_failed used to
       // rewrite `unpaid` / `incomplete_expired` (both revocations) to `past_due`,
       // which restored entitlement.
-      const pastDueStored = await readStoredLinkage(utSupabaseAdmin, (invoice as any).customer_email ?? "");
+      const pastDueLinkage = await readStoredLinkage(utSupabaseAdmin, (invoice as any).customer_email ?? "");
+      if (!pastDueLinkage.ok) {
+        membershipFailures.push(`linkage:${pastDueLinkage.reason}`);
+        console.error("Could not read stored linkage:", pastDueLinkage.detail);
+        break;
+      }
       const pastDueAuthority = await resolveAuthoritativeSubscription(
         getStripe(),
         customerId,
-        pastDueStored
+        pastDueLinkage.linkage
       );
       if (!pastDueAuthority.ok) {
         membershipFailures.push(`reconcile:${pastDueAuthority.reason}`);
@@ -440,11 +488,16 @@ export async function POST(req: NextRequest) {
 
         // AUTHORITY: an older invoice must not replace the current subscription
         // id, and must not resurrect a revoked membership.
-        const invoiceStored = await readStoredLinkage(utSupabaseAdmin, customerEmail);
+        const invoiceLinkage = await readStoredLinkage(utSupabaseAdmin, customerEmail);
+        if (!invoiceLinkage.ok) {
+          membershipFailures.push(`linkage:${invoiceLinkage.reason}`);
+          console.error("Could not read stored linkage:", invoiceLinkage.detail);
+          break;
+        }
         const invoiceAuthority = await resolveAuthoritativeSubscription(
           getStripe(),
           customerId,
-          invoiceStored
+          invoiceLinkage.linkage
         );
         if (!invoiceAuthority.ok) {
           membershipFailures.push(`reconcile:${invoiceAuthority.reason}`);

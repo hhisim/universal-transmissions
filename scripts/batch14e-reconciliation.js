@@ -27,6 +27,26 @@ function reset() {
   state.failSelect = {};
   state.warnings = [];
   state.stripeStatus = undefined;
+  state.subs = {};
+}
+
+
+function subsOf() {
+  const subs = Object.assign({}, state.subs || {});
+  const row = state.tables.ut_members[0];
+  if (row && row.stripe_subscription_id && subs[row.stripe_subscription_id] === undefined) {
+    subs[row.stripe_subscription_id] = row.subscription_status || "active";
+  }
+  const ev = state.event;
+  const obj = ev && ev.data && ev.data.object;
+  if (ev && String(ev.type).startsWith("customer.subscription.") && obj && obj.id && obj.status) {
+    subs[obj.id] = obj.status;
+  }
+  if (state.stripeStatus) {
+    // explicit override: every subscription reports this status
+    for (const k of Object.keys(subs)) subs[k] = state.stripeStatus;
+  }
+  return subs;
 }
 
 const { registerTsModules, mockModule } = require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs"));
@@ -133,20 +153,28 @@ mockModule("@/lib/stripe", {
     customers: { create: async () => ({ id: "cus_new" }) },
     checkout: { sessions: { create: async () => ({ url: "x" }) } },
       subscriptions: {
-        retrieve: async () => ({ id: state.currentSub || "sub_1", status: state.stripeStatus || "active", customer: "cus_1" }),
-        list: async () => {
-          let status = state.stripeStatus;
-          if (status === undefined) {
-            const ev = state.event;
-            const obj = ev && ev.data && ev.data.object;
-            const isLifecycle = ev && String(ev.type).startsWith("customer.subscription.");
-            status = isLifecycle && obj && obj.status
-              ? obj.status
-              : (state.tables.ut_members[0] && state.tables.ut_members[0].subscription_status) || "active";
+        // Per-id model: the stored subscription carries the row's status, the
+        // event's own subscription carries the payload status (and overrides for
+        // its own id). Lets a cancelled stored subscription sit alongside a
+        // newer live one.
+        retrieve: async (id) => {
+          if (state.stripeFail) throw new Error("stripe unreachable");
+          const subs = subsOf();
+          const requested = id || "sub_1";
+          if (!(requested in subs)) {
+            const e = new Error("no such subscription");
+            e.statusCode = 404;
+            throw e;
           }
-          const row = state.tables.ut_members[0] || {};
-          const obj = state.event && state.event.data && state.event.data.object;
-          return { data: [{ id: (obj && obj.id) || row.stripe_subscription_id || "sub_1", status, customer: "cus_1" }] };
+          return { id: requested, status: subs[requested], customer: "cus_1" };
+        },
+        list: async () => {
+          if (state.stripeFail) throw new Error("stripe unreachable");
+          const subs = subsOf();
+          return {
+            data: Object.entries(subs).map(([id, status]) => ({ id, status, customer: "cus_1" })),
+            has_more: false,
+          };
         },
       },
   }),

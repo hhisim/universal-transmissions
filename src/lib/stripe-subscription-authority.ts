@@ -23,6 +23,15 @@ export type StoredLinkage = {
   status: string | null;
 };
 
+export type LinkageReason =
+  | "linkage_lookup_failed"
+  | "duplicate_rows"
+  | "conflicting_linkage";
+
+export type LinkageResult =
+  | { ok: true; linkage: StoredLinkage }
+  | { ok: false; reason: LinkageReason; detail: string };
+
 export type AmbiguityReason =
   | "missing_customer"
   | "stripe_lookup_failed"
@@ -85,36 +94,87 @@ export function customerIdOf(customer: unknown): string | null {
   return null;
 }
 
-/** Read the stored linkage BEFORE asking Stripe anything. */
+/**
+ * Read the stored linkage from BOTH tables BEFORE asking Stripe anything.
+ *
+ * Failure, absence and ambiguity are three different outcomes:
+ *   - a returned error or a thrown exception is a FAILURE (never absence);
+ *   - more than one row for one address is a duplicate and is rejected;
+ *   - two tables naming different subscriptions is a conflict and is rejected.
+ *
+ * A row that exists but carries no id does NOT hide the other table's linkage;
+ * both tables are always consulted before a decision is made.
+ */
 export async function readStoredLinkage(
   // Loosely typed on purpose: supabase-js query builders are deeply generic and
   // a narrow structural type is not assignable from SupabaseClient.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   client: { from: (table: string) => any },
   email: string
-): Promise<StoredLinkage> {
+): Promise<LinkageResult> {
+  const seen: Array<{ table: "ut_members" | "profiles"; id: string | null; plan: string | null; status: string | null }> = [];
+
   for (const table of ["ut_members", "profiles"] as const) {
+    let res: { data?: unknown; error?: { message?: string } | null };
     try {
-      const { data } = await client
+      res = await client
         .from(table)
         .select("stripe_subscription_id,plan,subscription_status")
         .eq("email", email)
         .limit(2);
-      const rows = (data ?? []) as unknown as Array<Record<string, unknown>>;
-      if (rows.length === 1) {
-        const id = rows[0].stripe_subscription_id;
-        return {
-          subscriptionId: typeof id === "string" && id.length > 0 ? id : null,
-          source: table,
-          plan: (rows[0].plan as string | null) ?? null,
-          status: (rows[0].subscription_status as string | null) ?? null,
-        };
-      }
-    } catch {
-      // treat an unreadable row as no linkage; the caller still reconciles
+    } catch (err) {
+      return {
+        ok: false,
+        reason: "linkage_lookup_failed",
+        detail: `${table}: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+    if (res && res.error) {
+      return {
+        ok: false,
+        reason: "linkage_lookup_failed",
+        detail: `${table}: ${res.error.message ?? "query failed"}`,
+      };
+    }
+    const rows = (res?.data ?? []) as unknown as Array<Record<string, unknown>>;
+    if (rows.length > 1) {
+      return {
+        ok: false,
+        reason: "duplicate_rows",
+        detail: `${table}: ${rows.length} rows for one address`,
+      };
+    }
+    if (rows.length === 1) {
+      const id = rows[0].stripe_subscription_id;
+      seen.push({
+        table,
+        id: typeof id === "string" && id.length > 0 ? id : null,
+        plan: (rows[0].plan as string | null) ?? null,
+        status: (rows[0].subscription_status as string | null) ?? null,
+      });
     }
   }
-  return { subscriptionId: null, source: null, plan: null, status: null };
+
+  const withId = seen.filter((s) => s.id !== null);
+  const distinct = Array.from(new Set(withId.map((s) => s.id as string)));
+  if (distinct.length > 1) {
+    return {
+      ok: false,
+      reason: "conflicting_linkage",
+      detail: `tables disagree: ${withId.map((s) => `${s.table}=${s.id}`).join(", ")}`,
+    };
+  }
+
+  const basis = withId[0] ?? seen[0] ?? null;
+  return {
+    ok: true,
+    linkage: {
+      subscriptionId: distinct[0] ?? null,
+      source: basis?.table ?? null,
+      plan: basis?.plan ?? null,
+      status: basis?.status ?? null,
+    },
+  };
 }
 
 const PAGE_LIMIT = 100;
@@ -213,9 +273,19 @@ export async function resolveAuthoritativeSubscription(
     }
     const rows = Array.isArray(res.data) ? res.data : [];
     for (const sub of rows) {
-      // ownership must be verifiable on every row we might select
+      // Verified ownership is REQUIRED for every enumerated candidate too, not
+      // just for the stored one. A row whose customer cannot be read is not
+      // evidence of absence — it is unverifiable, so we fail closed rather than
+      // selecting it or silently dropping it.
       const owner = customerIdOf(sub.customer);
-      if (owner !== null && owner !== String(customerId)) continue;
+      if (owner === null) {
+        return {
+          ok: false,
+          reason: "ownership_unverifiable",
+          detail: `listed subscription ${sub.id} carries no readable customer`,
+        };
+      }
+      if (owner !== String(customerId)) continue;
       if (LIVE.has((sub.status ?? "").toLowerCase())) candidates.push(sub);
     }
     if (!res.has_more || rows.length === 0) break;
