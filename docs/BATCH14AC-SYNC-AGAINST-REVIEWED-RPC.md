@@ -59,6 +59,22 @@ Three entry points exist, all layered over the reviewed RPC without modifying it
    something — the unlinked row really was relinked, or the competing INSERT really
    landed — so a no-op can no longer pass.
 
+> **Correction (Batch 14ad).** Two further defects in this harness were found
+> afterwards and are corrected in the committed file:
+>
+> - **`q()` did not return its real SQL exit status.** It printed through `printf`
+>   and therefore returned `printf`'s status, so any `if q ...` tested `printf`
+>   rather than the statement. The assertions here read `$QRC` explicitly in the
+>   places that mattered, so the results below stand, but any status-based branch
+>   would have been wrong. Fixed in Batch 14ad.
+> - **`wait_blocked` masked the advisory key without accounting for the sign.**
+>   `hashtextextended` can return a negative bigint and `pg_locks.classid` is an
+>   unsigned oid, so `(key >> 32)` never matched for such keys. **This can only
+>   produce a false negative** — the check fails loudly and the case is reported as
+>   a FAIL — so it cannot have manufactured any passing block-observation here.
+>   Every blocked-path assertion in this batch passed, which means the comparison
+>   matched and the blocks were genuine. Fixed in Batch 14ad.
+
 ## 3. Results
 
 ### Setup

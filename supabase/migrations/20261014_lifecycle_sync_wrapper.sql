@@ -28,7 +28,22 @@
 -- It changes nothing about the RPC's contract: outcomes, the located-set
 -- snapshot validation, exact coverage, the writable-column allow-list and the
 -- all-or-nothing rollback all remain the RPC's. The wrapper adds no writes.
+--
+-- EXECUTION BOUNDARY
+-- ------------------
+-- Both wrappers are SECURITY INVOKER. SECURITY DEFINER is NOT needed: the wrapper
+-- makes no privileged access of its own — it takes advisory locks (available to
+-- every role) and calls the reviewed RPC, which is itself SECURITY DEFINER and
+-- therefore runs its body as its owner regardless of the caller. An INVOKER
+-- wrapper therefore executes with the caller's privileges, which is the tighter
+-- arrangement, and EXECUTE is withheld from PUBLIC/anon/authenticated.
+--
+-- The whole file is ONE TRANSACTION: function creation, ownership and the
+-- execution ACLs commit together or not at all, so a failure part-way through
+-- cannot leave a callable function with default (PUBLIC) execute rights behind.
 -- =====================================================================
+
+begin;
 
 -- ---------------------------------------------------------------------
 -- (1) The key set for a whole payload.
@@ -73,6 +88,8 @@ begin
     end loop;
 
     for v_entry in select jsonb_array_elements(coalesce(v_target->'entries', '[]'::jsonb)) loop
+      -- The ORIGINAL linkage the entry was snapshotted against: relinking AWAY
+      -- from an identity must serialise against writers still targeting it.
       v_val := nullif(v_entry->'original'->>'stripe_customer_id', '');
       if v_val is not null then
         v_keys := v_keys || public.b14ab_linkage_key('customer', v_val);
@@ -80,6 +97,23 @@ begin
       v_val := nullif(v_entry->'original'->>'stripe_subscription_id', '');
       if v_val is not null then
         v_keys := v_keys || public.b14ab_linkage_key('subscription', v_val);
+      end if;
+
+      -- The REPLACEMENT linkage this entry INSTALLS. A write that locates a row
+      -- through identity A but sets its linkage to B is MOVING the row to B, so a
+      -- concurrent caller targeting B must contend with that move. Without these
+      -- keys the move is invisible to a writer holding only B.
+      -- A JSON null is an explicit NULL replacement: it names no identity and
+      -- therefore contributes no key.
+      if v_entry ? 'set' then
+        v_val := nullif(v_entry->'set'->>'stripe_customer_id', '');
+        if v_val is not null then
+          v_keys := v_keys || public.b14ab_linkage_key('customer', v_val);
+        end if;
+        v_val := nullif(v_entry->'set'->>'stripe_subscription_id', '');
+        if v_val is not null then
+          v_keys := v_keys || public.b14ab_linkage_key('subscription', v_val);
+        end if;
       end if;
     end loop;
 
@@ -108,7 +142,7 @@ returns table (
   located_pks  uuid[]
 )
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
 declare
@@ -146,7 +180,7 @@ returns table (
   located_pks  uuid[]
 )
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $$
 begin
@@ -221,3 +255,38 @@ begin
   raise exception 'unknown trigger mode: %', p_mode using errcode = '22023';
 end
 $$;
+
+-- ---------------------------------------------------------------------
+-- (4) OWNERSHIP AND EXECUTION ACLs — inside the same transaction.
+--
+-- PostgreSQL grants EXECUTE to PUBLIC on new functions, so the revokes are
+-- load-bearing: without them every role could drive entitlement writes through
+-- the wrapper. Ownership is pinned explicitly rather than left to whoever ran
+-- the migration.
+-- ---------------------------------------------------------------------
+
+alter function public.apply_lifecycle_update_sync(jsonb)        owner to postgres;
+alter function public.apply_lifecycle_update_sync_global(jsonb) owner to postgres;
+
+comment on function public.apply_lifecycle_update_sync(jsonb) is
+  'Batch 14ac/14ad: takes the payload''s advisory key set (declared, original AND replacement identities) then calls the unchanged reviewed RPC. Prototype: not applied, not wired into the application.';
+comment on function public.apply_lifecycle_update_sync_global(jsonb) is
+  'Batch 14ac/14ad: takes the single GLOBAL key then calls the unchanged reviewed RPC. The trigger candidates take the same key, so this is the entry point a trigger can cover. Prototype: not applied, not wired in.';
+
+revoke all on function public.apply_lifecycle_update_sync(jsonb)        from public;
+revoke all on function public.apply_lifecycle_update_sync(jsonb)        from anon;
+revoke all on function public.apply_lifecycle_update_sync(jsonb)        from authenticated;
+revoke all on function public.apply_lifecycle_update_sync_global(jsonb) from public;
+revoke all on function public.apply_lifecycle_update_sync_global(jsonb) from anon;
+revoke all on function public.apply_lifecycle_update_sync_global(jsonb) from authenticated;
+
+grant execute on function public.apply_lifecycle_update_sync(jsonb)        to service_role;
+grant execute on function public.apply_lifecycle_update_sync_global(jsonb) to service_role;
+
+-- The trigger installer is policy, not a read helper: it is not exposed to
+-- anonymous or authenticated callers either.
+revoke all on function public.b14ac_install_trigger(text) from public;
+revoke all on function public.b14ac_install_trigger(text) from anon;
+revoke all on function public.b14ac_install_trigger(text) from authenticated;
+
+commit;

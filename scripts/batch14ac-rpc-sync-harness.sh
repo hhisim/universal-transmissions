@@ -64,11 +64,14 @@ cleanup() {
 trap cleanup EXIT INT TERM HUP
 
 # ---------------------------------------------------------------- plumbing
-q() { # q <sql> ; prints stdout, sets QRC. Always ON_ERROR_STOP=1.
+q() { # q <sql> ; prints stdout, sets QRC, and RETURNS the real SQL exit status
+  # (previously this printed via printf and therefore returned printf's status,
+  # so `if q ...` silently tested printf instead of the statement.)
   printf '%s\n' "$1" >"$BASE/.q.sql"; chmod 644 "$BASE/.q.sql"
   QOUT=$(su postgres -c "PGAPPNAME=super psql -h $SOCK -d postgres -X -q -A -t -v ON_ERROR_STOP=1 -f $BASE/.q.sql" 2>&1)
   QRC=$?
   printf '%s' "$QOUT"
+  return "$QRC"
 }
 run_worker() { # run_worker <app> <sqlfile> ; sets WPID
   chmod 644 "$2"
