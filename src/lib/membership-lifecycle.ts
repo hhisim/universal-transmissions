@@ -130,6 +130,15 @@ export type LifecycleResolve =
       ok: true;
       /** Rows the write is willing to change, after the eligibility filter. */
       rows: LifecycleRow[];
+      /**
+       * EVERY located row, BEFORE the eligibility filter.
+       *
+       * The atomic primitive requires entries to cover the located set EXACTLY,
+       * so the payload is built from this list; rows the filter excluded are
+       * carried as identity no-ops rather than dropped. Optional because a
+       * snapshot that applied no filter has `all === rows`.
+       */
+      all?: LifecycleRow[];
       /** Rows carrying the verified linkage, BEFORE the eligibility filter. */
       matched: number;
       /** How many bounded reads were performed. */
@@ -339,7 +348,7 @@ export async function snapshotLifecycleRows(
 
   const all = Array.from(byPk.values());
   const rows = isEligible ? all.filter((entry) => isEligible(entry.row)) : all;
-  return { ok: true, rows, matched: all.length, lookedUp };
+  return { ok: true, rows, matched: all.length, lookedUp, all };
 }
 
 /**
