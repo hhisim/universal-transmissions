@@ -147,16 +147,70 @@ authorization suites also pass (**41 / 0** and **21 / 0**). The separate unlinke
 suite remains its documented pinned defect (**8 passed / 2 failed**); those failures
 are the pre-existing proposal in its own review, not this route switch.
 
+### `batch14p-webhook-coverage.js` — moved onto the shared harness
+
+The suite previously carried its **own in-process fake client**, so it could not
+reach the atomic path at all. It now uses the shared PostgreSQL-backed harness, and
+S1–S6 run against the reviewed primitive in the same disposable cluster.
+
+**Failures were classified before any assertion was changed.** Pre-adaptation
+baseline against the switched route: **15 passed / 19 failed**.
+
+* **17 of the 19 are one defect in the fixture, not the product.** The old inline
+  fake has no `rpc()` surface, so the atomic module refused the write, the route
+  answered 500 and nothing was written — S1 (×10), S2 (×2), S3 (×2) and S4's retry
+  assertions (×3). Moving the suite onto the shared harness resolves them; no
+  assertion was touched for them.
+* **2 of the 19 assert the PARTIAL application the atomic contract removes**
+  (S4 "the ut_members write genuinely SUCCEEDED first", S4 "the member is already
+  revoked by the write that succeeded"). These are re-pointed, and only these.
+* **S5/S6 additionally had a count that would become vacuous.** They asserted
+  "zero membership writes" by filtering records on `w.table`; an atomic RPC record
+  carries no `table`, so the identical assertion would have been trivially true.
+  The claim is re-counted as write ATTEMPTS, which covers the RPC as well.
+
+The two ATOMIC changes, stated explicitly:
+
+* **S4 — partial application is now a rollback.** It previously asserted that the
+  `ut_members` write had already landed when the `profiles` mirror failed. It now
+  asserts the atomic contract: a failed required write leaves **BOTH tables
+  unchanged**, and a healthy retry completes the operation. The failure is raised
+  by the **ISOLATED DATABASE**, not by a mocked hook — a concurrent writer keeps
+  moving `profiles.subscription_status` between the authorization snapshot and the
+  write, so the primitive raises a real `BATCH14 CONFLICT` on the SECOND target and
+  the transaction aborts, including the `ut_members` statement that would otherwise
+  have matched. The shared harness's `failUpdate` hook is deliberately **not** used
+  for this: it affects `.update()`, not `.rpc()`. `profiles.subscription_status` is
+  a guard column of the primitive but is ignored for entitlement by
+  `membership-plan.ts` (revocation authority is `ut_members.subscription_status`
+  only), so the injection cannot disturb the entitlement the scenario asserts.
+* **S5/S6 — "zero membership writes" is counted as attempts** (entered update
+  statements plus RPC calls), the atomic path's unit of work.
+
+Everything else in S1–S6 is unchanged, and assertions were **added** for the RPC
+path: one atomic RPC per accepted delivery, rows updated = 2 for the two-table
+revoke and 1 for the profiles-only revoke, zero rows applied by the two failed
+attempts, and exactly one attempt for the healthy retry.
+**49 passed / 0 failed.**
+
 ## Unchanged / verified
 
-* `npx tsc --noEmit` → exit 0.
-* `npm run build` → exit 0. Existing warnings remain: outdated Browserslist data,
-  the Node 18 deprecation notice from Supabase, and the expected dynamic-server
-  usage diagnostic for `/api/billing/session` during static generation.
-* `scripts/batch14t-snapshot-timing.js` → 27 passed / 0 failed with the switched
-  route and PostgreSQL-backed fake client.
+* `npx tsc --noEmit` → exit 0 — **not re-run for this commit**: no application code
+  and no harness/adapter code changed (only this suite and this document), so the
+  evidence above stands unchanged.
+* `npm run build` → exit 0, with the same reused caveat. Existing warnings remain:
+  outdated Browserslist data, the Node 18 deprecation notice from Supabase, and the
+  expected dynamic-server usage diagnostic for `/api/billing/session` during static
+  generation.
+* `scripts/batch14t-snapshot-timing.js` → 27 passed / 0 failed; re-run after the
+  adaptation and still green with the switched route and PostgreSQL-backed client.
+* `scripts/batch14r-concurrency-interleavings.js` → 41 / 0 and
+  `scripts/batch14r-lifecycle-authorization.js` → 21 / 0, both re-run green.
+* `scripts/batch14s-unlinked-row-authority.js` → 8 passed / 2 failed, re-run
+  unchanged: the same two pinned-defect assertions, so the pinned defect is
+  untouched by this work.
 * `scripts/batch14af-atomic-integration.sh` → 24 passed / 0 failed against private
-  PostgreSQL 16.
+  PostgreSQL 16 — **not re-run**: neither the adapter nor the module changed.
 * The reviewed primitive: `251d8e4c3a395bc0b73e64d51127955638c039f4`, byte-identical.
 
 ## Release blockers — all still outstanding
