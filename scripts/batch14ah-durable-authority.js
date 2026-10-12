@@ -171,7 +171,7 @@ const read = () => h.effRes(EMAIL);
   ok(r.status === 200, "W1 the cancellation is acknowledged (got " + r.status + ")");
   ok(PROF().plan === "free", "W1 the linked row is revoked (plan " + PROF().plan + ")");
   ok(typeof PROF().entitlement_authority_at === "string" && PROF().entitlement_authority_at.length > 0,
-    "W1 the revocation KEEPS its authority — the field is preserved, not cleared (got " +
+    "W1 the revocation ATTESTED the row — the field is set, never cleared (got " +
       JSON.stringify(PROF().entitlement_authority_at) + ")");
   ok(await h.eff(EMAIL) === "free",
     "W1 the revocation is still readable as authoritative (got " + (await h.eff(EMAIL)) + ")");

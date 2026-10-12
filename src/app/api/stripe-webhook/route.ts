@@ -549,9 +549,24 @@ export async function POST(req: NextRequest) {
               subscription_status: "canceled",
               stripe_subscription_id: null,
               current_period_end: null,
+              // Batch 14ai: a cancellation IS a completed, verified
+              // reconciliation, so it ATTESTES the row it revokes — on the first
+              // one as much as on a refresh. Omitting it left a verified
+              // cancellation unable to outrank an unreconciled paid row.
+              entitlement_authority_at: reconciliationStamp(),
             },
           },
-          profile: { snapshot: profileSnapshot, fields: { plan: "free" } },
+          profile: {
+            snapshot: profileSnapshot,
+            fields: {
+              plan: "free",
+              // The revocation clears the linkage on BOTH tables: the subscription
+              // no longer governs, and a stale mirror id is what makes a later
+              // attested pair contradict.
+              stripe_subscription_id: null,
+              entitlement_authority_at: reconciliationStamp(),
+            },
+          },
         });
         const memberRevoke = atomicRevoke.member;
         const profileRevoke = atomicRevoke.profile;
@@ -673,7 +688,10 @@ export async function POST(req: NextRequest) {
             snapshot: pastDueSnapshot,
             fields: {
               subscription_status: "past_due",
-              entitlement_authority_at: reconciliationStamp(),
+              // Batch 14ai: dunning determines the PAYMENT status, not the plan.
+              // Attesting here turned an untouched cached `plan` into a complete
+              // entitlement decision and changed who is entitled, so this write
+              // deliberately does not attest — the module refuses it.
             },
           },
         });
@@ -822,7 +840,10 @@ export async function POST(req: NextRequest) {
               fields: {
                 stripe_customer_id: customerId,
                 plan: "initiate",
-                entitlement_authority_at: reconciliationStamp(),
+                // Batch 14ai: this write settles the mirror's plan and customer but
+                // NOT its subscription linkage, so it does not attest. Attesting
+                // made the invoice's own successful write leave a contradicted
+                // attested pair behind.
               },
             },
           });

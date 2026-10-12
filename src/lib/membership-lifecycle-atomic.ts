@@ -73,8 +73,9 @@ const WRITABLE_COLUMNS = new Set([
   "stripe_subscription_id",
   "current_period_end",
   // Batch 14ah: the reconciliation stamp the reader requires before a row may
-  // decide entitlement. Written only by reconciled paths; omitted (and therefore
-  // PRESERVED by the primitive) on cancellation.
+  // decide entitlement. Written only by paths that reconcile, and only when the
+  // same write determines the row's plan AND its subscription linkage — see
+  // `unattestableWrite` below.
   "entitlement_authority_at",
 ]);
 
@@ -210,6 +211,15 @@ export function buildAtomicLifecyclePayload(
         detail: `${table}: the snapshot is not usable for an atomic write`,
       };
     }
+    const unattestable = unattestableWrite(side.fields);
+    if (unattestable) {
+      // Refused rather than silently dropped: an unattestable write means the
+      // caller believes this reconciliation decided the row when it did not.
+      return {
+        ok: false,
+        detail: `${table}: a write that attests entitlement authority must supply ${unattestable} in the same write`,
+      };
+    }
     // The envelope is the builder's own result shape. The RPC takes the TARGET.
     targets.push(built.target);
   }
@@ -222,6 +232,31 @@ export function unwritableField(fields: Record<string, unknown>): string | null 
     if (!WRITABLE_COLUMNS.has(name)) return name;
   }
   return Object.keys(fields).length === 0 ? "<empty set>" : null;
+}
+
+/**
+ * Batch 14ai — the ATTESTATION CONTRACT, enforced before the round trip.
+ *
+ * A write may stamp `entitlement_authority_at` only when it supplies the target's
+ * `plan` AND its `stripe_subscription_id` in the SAME write — setting the linkage
+ * or explicitly clearing it with null. Attesting anything less over-claims:
+ *
+ *   - dunning writes `subscription_status` alone, so stamping it would turn an
+ *     untouched cached `plan` into a complete entitlement decision, and dunning
+ *     would silently change who is entitled;
+ *   - the invoice's mirror write settles `plan` and the customer but leaves the
+ *     stored subscription untouched, so stamping it would attest a pair that
+ *     contradicts the member's corrected linkage, and the reader would fail closed
+ *     on the invoice's own successful write.
+ *
+ * Returns the names the write is missing, or null when the write may attest.
+ */
+export function unattestableWrite(fields: Record<string, unknown>): string | null {
+  if (!("entitlement_authority_at" in fields)) return null;
+  const missing: string[] = [];
+  if (!("plan" in fields)) missing.push("plan");
+  if (!("stripe_subscription_id" in fields)) missing.push("stripe_subscription_id");
+  return missing.length > 0 ? missing.join(" and ") : null;
 }
 
 type RpcRow = {

@@ -85,9 +85,9 @@ that decision.* It is that reconciliation's timestamp.
 | Path | Writes the stamp? | Why |
 |---|---|---|
 | `customer.subscription.created` / `.updated` | **YES** | it reconciled against Stripe's current state and applied the decision atomically |
-| `customer.subscription.deleted` (cancellation) | **NO — omitted, therefore PRESERVED** | a revocation must keep the authority to revoke; the primitive's `else r.entitlement_authority_at` branch leaves the stored value untouched |
-| `invoice.payment_succeeded` | **YES** | same three-phase contract, basis restricted to `active`/`past_due` |
-| `invoice.payment_failed` (dunning) | **YES** | reconciled against Stripe's current state |
+| `customer.subscription.deleted` (cancellation) | **YES** — corrected in Batch 14ai | a cancellation IS a completed, verified reconciliation: it establishes authority on the first one and refreshes it afterwards, and it clears the mirror's linkage too. Leaving it out meant a first cancellation established nothing, so an unreconciled paid row kept access |
+| `invoice.payment_succeeded` | **member YES; profile NO** — corrected in Batch 14ai | the member write settles the plan AND the governing subscription; the mirror write settles only the plan and the customer, so attesting it made the invoice's own write leave a contradicted attested pair behind |
+| `invoice.payment_failed` (dunning) | **NO** — corrected in Batch 14ai | dunning determines the PAYMENT status, not the plan; attesting it turned an untouched cached plan into a complete entitlement decision |
 | `api/billing/checkout` (customer creation), `writeMembershipRow` | **NO** | not a subscription reconciliation; nothing changes in that path |
 
 Two invariants make this coherent:
@@ -95,8 +95,10 @@ Two invariants make this coherent:
 * **Persisted atomically.** The stamp travels in the same `p_targets` payload as the
   plan/status it authorises, in the same transaction, under the same global key.
   There is no window in which a decision is visible without its evidence.
-* **Never cleared.** No path writes NULL. A cancellation that cleared it would make the
-  revocation unreadable — the mirror image of the defect this batch closes.
+* **Written by every completed reconciliation, never set to NULL by any path.** A
+  cancellation that cleared it would make the revocation unreadable — the mirror image of
+  the defect this batch closes. Batch 14ai also REQUIRES that the attestation be earned:
+  see the writer contract in `docs/BATCH14AI-WRITER-CONTRACT.md`.
 
 The stamp is **not a guard column**: the four snapshot guards and the exact-coverage
 contract are unchanged, so existing payload shapes keep working.
@@ -144,7 +146,8 @@ removes. Legacy rows earn authority the next time a real reconciliation writes t
   manufactured authority), N2 profiles-only membership (attested and unattested), N3
   contradictory **subscription** records fail closed and are named, N4 evidence decides
   while identifiers do not (both directions, including that an attested revocation still
-  overrides a stale paid mirror), W1 a cancellation **preserves** the authority, and W2 a
+  overrides a stale paid mirror), W1 a cancellation **attests** the row it revokes
+  (establishes or refreshes; the field is set, never cleared — Batch 14ai), and W2 a
   reactivation re-asserts it — including that the unattested table was never written
   (`outcome=absent, affected=0`) and that zero rows were inserted.
 * **The read-authority suite**: `scripts/batch14ag-read-authority.js` **30 / 0** after its
@@ -180,9 +183,10 @@ removes. Legacy rows earn authority the next time a real reconciliation writes t
 * **Authority does not expire.** A stale attested row continues to decide until a newer
   reconciliation overwrites it. That is the intended "last verified reconciliation wins"
   semantics; inventing a TTL would be guessing at a requirement.
-* **The rule is only as strong as the writers.** The stamp must be written by reconciled
-  paths only. `writeMembershipRow` and the checkout path deliberately do not write it, and
-  a future path that stamps without reconciling would reintroduce the bypass.
+* **The rule is only as strong as the writers — and that is now enforced.** The stamp must
+  be written by reconciled paths only, and Batch 14ai makes the module REFUSE a write that
+  attests without supplying the target's plan and subscription linkage. `writeMembershipRow`
+  and the checkout path deliberately do not write it at all.
 * `batch14s`'s header still reads "PINNED DEFECT — EXPECTED RED"; its unchanged bytes are
   the evidence the rule landed, and updating that header is the owner's call.
 
