@@ -1,6 +1,7 @@
 # Batch 14af — the integrated TypeScript lifecycle path, against the real primitive
 
-Baseline `7dca844`. Preparation only: no production SQL, no production configuration, no release.
+Baseline `7dca844`; continued from `e2fa4d2`. Preparation only: no production SQL,
+no production configuration, no release.
 
 ## What this batch connects
 
@@ -193,25 +194,106 @@ revoke and 1 for the profiles-only revoke, zero rows applied by the two failed
 attempts, and exactly one attempt for the healthy retry.
 **49 passed / 0 failed.**
 
-## Unchanged / verified
+## `invoice.payment_succeeded` — write consistency (Batch 14 continuation)
 
-* `npx tsc --noEmit` → exit 0 — **not re-run for this commit**: no application code
-  and no harness/adapter code changed (only this suite and this document), so the
-  evidence above stands unchanged.
-* `npm run build` → exit 0, with the same reused caveat. Existing warnings remain:
-  outdated Browserslist data, the Node 18 deprecation notice from Supabase, and the
-  expected dynamic-server usage diagnostic for `/api/billing/session` during static
-  generation.
-* `scripts/batch14t-snapshot-timing.js` → 27 passed / 0 failed; re-run after the
-  adaptation and still green with the switched route and PostgreSQL-backed client.
-* `scripts/batch14r-concurrency-interleavings.js` → 41 / 0 and
-  `scripts/batch14r-lifecycle-authorization.js` → 21 / 0, both re-run green.
-* `scripts/batch14s-unlinked-row-authority.js` → 8 passed / 2 failed, re-run
-  unchanged: the same two pinned-defect assertions, so the pinned defect is
-  untouched by this work.
-* `scripts/batch14af-atomic-integration.sh` → 24 passed / 0 failed against private
-  PostgreSQL 16 — **not re-run**: neither the adapter nor the module changed.
+The invoice path was the last lifecycle write still outside the guarantees: it
+addressed rows through the payload address (`customer_email`) and wrote each table
+with its own `.update()` — two transactions that could commit independently.
+
+Repair, in `src/app/api/stripe-webhook/route.ts`:
+
+* **Rows are resolved through the VERIFIED Stripe linkage.** The snapshot locates
+  rows by the event's own subscription id, the ids the trusted tables recorded, and
+  the verified customer. The payload address is one hint among several for the
+  linkage READ; it never selects a row and never repairs a linkage.
+* **The write snapshot is taken BEFORE reconciliation** — both tables, in (1b),
+  exactly as the subscription paths do.
+* **The write is the atomic synchronized path**: both targets in ONE
+  `applyAtomicLifecycleUpdate` call on the exclusive global lifecycle key.
+* **A conflict re-resolves**: the existing `MAX_LIFECYCLE_ATTEMPTS` bounded retry
+  now covers this path too.
+* **Subscription-status ownership is preserved.** `subscription_status` is not
+  written, so an invoice can never clear a recorded revocation — that is what stops
+  a delayed `payment_succeeded` from resurrecting canceled access. Measured rather
+  than asserted: the invoice's plan write LANDS while the status and the effective
+  entitlement stay revoked.
+* **The existing price mapping is preserved**: the member write still records
+  `plan: "initiate"`.
+* **The mirror is genuinely atomic now, so a failed mirror is a failure.** With both
+  tables in one transaction, a failed mirror means the member row was rolled back
+  with it, so the delivery answers 500 instead of 200. This replaces the previous
+  "optional mirror" warning, which was sound only while the two writes were
+  independent.
+* **Missing-row creation and unlinked-row authority stay separate.** There is no
+  insert branch: a linkage that owns no `profiles` row is reported `absent`, nothing
+  is created, and no `user_id` is fabricated.
+* The now-unused `writeMembershipRow` import was removed from the route; that helper
+  is unchanged and still used by its other callers.
+
+### Focused suite — `scripts/batch14af-invoice-write-consistency.js`
+
+Runs the real handler through the accepted PostgreSQL-backed harness.
+**49 passed / 0 failed.**
+
+* **I1** a paid, governed invoice writes BOTH tables in ONE atomic RPC (rows
+  updated = 2, zero inserts).
+* **I2** a delayed invoice cannot clear a recorded revocation — `canceled` and
+  `incomplete_expired`, with Stripe still reporting the subscription ACTIVE so that
+  only status ownership can hold the line.
+* **I3** a delayed invoice for a superseded subscription cannot replace the
+  governing one.
+* **I4** an invoice whose current subscription is not paid is ignored, with ZERO
+  write attempts.
+* **I5** a concurrent change survives one lost race, and the write completes on the
+  fresh snapshot.
+* **I6** a required write that keeps losing its race rolls BOTH tables back (zero
+  rows applied), and a healthy retry then completes the operation.
+* **I7** a linkage that owns no `profiles` row is reported, never created (zero
+  inserts).
+
+The I5/I6 conflicts are raised by PostgreSQL, not by a mocked hook: a concurrent
+writer moves `profiles.subscription_status` between the snapshot and the write, so
+the primitive raises its own `BATCH14 CONFLICT`. That column is a guard column of
+the primitive but is ignored for entitlement by `membership-plan.ts`.
+
+## Verified (re-run for this commit)
+
+Application code changed, so the compile and the build were re-run rather than
+reused:
+
+* `npx tsc --noEmit` → exit 0.
+* `npm run build` → exit 0. Existing warnings remain: outdated Browserslist data,
+  the Node 18 deprecation notice from Supabase, and the expected dynamic-server usage
+  diagnostic for `/api/billing/session` during static generation.
+* `scripts/batch14af-invoice-write-consistency.js` → 49 / 0 (new).
+* `scripts/batch14p-webhook-coverage.js` → 49 / 0, `batch14t-snapshot-timing.js` →
+  27 / 0, `batch14r-concurrency-interleavings.js` → 41 / 0,
+  `batch14r-lifecycle-authorization.js` → 21 / 0, `batch14b-membership-readback.js`
+  → 41 / 0, `batch14f-event-order.js` → 11 / 0 — all unchanged.
+* `scripts/batch14s-unlinked-row-authority.js` → 8 / 2: the same two pinned-defect
+  assertions, untouched.
+* Suites red before this repair and red with **identical failing-assertion lists**
+  after it: `batch14g` 10 / 2, `batch14d` 12 / 14, `batch14e` 13 / 9, `batch14q`
+  10 / 10, `batch14l` 7 / 6. Their failures come from their own inline fakes having no
+  `rpc()` surface, which predates this commit.
+* `scripts/batch14af-atomic-integration.sh` → 24 / 0 — **not re-run**: neither the
+  adapter nor the primitive changed.
 * The reviewed primitive: `251d8e4c3a395bc0b73e64d51127955638c039f4`, byte-identical.
+
+## Deferred defects
+
+1. **`batch14f` A1 is a VACUOUS GREEN after this repair.** It previously passed for
+   the right reason — the handler recorded the AUTHORITATIVE subscription id rather
+   than the invoice's older one. `batch14f` carries its own inline fake with no
+   `rpc()` surface, so the invoice write is now refused outright
+   (`client.rpc is not a function`, visible in its output) and the stored linkage is
+   unchanged for THAT reason instead. The assertion still passes and can no longer
+   distinguish the two cases. The guarantee is re-established with real PostgreSQL
+   evidence in **I3** above; porting `batch14f` onto the shared harness is separate
+   work.
+2. `batch14s` unlinked-row authority remains its own pinned defect.
+3. Missing-row creation for a linkage that owns no row is deliberately not
+   implemented anywhere in the lifecycle paths.
 
 ## Release blockers — all still outstanding
 
@@ -221,7 +303,8 @@ attempts, and exactly one attempt for the healthy retry.
 3. SELECT-only production verification.
 4. Separately authorized SQL application before application release.
 
-Also separate: `invoice.payment_succeeded`, unlinked-row authority, and the
-cluster-directory leak in the older `batch14u-rpc-harness.sh`.
+Also separate: the cluster-directory leak in the older `batch14u-rpc-harness.sh`,
+and the legacy inline-fake suites that cannot reach the atomic path
+(`batch14d/e/g/l/q`).
 
 **No release readiness is claimed.** Production remains `ac49ce06`.

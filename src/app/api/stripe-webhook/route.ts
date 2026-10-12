@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { writeMembershipRow } from "@/lib/membership-write";
 import {
   resolveAuthoritativeSubscription,
   eventGovernsCurrentSubscription,
@@ -680,109 +679,157 @@ export async function POST(req: NextRequest) {
       const invoiceAny = invoice as any;
       if (invoiceAny.subscription && invoice.customer_email) {
         const customerId = invoice.customer as string;
-        const subscriptionId = invoiceAny.subscription as string;
-        const customerEmail = invoice.customer_email;
+        const invoiceSubscriptionId = invoiceAny.subscription as string;
 
         // AUTHORITY: an older invoice must not replace the current subscription
         // id, and must not resurrect a revoked membership.
-        const invoiceLinkage = await readStoredLinkage(utSupabaseAdmin, {
-          email: customerEmail,
-          customerId,
-        });
-        if (!invoiceLinkage.ok) {
-          membershipFailures.push(`linkage:${invoiceLinkage.reason}`);
-          console.error("Could not read stored linkage:", invoiceLinkage.detail);
-          break;
-        }
-        const invoiceAuthority = await resolveAuthoritativeSubscription(
-          getStripe(),
-          customerId,
-          invoiceLinkage.linkage
-        );
-        if (!invoiceAuthority.ok) {
-          membershipFailures.push(`reconcile:${invoiceAuthority.reason}`);
-          console.error("Could not reconcile the current subscription:", invoiceAuthority.detail);
-          break;
-        }
-        // Absence is authoritative: with no current subscription there is
-        // nothing to entitle, and an old invoice must not install its id.
-        const invoiceEntitlement = entitlementFromAuthority(invoiceAuthority);
-        if (!invoiceEntitlement) {
-          membershipFailures.push("reconcile:ambiguous_status");
-          console.error("Ambiguous authoritative status on an invoice; refusing to act");
-          break;
-        }
-        if (invoiceEntitlement.basis !== "active" && invoiceEntitlement.basis !== "past_due") {
-          membershipWarnings.push(`invoice-ignored:${invoiceEntitlement.basis}`);
-          console.log("Ignoring an invoice whose subscription is not current and paid");
-          break;
-        }
-        const currentSubscriptionId = invoiceAuthority.subscriptionId;
+        //
+        // Batch 14 (invoice write consistency): this path now runs the SAME
+        // three-phase contract as the subscription lifecycle paths. The rows and
+        // their guards are snapshotted BEFORE Stripe is consulted, both tables are
+        // written by the reviewed primitive in ONE transaction, and a conflict
+        // re-resolves from fresh linkage and fresh provider state inside the
+        // existing bounded retry.
+        //
+        // The payload address is NOT an authority. `customer_email` is one hint
+        // among several for the linkage read; no row is selected from it and no
+        // linkage is repaired from it. Missing-row creation stays deliberately
+        // absent: there is no insert branch, so no `user_id` is fabricated and a
+        // linkage that owns no row is reported rather than invented.
+        for (let attempt = 1; attempt <= MAX_LIFECYCLE_ATTEMPTS; attempt += 1) {
+          // (1) AUTHORIZATION SNAPSHOT — taken before the provider is consulted.
+          const invoiceLinkage = await readStoredLinkage(utSupabaseAdmin, {
+            email: invoice.customer_email,
+            customerId,
+          });
+          if (!invoiceLinkage.ok) {
+            membershipFailures.push(`linkage:${invoiceLinkage.reason}`);
+            console.error("Could not read stored linkage:", invoiceLinkage.detail);
+            break;
+          }
+          // Only ids already known WITHOUT Stripe: the event's own subscription
+          // and whatever the trusted tables recorded. Locating a row must not
+          // depend on the reconciliation whose write it conditions.
+          const invoiceAuthorityInput = {
+            customerId,
+            subscriptionIds: lifecycleLocationIds(invoiceSubscriptionId, invoiceLinkage.linkage),
+          };
 
-        try {
-          // Neither table has a unique index on email, so the previous
-          // `upsert(..., { onConflict: "email" })` was rejected with 42P10 and
-          // the error was swallowed. Both writes now go through the shared
-          // helper and report their outcome. The price-to-plan mapping for
-          // subscription events is deliberately untouched.
-          const memberWrite = await writeMembershipRow(
+          // (1b) THE UPDATE SNAPSHOT — BOTH tables, read HERE, before the provider.
+          const memberSnapshot = await snapshotLifecycleRows(
             utSupabaseAdmin,
             "ut_members",
-            customerEmail,
-            {
-              // Deliberately does NOT set subscription_status.
-              //
-              // Subscription lifecycle events (customer.subscription.*) are the
-              // authority for status; an invoice event must not resurrect a
-              // membership. Setting status='active' here meant a stale
-              // payment-succeeded arriving after a cancellation would clear the
-              // cancellation — and the schema carries no ordering signal to
-              // distinguish that from a genuine reactivation, so the safe move
-              // is to let the invoice event own only billing artefacts.
-              stripe_customer_id: customerId,
-              // Only the AUTHORITATIVE current subscription may be recorded; an
-              // older invoice's id must not overwrite the stored linkage.
-              stripe_subscription_id: currentSubscriptionId,
-              plan: "initiate",
-            },
-            { protectPaidPlan: false }
+            invoiceAuthorityInput
           );
+          if (!memberSnapshot.ok) {
+            membershipFailures.push(`invoice-ut_members:${memberSnapshot.reason}`);
+            console.error("Refusing the invoice ut_members write:", memberSnapshot.detail);
+            break;
+          }
+          const profileSnapshot = await snapshotLifecycleRows(
+            utSupabaseAdmin,
+            "profiles",
+            invoiceAuthorityInput
+          );
+          if (!profileSnapshot.ok) {
+            // Nothing has been written yet, so this rejection costs no work.
+            membershipFailures.push(`invoice-profiles:${profileSnapshot.reason}`);
+            console.error("Refusing the invoice profiles write:", profileSnapshot.detail);
+            break;
+          }
+
+          // (2) Reconcile against Stripe's CURRENT state.
+          const invoiceAuthority = await resolveAuthoritativeSubscription(
+            getStripe(),
+            customerId,
+            invoiceLinkage.linkage
+          );
+          if (!invoiceAuthority.ok) {
+            membershipFailures.push(`reconcile:${invoiceAuthority.reason}`);
+            console.error("Could not reconcile the current subscription:", invoiceAuthority.detail);
+            break;
+          }
+          // Absence is authoritative: with no current subscription there is
+          // nothing to entitle, and an old invoice must not install its id.
+          const invoiceEntitlement = entitlementFromAuthority(invoiceAuthority);
+          if (!invoiceEntitlement) {
+            membershipFailures.push("reconcile:ambiguous_status");
+            console.error("Ambiguous authoritative status on an invoice; refusing to act");
+            break;
+          }
+          if (invoiceEntitlement.basis !== "active" && invoiceEntitlement.basis !== "past_due") {
+            membershipWarnings.push(`invoice-ignored:${invoiceEntitlement.basis}`);
+            console.log("Ignoring an invoice whose subscription is not current and paid");
+            break;
+          }
+          const currentSubscriptionId = invoiceAuthority.subscriptionId;
+
+          // (3)(4) PLAN FROM THE PRE-RECONCILIATION SNAPSHOT — no further reads —
+          // and COMMIT BOTH TABLES IN ONE TRANSACTION through the reviewed
+          // primitive, synchronized on the exclusive global lifecycle key.
+          //
+          // `subscription_status` is deliberately NOT written. The subscription
+          // lifecycle events own it, so an invoice can never clear a recorded
+          // revocation — that is what stops a delayed payment_succeeded from
+          // resurrecting canceled access.
+          //
+          // `plan: "initiate"` is this event's EXISTING price-to-plan mapping and
+          // is unchanged by this repair.
+          const invoiceAtomic = await applyAtomicLifecycleUpdate(utSupabaseAdmin, {
+            authority: invoiceAuthorityInput,
+            member: {
+              snapshot: memberSnapshot,
+              fields: {
+                stripe_customer_id: customerId,
+                // Only the AUTHORITATIVE current subscription may be recorded; an
+                // older invoice's id must not overwrite the stored linkage.
+                stripe_subscription_id: currentSubscriptionId,
+                plan: "initiate",
+              },
+            },
+            profile: {
+              snapshot: profileSnapshot,
+              fields: { stripe_customer_id: customerId, plan: "initiate" },
+            },
+          });
+          if (!invoiceAtomic.ok && invoiceAtomic.retryable && attempt < MAX_LIFECYCLE_ATTEMPTS) {
+            console.warn(
+              `Invoice for ${customerId} lost its race; re-resolving from fresh linkage and fresh Stripe state`
+            );
+            continue;
+          }
+
+          const memberWrite = invoiceAtomic.member;
           if (!memberWrite.ok) {
             membershipFailures.push(`invoice-ut_members:${memberWrite.reason}`);
             console.error(
               "invoice.payment_succeeded: ut_members write failed:",
-              memberWrite.reason,
               memberWrite.detail
             );
+          } else if (!memberWrite.linked) {
+            console.log("ut_members: no row carries the verified Stripe linkage; nothing to update");
+          } else {
+            console.log(`invoice ut_members updated: plan=initiate, rows=${memberWrite.updated}`);
           }
 
-          // profiles is keyed by user_id, which a Stripe event does not carry.
-          // An existing row is updated; a missing one cannot be created here and
-          // that is reported rather than hidden.
-          const profileWrite = await writeMembershipRow(
-            utSupabaseAdmin,
-            "profiles",
-            customerEmail,
-            { stripe_customer_id: customerId, plan: "initiate" },
-            { protectPaidPlan: false }
-          );
+          // REQUIRED, and no longer merely a warning. Both tables are written in
+          // the SAME transaction, so a failed mirror means the member row was
+          // rolled back with it — acknowledging 200 would report a write that did
+          // not happen. A linkage that owns no profiles row is still NOT a failure:
+          // the primitive reports it `absent`, and nothing is created.
+          const profileWrite = invoiceAtomic.profile;
           if (!profileWrite.ok) {
-            // OPTIONAL mirror. The helper requires a verified userId for a
-            // profiles INSERT, which a Stripe event does not carry (and which
-            // must not be fabricated), so this can legitimately be refused.
-            // Recorded as a warning; it never fails the delivery.
-            membershipWarnings.push(`invoice-profiles:${profileWrite.reason}`);
+            membershipFailures.push(`invoice-profiles:${profileWrite.reason}`);
             console.error(
-              "invoice.payment_succeeded: profiles mirror skipped:",
-              profileWrite.reason,
+              "invoice.payment_succeeded: profiles mirror failed:",
               profileWrite.detail
             );
+          } else if (!profileWrite.linked) {
+            console.log("profiles: no row carries the verified Stripe linkage; nothing to update");
+          } else {
+            console.log(`invoice profiles mirrored: plan=initiate, rows=${profileWrite.updated}`);
           }
-        } catch (err) {
-          // A THROWN error here means the required ut_members write did not
-          // happen either, so it must fail the delivery rather than answer 200.
-          membershipFailures.push("invoice-ut_members:threw");
-          console.error("Failed to upsert member on invoice.payment_succeeded:", err);
+          break;
         }
       }
       break;
