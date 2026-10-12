@@ -9,12 +9,11 @@ import {
   entitlementFromAuthority,
   readStoredLinkage,
 } from "@/lib/stripe-subscription-authority";
+import { snapshotLifecycleRows } from "@/lib/membership-lifecycle";
 import {
-  snapshotLifecycleRows,
-  planLifecycleUpdate,
-  commitLifecycleUpdate,
-  isRetryableLifecycleFailure,
-} from "@/lib/membership-lifecycle";
+  applyAtomicLifecycleUpdate,
+  applyAtomicLifecycleUpdateOne,
+} from "@/lib/membership-lifecycle-atomic";
 
 /**
  * Every subscription id a lifecycle event may use to LOCATE a row.
@@ -357,18 +356,18 @@ export async function POST(req: NextRequest) {
           stripe_subscription_id: governedSubscriptionId,
         };
 
-        // (3) PLAN FROM THE PRE-RECONCILIATION SNAPSHOT — no further reads, and
-        // BOTH tables accepted before EITHER is written.
-        const memberPlan = planLifecycleUpdate(memberSnapshot, "ut_members", memberFields);
-        const profilePlan = planLifecycleUpdate(profileSnapshot, "profiles", profileFields);
-
-        // (4) COMMIT, conditioned on the snapshot taken in (1).
-        const lifecycleMemberWrite = await commitLifecycleUpdate(utSupabaseAdmin, memberPlan);
-        const lifecycleProfileWrite = await commitLifecycleUpdate(utSupabaseAdmin, profilePlan);
-        const lostRace = [lifecycleMemberWrite, lifecycleProfileWrite].some(
-          (result) => !result.ok && isRetryableLifecycleFailure(result.reason)
-        );
-        if (lostRace && attempt < MAX_LIFECYCLE_ATTEMPTS) {
+        // (3) APPLY BOTH TABLES IN ONE TRANSACTION through the reviewed atomic
+        // primitive, synchronized on the exclusive global lifecycle key. The
+        // snapshot taken in (1b) — BEFORE Stripe — supplies the located set and
+        // every row's guards; nothing is re-read here.
+        const atomicWrite = await applyAtomicLifecycleUpdate(utSupabaseAdmin, {
+          authority: lifecycleAuthorityInput,
+          member: { snapshot: memberSnapshot, fields: memberFields },
+          profile: { snapshot: profileSnapshot, fields: profileFields },
+        });
+        const lifecycleMemberWrite = atomicWrite.member;
+        const lifecycleProfileWrite = atomicWrite.profile;
+        if (!atomicWrite.ok && atomicWrite.retryable && attempt < MAX_LIFECYCLE_ATTEMPTS) {
           console.warn(
             `Lifecycle write for ${subscription.id} lost its race; re-resolving from fresh linkage and fresh Stripe state`
           );
@@ -517,21 +516,24 @@ export async function POST(req: NextRequest) {
         // previous `.select("id")` and `.eq("id", profile.id)` could never match
         // a deployed row, and both errors were discarded. The row is addressed by
         // `user_id`, taken from the row the VERIFIED Stripe linkage resolved.
-        const memberPlan = planLifecycleUpdate(memberSnapshot, "ut_members", {
-          plan: "guest",
-          subscription_status: "canceled",
-          stripe_subscription_id: null,
-          current_period_end: null,
+        // (3)(4) ONE ATOMIC CALL for both tables: a cancellation is a revocation
+        // of the member record and the mirror together, or of neither.
+        const atomicRevoke = await applyAtomicLifecycleUpdate(utSupabaseAdmin, {
+          authority: deleteAuthorityInput,
+          member: {
+            snapshot: memberSnapshot,
+            fields: {
+              plan: "guest",
+              subscription_status: "canceled",
+              stripe_subscription_id: null,
+              current_period_end: null,
+            },
+          },
+          profile: { snapshot: profileSnapshot, fields: { plan: "free" } },
         });
-        const profilePlan = planLifecycleUpdate(profileSnapshot, "profiles", { plan: "free" });
-
-        // (4) COMMIT, conditioned on the snapshot taken in (1).
-        const memberRevoke = await commitLifecycleUpdate(utSupabaseAdmin, memberPlan);
-        const profileRevoke = await commitLifecycleUpdate(utSupabaseAdmin, profilePlan);
-        const lostRace = [memberRevoke, profileRevoke].some(
-          (result) => !result.ok && isRetryableLifecycleFailure(result.reason)
-        );
-        if (lostRace && attempt < MAX_LIFECYCLE_ATTEMPTS) {
+        const memberRevoke = atomicRevoke.member;
+        const profileRevoke = atomicRevoke.profile;
+        if (!atomicRevoke.ok && atomicRevoke.retryable && attempt < MAX_LIFECYCLE_ATTEMPTS) {
           console.warn(
             `Deletion of ${subscription.id} lost its race; re-resolving from fresh linkage and fresh Stripe state`
           );
@@ -639,15 +641,18 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        // (3) PLAN FROM THE PRE-RECONCILIATION SNAPSHOT (no further reads),
-        // then (4) COMMIT conditioned on it.
-        const pastDuePlan = planLifecycleUpdate(pastDueSnapshot, "ut_members", {
-          subscription_status: "past_due",
+        // (3)(4) ONE ATOMIC CALL. Dunning touches ut_members only — `past_due` is
+        // not a revocation, so the profiles mirror is deliberately left alone.
+        // Same synchronization protocol: the exclusive global lifecycle key.
+        const pastDueAtomic = await applyAtomicLifecycleUpdateOne(utSupabaseAdmin, {
+          authority: pastDueAuthorityInput,
+          table: "ut_members",
+          side: { snapshot: pastDueSnapshot, fields: { subscription_status: "past_due" } },
         });
-        const pastDueWrite = await commitLifecycleUpdate(utSupabaseAdmin, pastDuePlan);
+        const pastDueWrite = pastDueAtomic.write;
         if (
-          !pastDueWrite.ok &&
-          isRetryableLifecycleFailure(pastDueWrite.reason) &&
+          !pastDueAtomic.ok &&
+          pastDueAtomic.retryable &&
           attempt < MAX_LIFECYCLE_ATTEMPTS
         ) {
           console.warn(`Dunning for ${customerId} lost its race; re-resolving from fresh state`);

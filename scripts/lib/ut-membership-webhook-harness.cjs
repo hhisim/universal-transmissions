@@ -18,6 +18,9 @@
  *     the snapshot-to-write window, deterministically.
  */
 const path = require("path");
+const fs = require("node:fs");
+const crypto = require("node:crypto");
+const { execFileSync } = require("node:child_process");
 const { registerTsModules, mockModule } = require(path.join(__dirname, "ut-ts-require.cjs"));
 
 const COLUMNS = {
@@ -28,6 +31,254 @@ const COLUMNS = {
                "stripe_subscription_id", "current_period_end", "created_at", "updated_at"],
 };
 
+const PG_BIN = "/usr/lib/postgresql/16/bin";
+const DB_COLUMNS = {
+  ut_members: ["id", "email", "plan", "subscription_status", "stripe_customer_id", "stripe_subscription_id", "current_period_end"],
+  profiles: ["user_id", "email", "plan", "subscription_status", "stripe_customer_id", "stripe_subscription_id", "current_period_end"],
+};
+const PK_COLUMNS = { ut_members: "id", profiles: "user_id" };
+
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, "'\\''")}'`;
+}
+
+function sqlLiteral(value) {
+  if (value === null || value === undefined) return "null";
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function errorText(err) {
+  return `${err?.stderr || ""}${err?.stdout || ""}`.trim();
+}
+
+function stableDbPk(table, raw) {
+  const value = String(raw);
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) return value;
+  const hex = crypto.createHash("sha256").update(`${table}:${value}`).digest("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
+
+function startPrivatePostgres(ROOT) {
+  const scratch = process.env.B14T_TMPDIR || "/var/tmp";
+  fs.mkdirSync(scratch, { recursive: true });
+  const base = fs.mkdtempSync(path.join(scratch, "b14t-"));
+  const sock = path.join(base, "sock");
+  const data = path.join(base, "data");
+  const pgLog = path.join(base, "pg.log");
+  fs.mkdirSync(sock);
+  execFileSync("chown", ["-R", "postgres:postgres", base], { stdio: "ignore" });
+
+  const runAsPostgres = (command, label) => {
+    try {
+      return execFileSync("su", ["postgres", "-c", command], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+    } catch (err) {
+      throw new Error(`${label} failed: ${errorText(err) || err.message}`);
+    }
+  };
+  const writeSql = (name, sql) => {
+    const file = path.join(base, name);
+    fs.writeFileSync(file, `${sql}\n`, { mode: 0o644 });
+    return file;
+  };
+  const applyFile = (file, label) => {
+    runAsPostgres(
+      `PGAPPNAME=b14t psql -h ${shellQuote(sock)} -d postgres -X -q -v ON_ERROR_STOP=1 -f ${shellQuote(file)}`,
+      label
+    );
+  };
+
+  try {
+    runAsPostgres(
+      `${PG_BIN}/initdb -D ${shellQuote(data)} -A trust --no-locale -E UTF8`,
+      "initdb"
+    );
+    runAsPostgres(
+      `${PG_BIN}/pg_ctl -D ${shellQuote(data)} -o ${shellQuote(`-k ${sock} -c listen_addresses= -c deadlock_timeout=1s`)} -l ${shellQuote(pgLog)} -w start`,
+      "pg_ctl start"
+    );
+
+    const schema = `
+create table public.ut_members (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  plan text default 'guest',
+  subscription_status text default 'inactive',
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  current_period_end timestamptz
+);
+create table public.profiles (
+  user_id uuid primary key,
+  email text,
+  plan text default 'guest',
+  subscription_status text default 'inactive',
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  current_period_end timestamptz
+);
+create role anon nologin;
+create role authenticated nologin;
+create role service_role nologin;
+grant usage on schema public to anon, authenticated, service_role;
+`;
+    applyFile(writeSql("schema.sql", schema), "schema");
+
+    const migrations = [
+      "20261012_apply_lifecycle_update.sql",
+      "20261013_lifecycle_linkage_sync.sql",
+      "20261014_lifecycle_sync_wrapper.sql",
+      "20261015_lifecycle_per_entry_skip.sql",
+    ];
+    for (const migration of migrations) {
+      const privateFile = path.join(base, migration);
+      fs.copyFileSync(path.join(ROOT, "supabase/migrations", migration), privateFile);
+      fs.chmodSync(privateFile, 0o644);
+      applyFile(privateFile, migration);
+    }
+  } catch (err) {
+    try { runAsPostgres(`${PG_BIN}/pg_ctl -D ${shellQuote(data)} -m immediate stop`, "pg_ctl stop"); } catch {}
+    fs.rmSync(base, { recursive: true, force: true });
+    throw err;
+  }
+
+  let stopped = false;
+  return {
+    base,
+    sock,
+    data,
+    queryCounter: 0,
+    stop() {
+      if (stopped) return;
+      stopped = true;
+      try {
+        runAsPostgres(`${PG_BIN}/pg_ctl -D ${shellQuote(data)} -m immediate stop`, "pg_ctl stop");
+      } finally {
+        fs.rmSync(base, { recursive: true, force: true });
+      }
+    },
+  };
+}
+
+function runPrivateSql(cluster, sql) {
+  const file = path.join(cluster.base, `.b14t-${cluster.queryCounter++}.sql`);
+  fs.writeFileSync(file, `${sql}\n`, { mode: 0o644 });
+  try {
+    return execFileSync(
+      "su",
+      [
+        "postgres",
+        "-c",
+        `PGAPPNAME=b14t psql -h ${shellQuote(cluster.sock)} -d postgres -X -q -A -t -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -f ${shellQuote(file)}`,
+      ],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+    ).trim();
+  } catch (err) {
+    throw new Error(errorText(err) || err.message);
+  } finally {
+    try { fs.unlinkSync(file); } catch {}
+  }
+}
+
+function dbMapsForTables(tables) {
+  const maps = {
+    ut_members: { rawToDb: new Map(), dbToRaw: new Map() },
+    profiles: { rawToDb: new Map(), dbToRaw: new Map() },
+  };
+  for (const table of Object.keys(maps)) {
+    const column = PK_COLUMNS[table];
+    for (const row of tables[table] || []) {
+      if (row[column] === null || row[column] === undefined) {
+        throw new Error(`${table}.${column} is required for PostgreSQL-backed RPC tests`);
+      }
+      const raw = String(row[column]);
+      const db = stableDbPk(table, raw);
+      maps[table].rawToDb.set(raw, db);
+      maps[table].dbToRaw.set(db, raw);
+    }
+  }
+  return maps;
+}
+
+function dbPkFor(maps, table, raw) {
+  const value = String(raw);
+  const known = maps[table].rawToDb.get(value);
+  if (known) return known;
+  const db = stableDbPk(table, value);
+  maps[table].rawToDb.set(value, db);
+  maps[table].dbToRaw.set(db, value);
+  return db;
+}
+
+function syncTablesToPostgres(cluster, tables, maps) {
+  const statements = ["truncate public.ut_members, public.profiles;"];
+  for (const table of ["ut_members", "profiles"]) {
+    const columns = DB_COLUMNS[table];
+    const pkColumn = PK_COLUMNS[table];
+    for (const row of tables[table] || []) {
+      const values = columns.map((column) => {
+        if (column === pkColumn) return sqlLiteral(dbPkFor(maps, table, row[column]));
+        if (column === "email" && table === "ut_members" && row[column] === undefined) return sqlLiteral("");
+        return sqlLiteral(row[column]);
+      });
+      statements.push(
+        `insert into public.${table} (${columns.join(",")}) values (${values.join(",")});`
+      );
+    }
+  }
+  runPrivateSql(cluster, statements.join("\n"));
+}
+
+function translateRpcPayload(payload, maps) {
+  return payload.map((target) => {
+    const table = target.target;
+    const translated = { ...target };
+    if (Array.isArray(target.seen_pks)) {
+      translated.seen_pks = target.seen_pks.map((pk) => dbPkFor(maps, table, pk));
+    }
+    if (Array.isArray(target.entries)) {
+      translated.entries = target.entries.map((entry) => ({
+        ...entry,
+        pk: dbPkFor(maps, table, entry.pk),
+      }));
+    }
+    return translated;
+  });
+}
+
+function readTablesFromPostgres(cluster, state, maps) {
+  const sql = `
+select json_build_object(
+  'ut_members', coalesce((select json_agg(row_to_json(t)) from (select id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id,current_period_end from public.ut_members order by id) t), '[]'::json),
+  'profiles', coalesce((select json_agg(row_to_json(t)) from (select user_id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id,current_period_end from public.profiles order by user_id) t), '[]'::json)
+)::text;
+`;
+  const parsed = JSON.parse(runPrivateSql(cluster, sql).split("\n").filter(Boolean).pop() || "{}");
+  for (const table of ["ut_members", "profiles"]) {
+    const pkColumn = PK_COLUMNS[table];
+    const previous = state.tables[table] || [];
+    const previousIndex = new Map(previous.map((row, index) => [String(row[pkColumn]), index]));
+    const rows = (parsed[table] || []).map((row) => {
+      const dbPk = String(row[pkColumn]);
+      const rawPk = maps[table].dbToRaw.get(dbPk) || dbPk;
+      const prior = previous.find((candidate) => String(candidate[pkColumn]) === rawPk) || {};
+      const next = { ...prior };
+      for (const column of DB_COLUMNS[table]) {
+        next[column] = column === pkColumn ? rawPk : row[column];
+      }
+      return next;
+    });
+    rows.sort((a, b) => (previousIndex.get(String(a[pkColumn])) ?? Number.MAX_SAFE_INTEGER) - (previousIndex.get(String(b[pkColumn])) ?? Number.MAX_SAFE_INTEGER));
+    state.tables[table] = rows;
+  }
+}
+
+function cloneJson(value) {
+  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
 function createHarness(ROOT) {
   const state = {
     tables: { profiles: [], ut_members: [] },
@@ -37,6 +288,13 @@ function createHarness(ROOT) {
     beforeUpdate: null,
     afterStripe: null,
   };
+
+  const cluster = startPrivatePostgres(ROOT);
+  process.env.B14AF_SOCK = cluster.sock;
+  process.env.B14AF_BASE = cluster.base;
+  const { makePgClient } = require(path.join(ROOT, "scripts/batch14af-atomic-integration.js"));
+  const pgClient = makePgClient();
+  process.once("exit", () => cluster.stop());
 
   function reset() {
     state.tables = { profiles: [], ut_members: [] };
@@ -49,6 +307,43 @@ function createHarness(ROOT) {
 
   function dbClient() {
     return {
+      rpc: async (name, args) => {
+        const payload = cloneJson(args?.p_targets);
+        const write = { op: "rpc", name, payload };
+        state.writes.push(write);
+
+        try {
+          if (!Array.isArray(payload)) {
+            throw new Error("atomic RPC payload must contain p_targets[]");
+          }
+          const hookTarget = payload.find((target) => target?.target === "ut_members") || payload[0];
+          if (state.beforeUpdate) {
+            state.beforeUpdate(hookTarget?.target, { op: "rpc", name, payload: cloneJson(payload) });
+          }
+
+          const maps = dbMapsForTables(state.tables);
+          syncTablesToPostgres(cluster, state.tables, maps);
+          const postgresPayload = translateRpcPayload(payload, maps);
+          write.pgPayload = cloneJson(postgresPayload);
+          const result = await pgClient.rpc(name, { ...(args || {}), p_targets: postgresPayload });
+          write.data = cloneJson(result.data);
+          write.error = cloneJson(result.error);
+          readTablesFromPostgres(cluster, state, maps);
+          return result;
+        } catch (err) {
+          const error = {
+            code: err?.code,
+            message: err instanceof Error ? err.message : String(err),
+            details: err?.details,
+          };
+          write.error = error;
+          try {
+            const maps = dbMapsForTables(state.tables);
+            readTablesFromPostgres(cluster, state, maps);
+          } catch {}
+          return { data: null, error };
+        }
+      },
       from(table) {
         const ctx = { table, filters: [], payload: null, op: null, returning: false };
         const rows = () => state.tables[table];
@@ -186,8 +481,27 @@ function createHarness(ROOT) {
     post,
     bodyOf,
     /** Rows that actually CHANGED. A statement that affected nothing is not one. */
-    applied: () => state.writes.filter((w) => w.op === "update" && w.matched > 0),
-    attempts: () => state.writes.filter((w) => w.op === "update" || w.op === "update-FAILED"),
+    applied: () => {
+      const rows = [];
+      for (const write of state.writes) {
+        if (write.op === "update" && write.matched > 0) {
+          for (let i = 0; i < write.matched; i += 1) rows.push(write);
+        }
+        if (write.op === "rpc" && Array.isArray(write.data)) {
+          for (const outcome of write.data) {
+            const affected = Number(outcome?.affected) || 0;
+            for (let i = 0; i < affected; i += 1) {
+              rows.push({ ...write, target: outcome.target, outcome, affected: 1 });
+            }
+          }
+        }
+      }
+      return rows;
+    },
+    /** Attempts are calls/statements entered; they are not affected-row counts. */
+    attempts: () => state.writes.filter((w) =>
+      w.op === "update" || w.op === "update-FAILED" || w.op === "rpc"
+    ),
     inserts: () => state.writes.filter((w) => w.op === "insert"),
     effRes: (email) => resolveMembershipPlan(dbClient(), email),
     /** Resolved plan, or READ_ERROR — never treated as an answer. */

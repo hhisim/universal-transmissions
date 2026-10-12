@@ -1,6 +1,6 @@
 # Batch 14af — the integrated TypeScript lifecycle path, against the real primitive
 
-Baseline `57c99de`. Preparation only: no production SQL, no release.
+Baseline `7dca844`. Preparation only: no production SQL, no production configuration, no release.
 
 ## What this batch connects
 
@@ -10,9 +10,10 @@ deletion, dunning — now have a single atomic write path in
 applied by the reviewed primitive in ONE transaction, so a conflict aborts both
 rather than leaving access PAID with the mirror unwritten.
 
-**Scope of this commit: the module, the SQL candidate, the integration harness
-and this review.** The three call sites in `stripe-webhook/route.ts` are NOT yet
-switched — see *Not done*, below.
+**Scope of this commit: the module, the SQL candidate, the integration harness, the
+three route call-site switches, the PostgreSQL-backed webhook regression harness,
+and this review.** The candidate SQL remains private-cluster-only and is not applied
+to production.
 
 ## Requirement 1 — payload/call boundary (accepted)
 
@@ -121,25 +122,41 @@ locked dependencies installed via `npm ci`.
   after the primitive committed must be treated as indeterminate — it must not
   be reported as a rollback.
 
-## Not done — and why it is not folded in
+## Route switch and webhook regression harness — completed
 
-* **The three call sites in `route.ts` are not switched.** The route still uses
-  the TypeScript conditional-write path.
-* **The webhook regression tests are not yet adapted.** The adaptation is
-  authorized, but switching the route without it turns the frozen Batch 14t
-  regression red (9 assertions), because that harness mocks the per-table
-  `.update()` path and has no `.rpc()` surface. Adapting it means giving the fake
-  client the same PostgreSQL-backed `rpc` — reusing this adapter — counting RPC
-  calls in `attempts()`, and re-pointing T1/T2/T3 while preserving their
-  entitlement, snapshot-timing and race assertions.
+* `src/app/api/stripe-webhook/route.ts` now sends subscription create/update and
+  deletion through `applyAtomicLifecycleUpdate`, and invoice dunning through
+  `applyAtomicLifecycleUpdateOne`. The pre-Stripe snapshots and bounded retry
+  remain in the route.
+* `scripts/lib/ut-membership-webhook-harness.cjs` now starts a disposable private
+  PostgreSQL 16 cluster on a Unix socket, applies the schema and the four prepared
+  private-cluster SQL files, and reuses the exported `makePgClient()` adapter from
+  `batch14af-atomic-integration.js`. It synchronizes the in-memory fixtures before
+  every RPC (including post-snapshot mutations), translates test-only primary-key
+  labels to UUIDs required by the real schema, records `{op: "rpc", name, payload}`
+  calls, and reads committed rows back into `state.tables`.
+* `attempts()` counts entered `.update()` statements and RPC calls. `applied()`
+  counts rows from `.update().matched` and each RPC outcome's `affected`; those
+  measures are intentionally separate.
+* The reviewed migration remains untouched; the harness applies a copied private
+  file and the final blob is checked before commit.
 
-Both are the same piece of work and belong in one commit with the route switch.
+The adapted snapshot-timing suite preserves all entitlement, warning, timing and
+retry assertions: **27 passed / 0 failed**. The related concurrency and lifecycle
+authorization suites also pass (**41 / 0** and **21 / 0**). The separate unlinked-row
+suite remains its documented pinned defect (**8 passed / 2 failed**); those failures
+are the pre-existing proposal in its own review, not this route switch.
 
 ## Unchanged / verified
 
 * `npx tsc --noEmit` → exit 0.
-* `scripts/batch14t-snapshot-timing.js` → passed, 0 failures (the additions are
-  additive and the route is untouched).
+* `npm run build` → exit 0. Existing warnings remain: outdated Browserslist data,
+  the Node 18 deprecation notice from Supabase, and the expected dynamic-server
+  usage diagnostic for `/api/billing/session` during static generation.
+* `scripts/batch14t-snapshot-timing.js` → 27 passed / 0 failed with the switched
+  route and PostgreSQL-backed fake client.
+* `scripts/batch14af-atomic-integration.sh` → 24 passed / 0 failed against private
+  PostgreSQL 16.
 * The reviewed primitive: `251d8e4c3a395bc0b73e64d51127955638c039f4`, byte-identical.
 
 ## Release blockers — all still outstanding

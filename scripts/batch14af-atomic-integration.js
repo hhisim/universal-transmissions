@@ -20,17 +20,15 @@ const fs = require("node:fs");
 const { execFileSync } = require("node:child_process");
 
 const ROOT = path.resolve(__dirname, "..");
-const SOCK = process.env.B14AF_SOCK;
-const BASE = process.env.B14AF_BASE;
-if (!SOCK || !BASE) {
-  console.error("B14AF_SOCK and B14AF_BASE must be set (run the .sh harness)");
-  process.exit(2);
-}
 
-// The real module, compiled from src/lib by the harness. Nothing here is a
-// second implementation: this is the TypeScript source, transpiled.
-const ATOMIC_JS = process.env.B14AF_ATOMIC_JS || path.join(ROOT, "src/lib/membership-lifecycle-atomic.js");
-const atomic = require(ATOMIC_JS);
+function harnessEnv() {
+  const sock = process.env.B14AF_SOCK;
+  const base = process.env.B14AF_BASE;
+  if (!sock || !base) {
+    throw new Error("B14AF_SOCK and B14AF_BASE must be set (run the .sh harness)");
+  }
+  return { sock, base };
+}
 
 const CUS = "cus_A";
 const SUB = "sub_A";
@@ -50,7 +48,8 @@ function check(name, expected, actual) {
 }
 
 function psql(sqlText) {
-  const f = path.join(BASE, ".p.sql");
+  const { sock, base } = harnessEnv();
+  const f = path.join(base, ".p.sql");
   fs.writeFileSync(f, sqlText + "\n");
   fs.chmodSync(f, 0o644);
   try {
@@ -59,7 +58,7 @@ function psql(sqlText) {
       [
         "postgres",
         "-c",
-        `PGAPPNAME=b14af psql -h ${SOCK} -d postgres -X -q -A -t -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -f ${f}`,
+        `PGAPPNAME=b14af psql -h ${sock} -d postgres -X -q -A -t -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -f ${f}`,
       ],
       { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
     );
@@ -171,6 +170,10 @@ const profileRow = (id) =>
 const CANCELLED = "guest|canceled|<null>";
 
 async function main() {
+  // The real module, compiled from src/lib by the harness. Nothing here is a
+  // second implementation: this is the TypeScript source, transpiled.
+  const ATOMIC_JS = process.env.B14AF_ATOMIC_JS || path.join(ROOT, "src/lib/membership-lifecycle-atomic.js");
+  const atomic = require(ATOMIC_JS);
   const client = makePgClient();
   const authority = { customerId: CUS, subscriptionIds: [SUB] };
   const revoke = {
@@ -350,7 +353,11 @@ async function main() {
   process.exit(failures.length === 0 ? 0 : 1);
 }
 
-main().catch((err) => {
-  console.error(`HARNESS ERROR: ${err && err.message ? err.message : err}`);
-  process.exit(2);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(`HARNESS ERROR: ${err && err.message ? err.message : err}`);
+    process.exit(2);
+  });
+}
+
+module.exports = { makePgClient };
