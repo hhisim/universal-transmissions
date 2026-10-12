@@ -298,6 +298,7 @@ async function main() {
       { id: OTHER_PK, plan: "gold", status: "active", cus: CUS, sub: null },
     ];
     const excludedBefore = memberRow(OTHER_PK);
+    psql("delete from public.b14af_update_log;");
     const res = await atomic.applyAtomicLifecycleUpdate(client, {
       authority,
       member: {
@@ -315,6 +316,29 @@ async function main() {
     check("S5 report: located count", "2", res.member.resolved);
     check("S5 the EXCLUDED row received no UPDATE", excludedBefore, memberRow(OTHER_PK));
     check("S5 the excluded row kept its out-of-vocabulary plan", "gold|active|<null>", memberRow(OTHER_PK));
+    // Instrumented: an AFTER UPDATE row trigger fires even for a no-op UPDATE,
+    // so unchanged values alone would NOT prove that no UPDATE was issued.
+    check(
+      "S5 ZERO UPDATEs reached the excluded row (instrumented)",
+      "0",
+      scalar(
+        `select count(*) from public.b14af_update_log where tbl='ut_members' and row_id='${OTHER_PK}'`
+      )
+    );
+    check(
+      "S5 the eligible row WAS updated — the instrumentation is live",
+      "1",
+      scalar(
+        `select count(*) from public.b14af_update_log where tbl='ut_members' and row_id='${MEMBER_PK}'`
+      )
+    );
+    check(
+      "S5 the mirror was updated exactly once",
+      "1",
+      scalar(
+        `select count(*) from public.b14af_update_log where tbl='profiles' and row_id='${MEMBER_PK}'`
+      )
+    );
   }
 
   console.log("");

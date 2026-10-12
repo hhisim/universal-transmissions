@@ -111,9 +111,75 @@ done
 chkeq "the synchronized entry point is installed" "apply_lifecycle_update_sync_global" \
   "$(q "select proname from pg_proc where proname='apply_lifecycle_update_sync_global'")"
 
+# UPDATE instrumentation. An AFTER UPDATE row trigger fires even when the values
+# are unchanged, so it detects a no-op UPDATE that a value comparison would miss.
+cat >"$BASE/instrument.sql" <<'EOF'
+create table public.b14af_update_log (tbl text, row_id uuid);
+create or replace function public.b14af_log_update() returns trigger language plpgsql as $$
+declare v_id uuid;
+begin
+  if TG_TABLE_NAME = 'ut_members' then v_id := NEW.id; else v_id := NEW.user_id; end if;
+  insert into public.b14af_update_log values (TG_TABLE_NAME, v_id);
+  return NEW;
+end $$;
+create trigger b14af_ut_members_update after update on public.ut_members
+  for each row execute function public.b14af_log_update();
+create trigger b14af_profiles_update after update on public.profiles
+  for each row execute function public.b14af_log_update();
+EOF
+chmod 644 "$BASE/instrument.sql"
+su postgres -c "psql -h $SOCK -d postgres -X -q -v ON_ERROR_STOP=1 -f $BASE/instrument.sql" >"$BASE/instrument.out" 2>&1 \
+  || { echo "instrumentation FAILED"; cat "$BASE/instrument.out"; exit 2; }
+echo "  ok   UPDATE instrumentation installed"
+
+echo ""
+echo "== compile the real TypeScript module (disposable output, result checked) =="
+OUT="$BASE/ts-out"
+mkdir -p "$OUT"
+cat >"$BASE/tsconfig.build.json" <<EOF
+{
+  "extends": "$REPO/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "$OUT",
+    "rootDir": "$REPO/src",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "declaration": false,
+    "sourceMap": false,
+    "incremental": false,
+    "composite": false,
+    "tsBuildInfoFile": "$OUT/.tsbuildinfo"
+  },
+  "include": [],
+  "exclude": [],
+  "files": ["$REPO/src/lib/membership-lifecycle-atomic.ts"]
+}
+EOF
+chmod 644 "$BASE/tsconfig.build.json"
+# The repo's OWN compiler, so the compile does not depend on what npx resolves.
+if [ -x "$REPO/node_modules/.bin/tsc" ]; then
+  TSC="$REPO/node_modules/.bin/tsc"
+elif [ -f "$REPO/node_modules/typescript/bin/tsc" ]; then
+  TSC="node $REPO/node_modules/typescript/bin/tsc"
+else
+  echo "  FAIL no TypeScript compiler in $REPO/node_modules"; exit 2
+fi
+( cd "$REPO" && $TSC -p "$BASE/tsconfig.build.json" ) >"$BASE/tsc.log" 2>&1
+tsc_rc=$?
+if [ "$tsc_rc" -ne 0 ]; then
+  echo "  FAIL the module did not compile (rc=$tsc_rc)"; tail -20 "$BASE/tsc.log"; exit 2
+fi
+ATOMIC_JS="$OUT/lib/membership-lifecycle-atomic.js"
+if [ ! -f "$ATOMIC_JS" ]; then echo "  FAIL the compile produced no module at $ATOMIC_JS"; exit 2; fi
+chmod 755 "$OUT"; chmod 644 "$ATOMIC_JS"
+chkeq "the module compiled with the project's own compiler options" "0" "$tsc_rc"
+echo "  ok   compiled $(basename "$ATOMIC_JS") from src/lib"
+
 echo ""
 echo "== integrated TypeScript path against the real primitive =="
-B14AF_SOCK="$SOCK" B14AF_BASE="$BASE" node "$REPO/scripts/batch14af-atomic-integration.js"
+B14AF_SOCK="$SOCK" B14AF_BASE="$BASE" B14AF_ATOMIC_JS="$ATOMIC_JS" \
+  node "$REPO/scripts/batch14af-atomic-integration.js"
 rc=$?
 
 echo ""

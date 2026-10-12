@@ -28,6 +28,15 @@
  * and the shared global variant deadlocks on lock upgrade while the exclusive
  * one does not).
  *
+ * COVERAGE OF DIRECT WRITERS IS CONDITIONAL. The wrapper alone synchronises
+ * only writers that go THROUGH it — a cooperative protocol. A writer that never
+ * takes the key (a plain direct INSERT or UPDATE in SQL) is covered ONLY when
+ * the matching trigger protocol is installed alongside it. Measured in Batch
+ * 14ad (D3c): the per-identity wrapper does not compose with the global-key
+ * trigger — they contend on different locks — and a direct writer committed
+ * inside the window. Do not read "the wrapper is installed" as "direct writers
+ * are covered".
+ *
  * It is deliberately uniform: mixing protocols per path would leave some writes
  * outside the lock and reintroduce the race the protocol exists to close.
  *
@@ -297,8 +306,14 @@ function refuseBoth(table: LifecycleTable, invalid: string): AtomicLifecycleResu
 /**
  * Apply the caller's decision for both tables in ONE transaction.
  *
- * On failure NOTHING was written — the primitive rolls both targets back — so
- * both sides are reported as failed rather than one pretending to have succeeded.
+ * On failure NOTHING was written *when the failure carries an explicit conflict
+ * class* — a `BATCH14` error means the transaction did not commit, so both sides
+ * are reported as failed rather than one pretending to have succeeded.
+ *
+ * THAT IS NOT TRUE OF EVERY FAILURE. If the transport fails after the primitive
+ * committed, the caller sees an error for a transaction that DID commit: commit
+ * status is then UNKNOWN and must not be reported as a rollback. Only an explicit
+ * conflict class is evidence that nothing landed.
  */
 export async function applyAtomicLifecycleUpdate(
   client: SupabaseClient,
