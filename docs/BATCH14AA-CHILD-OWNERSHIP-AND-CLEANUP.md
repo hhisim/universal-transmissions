@@ -39,8 +39,17 @@ run" — was an **untested claim**.
   `$!` is the **harness process**, and `wait` returns the **harness's own status**
   rather than a wrapper's.
 - **`set -m`** gives each background job its **own process group**, whose leader
-  is that same PID. `kill -TERM -"$CHILD"` therefore reaches the harness *and*
-  everything it spawned (its psql clients, its postgres cluster).
+  is that same PID, so a signal can be directed at the group rather than a single
+  process.
+
+> **Correction (Batch 14ab) — what is actually proven.** The group signal is the
+> *mechanism*; it is not a measured property. The interruption test asserts that
+> **the owned harness PID terminated**, that the workspace and pointer were
+> removed, and that the tracked file is unchanged. It does **not** verify that
+> every PostgreSQL descendant — `psql` clients, `postgres` backends, the cluster
+> — terminated, and no claim is made that the PID assertion demonstrates that.
+> Process-group delivery is reachable in principle; descendants were not
+> enumerated or asserted on.
 - The child PID is published to `$BASE/child.pid` while a run is in flight, and
   removed when it finishes — this is what lets the interruption test name the
   specific worker instead of guessing.
@@ -126,6 +135,12 @@ check then reports it gone after SIGKILL — so we know it can distinguish the t
 **Only SIGTERM, only against a runner-launched run.** The runner traps INT and
 HUP as well; those combinations are **not** tested here and no claim is made about
 them.
+
+**What the assertions cover:** the owned harness PID stopping, the workspace and
+pointer being removed, and tracked-file preservation. **What they do not cover:**
+termination of the harness's PostgreSQL descendants. The PID assertion is not
+evidence about `psql` clients, `postgres` backends, or the cluster directory; those
+were not enumerated or asserted on in this batch.
 
 ## 5. Re-run against the unchanged migration
 
