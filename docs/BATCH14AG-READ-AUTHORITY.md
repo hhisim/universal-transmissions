@@ -22,6 +22,15 @@ decided entitlement.
 
 ## 2. The authority definition
 
+**SUPERSEDED BY BATCH 14ah** (`docs/BATCH14AH-DURABLE-AUTHORITY.md`). The rule below
+turned on **identifier presence**, and `api/billing/checkout` writes `stripe_customer_id`
+at CUSTOMER CREATION with no reconciliation behind it — so a checkout could suppress a
+legitimate legacy paid row and bypass a recorded revocation. Authority is now explicit
+evidence of a **completed, verified subscription reconciliation**
+(`entitlement_authority_at`). The alternative reading below is kept as the record of what
+was decided at this batch, and the general shape (evidence-only rows decide; no evidence
+⇒ previous rule; contradiction ⇒ fail closed) survived the change.
+
 An identifier is **present** when the stored value is a string with non-whitespace
 content. `""`, `"   "`, `null` and a missing column are all **absent**.
 

@@ -11,21 +11,28 @@
  *
  * The rule now implemented in src/lib/membership-plan.ts:
  *
- *   UNLINKED  — neither `stripe_customer_id` nor `stripe_subscription_id` is
- *               present. Nothing ties the row to the relationship the address was
- *               granted through, so it may neither GRANT nor REVOKE while a linked
- *               row exists for the same address. Reported as `unaddressable`,
- *               never rewritten by address.
- *   LINKED    — carries a customer id and/or a subscription id. That makes it a
- *               CANDIDATE only: a non-empty identifier alone is insufficient,
- *               because the candidates must agree about who the membership
- *               belongs to.
- *   NO LINKED ROW — no verified relationship to prefer, so the previous rule
- *               stands unchanged (highest plan wins; ut_members status revokes).
- *               This is what preserves legitimate legacy access.
- *   CONTRADICTION — two linked rows naming DIFFERENT customers: the stored state
- *               does not say which governs, so the read fails closed rather than
- *               guessing.
+ *   ATTESTED  — carries `entitlement_authority_at`: explicit evidence that a
+ *               COMPLETED, VERIFIED subscription reconciliation produced the row.
+ *               Such a row may GRANT and REVOKE.
+ *   UNATTESTED — no reconciliation on record: legacy rows, rows a checkout wrote
+ *               at customer creation, hand-seeded rows. An unattested row
+ *               contributes NOTHING while an attested row exists for the same
+ *               address. Reported as `unaddressable`, never rewritten by address.
+ *   NO ATTESTED ROW — nothing to prefer, so the previous rule stands unchanged
+ *               (highest plan wins; ut_members status revokes). This preserves
+ *               legitimate legacy access.
+ *   CONTRADICTION — two attested rows that disagree about the relationship they
+ *               record (a different customer, or a different subscription): the
+ *               stored state does not say which governs, so the read fails closed
+ *               rather than guessing.
+ *
+ * BATCH 14ah SUPERSEDED IDENTIFIER PRESENCE. A3 and A6/A7 were re-pointed when
+ * the contract changed: at the time this suite was written, "records a Stripe
+ * identifier" was the authority test; `api/billing/checkout` writes a
+ * `stripe_customer_id` at CUSTOMER CREATION with no reconciliation behind it, so
+ * that test let a checkout suppress a legacy paid row and lift a revocation. The
+ * cases below now turn on reconciliation evidence, and the two counterexamples
+ * live in scripts/batch14ah-durable-authority.js.
  *
  * Part A pins the rule with direct reader controls. Part B runs the two PINNED
  * cases through the real handler and adds the evidence batch14s could not express
@@ -46,6 +53,8 @@ const CUS = "cus_1";
 const OTHER_CUS = "cus_OTHER";
 const A = "sub_A";
 const B = "sub_B";
+/** What a completed, verified reconciliation records. */
+const STAMP = "2026-05-01T00:00:00.000Z";
 const PROF = () => state.tables.profiles[0] || {};
 const MEM = () => state.tables.ut_members[0] || {};
 
@@ -78,6 +87,7 @@ const memberState = (row) => JSON.stringify({
   stripe_customer_id: row.stripe_customer_id ?? null,
   stripe_subscription_id: row.stripe_subscription_id ?? null,
   current_period_end: row.current_period_end ?? null,
+  entitlement_authority_at: row.entitlement_authority_at ?? null,
 });
 
 /** Direct reader controls: no handler, no Stripe — just the stored rows. */
@@ -98,7 +108,7 @@ const read = () => h.effRes(EMAIL);
   ok(res.ok && res.membership.plan === "initiate",
     "A1 the only row is paid and unlinked -> it still grants (got " + (res.ok ? res.membership.plan : "error") + ")");
   ok(res.ok && (res.membership.unaddressable || []).length === 0,
-    "A1 nothing is reported unaddressable when no row is linked");
+    "A1 nothing is reported unaddressable when no row has reconciliation evidence");
 
   // ── A2 legacy revocation: no linkage anywhere -> status still revokes ────
   console.log("  --- A2 no link at all: a legacy revocation still revokes ---");
@@ -108,68 +118,77 @@ const read = () => h.effRes(EMAIL);
     "A2 an unlinked revocation still revokes when nothing is linked (got " + (res.ok ? res.membership.plan + "/" + res.membership.source : "error") + ")");
 
   // ── A3 customer-only linkage earns authority ─────────────────────────────
-  console.log("  --- A3 customer-only linkage earns authority ---");
+  console.log("  --- A3 a customer-only identifier is NOT authority (14ah) ---");
+  seed(
+    [{ user_id: "u1", plan: "guest", subscription_status: "inactive", stripe_customer_id: CUS, stripe_subscription_id: null, entitlement_authority_at: STAMP }],
+    [{ plan: "initiate", subscription_status: "active", stripe_customer_id: null, stripe_subscription_id: null }]
+  );
+  res = await read();
+  ok(res.ok && res.membership.plan === "guest",
+    "A3 the ATTESTED row decides; the unattested paid row does not outrank it (got " + (res.ok ? res.membership.plan : "error") + ")");
+  ok(res.ok && JSON.stringify(res.membership.unaddressable) === JSON.stringify(["ut_members"]),
+    "A3 the unattested table is reported unaddressable (got " + JSON.stringify(res.membership.unaddressable) + ")");
+  // The same shape with NO evidence: the identifier must decide nothing, so the
+  // legacy rule applies and the paid row keeps its access.
   seed(
     [{ user_id: "u1", plan: "guest", subscription_status: "inactive", stripe_customer_id: CUS, stripe_subscription_id: null }],
     [{ plan: "initiate", subscription_status: "active", stripe_customer_id: null, stripe_subscription_id: null }]
   );
   res = await read();
-  ok(res.ok && res.membership.plan === "guest",
-    "A3 the customer-linked row decides; the unlinked paid row does not outrank it (got " + (res.ok ? res.membership.plan : "error") + ")");
-  ok(res.ok && JSON.stringify(res.membership.unaddressable) === JSON.stringify(["ut_members"]),
-    "A3 the unlinked table is reported unaddressable (got " + JSON.stringify(res.membership.unaddressable) + ")");
+  ok(res.ok && res.membership.plan === "initiate",
+    "A3 WITHOUT evidence a customer id decides nothing; the legacy rule applies (got " + (res.ok ? res.membership.plan : "error") + ")");
 
   // ── A4 subscription-only linkage earns authority ─────────────────────────
-  console.log("  --- A4 subscription-only linkage earns authority ---");
+  console.log("  --- A4 an attested subscription-only row earns authority (14ah) ---");
   seed(
     [{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: null, stripe_subscription_id: null }],
-    [{ plan: "guest", subscription_status: "canceled", stripe_customer_id: null, stripe_subscription_id: A }]
+    [{ plan: "guest", subscription_status: "canceled", stripe_customer_id: null, stripe_subscription_id: A, entitlement_authority_at: STAMP }]
   );
   res = await read();
   ok(res.ok && res.membership.plan === "guest" && res.membership.source === "revoked",
-    "A4 a subscription-linked revocation revokes; the unlinked paid row cannot veto it (got " + (res.ok ? res.membership.plan + "/" + res.membership.source : "error") + ")");
+    "A4 an attested revocation revokes; the unattested paid row cannot veto it (got " + (res.ok ? res.membership.plan + "/" + res.membership.source : "error") + ")");
 
   // ── A5 profiles-only membership, linked and unlinked ─────────────────────
   console.log("  --- A5 profiles-only membership ---");
-  seed([{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS }], []);
+  seed([{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, entitlement_authority_at: STAMP }], []);
   res = await read();
   ok(res.ok && res.membership.plan === "initiate" && res.membership.source === "profiles",
-    "A5 a LINKED profiles-only member is entitled from that row (got " + (res.ok ? res.membership.plan : "error") + ")");
+    "A5 an ATTESTED profiles-only member is entitled from that row (got " + (res.ok ? res.membership.plan : "error") + ")");
   seed([{ user_id: "u1", plan: "initiate", subscription_status: "active" }], []);
   res = await read();
   ok(res.ok && res.membership.plan === "initiate",
-    "A5 an UNLINKED profiles-only member keeps today's treatment (got " + (res.ok ? res.membership.plan : "error") + ")");
+    "A5 an UNATTESTED profiles-only member keeps today's treatment (got " + (res.ok ? res.membership.plan : "error") + ")");
 
   // ── A6 contradictory customers fail closed ───────────────────────────────
-  console.log("  --- A6 contradictory linked customers ---");
+  console.log("  --- A6 contradictory customers between ATTESTED rows (14ah) ---");
   seed(
-    [{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS }],
-    [{ plan: "initiate", subscription_status: "active", stripe_customer_id: OTHER_CUS }]
+    [{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, entitlement_authority_at: STAMP }],
+    [{ plan: "initiate", subscription_status: "active", stripe_customer_id: OTHER_CUS, entitlement_authority_at: STAMP }]
   );
   res = await read();
   ok(res.ok === false && res.reason === "ambiguous",
-    "A6 two linked rows naming different customers FAIL CLOSED rather than picking one (got " + JSON.stringify(res.ok ? res.membership.plan : res.reason) + ")");
+    "A6 two attested rows naming different customers FAIL CLOSED rather than picking one (got " + JSON.stringify(res.ok ? res.membership.plan : res.reason) + ")");
   ok(res.ok === false && /different Stripe customers/.test(res.detail || ""),
     "A6 the contradiction is named (got " + (res.ok ? "-" : res.detail) + ")");
   ok(await h.eff(EMAIL) === "READ_ERROR",
     "A6 an unreadable authority is never reported as a plan");
 
   // ── A7 agreeing linked rows: established behaviour preserved ─────────────
-  console.log("  --- A7 two linked, agreeing rows ---");
+  console.log("  --- A7 two attested, agreeing rows (14ah) ---");
   seed(
-    [{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS }],
-    [{ plan: "free", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: A }]
+    [{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, entitlement_authority_at: STAMP }],
+    [{ plan: "free", subscription_status: "active", stripe_customer_id: CUS, stripe_subscription_id: A, entitlement_authority_at: STAMP }]
   );
   res = await read();
   ok(res.ok && res.membership.plan === "initiate",
     "A7 highest plan still wins between authoritative rows (got " + (res.ok ? res.membership.plan : "error") + ")");
   seed(
-    [{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS }],
-    [{ plan: "guest", subscription_status: "canceled", stripe_customer_id: CUS }]
+    [{ user_id: "u1", plan: "initiate", subscription_status: "active", stripe_customer_id: CUS, entitlement_authority_at: STAMP }],
+    [{ plan: "guest", subscription_status: "canceled", stripe_customer_id: CUS, entitlement_authority_at: STAMP }]
   );
   res = await read();
   ok(res.ok && res.membership.plan === "guest" && res.membership.source === "revoked",
-    "A7 a LINKED revocation still overrides a stale paid mirror (got " + (res.ok ? res.membership.plan : "error") + ")");
+    "A7 an ATTESTED revocation still overrides a stale paid mirror (got " + (res.ok ? res.membership.plan : "error") + ")");
 
   // ── B1 PINNED U1: cancellation vs an unlinked stale paid row ─────────────
   console.log("  --- B1 pinned U1: cancellation must override an unlinked stale paid row ---");

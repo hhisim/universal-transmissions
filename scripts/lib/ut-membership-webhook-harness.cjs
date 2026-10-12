@@ -26,15 +26,16 @@ const { registerTsModules, mockModule } = require(path.join(__dirname, "ut-ts-re
 const COLUMNS = {
   profiles: ["user_id", "email", "display_name", "plan", "subscription_status",
              "stripe_customer_id", "stripe_subscription_id", "current_period_end",
-             "created_at", "updated_at"],
+             "entitlement_authority_at", "created_at", "updated_at"],
   ut_members: ["id", "email", "plan", "subscription_status", "stripe_customer_id",
-               "stripe_subscription_id", "current_period_end", "created_at", "updated_at"],
+               "stripe_subscription_id", "current_period_end", "entitlement_authority_at",
+               "created_at", "updated_at"],
 };
 
 const PG_BIN = "/usr/lib/postgresql/16/bin";
 const DB_COLUMNS = {
-  ut_members: ["id", "email", "plan", "subscription_status", "stripe_customer_id", "stripe_subscription_id", "current_period_end"],
-  profiles: ["user_id", "email", "plan", "subscription_status", "stripe_customer_id", "stripe_subscription_id", "current_period_end"],
+  ut_members: ["id", "email", "plan", "subscription_status", "stripe_customer_id", "stripe_subscription_id", "current_period_end", "entitlement_authority_at"],
+  profiles: ["user_id", "email", "plan", "subscription_status", "stripe_customer_id", "stripe_subscription_id", "current_period_end", "entitlement_authority_at"],
 };
 const PK_COLUMNS = { ut_members: "id", profiles: "user_id" };
 
@@ -131,6 +132,7 @@ grant usage on schema public to anon, authenticated, service_role;
       "20261013_lifecycle_linkage_sync.sql",
       "20261014_lifecycle_sync_wrapper.sql",
       "20261015_lifecycle_per_entry_skip.sql",
+      "20261016_entitlement_authority.sql",
     ];
     for (const migration of migrations) {
       const privateFile = path.join(base, migration);
@@ -251,8 +253,8 @@ function translateRpcPayload(payload, maps) {
 function readTablesFromPostgres(cluster, state, maps) {
   const sql = `
 select json_build_object(
-  'ut_members', coalesce((select json_agg(row_to_json(t)) from (select id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id,current_period_end from public.ut_members order by id) t), '[]'::json),
-  'profiles', coalesce((select json_agg(row_to_json(t)) from (select user_id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id,current_period_end from public.profiles order by user_id) t), '[]'::json)
+  'ut_members', coalesce((select json_agg(row_to_json(t)) from (select id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id,current_period_end,entitlement_authority_at from public.ut_members order by id) t), '[]'::json),
+  'profiles', coalesce((select json_agg(row_to_json(t)) from (select user_id,email,plan,subscription_status,stripe_customer_id,stripe_subscription_id,current_period_end,entitlement_authority_at from public.profiles order by user_id) t), '[]'::json)
 )::text;
 `;
   const parsed = JSON.parse(runPrivateSql(cluster, sql).split("\n").filter(Boolean).pop() || "{}");

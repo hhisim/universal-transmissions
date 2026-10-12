@@ -38,6 +38,8 @@ export interface MembershipRow {
   stripe_subscription_id?: string | null;
   subscription_status?: string | null;
   current_period_end?: string | null;
+  /** Batch 14ah: when a completed, verified reconciliation produced this row. */
+  entitlement_authority_at?: string | null;
   created_at?: string | null;
 }
 
@@ -97,12 +99,25 @@ export function linkageId(value?: string | null): string | null {
 }
 
 /**
- * READ AUTHORITY — does this row carry a VERIFIED Stripe relationship at all?
+ * READ AUTHORITY — does this row carry EXPLICIT EVIDENCE that a completed,
+ * verified subscription reconciliation produced its state?
  *
- * This makes a row a CANDIDATE and nothing more: a bare identifier is never
- * sufficient on its own, because the candidate set must also be consistent
- * before it may decide entitlement. See the authority block in
- * `resolveMembershipPlan`.
+ * This is the authority test, and it is the ONLY one. Identifier presence is
+ * deliberately NOT authority: `api/billing/checkout` writes `stripe_customer_id`
+ * at CUSTOMER CREATION, with no subscription reconciliation behind it, so
+ * "this row records a Stripe id" would let a checkout suppress a legitimate
+ * legacy paid row and lift a recorded revocation.
+ */
+export function hasReconciliationEvidence(row: MembershipRow | null | undefined): boolean {
+  const stamp = row?.entitlement_authority_at;
+  return typeof stamp === "string" && stamp.trim().length > 0;
+}
+
+/**
+ * Does the row record any Stripe identifier?
+ *
+ * Used ONLY as the consistency check between rows that already have authority —
+ * never as an authority test.
  */
 export function hasVerifiedStripeLinkage(row: MembershipRow | null | undefined): boolean {
   if (!row) return false;
@@ -128,9 +143,10 @@ export function planRank(plan?: string | null): number {
   }
 }
 
-const PROFILE_COLUMNS = "plan,stripe_customer_id,stripe_subscription_id,subscription_status";
+const PROFILE_COLUMNS =
+  "plan,stripe_customer_id,stripe_subscription_id,subscription_status,entitlement_authority_at";
 const MEMBER_COLUMNS =
-  "plan,stripe_customer_id,stripe_subscription_id,subscription_status,current_period_end,created_at";
+  "plan,stripe_customer_id,stripe_subscription_id,subscription_status,current_period_end,created_at,entitlement_authority_at";
 
 /**
  * Read both membership tables for one verified address and resolve the plan.
@@ -175,61 +191,74 @@ export async function resolveMembershipPlan(
 
     // ── READ AUTHORITY ───────────────────────────────────────────────────────
     //
-    // A row earns authority ONLY through a verified Stripe relationship:
+    // A row may decide entitlement only when it carries EXPLICIT EVIDENCE of a
+    // completed, verified subscription reconciliation — the timestamp a lifecycle
+    // writer persists ATOMICALLY with the decision it made from Stripe's current
+    // state:
     //
-    //   UNLINKED  — neither identifier is present. Nothing on record ties the row
-    //               to the relationship this address was actually granted
-    //               through, so it may neither GRANT entitlement nor REVOKE it
-    //               while a linked row exists for the same address. Such a row is
-    //               reported as `unaddressable` and is never rewritten by address.
+    //   ATTESTED   — `entitlement_authority_at` is present. A verified
+    //                reconciliation produced this row, so it may both GRANT and
+    //                REVOKE.
     //
-    //   LINKED    — carries a customer id and/or a subscription id. This makes the
-    //               row a CANDIDATE, not an authority: a non-empty identifier
-    //               alone is insufficient, because the candidates must agree
-    //               about who the membership belongs to.
+    //   UNATTESTED — no reconciliation is on record: legacy rows, rows a checkout
+    //                wrote at CUSTOMER CREATION, hand-seeded rows. An unattested
+    //                row contributes NOTHING while an attested row exists for the
+    //                same address. It is reported as `unaddressable` and is never
+    //                rewritten by address.
     //
-    //   NO LINKED ROW AT ALL — there is no verified relationship to prefer, so
-    //               today's rule stands unchanged: highest plan wins and
-    //               `ut_members.subscription_status` revokes. This is what keeps
-    //               legitimate legacy access intact.
+    // IDENTIFIER PRESENCE IS NOT EVIDENCE. `api/billing/checkout` writes
+    // `stripe_customer_id` at customer creation with no subscription behind it, so
+    // "this row records a Stripe id" would let a checkout suppress a legitimate
+    // legacy paid row AND lift a recorded revocation. Authority is the
+    // reconciliation timestamp, never the identifier.
     //
-    //   CONTRADICTION — two linked rows naming DIFFERENT customers. The stored
-    //               state does not say which is current, and choosing one would
-    //               be guessing, so the read fails closed instead of entitling on
-    //               either.
+    // NO ATTESTED ROW AT ALL — there is no reconciliation to prefer, so the
+    // previous rule stands unchanged: highest plan wins and
+    // `ut_members.subscription_status` revokes. That is what preserves legitimate
+    // legacy access AND keeps a recorded revocation effective.
+    //
+    // CONTRADICTION — two attested rows that disagree about the relationship they
+    // record: a different non-empty customer, or a different non-empty
+    // subscription. Nothing stored says which governs, and choosing one would be
+    // guessing, so the read fails closed instead of entitling on either.
     //
     // `profiles.subscription_status` remains non-authoritative for revocation
     // (nothing writes and clears it), so it is not consulted here either.
-    const profileLinked = hasVerifiedStripeLinkage(profile);
-    const memberLinked = hasVerifiedStripeLinkage(member);
-    const linkedAny = profileLinked || memberLinked;
+    const profileAttested = hasReconciliationEvidence(profile);
+    const memberAttested = hasReconciliationEvidence(member);
+    const attestedAny = profileAttested || memberAttested;
 
     const unaddressable: string[] = [];
-    if (linkedAny) {
-      if (profile && !profileLinked) unaddressable.push("profiles");
-      if (member && !memberLinked) unaddressable.push("ut_members");
+    if (attestedAny) {
+      if (profile && !profileAttested) unaddressable.push("profiles");
+      if (member && !memberAttested) unaddressable.push("ut_members");
     }
 
-    if (profileLinked && memberLinked) {
+    if (profileAttested && memberAttested) {
       const profileCustomer = linkageId(profile?.stripe_customer_id);
       const memberCustomer = linkageId(member?.stripe_customer_id);
-      if (
-        profileCustomer !== null &&
-        memberCustomer !== null &&
-        profileCustomer !== memberCustomer
-      ) {
+      const profileSubscription = linkageId(profile?.stripe_subscription_id);
+      const memberSubscription = linkageId(member?.stripe_subscription_id);
+      const customerClash =
+        profileCustomer !== null && memberCustomer !== null && profileCustomer !== memberCustomer;
+      const subscriptionClash =
+        profileSubscription !== null &&
+        memberSubscription !== null &&
+        profileSubscription !== memberSubscription;
+      if (customerClash || subscriptionClash) {
         return {
           ok: false,
           reason: "ambiguous",
-          detail:
-            "the linked rows name different Stripe customers; no stored state says which governs",
+          detail: customerClash
+            ? "two attested rows name different Stripe customers; no stored state says which governs"
+            : "two attested rows name different Stripe subscriptions; no stored state says which governs",
         };
       }
     }
 
-    // Only rows with authority may decide entitlement.
-    const authorityProfile = linkedAny && !profileLinked ? null : profile;
-    const authorityMember = linkedAny && !memberLinked ? null : member;
+    // Only rows with reconciliation evidence may decide entitlement.
+    const authorityProfile = attestedAny && !profileAttested ? null : profile;
+    const authorityMember = attestedAny && !memberAttested ? null : member;
 
     // A recorded revocation is an AUTHORITY signal, not another plan to rank.
     // Without this, a stale paid row would keep granting access after a

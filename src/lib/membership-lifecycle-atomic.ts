@@ -72,6 +72,10 @@ const WRITABLE_COLUMNS = new Set([
   "stripe_customer_id",
   "stripe_subscription_id",
   "current_period_end",
+  // Batch 14ah: the reconciliation stamp the reader requires before a row may
+  // decide entitlement. Written only by reconciled paths; omitted (and therefore
+  // PRESERVED by the primitive) on cancellation.
+  "entitlement_authority_at",
 ]);
 
 /**

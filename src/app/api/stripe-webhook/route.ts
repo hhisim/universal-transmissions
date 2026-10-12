@@ -41,6 +41,25 @@ function periodEndOf(value: unknown): string | null {
 }
 
 /**
+ * Batch 14ah — THE RECONCILIATION STAMP.
+ *
+ * A row may decide entitlement only when it carries evidence that a completed,
+ * verified subscription reconciliation produced it. This stamp is that evidence,
+ * and a path may write it only after it has
+ *
+ *   1. taken the authorization snapshot BEFORE consulting Stripe,
+ *   2. reconciled against Stripe's CURRENT state, and
+ *   3. committed the decision through the atomic primitive.
+ *
+ * The cancellation paths deliberately DO NOT write it. Authority, once
+ * established, must SURVIVE a revocation — otherwise the revocation itself could
+ * no longer be read as authoritative, which is the defect this closes.
+ */
+function reconciliationStamp(): string {
+  return new Date().toISOString();
+}
+
+/**
  * How many times a lifecycle delivery may reconcile-and-write before giving up.
  *
  * A conditional write that affects no row means the state moved between the
@@ -340,6 +359,9 @@ export async function POST(req: NextRequest) {
           stripe_subscription_id: governedSubscriptionId,
           current_period_end: periodEnd,
           stripe_customer_id: customerId,
+          // Reconciled against Stripe's current state above, and persisted
+          // atomically with the decision it authorised.
+          entitlement_authority_at: reconciliationStamp(),
         };
         // profiles (Oracle members). Written through the VERIFIED linkage, never
         // through the event's address: `metadata.email` is not an authority and
@@ -353,6 +375,7 @@ export async function POST(req: NextRequest) {
           plan,
           stripe_customer_id: customerId,
           stripe_subscription_id: governedSubscriptionId,
+          entitlement_authority_at: reconciliationStamp(),
         };
 
         // (3) APPLY BOTH TABLES IN ONE TRANSACTION through the reviewed atomic
@@ -646,7 +669,13 @@ export async function POST(req: NextRequest) {
         const pastDueAtomic = await applyAtomicLifecycleUpdateOne(utSupabaseAdmin, {
           authority: pastDueAuthorityInput,
           table: "ut_members",
-          side: { snapshot: pastDueSnapshot, fields: { subscription_status: "past_due" } },
+          side: {
+            snapshot: pastDueSnapshot,
+            fields: {
+              subscription_status: "past_due",
+              entitlement_authority_at: reconciliationStamp(),
+            },
+          },
         });
         const pastDueWrite = pastDueAtomic.write;
         if (
@@ -785,11 +814,16 @@ export async function POST(req: NextRequest) {
                 // older invoice's id must not overwrite the stored linkage.
                 stripe_subscription_id: currentSubscriptionId,
                 plan: "initiate",
+                entitlement_authority_at: reconciliationStamp(),
               },
             },
             profile: {
               snapshot: profileSnapshot,
-              fields: { stripe_customer_id: customerId, plan: "initiate" },
+              fields: {
+                stripe_customer_id: customerId,
+                plan: "initiate",
+                entitlement_authority_at: reconciliationStamp(),
+              },
             },
           });
           if (!invoiceAtomic.ok && invoiceAtomic.retryable && attempt < MAX_LIFECYCLE_ATTEMPTS) {

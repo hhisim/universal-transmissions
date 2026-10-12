@@ -22,9 +22,9 @@ const state = {};
 const COLUMNS = {
   profiles: ["user_id", "email", "display_name", "plan", "subscription_status",
              "stripe_customer_id", "stripe_subscription_id", "current_period_end",
-             "created_at", "updated_at"],
+             "entitlement_authority_at", "created_at", "updated_at"],
   ut_members: ["id", "email", "plan", "subscription_status", "stripe_customer_id",
-               "stripe_subscription_id", "current_period_end", "created_at", "updated_at"],
+               "stripe_subscription_id", "current_period_end", "entitlement_authority_at", "created_at", "updated_at"],
 };
 
 function reset() {
