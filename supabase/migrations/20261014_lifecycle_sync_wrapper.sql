@@ -259,10 +259,19 @@ $$;
 -- ---------------------------------------------------------------------
 -- (4) OWNERSHIP AND EXECUTION ACLs — inside the same transaction.
 --
--- PostgreSQL grants EXECUTE to PUBLIC on new functions, so the revokes are
--- load-bearing: without them every role could drive entitlement writes through
--- the wrapper. Ownership is pinned explicitly rather than left to whoever ran
--- the migration.
+-- PostgreSQL grants EXECUTE to PUBLIC on new functions, so these revokes matter:
+-- without them any role could CALL the wrapper.
+--
+-- That is NOT the same as being able to write entitlement state, and this file
+-- should not be read as saying otherwise. Wrapper exposure and the base RPC's
+-- write authorization are SEPARATE boundaries. Dropping these revokes does not by
+-- itself permit a write: an exposed INVOKER wrapper still runs as its caller, and
+-- the base RPC is itself EXECUTE-restricted to service_role, so an anonymous
+-- caller reaching the wrapper is then denied at the base RPC. Two independent
+-- controls, and the tests must tell them apart — a 42501 raised downstream by the
+-- base RPC is NOT evidence that the wrapper is still restricted.
+--
+-- Ownership is pinned explicitly rather than left to whoever ran the migration.
 -- ---------------------------------------------------------------------
 
 alter function public.apply_lifecycle_update_sync(jsonb)        owner to postgres;

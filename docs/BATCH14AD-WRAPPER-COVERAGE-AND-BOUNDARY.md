@@ -85,6 +85,17 @@ it executes with the caller's privileges — and that is what both wrappers now 
   load-bearing, because PostgreSQL grants EXECUTE to PUBLIC on new functions by
   default;
 - `grant execute` to **service_role** only;
+
+> **Correction (Batch 14ae).** The claim made here was that without the revokes
+> *"every role could drive entitlement writes through the wrapper."* **That
+> conflated two separate boundaries and is withdrawn.** Without the wrapper revokes
+> a role could **call the wrapper** — not necessarily **write entitlement state**,
+> because the base RPC carries its own EXECUTE restriction to `service_role`, and
+> an exposed INVOKER wrapper still runs as its caller, so the call is then denied
+> at the base RPC. Both statements are now correct in the SQL comment, and the
+> boundary suite asserts the wrapper ACL **and the denial point** separately for
+> exactly this reason.
+
 - the **trigger installer** is closed to public/anon/authenticated too — it is
   policy, not a read helper;
 - **creation, ownership and the ACL changes are one transaction**, so a failure
