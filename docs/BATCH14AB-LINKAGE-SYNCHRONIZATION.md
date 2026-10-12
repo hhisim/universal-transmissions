@@ -119,23 +119,40 @@ lock.*
 | **BEFORE ROW** trigger, per-row key | **YES — detected in S1 (40P01)** | yes |
 | **BEFORE STATEMENT** trigger, shared global key | **no** | yes |
 
-**The row-trigger protocol FAILS.** A `BEFORE ROW` trigger fires after the
-statement has taken the row, so a direct `UPDATE` holds the row and *then* seeks
-the key — the exact inversion of the rule in §2 — and deadlocks against a
-transaction that holds the key and then seeks the row. Reported, not hidden.
+**The row-trigger protocol FAILED in the schedules tested.** In the exact
+interleaving exercised here — a transaction holding the key and then seeking the
+row, against a direct `UPDATE` that is still inside its statement — a deadlock was
+detected (`40P01`). **This is a claim about the schedule that was tested, not a
+general proof that a row trigger always deadlocks**; other interleavings were not
+enumerated and are not claimed. Reported, not hidden.
 
-**The simpler alternative holds.** A `BEFORE STATEMENT` trigger fires before the
-statement touches any row, so it takes the key **before** any row lock — the same
-order as the RPC — and no deadlock occurs. It also **does** constrain the direct
-SQL writer that D1 showed the cooperative protocol cannot (D2-stmt).
+**The simpler alternative held in the schedules tested.** A `BEFORE STATEMENT`
+trigger fires before the statement touches any row, so it took the key **before**
+any row lock in every ordering exercised here, and no deadlock occurred. It also
+**did** constrain the direct SQL writer that D1 showed the cooperative protocol
+cannot (D2-stmt).
 
-**A measurement caveat worth stating.** An earlier version of this harness tried
-to detect the row trigger's ordering by counting `locktype='tuple'` rows in
-`pg_locks`, and read zero in both variants — including the one that deadlocks.
-`pg_locks` shows a tuple lock only for `SELECT … FOR UPDATE`; a plain `UPDATE`'s
-row lock is not represented there. The count was therefore **not evidence**, and
-the deadlock itself is what establishes the ordering. That probe was replaced
-rather than reinterpreted.
+**A measurement caveat — and a correction to it.** An earlier version of this
+harness tried to detect the row trigger's ordering by counting `locktype='tuple'`
+rows in `pg_locks`, and read **zero in both variants** — including the one that
+deadlocks. That count was **not evidence**.
+
+The first explanation offered for it was *"pg_locks shows a tuple lock only for
+`SELECT … FOR UPDATE`; a plain `UPDATE`'s row lock is not represented there."*
+**That is wrong, and it is withdrawn.** The correct position:
+
+> PostgreSQL's ordinary row-level locks are **not represented in `pg_locks` at
+> all**. A row lock lives in the tuple header (the `xmax`/infomask of the row), not
+> in the lock manager, so it does not appear in the lock catalogue whether it was
+> taken by `SELECT … FOR UPDATE`, by `UPDATE`, or by `DELETE`. What `pg_locks` can
+> show as `locktype='tuple'` is a separate and narrower **tuple lock**, acquired
+> only in specific circumstances. The visibility question is therefore not
+> "SELECT FOR UPDATE versus UPDATE" — absence from `pg_locks` says nothing about
+> whether a row is locked.
+
+The consequence stands: **`pg_locks` is not a valid instrument for detecting row
+locks**, so the probe was replaced rather than reinterpreted, and the **deadlock
+itself** is what establishes the ordering.
 
 ## 4. What this does NOT establish
 
