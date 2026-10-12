@@ -21,6 +21,7 @@ set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SUITE="$ROOT/scripts/batch14ae-boundary-suite.sh"
+VERIFIER="$ROOT/scripts/batch14ae-verify-pub-mutation.sh"
 WRAPPER="$ROOT/supabase/migrations/20261014_lifecycle_sync_wrapper.sql"
 BASE=$(mktemp -d /var/tmp/b14aemut-XXXXXX)
 
@@ -75,6 +76,7 @@ PY
 detect() { # detect <label> <wrapper-fn-name>
   local label="$1" fn="$2"
   local mut="$BASE/mut-$fn.sql"
+  local log="$BASE/$fn.log"
   if ! mutate "$fn" "$mut"; then bad "$label: could not apply the mutation"; return; fi
   local mh; mh=$(sha256sum "$mut" | awk '{print $1}')
   if [ "$mh" = "$ORIG" ]; then bad "$label: the mutation did not change the file"; return; fi
@@ -83,31 +85,19 @@ detect() { # detect <label> <wrapper-fn-name>
     bad "$label: the TRACKED wrapper changed during the mutation"; return
   fi
   echo "  -- running the boundary suite against the mutated copy --"
-  if bash "$SUITE" "$mut" >"$BASE/$fn.log" 2>&1; then
-    bad "$label: the boundary suite did NOT detect the restored PUBLIC execution"
-    grep -E '^assertions (passed|failed)' "$BASE/$fn.log" | sed 's/^/     /'
-    return
-  fi
-  ok "$label: the boundary suite REJECTED the mutated install"
-  # It must reject for the RIGHT reason: the wrapper's own ACL.
-  if grep -q "ACL: anon has EXECUTE on $fn = 0" "$BASE/$fn.log"; then
-    ok "$label: the wrapper's OWN ACL assertion is among the failures"
+  # Detection is DELEGATED to the verifier. "The suite failed" is not the finding:
+  # the suite also fails when it cannot set up at all (exit 2), and an assertion's
+  # text appears in an `ok` line exactly as it does in a `FAIL` line, so matching
+  # the assertion NAME proves only that it ran.
+  bash "$SUITE" "$mut" >"$log" 2>&1
+  local rc=$?
+  chkeq "$label: the suite exited with the ASSERTION-FAILURE status" "1" "$rc"
+  if bash "$VERIFIER" "$fn" "$log" "$rc" >"$BASE/$fn.verify" 2>&1; then
+    ok "$label: the verifier counts this as a DETECTED PUBLIC mutation"
   else
-    bad "$label: the failure did not name the wrapper ACL assertion"
+    bad "$label: the verifier REFUSED this log as a detected PUBLIC mutation"
   fi
-  # And it must identify the denial point as having moved downstream.
-  if grep -q "DENIAL POINT: anon -> $fn denial names the WRAPPER" "$BASE/$fn.log"; then
-    ok "$label: the suite's denial-point assertion is among the failures"
-  else
-    bad "$label: the suite did not flag the denial point"
-  fi
-  # The suite must have OBSERVED the denial landing at the base RPC — that is what
-  # makes the point: an exposed INVOKER wrapper still yields 42501, from below.
-  if grep -q "denial names the WRAPPER (landed at: base)" "$BASE/$fn.log"; then
-    ok "$label: the suite observed the denial landing at the BASE RPC, not the wrapper"
-  else
-    bad "$label: the suite did not observe the denial moving to the base RPC"
-  fi
+  sed 's/^/     /' "$BASE/$fn.verify"
   echo
 }
 
@@ -115,6 +105,78 @@ echo "=== MU-PUB-SYNC: restore PUBLIC execution on the per-identity wrapper ==="
 detect "MU-PUB-SYNC" apply_lifecycle_update_sync
 echo "=== MU-PUB-GLOBAL: restore PUBLIC execution on the global wrapper ==="
 detect "MU-PUB-GLOBAL" apply_lifecycle_update_sync_global
+
+echo "=== NEGATIVE CONTROL 1: boundary assertions pass, an UNRELATED assertion fails ==="
+nc_fn="apply_lifecycle_update_sync"
+nc_mut="$BASE/nc-revoke-service.sql"
+if python3 - "$WRAPPER" "$nc_mut" "$nc_fn" <<'PY'
+import sys, pathlib
+src, dst, fn = sys.argv[1], sys.argv[2], sys.argv[3]
+s = pathlib.Path(src).read_text()
+REV = "revoke all on function public.%s(jsonb) from service_role;\n" % fn
+if s.count("\ncommit;\n") != 1:
+    raise SystemExit("expected exactly one top-level commit")
+s = s.replace("\ncommit;\n",
+              "\n-- NEGATIVE CONTROL: the AUTHORIZED role loses access instead\n" + REV + "\ncommit;\n", 1)
+pathlib.Path(dst).write_text(s)
+PY
+then
+  echo "  mutated COPY sha256: $(sha256sum "$nc_mut" | awk '{print $1}')"
+  bash "$SUITE" "$nc_mut" >"$BASE/nc.log" 2>&1
+  nc_rc=$?
+  chkeq "NC1 the suite did fail (assertion-failure status)" "1" "$nc_rc"
+  if grep -Eq "^  FAIL ACL: (anon|authenticated) has EXECUTE on $nc_fn = 0" "$BASE/nc.log"; then
+    bad "NC1 an anon/authenticated ACL assertion failed, so this is NOT an unrelated failure"
+  else
+    ok "NC1 the anon/authenticated ACL assertions still PASSED — the failure is unrelated"
+  fi
+  if grep -Eq "^  FAIL ACL: service_role has EXECUTE on $nc_fn = 1 \(expected '1', got '0'\)" "$BASE/nc.log"; then
+    ok "NC1 the failing assertion is the service_role ACL, unrelated to PUBLIC exposure"
+  else
+    bad "NC1 the expected unrelated failure was not present"
+  fi
+  if bash "$VERIFIER" "$nc_fn" "$BASE/nc.log" "$nc_rc" >"$BASE/nc.verify" 2>&1; then
+    bad "NC1 the verifier WRONGLY counted an unrelated failure as a detected PUBLIC mutation"
+  else
+    ok "NC1 the verifier REFUSED to count it (correct)"
+  fi
+  sed 's/^/     /' "$BASE/nc.verify"
+else
+  bad "NC1 could not build the negative-control mutation"
+fi
+
+echo
+echo "=== NEGATIVE CONTROL 2: assertion text present as an OK line (the original false positive) ==="
+cat >"$BASE/nc-ok.log" <<'EOF'
+  ok   ACL: anon has EXECUTE on apply_lifecycle_update_sync = 0
+  ok   DENIAL POINT: anon -> apply_lifecycle_update_sync denial names the WRAPPER (landed at: wrapper)
+BATCH14AE_BOUNDARY_SUITE_FAILED
+EOF
+if bash "$VERIFIER" apply_lifecycle_update_sync "$BASE/nc-ok.log" 1 >/dev/null 2>&1; then
+  bad "NC2 the verifier accepted OK lines as a detection — the original bug is not fixed"
+else
+  ok "NC2 the verifier refuses OK lines: matching an assertion's text is not a detection"
+fi
+
+echo
+echo "=== NEGATIVE CONTROL 3: an unrelated FAIL line only ==="
+cat >"$BASE/nc-unrel.log" <<'EOF'
+  FAIL STATE: anon -> apply_lifecycle_update_sync changed no membership state (expected 'initiate', got 'free')
+BATCH14AE_BOUNDARY_SUITE_FAILED
+EOF
+if bash "$VERIFIER" apply_lifecycle_update_sync "$BASE/nc-unrel.log" 1 >/dev/null 2>&1; then
+  bad "NC3 the verifier accepted an unrelated failure as a detection"
+else
+  ok "NC3 the verifier refuses an unrelated failure"
+fi
+
+echo
+echo "=== NEGATIVE CONTROL 4: suite exit 2 (infrastructure, not an assertion failure) ==="
+if bash "$VERIFIER" apply_lifecycle_update_sync "$BASE/nc-ok.log" 2 >/dev/null 2>&1; then
+  bad "NC4 the verifier accepted a non-assertion-failure exit status"
+else
+  ok "NC4 the verifier refuses exit 2: an infrastructure failure is not a detection"
+fi
 
 AFTER=$(sha256sum "$WRAPPER" | awk '{print $1}')
 echo "tracked wrapper sha256 AFTER:  $AFTER"

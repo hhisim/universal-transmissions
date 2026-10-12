@@ -71,14 +71,36 @@ with PUBLIC execution restored and runs the boundary suite **against that copy**
 | **MU-PUB-SYNC** | `grant execute on apply_lifecycle_update_sync to public` | the wrapper ACL assertion, and the denial point |
 | **MU-PUB-GLOBAL** | `grant execute on apply_lifecycle_update_sync_global to public` | the wrapper ACL assertion, and the denial point |
 
-For each, the mutation check asserts that the suite **rejected** the mutated
-install **for the right reasons**:
+For each, detection is delegated to a **separate verifier**
+(`scripts/batch14ae-verify-pub-mutation.sh`), which requires **all four** of:
 
-- the **wrapper's own ACL** assertion is among the failures — the load-bearing one;
-- the **denial-point** assertion is among the failures;
-- and the suite **observed the denial landing at the base RPC** rather than the
-  wrapper. That last observation is the whole point: it is exactly the case that a
-  weaker suite would have recorded as "the boundary held".
+1. the suite's **assertion-failure exit status** — `1`, not any non-zero status
+   (`2` means the suite could not even set up, which is not a detection);
+2. the assertion-failure marker line;
+3. an actual **`FAIL` line for the wrapper's own ACL**, with the observed value
+   `1` where `0` was expected — for `anon` or `authenticated`;
+4. an actual **`FAIL` line for the denial point**, with the observed value `base`
+   where `wrapper` was expected — for the same roles.
+
+**Why a verifier rather than a grep in the runner.** The first version of this
+check matched the assertion **text**, and that text appears in an `ok` line exactly
+as it does in a `FAIL` line — so matching the assertion *name* proved only that the
+assertion **ran**, not that it **failed**. It also treated any non-zero suite exit
+as a detection, so a mutated wrapper that failed to *apply* would have been scored
+as a caught mutation. Both are corrected by requiring the failure status and the
+`FAIL` line with its observed value.
+
+### Negative controls
+
+| Control | Construction | Required outcome |
+|---|---|---|
+| **NC1** | a disposable mutation that revokes `service_role`'s EXECUTE instead — boundary assertions for anon/authenticated still **pass**, an **unrelated** assertion fails | the verifier **refuses**; the suite is confirmed to have failed for an unrelated reason, and the failing assertion is confirmed to be the `service_role` ACL |
+| **NC2** | a log where the ACL and denial-point assertions appear as **`ok` lines** (the original false positive) | the verifier **refuses** — matching an assertion's text is not a detection |
+| **NC3** | a log with an unrelated `FAIL` line only | the verifier **refuses** |
+| **NC4** | a valid-looking log presented with exit status **2** | the verifier **refuses** — an infrastructure failure is not a detection |
+
+NC1 is the substantive one: it is a genuine boundary break, of a *different kind*,
+and the verifier must not mistake it for the mutation under test.
 
 The tracked wrapper is **never written to**: its sha256 is identical before and
 after the run.
