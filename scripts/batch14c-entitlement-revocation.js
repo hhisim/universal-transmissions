@@ -111,7 +111,17 @@ async function body(res) {
   return {};
 }
 const get = (r, url) => r.GET(new Request(url, { method: "GET" }));
-const prof = (plan, status) => state.tables.profiles.push({ user_id: "u1", email: OWNER, plan, subscription_status: status });
+// BATCH 14ag — fixture correction, NOT an assertion change.
+//
+// `prof` previously seeded a profiles row with NO Stripe linkage while `mem`
+// seeded one WITH it. Under the read-authority rule (src/lib/membership-plan.ts)
+// an unlinked row may neither grant nor revoke entitlement while a linked row
+// exists for the same address, so those cases were answering a different
+// question than their labels ask. Every production writer records the customer
+// on a profiles row; seeding it here keeps each case testing plan ranking and
+// revocation BETWEEN AUTHORITATIVE ROWS. The unlinked-row path is covered by
+// batch14s and batch14ag.
+const prof = (plan, status) => state.tables.profiles.push({ user_id: "u1", email: OWNER, plan, subscription_status: status, stripe_customer_id: "cus_1" });
 const mem = (plan, status) => state.tables.ut_members.push({ id: "m1", email: OWNER, plan, subscription_status: status, stripe_customer_id: "cus_1" });
 
 /** Report one case: stored state -> effective plan -> eligibility. */

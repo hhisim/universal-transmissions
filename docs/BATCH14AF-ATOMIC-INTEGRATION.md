@@ -145,8 +145,10 @@ locked dependencies installed via `npm ci`.
 The adapted snapshot-timing suite preserves all entitlement, warning, timing and
 retry assertions: **27 passed / 0 failed**. The related concurrency and lifecycle
 authorization suites also pass (**41 / 0** and **21 / 0**). The separate unlinked-row
-suite remains its documented pinned defect (**8 passed / 2 failed**); those failures
-are the pre-existing proposal in its own review, not this route switch.
+suite was red at this commit as its documented pinned defect (**8 passed / 2 failed**) —
+RESOLVED later, in Batch 14ag, where the reader-side authority rule landed and the
+unchanged suite reports **10 passed / 0 failed** (see
+`docs/BATCH14AG-READ-AUTHORITY.md`).
 
 ### `batch14p-webhook-coverage.js` — moved onto the shared harness
 
@@ -270,8 +272,9 @@ reused:
   27 / 0, `batch14r-concurrency-interleavings.js` → 41 / 0,
   `batch14r-lifecycle-authorization.js` → 21 / 0, `batch14b-membership-readback.js`
   → 41 / 0, `batch14f-event-order.js` → 11 / 0 — all unchanged.
-* `scripts/batch14s-unlinked-row-authority.js` → 8 / 2: the same two pinned-defect
-  assertions, untouched.
+* `scripts/batch14s-unlinked-row-authority.js` → 8 / 2 at this commit: the same two
+  pinned-defect assertions, untouched. Resolved in Batch 14ag — the file is unmodified
+  and now reports 10 / 0.
 * Suites red before this repair and red with **identical failing-assertion lists**
   after it: `batch14g` 10 / 2, `batch14d` 12 / 14, `batch14e` 13 / 9, `batch14q`
   10 / 10, `batch14l` 7 / 6. Their failures come from their own inline fakes having no
@@ -291,7 +294,11 @@ reused:
    distinguish the two cases. The guarantee is re-established with real PostgreSQL
    evidence in **I3** above; porting `batch14f` onto the shared harness is separate
    work.
-2. `batch14s` unlinked-row authority remains its own pinned defect.
+2. `batch14s` unlinked-row authority was its own pinned defect. **Resolved in Batch
+   14ag** (`docs/BATCH14AG-READ-AUTHORITY.md`): the reader-side rule landed, and the
+   suite's unchanged bytes now report 10 passed / 0 failed. Its stale
+   "EXPECTED RED" header is left for the owner, since the unchanged bytes are the
+   evidence the rule landed.
 3. Missing-row creation for a linkage that owns no row is deliberately not
    implemented anywhere in the lifecycle paths.
 

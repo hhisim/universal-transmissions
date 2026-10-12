@@ -50,6 +50,11 @@ export interface ResolvedMembership {
   source: "profiles" | "ut_members" | "none" | "revoked";
   /** Which table(s) recorded a revoking subscription status. */
   revokedBy?: string[];
+  /**
+   * Rows that carry no verified Stripe linkage and were therefore given NO
+   * authority for this read. They are reported, never rewritten.
+   */
+  unaddressable?: string[];
 }
 
 /**
@@ -81,6 +86,30 @@ export const REVOKING_STATUSES = new Set(["canceled", "incomplete_expired", "unp
 
 export function isRevokingStatus(status?: string | null): boolean {
   return typeof status === "string" && REVOKING_STATUSES.has(status.trim().toLowerCase());
+}
+
+/**
+ * A stored Stripe identifier, or null. Empty and whitespace-only values are
+ * ABSENT: a column written as "" does not name a relationship.
+ */
+export function linkageId(value?: string | null): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+/**
+ * READ AUTHORITY — does this row carry a VERIFIED Stripe relationship at all?
+ *
+ * This makes a row a CANDIDATE and nothing more: a bare identifier is never
+ * sufficient on its own, because the candidate set must also be consistent
+ * before it may decide entitlement. See the authority block in
+ * `resolveMembershipPlan`.
+ */
+export function hasVerifiedStripeLinkage(row: MembershipRow | null | undefined): boolean {
+  if (!row) return false;
+  return (
+    linkageId(row.stripe_customer_id) !== null ||
+    linkageId(row.stripe_subscription_id) !== null
+  );
 }
 
 export type PlanResolution =
@@ -144,6 +173,64 @@ export async function resolveMembershipPlan(
     const profile = profiles[0] ?? null;
     const member = members[0] ?? null;
 
+    // ── READ AUTHORITY ───────────────────────────────────────────────────────
+    //
+    // A row earns authority ONLY through a verified Stripe relationship:
+    //
+    //   UNLINKED  — neither identifier is present. Nothing on record ties the row
+    //               to the relationship this address was actually granted
+    //               through, so it may neither GRANT entitlement nor REVOKE it
+    //               while a linked row exists for the same address. Such a row is
+    //               reported as `unaddressable` and is never rewritten by address.
+    //
+    //   LINKED    — carries a customer id and/or a subscription id. This makes the
+    //               row a CANDIDATE, not an authority: a non-empty identifier
+    //               alone is insufficient, because the candidates must agree
+    //               about who the membership belongs to.
+    //
+    //   NO LINKED ROW AT ALL — there is no verified relationship to prefer, so
+    //               today's rule stands unchanged: highest plan wins and
+    //               `ut_members.subscription_status` revokes. This is what keeps
+    //               legitimate legacy access intact.
+    //
+    //   CONTRADICTION — two linked rows naming DIFFERENT customers. The stored
+    //               state does not say which is current, and choosing one would
+    //               be guessing, so the read fails closed instead of entitling on
+    //               either.
+    //
+    // `profiles.subscription_status` remains non-authoritative for revocation
+    // (nothing writes and clears it), so it is not consulted here either.
+    const profileLinked = hasVerifiedStripeLinkage(profile);
+    const memberLinked = hasVerifiedStripeLinkage(member);
+    const linkedAny = profileLinked || memberLinked;
+
+    const unaddressable: string[] = [];
+    if (linkedAny) {
+      if (profile && !profileLinked) unaddressable.push("profiles");
+      if (member && !memberLinked) unaddressable.push("ut_members");
+    }
+
+    if (profileLinked && memberLinked) {
+      const profileCustomer = linkageId(profile?.stripe_customer_id);
+      const memberCustomer = linkageId(member?.stripe_customer_id);
+      if (
+        profileCustomer !== null &&
+        memberCustomer !== null &&
+        profileCustomer !== memberCustomer
+      ) {
+        return {
+          ok: false,
+          reason: "ambiguous",
+          detail:
+            "the linked rows name different Stripe customers; no stored state says which governs",
+        };
+      }
+    }
+
+    // Only rows with authority may decide entitlement.
+    const authorityProfile = linkedAny && !profileLinked ? null : profile;
+    const authorityMember = linkedAny && !memberLinked ? null : member;
+
     // A recorded revocation is an AUTHORITY signal, not another plan to rank.
     // Without this, a stale paid row would keep granting access after a
     // legitimate cancellation whose write to the other table failed.
@@ -159,33 +246,33 @@ export async function resolveMembershipPlan(
     // `profiles.subscription_status` is therefore ignored for entitlement and is
     // recorded as an unmaintained column requiring a separate decision.
     const revokedBy: string[] = [];
-    if (isRevokingStatus(member?.subscription_status)) revokedBy.push("ut_members");
+    if (isRevokingStatus(authorityMember?.subscription_status)) revokedBy.push("ut_members");
     if (revokedBy.length > 0) {
       return {
         ok: true,
-        membership: { plan: "guest", profile, member, source: "revoked", revokedBy },
+        membership: { plan: "guest", profile, member, source: "revoked", revokedBy, unaddressable },
       };
     }
 
-    const profileRank = planRank(profile?.plan);
-    const memberRank = planRank(member?.plan);
+    const profileRank = planRank(authorityProfile?.plan);
+    const memberRank = planRank(authorityMember?.plan);
 
     let plan: MemberPlan = "guest";
     let source: ResolvedMembership["source"] = "none";
     if (profileRank === 0 && memberRank === 0) {
       // Neither table grants entitlement. Report whichever stored value exists
       // so the shape matches the previous behaviour.
-      plan = normalizeMemberPlan(profile?.plan ?? member?.plan ?? "guest");
-      source = profile ? "profiles" : member ? "ut_members" : "none";
+      plan = normalizeMemberPlan(authorityProfile?.plan ?? authorityMember?.plan ?? "guest");
+      source = authorityProfile ? "profiles" : authorityMember ? "ut_members" : "none";
     } else if (profileRank >= memberRank) {
-      plan = normalizeMemberPlan(profile?.plan);
+      plan = normalizeMemberPlan(authorityProfile?.plan);
       source = "profiles";
     } else {
-      plan = normalizeMemberPlan(member?.plan);
+      plan = normalizeMemberPlan(authorityMember?.plan);
       source = "ut_members";
     }
 
-    return { ok: true, membership: { plan, profile, member, source } };
+    return { ok: true, membership: { plan, profile, member, source, unaddressable } };
   } catch (err) {
     return {
       ok: false,

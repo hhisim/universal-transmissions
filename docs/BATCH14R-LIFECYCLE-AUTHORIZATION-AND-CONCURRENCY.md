@@ -209,6 +209,14 @@ payload-derived guess.
 
 ## 5. E2b promoted, and the bounded authority proposal (item 3)
 
+**STATUS (Batch 14ag): the rule proposed in this section is now IMPLEMENTED** in
+`src/lib/membership-plan.ts`, and `scripts/batch14s-unlinked-row-authority.js` — left
+byte-identical — reports **10 passed / 0 failed**. The precise authority definition, the
+schema question (linkage is necessary but a bare identifier is not sufficient), the
+contradictory-record policy and the evidence are in
+`docs/BATCH14AG-READ-AUTHORITY.md`. This section is left as written: it is the record of
+what was proposed, and why, before the rule landed.
+
 `scripts/batch14s-unlinked-row-authority.js` is **committed RED on purpose**. It
 asserts target behaviour that is not implemented:
 
