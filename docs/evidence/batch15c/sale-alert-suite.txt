@@ -1,0 +1,19 @@
+✅ Product payment succeeded for session: cs_voa_1
+✅ Product payment succeeded for session: cs_ut_1
+Order updated to: paid
+✅ Product payment succeeded for session: cs_ut_nomatch
+No ut_orders row matched session cs_ut_nomatch — nothing written
+✅ Product payment succeeded for session: cs_ut_fail
+Failed to update order status: { code: 'XX000', message: 'boom', details: null, hint: null }
+✅ Product payment succeeded for session: cs_voa_lookupfail
+Failed to list line items: Error: stripe listLineItems unavailable
+    at /root/ut-repo/scripts/batch15c-sale-alert-notification.js:128:25
+✅ Product payment succeeded for session: cs_ut_lookupfail
+Failed to list line items: Error: stripe listLineItems unavailable
+    at /root/ut-repo/scripts/batch15c-sale-alert-notification.js:140:25
+Order updated to: paid
+
+assertions passed: 46
+assertions failed: 0
+
+BATCH15C_SALE_ALERT_NOTIFICATION_TESTS_PASSED

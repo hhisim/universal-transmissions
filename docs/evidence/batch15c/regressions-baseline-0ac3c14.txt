@@ -1,0 +1,5 @@
+batch14d-webhook-failure-reactivation.js      exit=1   passed=12    failed=14    NO_BANNER                                     
+batch14e-reconciliation.js                    exit=1   passed=13    failed=9     NO_BANNER                                     
+batch14g-authority-contract.js                exit=1   passed=10    failed=2     NO_BANNER                                     
+batch14l-linkage-sequence.js                  exit=1   passed=7     failed=6     NO_BANNER                                     
+DONE

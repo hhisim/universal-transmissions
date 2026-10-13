@@ -30,6 +30,10 @@ const COLUMNS = {
   ut_members: ["id", "email", "plan", "subscription_status", "stripe_customer_id",
                "stripe_subscription_id", "current_period_end", "entitlement_authority_at",
                "created_at", "updated_at"],
+  ut_orders: ["id", "stripe_session_id", "status", "stripe_payment_intent_id", "customer_email",
+              "customer_name", "shipping_name", "shipping_address_line1", "shipping_address_line2",
+              "shipping_city", "shipping_state", "shipping_postal_code", "shipping_country",
+              "updated_at"],
 };
 
 const PG_BIN = "/usr/lib/postgresql/16/bin";
@@ -283,12 +287,17 @@ function cloneJson(value) {
 
 function createHarness(ROOT) {
   const state = {
-    tables: { profiles: [], ut_members: [] },
+    tables: { profiles: [], ut_members: [], ut_orders: [] },
     writes: [],
     stripe: {},
     failUpdate: {},
     beforeUpdate: null,
     afterStripe: null,
+    // Batch 15c additions — the one-time sale-alert surface.
+    lineItems: [],
+    lineItemError: null,
+    lineItemsCalls: 0,
+    telegrams: [],
   };
 
   const cluster = startPrivatePostgres(ROOT);
@@ -299,12 +308,16 @@ function createHarness(ROOT) {
   process.once("exit", () => cluster.stop());
 
   function reset() {
-    state.tables = { profiles: [], ut_members: [] };
+    state.tables = { profiles: [], ut_members: [], ut_orders: [] };
     state.writes = [];
     state.stripe = {};
     state.failUpdate = {};
     state.beforeUpdate = null;
     state.afterStripe = null;
+    state.lineItems = [];
+    state.lineItemError = null;
+    state.lineItemsCalls = 0;
+    state.telegrams = [];
   }
 
   function dbClient() {
@@ -432,7 +445,19 @@ function createHarness(ROOT) {
     getStripe: () => ({
       webhooks: { constructEvent: () => event },
       customers: { create: async () => ({ id: "cus_new" }) },
-      checkout: { sessions: { create: async () => ({ url: "x" }) } },
+      checkout: {
+        sessions: {
+          create: async () => ({ url: "x" }),
+          // Batch 15c — the one-time sale alert resolves product names through this
+          // call. A webhook payload never carries line_items, so a suite that wants
+          // a real product name must supply it here.
+          listLineItems: async () => {
+            state.lineItemsCalls += 1;
+            if (state.lineItemError) throw state.lineItemError;
+            return { data: state.lineItems, has_more: false };
+          },
+        },
+      },
       subscriptions: {
         retrieve: async (id) => {
           const o = (state.stripe || {})[id];
@@ -463,8 +488,17 @@ function createHarness(ROOT) {
   process.env.UT_SUPABASE_SERVICE_ROLE_KEY = "k";
   process.env.SUPABASE_SERVICE_ROLE_KEY = "k";
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.test";
-  process.env.AKASHA_BOT_TOKEN = "";
-  global.fetch = async () => ({ ok: true, status: 200, json: async () => ({}) });
+  process.env.AKASHA_BOT_TOKEN = process.env.B15C_TELEGRAM_TOKEN ?? "";
+  global.fetch = async (url, init) => {
+    // Batch 15c — capture the outgoing alert so a suite can assert what it CLAIMS.
+    try {
+      const body = init && init.body ? JSON.parse(init.body) : null;
+      if (body && typeof body.text === "string") {
+        state.telegrams.push({ url: String(url), text: body.text });
+      }
+    } catch {}
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
 
   const webhook = require(path.join(ROOT, "src/app/api/stripe-webhook/route.ts"));
   const { resolveMembershipPlan } = require(path.join(ROOT, "src/lib/membership-plan.ts"));

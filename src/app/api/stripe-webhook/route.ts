@@ -161,11 +161,20 @@ export async function POST(req: NextRequest) {
 
       // One-time product payment
       console.log(`✅ Product payment succeeded for session: ${session.id}`);
+
+      // UT and VOA share one Stripe account, so every VOA shop sale lands here too.
+      // VOA shop sales carry metadata.source === "voa-shop" and are not UT orders: a
+      // ut_orders update for one matches zero rows. We report the sale and assert no
+      // UT write. Whether VOA recorded it is NOT observable from this handler, so we
+      // do not claim that either.
+      const isVoaShopSale = session.metadata?.source === "voa-shop";
+
       const shippingDetails = (session as any).shipping_details as {
         name?: string;
         address?: { line1?: string; line2?: string; city?: string; state?: string; postal_code?: string; country?: string };
       } | null | undefined;
 
+      // isDigital / order-fulfilment semantics are deliberately unchanged here.
       const isDigital = session.line_items?.data[0]?.price?.product
         ? typeof session.line_items.data[0].price.product === "string"
           ? ["codex-digital", "chakra-4k", "chakra-8k"].some(id =>
@@ -176,14 +185,51 @@ export async function POST(req: NextRequest) {
           : !!((session.line_items!.data[0].price!.product as Stripe.Product | null)?.description)
         : false;
 
+      // A webhook payload does NOT carry line_items — Stripe returns them only from a
+      // retrieve/list call, which is why every sale used to report a hardcoded "Order".
+      // A failed lookup is reported as failed rather than silently shown as "—".
+      const lineItems = await getStripe()
+        .checkout.sessions.listLineItems(session.id, { limit: 10 })
+        .catch((err) => {
+          console.error("Failed to list line items:", err);
+          return null;
+        });
+      const lineItemLookupFailed = lineItems === null;
+      const productName = lineItemLookupFailed
+        ? "— (product lookup failed)"
+        : (lineItems.data ?? [])
+            .map((li) => `${li.description ?? "item"} ×${li.quantity ?? 1}`)
+            .join(" + ") || "—";
+      const customerEmail = session.customer_email ?? session.customer_details?.email ?? "—";
+      const customerName =
+        session.customer_details?.name ?? (customerEmail !== "—" ? customerEmail : "Unknown");
+      const ts = new Date((session.created ?? Math.floor(Date.now() / 1000)) * 1000)
+        .toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+
+      // VOA shop sales are reported only — never credited with a UT write.
+      if (isVoaShopSale) {
+        await sendTelegram(
+          `<b>🛒 NEW SALE (VOA shop) — ${formatCurrency(session.amount_total, session.currency ?? "usd")}</b>\n` +
+          `Customer: ${customerName}\n` +
+          `Email: ${customerEmail}\n` +
+          `Product: ${productName}\n` +
+          `Time: ${ts}\n` +
+          `ℹ️ VOA shop sale (metadata.source=voa-shop) — no UT order written; VOA recording is not verified here.`
+        );
+        break;
+      }
+
       let orderNote = "";
       try {
-        const { error } = await utSupabaseAdmin
+        // A zero-row .update().eq() returns no error, so a foreign sale used to be
+        // stamped "Order updated in UT DB" although no row existed. select() returns
+        // the affected rows, which is what makes the claim provable.
+        const { data: updated, error } = await utSupabaseAdmin
           .from("ut_orders")
           .update({
             status: isDigital ? "fulfilled" : "paid",
             stripe_payment_intent_id: session.payment_intent as string,
-            customer_email: session.customer_email || "",
+            customer_email: session.customer_email || session.customer_details?.email || "",
             customer_name: session.customer_details?.name || null,
             shipping_name: shippingDetails?.name || null,
             shipping_address_line1: shippingDetails?.address?.line1 || null,
@@ -194,26 +240,30 @@ export async function POST(req: NextRequest) {
             shipping_country: shippingDetails?.address?.country || null,
             updated_at: new Date().toISOString(),
           })
-          .eq("stripe_session_id", session.id);
+          .eq("stripe_session_id", session.id)
+          .select("id");
 
-        if (error) console.error("Failed to update order status:", error);
-        else {
-          console.log(`Order updated to: ${isDigital ? "fulfilled" : "paid"}`);
-          orderNote = "✅ Order updated in UT DB";
+        if (error) {
+          console.error("Failed to update order status:", error);
+          orderNote = "❌ UT DB update failed";
+        } else {
+          const utRowsWritten = updated?.length ?? 0;
+          if (utRowsWritten > 0) {
+            console.log(`Order updated to: ${isDigital ? "fulfilled" : "paid"}`);
+            orderNote = "✅ Order updated in UT DB";
+          } else {
+            console.warn(`No ut_orders row matched session ${session.id} — nothing written`);
+            orderNote = "⚠️ No matching UT order found — nothing written to UT DB";
+          }
         }
       } catch (err) {
         console.error("Supabase update failed:", err);
+        orderNote = "❌ UT DB update failed";
       }
 
       // ── Telegram notification ────────────────────────────────────────────
-      const amount = session.amount_total;
-      const productName = session.line_items?.data[0]?.description ?? "Order";
-      const customerName = session.customer_details?.name ?? session.customer_email ?? "Unknown";
-      const customerEmail = session.customer_email ?? "—";
-      const ts = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
-
       await sendTelegram(
-        `<b>🛒 NEW SALE — ${formatCurrency(amount, session.currency ?? "usd")}</b>\n` +
+        `<b>🛒 NEW SALE — ${formatCurrency(session.amount_total, session.currency ?? "usd")}</b>\n` +
         `Customer: ${customerName}\n` +
         `Email: ${customerEmail}\n` +
         `Product: ${productName}\n` +
@@ -225,12 +275,15 @@ export async function POST(req: NextRequest) {
 
     case "payment_intent.payment_failed": {
       const intent = event.data.object as Stripe.PaymentIntent;
-      const ts = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+      const ts = new Date((intent.created ?? Math.floor(Date.now() / 1000)) * 1000)
+        .toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+      const failEmail = intent.receipt_email ?? "—";
       console.log(`❌ Payment failed: ${intent.id}`);
       await sendTelegram(
         `<b>⚠️ PAYMENT FAILED</b>\n` +
         `Payment Intent: ${intent.id}\n` +
         `Amount: ${formatCurrency(intent.amount, intent.currency)}\n` +
+        `Email: ${failEmail}\n` +
         `Time: ${ts}`
       );
       break;

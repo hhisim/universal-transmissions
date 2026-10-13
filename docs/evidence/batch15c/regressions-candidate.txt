@@ -1,0 +1,13 @@
+batch14-membership-write-contract.js          exit=0   passed=51    failed=0     BATCH14_HANDLER_TESTS_PASSED
+batch14af-invoice-write-consistency.js        exit=0   passed=49    failed=0     BATCH14AF_INVOICE_WRITE_CONSISTENCY_TESTS_PASSED
+batch14af-atomic-integration.js               exit=2   passed=?     failed=?     NO_BANNER
+batch14ag-read-authority.js                   exit=0   passed=30    failed=0     BATCH14AG_READ_AUTHORITY_TESTS_PASSED
+batch14ah-durable-authority.js                exit=0   passed=24    failed=0     BATCH14AH_DURABLE_AUTHORITY_TESTS_PASSED
+batch14ai-authority-writer-contract.js        exit=0   passed=48    failed=0     BATCH14AI_WRITER_CONTRACT_TESTS_PASSED
+batch14d-webhook-failure-reactivation.js      exit=1   passed=12    failed=14    NO_BANNER
+batch14e-reconciliation.js                    exit=1   passed=13    failed=9     NO_BANNER
+batch14f-event-order.js                       exit=0   passed=11    failed=0     BATCH14F_TESTS_PASSED
+batch14g-authority-contract.js                exit=1   passed=10    failed=2     NO_BANNER
+batch14l-linkage-sequence.js                  exit=1   passed=7     failed=6     NO_BANNER
+batch14p-webhook-coverage.js                  exit=0   passed=49    failed=0     BATCH14P_TESTS_PASSED
+REGRESSIONS_DONE

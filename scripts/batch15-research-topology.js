@@ -243,15 +243,31 @@ if (changed === null) {
     "src/app/oracle/page-client.tsx",
     "scripts/batch15-research-topology.js", "scripts/batch15b-connection-journey.py",
     "docs/BATCH15-RESEARCH-TOPOLOGY.md", "docs/BATCH15B-SELECTED-CONNECTION-JOURNEY.md",
+    // Batch 15c — the authorized combination of the sale-alert repair, which is the
+    // one file below this pilot is allowed to reach into the webhook for.
+    "src/app/api/stripe-webhook/route.ts",
+    "scripts/lib/ut-membership-webhook-harness.cjs",
+    "scripts/batch15c-sale-alert-notification.js",
+    "docs/BATCH15C-SALE-ALERT-COMBINATION.md",
   ];
-  const unexpected = changed.filter((f) => !ALLOWED.includes(f) && !f.startsWith("docs/evidence/batch15b/"));
+  const unexpected = changed.filter((f) => !ALLOWED.includes(f)
+    && !f.startsWith("docs/evidence/batch15b/") && !f.startsWith("docs/evidence/batch15c/"));
   chkeq("only the pilot's own files changed", unexpected.length, 0);
   chk("public/ media untouched", !changed.some((f) => f.startsWith("public/")));
   chk("the artwork registry is untouched", !changed.includes("src/data/artworks.ts"));
   chk("the journal corpus is untouched", !changed.some((f) => f.startsWith("src/data/blog-content/")));
   chk("the codex corpus is untouched", !changed.some((f) => f.startsWith("src/data/codex")));
-  chk("no billing, membership or migration file changed",
-      !changed.some((f) => /membership|billing|stripe|supabase\/migrations/.test(f)));
+  // Scope, not a blanket ban: the only billing/membership-named files that may change
+  // are the two this batch was authorized to change — the webhook and the shared test
+  // harness whose Stripe/table doubles it extends. Anything else still fails.
+  const AUTHORIZED_BILLING = [
+    "src/app/api/stripe-webhook/route.ts",
+    "scripts/lib/ut-membership-webhook-harness.cjs",
+  ];
+  const billingTouched = changed.filter((f) => /membership|billing|stripe/.test(f));
+  chk("the only billing/membership file changed is the authorized sale-alert port",
+      billingTouched.every((f) => AUTHORIZED_BILLING.includes(f)));
+  chk("no migration changed", !changed.some((f) => f.startsWith("supabase/migrations/")));
 }
 
 console.log(`\nassertions passed: ${passed}  failed: ${failed}`);
