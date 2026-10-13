@@ -13,6 +13,12 @@
  * "a UT interpretation" as the same kind of claim.
  */
 
+import {
+  CYMATICS_CONNECTIONS,
+  type ConnectionBasis,
+  type ResearchConnection,
+} from "./research-connections";
+
 export const RESEARCH_TOPIC_PREFIX = "research-v1:";
 
 /** How a claim in this topic is supported. */
@@ -127,9 +133,88 @@ const CYMATICS: ResearchTopic = {
   suggestedQuestion: "What does a cymatics experiment actually show, and where does the interpretation begin?",
 };
 
+/**
+ * A connection anchor is a ResearchTopic like any other, so the Oracle keeps ONE
+ * contract: a stable identifier, resolved server-side against an exact key. No
+ * second registry, no second parameter, no second resolver.
+ *
+ * The anchor is DERIVED from the connection record itself, so a connection cannot
+ * exist with an Oracle entry that disagrees with its displayed rationale, title or
+ * destination - the same data feeds both.
+ */
+export const CONNECTION_ANCHOR_SEGMENT = "/connection/";
+
+/** One sentence per basis, so the summary states the standing in words. */
+const BASIS_SENTENCE: Record<ConnectionBasis, string> = {
+  documented:
+    "DOCUMENTED - a UT record names this relationship directly (the archive's own writing, or the destination record's own description). It is not an external or scientific citation.",
+  interpretation:
+    "UT ARTISTIC INTERPRETATION - a reading this project makes. Not a claim about how the world behaves.",
+  thematic:
+    "THEMATIC ASSOCIATION - a shared subject or idea held as context. It is not a sourced link.",
+};
+
+/** Registry key for a connection anchor, e.g. `cymatics/connection/<slug>`. */
+export function connectionRegistryKey(topicSlug: string, anchorSlug: string): string {
+  return `${topicSlug}${CONNECTION_ANCHOR_SEGMENT}${anchorSlug}`;
+}
+
+/** Public identifier for a connection anchor, e.g. `research-v1:cymatics/connection/<slug>`. */
+export function researchConnectionTopicId(topicSlug: string, anchorSlug: string): string {
+  return `${RESEARCH_TOPIC_PREFIX}${connectionRegistryKey(topicSlug, anchorSlug)}`;
+}
+
+function connectionTopic(topic: ResearchTopic, c: ResearchConnection): ResearchTopic {
+  return {
+    id: connectionRegistryKey(topic.id, c.anchorSlug),
+    // The destination record's own title. Never prose written for this page.
+    title: c.title,
+    route: c.href,
+    summary: [
+      `A SELECTED CONNECTION within the UT research topic ${topic.title} (${topic.route}).`,
+      "",
+      `The connection: a ${c.kind.toLowerCase()} record - ${c.title} - at ${c.href}.`,
+      `Why the archive holds it to belong: ${c.rationale}`,
+      `How strongly it is supported: ${BASIS_SENTENCE[c.basis]}`,
+      "",
+      "The topic it was selected from carries its own standing, which still applies here:",
+      "- OBSERVED means the pattern is experimentally demonstrated and reproducible.",
+      "- HISTORICAL means a named primary document records it.",
+      "- UT ARTISTIC INTERPRETATION means it is this project's reading, not a fact about the world.",
+      "",
+      "The external references listed with this entry belong to the TOPIC as a whole. This",
+      "connection itself is a UT record, not an external citation, and nothing here asserts that",
+      "an external source has endorsed the relationship.",
+    ].join("\n"),
+    sources: [
+      {
+        kind: "reference",
+        label: `${c.kind}: ${c.title}`,
+        url: c.href,
+        internal: true,
+        supports:
+          "The UT record this connection names. It is archive material, not an external citation.",
+      },
+      ...topic.sources,
+    ],
+    suggestedQuestion: c.suggestedQuestion,
+  };
+}
+
+const CONNECTION_TOPICS: Record<string, ResearchTopic> = Object.fromEntries(
+  CYMATICS_CONNECTIONS.map((c) => [
+    connectionRegistryKey(CYMATICS.id, c.anchorSlug),
+    connectionTopic(CYMATICS, c),
+  ])
+);
+
 const REGISTRY: Record<string, ResearchTopic> = {
   cymatics: CYMATICS,
+  ...CONNECTION_TOPICS,
 };
+
+/** Topic slugs only - a connection anchor is not a topic of its own. */
+const TOPIC_SLUGS = [CYMATICS.id];
 
 /** Public identifier for a topic, e.g. `research-v1:cymatics`. */
 export function researchTopicId(slug: string): string {
@@ -137,7 +222,7 @@ export function researchTopicId(slug: string): string {
 }
 
 export function researchTopicSlugs(): string[] {
-  return Object.keys(REGISTRY);
+  return [...TOPIC_SLUGS];
 }
 
 /**

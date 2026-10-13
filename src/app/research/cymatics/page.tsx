@@ -81,7 +81,7 @@ export default function ResearchCymaticsPage() {
                   className="font-mono text-[10px] tracking-widest uppercase mt-3"
                   style={{ color: "var(--ut-white-dim)", opacity: 0.5 }}
                 >
-                  — Pythagoras
+                  — an epigraph carried in this archive
                 </footer>
               </blockquote>
             </SectionReveal>
@@ -491,7 +491,11 @@ export default function ResearchCymaticsPage() {
           </div>
         </section>
 
-        <CymaticsConnections connections={CYMATICS_CONNECTIONS} />
+        <CymaticsConnections
+          connections={CYMATICS_CONNECTIONS}
+          topicSlug={cymaticsTopic.id}
+          returnHref="/research/cymatics"
+        />
 
         <section className="py-16" style={{ borderTop: "1px solid var(--ut-border)" }}>
           <div className="container-ut">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { ResearchConnection } from "@/lib/research-connections";
 import { CYMATICS_GAPS } from "@/lib/research-connections";
+import { researchConnectionTopicId } from "@/lib/research-topics";
 
 const BASIS_STYLE: Record<
   ResearchConnection["basis"],
@@ -28,14 +29,20 @@ const BASIS_STYLE: Record<
 
 export default function CymaticsConnections({
   connections,
+  topicSlug,
+  returnHref,
 }: {
   connections: ResearchConnection[];
+  /** The owning research topic, so each card can address its own Oracle anchor. */
+  topicSlug: string;
+  returnHref: string;
 }) {
   const [openBasis, setOpenBasis] = useState<ResearchConnection["basis"] | null>(null);
 
   return (
     <section
-      className="py-20"
+      id="connections"
+      className="py-20 scroll-mt-24"
       style={{ borderTop: "1px solid rgba(34, 211, 238, 0.06)" }}
       data-cymatics-connections="true"
     >
@@ -58,9 +65,10 @@ export default function CymaticsConnections({
             style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
           >
             Cymatics is not a topic that lives on one page. It already runs through the
-            Journal, the artwork records and the instruments. Each link below says why it
-            belongs and how strongly it is supported — a shared keyword is not treated as a
-            relationship.
+            Journal, the artwork records, the Codex and the instruments. Each link below says
+            why it belongs and how strongly it is supported — a shared keyword is not treated
+            as a relationship. Open a destination to read it, or take any single connection
+            into the Oracle as its own context.
           </p>
 
           {/* Basis legend: makes the epistemic scale readable before the list. */}
@@ -81,7 +89,7 @@ export default function CymaticsConnections({
                     type="button"
                     onClick={() => setOpenBasis(openBasis === b ? null : b)}
                     aria-expanded={openBasis === b}
-                    className="font-mono text-[9px] tracking-[0.2em] uppercase text-left shrink-0"
+                    className="font-mono text-[9px] tracking-[0.2em] uppercase text-left shrink-0 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
                     style={{ color: BASIS_STYLE[b].color }}
                   >
                     {openBasis === b ? "−" : "+"} {BASIS_STYLE[b].label}
@@ -101,12 +109,19 @@ export default function CymaticsConnections({
           </div>
 
           <ul className="space-y-4">
-            {connections.map((c) => (
-              <li key={c.href}>
-                <Link
-                  href={c.href}
-                  data-connection-basis={c.basis}
-                  className="group block ut-card p-6 transition-all duration-300 hover:border-cyan/20"
+            {connections.map((c) => {
+              // The anchor id comes from the registry helper, so the identifier this
+              // card sends is the same key the server resolves — never hand-written.
+              const anchorId = researchConnectionTopicId(topicSlug, c.anchorSlug);
+              const oracleHref =
+                `/oracle?view=desktop&researchTopicId=${encodeURIComponent(anchorId)}` +
+                `&from=${encodeURIComponent(returnHref)}` +
+                `&q=${encodeURIComponent(c.suggestedQuestion)}`;
+              return (
+                <li
+                  key={c.href}
+                  data-connection-anchor={c.anchorSlug}
+                  className="ut-card p-6 transition-all duration-300 hover:border-cyan/20"
                   style={{ background: "rgba(34, 211, 238, 0.02)" }}
                 >
                   <div className="flex items-start justify-between gap-4 mb-2">
@@ -123,21 +138,50 @@ export default function CymaticsConnections({
                       {c.basisLabel}
                     </span>
                   </div>
-                  <h3
-                    className="font-display text-base md:text-lg mb-2 group-hover:text-cyan transition-colors"
-                    style={{ color: "var(--ut-white)" }}
+
+                  {/* The destination is a real link; the Oracle entry is a SIBLING link,
+                      never nested inside it, so both stay separately focusable. */}
+                  <Link
+                    href={c.href}
+                    data-connection-basis={c.basis}
+                    className="group block focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
                   >
-                    {c.title}
-                  </h3>
-                  <p
-                    className="font-body text-[13px] leading-relaxed"
-                    style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}
+                    <h3
+                      className="font-display text-base md:text-lg mb-2 group-hover:text-cyan transition-colors"
+                      style={{ color: "var(--ut-white)" }}
+                    >
+                      {c.title}
+                    </h3>
+                    <p
+                      className="font-body text-[13px] leading-relaxed"
+                      style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}
+                    >
+                      {c.rationale}
+                    </p>
+                  </Link>
+
+                  <div
+                    className="mt-5 pt-4 flex flex-col sm:flex-row sm:items-center gap-3"
+                    style={{ borderTop: "1px solid rgba(34, 211, 238, 0.08)" }}
                   >
-                    {c.rationale}
-                  </p>
-                </Link>
-              </li>
-            ))}
+                    <Link
+                      href={oracleHref}
+                      data-connection-oracle={c.anchorSlug}
+                      className="font-mono text-[9px] tracking-[0.2em] uppercase shrink-0 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                      style={{ color: "var(--ut-cyan)", opacity: 0.9 }}
+                    >
+                      Ask the Oracle about this connection →
+                    </Link>
+                    <span
+                      className="font-mono text-[9px] leading-relaxed"
+                      style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
+                    >
+                      Opens with: “{c.suggestedQuestion}”
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
 
           {/* Honest absences, stated rather than padded out with thin links. */}

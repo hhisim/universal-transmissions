@@ -1,20 +1,33 @@
-import type { ResearchSource } from "@/lib/research-topics";
-
 /**
- * The standing behind a connection. A keyword overlap is not a relationship,
- * so each entry has to state why it belongs and how strongly it is supported.
+ * research-connections.ts - the curated connections for a research topic.
+ *
+ * A connection is a CLAIM about a relationship, so every entry states why it
+ * belongs and which basis it rests on. A shared keyword is not a relationship.
+ *
+ * This module deliberately imports nothing. `research-topics.ts` derives one
+ * Oracle anchor per connection from this data, and an import in this direction
+ * would make that a cycle; the unused `connectionSources()` export that pulled
+ * `ResearchSource` in was removed for exactly that reason.
  */
+
 export type ConnectionBasis = "documented" | "interpretation" | "thematic";
 
 export interface ResearchConnection {
+  /**
+   * Stable slug for this connection's Oracle anchor. Addressable as
+   * `research-v1:<topic>/connection/<anchorSlug>`. Never derived from prose.
+   */
+  anchorSlug: string;
   href: string;
-  /** Short label for the record's kind: Artwork, Journal, Instrument, Codex. */
+  /** Short label for the record's kind: Artwork, Journal, Codex, Instrument. */
   kind: string;
   title: string;
-  /** Why this belongs. Required — no unexplained link is allowed here. */
+  /** Why this belongs. Required - no unexplained link is allowed here. */
   rationale: string;
   basis: ConnectionBasis;
   basisLabel: string;
+  /** The question this connection's own Oracle entry opens with. */
+  suggestedQuestion: string;
 }
 
 /**
@@ -23,15 +36,19 @@ export interface ResearchConnection {
  */
 export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
   {
+    anchorSlug: "journal-cymatics-language-of-form",
     href: "/journal/cymatics-language-of-form",
     kind: "Journal",
     title: "Cymatics and the Language of Form: When Vibration Learns to Spell",
     rationale:
-      "The archive's own long-form piece on Hans Jenny's vibrating plate, filed under the tradition tag \"cymatics\" and written about this exact subject — frequency, medium and form as one continuum. It is the deepest existing treatment of the topic in the Journal, and it is where the interpretive register is set out at length rather than asserted.",
+      "The archive's own long-form piece on Hans Jenny's vibrating plate, filed under the tradition tag \"cymatics\" and written about this exact subject - frequency, medium and form as one continuum. It is the deepest existing treatment of the topic in the Journal, and it is where the interpretive register is set out at length rather than asserted.",
     basis: "documented",
     basisLabel: "UT writing on this subject",
+    suggestedQuestion:
+      "This piece sets out the interpretive register at length - where does it separate what the plate does from what the archive reads into it?",
   },
   {
+    anchorSlug: "artwork-throat-chakra",
     href: "/gallery/throat-chakra",
     kind: "Artwork",
     title: "Bio-Energetic Vortexes No.5 — Truth (Vishuddha Chakra)",
@@ -39,8 +56,11 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
       "The only artwork in the registry whose own description names cymatics as one of its bases: \"based on language, linguistics, cymatics, frequencies and the communicative powers of the Vishuddha Throat Chakra.\" The link is asserted by the record itself rather than inferred from a tag.",
     basis: "documented",
     basisLabel: "Named in the artwork's own record",
+    suggestedQuestion:
+      "The record names cymatics among its bases - what in the finished work actually carries that, and what is the chakra correspondence doing?",
   },
   {
+    anchorSlug: "artwork-recursive-pantheism",
     href: "/gallery/recursive-pantheism",
     kind: "Artwork",
     title: "Universal Transmissions VIII — Recursive Pantheism",
@@ -48,17 +68,35 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
       "Its record states it attempts to syncretise macro and micro, zodiac and chakra centres, and explicitly \"cymatic patterns\". It is the clearest case in the archive where a cymatic pattern is being used as a structural argument rather than as surface ornament.",
     basis: "documented",
     basisLabel: "Named in the artwork's own record",
+    suggestedQuestion:
+      "How is a cymatic pattern being used as a structural argument here, rather than as ornament?",
   },
   {
+    anchorSlug: "codex-frequency-lattice",
+    href: "/experience/correspondence-codex",
+    kind: "Codex",
+    title: "The Correspondence Codex - the FREQUENCY system",
+    rationale:
+      "The archive's own frequency lattice, and the record set the symbolic tone values on this page come from: the solfeggio values assigned symbolic roles in the topic summary (432, 528, 639, 741, 852, 963 Hz) are catalogued there as FREQUENCY entries. It is linked so those assignments can be inspected where they live instead of taken on trust. The lattice is UT symbolic material - the entry labelled \"528 Hz - Miracles\" carries the archive's own symbolic naming, and this page states plainly that the popular therapeutic reading of that value is not supported by the experimental literature.",
+    basis: "documented",
+    basisLabel: "Catalogued in the archive's own FREQUENCY lattice",
+    suggestedQuestion:
+      "The codex catalogs these frequency values as UT symbolic assignments - which parts of that are measured, and which parts are symbols?",
+  },
+  {
+    anchorSlug: "artwork-hyperdimensional-harmonics",
     href: "/gallery/hyperdimensional-harmonics",
     kind: "Artwork",
     title: "Hyperdimensional Harmonics",
     rationale:
       "A member of the Twilight Transmissions whose record describes \"the harmonic integration of hyperdimensional constructs\". It connects to cymatics through the idea of resonance as a compositional method. The relationship is a shared idea rather than a documented citation, and is labelled as such.",
     basis: "thematic",
-    basisLabel: "Shared idea — resonance as method",
+    basisLabel: "Shared idea - resonance as method",
+    suggestedQuestion:
+      "Resonance as a compositional method is a shared idea here rather than a citation - what does the connection actually rest on?",
   },
   {
+    anchorSlug: "journal-kybalion-seven-principles",
     href: "/journal/the-kybalion-7-principles-hermetic-philosophy",
     kind: "Journal",
     title: "The Kybalion: The Seven Principles of Hermetic Philosophy Decoded",
@@ -66,6 +104,8 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
       "Vibration is the third of the seven Hermetic principles the piece decodes, which gives cymatics a documented place in the esoteric lineage UT draws on. Included as lineage context: the Kybalion is itself an early-20th-century modern esoteric text, not an ancient source, and the entry is placed for that reason.",
     basis: "thematic",
     basisLabel: "Lineage context",
+    suggestedQuestion:
+      "Vibration as a Hermetic principle is lineage context rather than a scientific source - how should that be held alongside the experiment?",
   },
 ];
 
@@ -75,11 +115,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
  * it cannot support.
  */
 export const CYMATICS_GAPS = [
-  "No Correspondence entry is linked in this pilot. A passage that engages the subject under other names would not have been caught by a keyword search, so this is an editorial choice for this page rather than a claim that the Codex is silent on it.",
-  "The tone values used in the work (528, 639, 741, 963 Hz) are UT symbolic material. They are part of the project's own scheme and are not presented here as measured physical properties.",
-  "The labels above describe how each connection is held, not scientific evidence. \"Documented\" means the record names the relationship; \"thematic\" means it shares an idea.",
+  "No single Correspondence-entry passage is linked in this pilot: the Codex link above is the FREQUENCY system as a whole rather than a reading of one entry. A passage that engages the subject under other names would not have been caught by a keyword search, so this is an editorial choice for this page rather than a claim that the Codex is silent on it.",
+  "The tone values used in the work (432, 528, 639, 741, 852, 963 Hz) are UT symbolic material. They are catalogued in the archive's own frequency lattice and are not presented here as measured physical properties.",
+  "The labels above describe how each connection is held, not scientific evidence. \"Documented\" means the record names the relationship; \"thematic\" means it shares an idea; and every connection here is a UT record, not an external citation.",
 ];
-
-export function connectionSources(): ResearchSource[] {
-  return [];
-}
