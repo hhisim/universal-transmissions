@@ -69,12 +69,20 @@ surface decision lives in step 8 precisely so that stays true.
 
 ### 1b. Candidate SHA
 
-**`286eab5f1044a4207c92b6a8d1d925a0aae9cccc`** — the commit that carries this package.
+**`5bc511e44ecff775131bbb4c639d1654119860e2`** — the commit that carries this package
+(migration `20261017`, the changed harnesses, `docs/BATCH14AY-SQL-SURFACE.md` and this
+document).
 
 This document was amended in the immediately following commit so that it could name its own
-candidate; that amendment changed **this document only**. No SQL, harness or application
-file differs between the two commits, so the SHA above is the exact candidate for every
-artifact in §1a, §1c and §5.
+candidate; that amendment changed **this document only**. No SQL, harness or application file
+differs between the two commits, so the SHA above is the exact candidate for every artifact in
+§1a, §1a-bis, §1c, §1c-bis and §5.
+
+The previous revision of this record named `286eab5f1044a4207c92b6a8d1d925a0aae9cccc`, which
+was the candidate **before** the boundary migration and the gate corrections; the release
+preparation was extended in `f55483d654e64009343228125f16b0cf57d01f96` (the production gates)
+and completed here. `286eab5f` is no longer the candidate: it does not contain step 8, so it
+would install a surface with 13 functions still carrying the default PUBLIC EXECUTE grant.
 
 ### 1c. Harness files in this package
 
