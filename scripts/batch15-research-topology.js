@@ -123,7 +123,14 @@ chkeq("the artwork registry loaded", bySlug.size > 0, true);
 chkeq("the journal index loaded", posts.size > 0, true);
 for (const c of CONNS) {
   const m = /^\/(gallery|journal)\/(.+)$/.exec(c.href);
-  if (!m) { chk(`${c.anchorSlug}: destination is a known content route`, c.href === "/experience/correspondence-codex", c.href); continue; }
+  if (!m) {
+    /* Routes that are not gallery/journal records. The Codex experience and the
+       instrument room are both real destinations this registry is allowed to name. */
+    chk(`${c.anchorSlug}: destination is a known content route`,
+        c.href === "/experience/correspondence-codex" || c.href === "/experience/universal-resonator",
+        c.href);
+    continue;
+  }
   const [, kind, slug] = m;
   const record = kind === "gallery" ? bySlug.get(slug) : posts.get(slug);
   chk(`${c.anchorSlug}: the ${kind} record ${slug} exists in the loaded dataset`, !!record);
@@ -290,12 +297,25 @@ if (changed === null) {
     // Batch 16 acceptance — carries the backend's truncation flag through to the site so
     // a capped fragment can never be presented as a finished answer.
     "src/app/api/oracle/route.ts",
+    "docs/BATCH16-ACCEPTANCE.md",
+    "scripts/batch16b-acceptance-answers.py",
+    // Batch 17 — the instrument room. Its bundle is hosted under public/ on purpose and
+    // its assets are the zip's own dist/ output, byte-for-byte.
+    "src/app/experience/universal-resonator/page.tsx",
+    "src/app/experience/universal-resonator/ResonatorLoader.tsx",
+    "scripts/batch17-instrument-room.js",
+    "docs/BATCH17-INSTRUMENT-ROOM.md",
   ];
   const unexpected = changed.filter((f) => !ALLOWED.includes(f)
     && !f.startsWith("docs/evidence/batch15b/") && !f.startsWith("docs/evidence/batch15c/")
-    && !f.startsWith("docs/evidence/batch16"));
+    && !f.startsWith("docs/evidence/batch16") && !f.startsWith("docs/evidence/batch17")
+    && !f.startsWith("public/experience/universal-resonator/"));
   chk("only the pilot's own files changed", unexpected.length === 0, unexpected.join(", "));
-  chk("public/ media untouched", !changed.some((f) => f.startsWith("public/")));
+  /* The media corpus must not move. Batch 17 adds the instrument bundle under
+     public/experience/, which is application assets rather than artwork media, so the
+     check names that exception instead of being relaxed wholesale. */
+  chk("public/ media untouched (the instrument bundle excepted)",
+      !changed.some((f) => f.startsWith("public/") && !f.startsWith("public/experience/universal-resonator/")));
   chk("the artwork registry is untouched", !changed.includes("src/data/artworks.ts"));
   chk("the journal corpus is untouched", !changed.some((f) => f.startsWith("src/data/blog-content/")));
   chk("the codex corpus is untouched", !changed.some((f) => f.startsWith("src/data/codex")));

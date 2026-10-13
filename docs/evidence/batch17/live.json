@@ -1,0 +1,190 @@
+{
+  "base": "https://universal-transmissions-kt1qtig33-hhisim-7214s-projects.vercel.app",
+  "checks": [
+    {
+      "check": "no instrument asset is requested before launch",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "no app.js request",
+      "ok": true
+    },
+    {
+      "check": "no worker request",
+      "ok": true
+    },
+    {
+      "check": "no instrument font is fetched",
+      "ok": true
+    },
+    {
+      "check": "no iframe exists in the DOM yet",
+      "ok": true
+    },
+    {
+      "check": "no instrument frame exists to run WebGL",
+      "ok": true
+    },
+    {
+      "check": "the launch action is present and explicit",
+      "ok": true
+    },
+    {
+      "check": "the page says nothing has started yet",
+      "ok": true
+    },
+    {
+      "check": "the room explains what the instrument solves",
+      "ok": true
+    },
+    {
+      "check": "the room states the model's limit",
+      "ok": true
+    },
+    {
+      "check": "the room carries the references",
+      "ok": true
+    },
+    {
+      "check": "the references link out to their sources",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "check": "the third-party notices are linked",
+      "ok": true
+    },
+    {
+      "check": "launching requests the instrument bundle",
+      "ok": true,
+      "detail": "app.js, cinzel-latin-600-normal.woff2, cinzel-latin-ext-600-normal.woff2, cormorant-garamond-latin-400-italic.woff2, cormorant-garamond-latin-400-normal.woff2, cormorant-garamond-latin-500-italic.woff2"
+    },
+    {
+      "check": "the engine bundle itself loads",
+      "ok": true
+    },
+    {
+      "check": "the solver worker loads",
+      "ok": true
+    },
+    {
+      "check": "its own stylesheet loads",
+      "ok": true
+    },
+    {
+      "check": "its own fonts load",
+      "ok": true
+    },
+    {
+      "check": "the stage replaces the launch panel",
+      "ok": true
+    },
+    {
+      "check": "the instrument's own document is running",
+      "ok": true,
+      "detail": "['https://universal-transmissions-kt1qtig33-hhisim-7214s-projects.vercel', 'https://universal-transmissions-kt1qtig33-hhisim-7214s-projects.vercel']"
+    },
+    {
+      "check": "a canvas appears inside the instrument (WebGL is running)",
+      "ok": true,
+      "detail": "3 canvases"
+    },
+    {
+      "check": "WebGL is available to the instrument",
+      "ok": true
+    },
+    {
+      "check": "the instrument's own interface is up (engine, not a stub)",
+      "ok": true,
+      "detail": "U⌬ᛉᚺᛈ⌬ᛇᛞᚠ ⧖ᚦᛁᛞᛚᛖᚢᛚᚢ ᚦᚢᛗᚱᛜ⎔ᚾ⬡ / ACQUIRING SIGNAL CLICK OR PRESS ANY KEY TO ENTER U̷niversal R̸esonator CYMATIC INSTRUMENT"
+    },
+    {
+      "check": "leaving unmounts the instrument",
+      "ok": true
+    },
+    {
+      "check": "the launch panel returns",
+      "ok": true
+    },
+    {
+      "check": "the Cymatics room links to the instrument",
+      "ok": true
+    },
+    {
+      "check": "the instrument is listed as a connection of the room",
+      "ok": true,
+      "detail": "[\"journal-cymatics-language-of-form\", \"artwork-throat-chakra\", \"artwork-recursive-pantheism\", \"codex-frequency-lattice\", \"artwork-hyperdimensional-harmonics\", \"journal-kybalion-seven-principles\", \"instrument-universal-resonator\"]"
+    },
+    {
+      "check": "the six released anchors are still there, in order",
+      "ok": true,
+      "detail": "[\"journal-cymatics-language-of-form\", \"artwork-throat-chakra\", \"artwork-recursive-pantheism\", \"codex-frequency-lattice\", \"artwork-hyperdimensional-harmonics\", \"journal-kybalion-seven-principles\", \"instrument-universal-resonator\"]"
+    },
+    {
+      "check": "following it lands on the instrument room",
+      "ok": true,
+      "detail": "https://universal-transmissions-kt1qtig33-hhisim-7214s-projects.vercel.app/experience/universal-resonator"
+    },
+    {
+      "check": "the room returns to Cymatics research",
+      "ok": true,
+      "detail": "https://universal-transmissions-kt1qtig33-hhisim-7214s-projects.vercel.app/research/cymatics"
+    },
+    {
+      "check": "the Oracle link carries the instrument anchor",
+      "ok": true,
+      "detail": "/oracle?view=desktop&researchTopicId=research-v1%3Acymatics%2Fconnection%2Finstrument-universal-resonator&from=%2Fexperi"
+    },
+    {
+      "check": "the Oracle link carries the instrument's own question",
+      "ok": true,
+      "detail": "/oracle?view=desktop&researchTopicId=research-v1%3Acymatics%2Fconnection%2Finstrument-universal-resonator&from=%2Fexperience%2Funiversal-resonator&q=The%20instr"
+    },
+    {
+      "check": "the Oracle opens carrying the instrument as its subject",
+      "ok": true,
+      "detail": "SPEAKING ABOUT The Universal Resonator RESEARCH CONTEXT ← RETURN TO THE UNIVERSAL RESONATOR"
+    },
+    {
+      "check": "390: a real 390 CSS px viewport",
+      "ok": true,
+      "detail": "390"
+    },
+    {
+      "check": "390: no horizontal overflow",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "check": "390: the launch action fits the viewport",
+      "ok": true,
+      "detail": "{\"innerWidth\": 390, \"docOverflow\": 0, \"buttonRight\": 333}"
+    },
+    {
+      "check": "reduced motion: every reveal wrapper is fully visible",
+      "ok": true,
+      "detail": "{\"total\": 12, \"hidden\": 0}"
+    }
+  ],
+  "failed": [],
+  "screenshots": [
+    {
+      "file": "b17-reading-page-before-launch.png",
+      "bytes": 568486
+    },
+    {
+      "file": "b17-instrument-launched.png",
+      "bytes": 1436998
+    },
+    {
+      "file": "b17-oracle-in-context.png",
+      "bytes": 1171246
+    },
+    {
+      "file": "b17-mobile390-room.png",
+      "bytes": 266707
+    }
+  ],
+  "generatedAt": "2026-10-13T22:33:44Z"
+}

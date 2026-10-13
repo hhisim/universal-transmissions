@@ -106,8 +106,15 @@ console.log("\n== C. the Cymatics release is untouched by the generalisation =="
 {
   const expected = ["journal-cymatics-language-of-form", "artwork-throat-chakra", "artwork-recursive-pantheism",
                     "codex-frequency-lattice", "artwork-hyperdimensional-harmonics", "journal-kybalion-seven-principles"];
-  chkeq("still six Cymatics connections", CYM.length, 6);
-  chkeq("the same six anchors, in the same order", CYM.map((c) => c.anchorSlug).join(","), expected.join(","));
+  /* Batch 17 registered the instrument room as a Cymatics connection, so the room now
+     carries seven. The six released with it must still be present, in their original
+     order, at the head of the list - the instrument is APPENDED, never interleaved. */
+  const slugs = CYM.map((c) => c.anchorSlug);
+  chkeq("the Cymatics room carries seven connections", CYM.length, expected.length + 1);
+  chkeq("the six released anchors keep their order, with the instrument appended",
+        slugs.join(","), expected.concat(["instrument-universal-resonator"]).join(","));
+  chk("the instrument is registered as an Instrument, not folded into another kind",
+      CYM[CYM.length - 1].kind === "Instrument", CYM[CYM.length - 1].kind);
   const fourier = topics.resolveResearchTopic("research-v1:cymatics/connection/codex-frequency-lattice");
   chk("the released Codex anchor still carries its destination note",
       !!fourier && /front page/.test(fourier.summary) && /FREQUENCY/.test(fourier.summary));

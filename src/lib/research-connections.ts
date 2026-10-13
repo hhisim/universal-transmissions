@@ -40,6 +40,9 @@ export interface ResearchConnection {
 /**
  * Cymatics connections, curated from records that already exist in this repo.
  * Every href below is a real route and every title is the record's own title.
+ *
+ * The Instrument entry was appended last so the six connections released with the
+ * Cymatics room keep their original anchors and their order.
  */
 export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
   {
@@ -119,6 +122,25 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     basisLabel: "Lineage context",
     suggestedQuestion:
       "Vibration as a Hermetic principle is lineage context rather than a scientific source - how should that be held alongside the experiment?",
+  },
+  /* ── The instrument room (batch 17) ─────────────────────────────────────────
+     Appended last so the six connections above keep the anchors and the order they
+     were released with. The instrument is the one record in this room that PERFORMS
+     the room's subject rather than writing about it, which is why it belongs here
+     rather than in a separate list. */
+  {
+    anchorSlug: "instrument-universal-resonator",
+    href: "/experience/universal-resonator",
+    kind: "Instrument",
+    title: "The Universal Resonator",
+    rationale:
+      "The archive's own instrument for this room: it solves a driven plate or membrane field and renders the nodal structure as tethered sand, with a live 2D model monitor. It belongs because it is the only record here that performs the room's subject instead of describing it - the visitor drives a medium and reads the pattern that forms. Its own record is explicit about the limit, and that limit travels with this connection rather than staying on the instrument page: the plate is an idealised model, so what it shows is the structure of the model's own mathematics made visible. It is not a physical measurement of a real plate, it is not a prediction for any particular sheet of material you could hold, and the monitor is a model diagnostic rather than a decorative thumbnail. Idealised is not the same as false - the model is real and it is solved honestly - but nothing here should be read as an experimental result.",
+    basis: "documented",
+    basisLabel: "A UT instrument, with its model stated in its own record",
+    destinationNote:
+      "The room opens as a reading page. The instrument itself does not load until you launch it, and leaving stops its audio and graphics.",
+    suggestedQuestion:
+      "The instrument solves a model rather than measuring a real plate - what exactly is it solving, and where does that model stop being able to tell you about a physical plate?",
   },
 ];
 
