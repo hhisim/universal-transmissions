@@ -46,12 +46,17 @@ artifact in §1a, §1c and §5.
 
 ### 1c. Harness files in this package
 
+Hashes as of this revision. The gate harnesses are version-parameterised: run them with
+`PGBIN=/usr/lib/postgresql/<major>/bin` to select the server.
+
 | File | sha256 | git blob |
 |---|---|---|
 | `scripts/batch14ax-email-index-negatives.sh` | `68b7da975a60293ae10329263798510ffddc40d48c9599d148337f1d4d1211b7` | `2ef4064900c78e7e3709ab5c66163d55286665c9` |
-| `scripts/batch14ax-install-bundle-validate.sh` | `04a7a162a80656e72dac7c3a05c6f651ce1a9509a72137aa187db2a79e713d3b` | `1cfa34e728a5e88a21b6c24247ab1cd8f2914389` |
-| `scripts/batch14ax-preflight-production.sql` | `f13c22cf761005adc411b6b964a873398720a30d9a526e5ccde88086984810f0` | `766022700ad67f183de5055a60bad7ca58422fed` |
-| `scripts/batch14ax-postflight-production.sql` | `9093d1d963e57472ce36bbf1f56b42e2031455d407e38221bdebdc87879cc689` | `723e75c3cf4e48067a7547e95943d740e7b0de13` |
+| `scripts/batch14ax-install-bundle-validate.sh` | `20caa20ed9371a739dc14589abe3985e9a14159034985d7addc57105e3251491` | `40183e4ef04d9ba9f6f3b64bbb51a444930406a8` |
+| `scripts/batch14ax-gate-negatives.sh` | `a376d108f84e72c2a0909249b8d4c952c2bbc28fa931c27ad9a5f9fe88c43727` | `f326ea1ad69d3267553319f28a253d38de8e95a4` |
+| `scripts/batch14ax-verdict-components.sql` | `ecfdebd262fd8f628a4afe5f2dfe4889dc056e841733b0c44feda5da9370cff2` | `4ddfc5446a969cfd2f4f18f059c16e7c0dd83b9c` |
+| `scripts/batch14ax-preflight-production.sql` | `180e38e718f59ec7270c719b02bda99a52213b6f6d968f971bbfcd2290406577` | `f4d83eeba8e31f64929bd2cd26d20bf8a4135fcb` |
+| `scripts/batch14ax-postflight-production.sql` | `ade89dc18094d10757eae4776253d842f3c5194d720dd39fce33953d8b6f4c37` | `187db9487369244dfd34905e2c8b261ad66bc852` |
 
 ## 2. Installation prerequisites
 
@@ -71,12 +76,14 @@ artifact in §1a, §1c and §5.
    postflight re-asserts it (§4).
 5. **`service_role` must exist** and must be able to `EXECUTE
    public.apply_lifecycle_update_sync_global(jsonb)`. That grant is made by `20261014`.
-6. **Application ordering — SQL FIRST, then the application.** `main` (`605aabe`) does
-   **not** use the atomic module (`applyAtomicLifecycleUpdate` appears nowhere in it); the
-   atomic path exists only on the batch14 branch. Applying the SQL to a database whose
-   application still writes directly is safe — the trigger serializes those writes and
-   rejects none. The reverse is not: an application released before the SQL would call a
-   function that does not exist and fail every membership write with `42883`.
+6. **Application ordering — SQL FIRST, then the application.** Neither `main` (`605aabe`)
+   nor `ac49ce06` uses the atomic module: `src/lib/membership-lifecycle-atomic.ts` is absent
+   from both, `applyAtomicLifecycleUpdate` appears nowhere in either webhook route, and the
+   route file is the same blob in both. The atomic path exists only on the batch14 branch.
+   Applying the SQL to a database whose application still writes directly is safe — the
+   trigger serializes those writes and rejects none. The reverse is not: an application
+   released before the SQL would call a function that does not exist and fail every
+   membership write with `42883`.
 7. **The application must call the GLOBAL entry point** —
    `ATOMIC_LIFECYCLE_RPC = "apply_lifecycle_update_sync_global"` in
    `src/lib/membership-lifecycle-atomic.ts`. The per-identity variant
@@ -114,11 +121,39 @@ an unknown mode is refused with SQLSTATE `22023`.
 
 ## 4. The SELECT-only preflight and postflight
 
-`scripts/batch14ax-preflight-production.sql` (P0–P10) and
-`scripts/batch14ax-postflight-production.sql` (Q0–Q10). Both are **SELECT-only** — the
+`scripts/batch14ax-preflight-production.sql` (P0–P16) and
+`scripts/batch14ax-postflight-production.sql` (Q0–Q90). Both are **SELECT-only** — the
 bundle validator greps both files for any writing statement outside a comment and requires
 zero hits — and both are **counts-only**: no member address, user id, customer id or
 subscription id is ever projected. Addresses appear only as group keys inside subqueries.
+
+**The postflight's LAST statement (Q90) is the mandatory verdict** — a single boolean that
+the harness reads as the last line of the file's unaligned output and requires to be exactly
+`t`. A FALSE, NULL, MISSING or non-boolean verdict FAILS, and the validator additionally
+asserts that **nothing follows the verdict** in the file, so a later statement can never be
+mistaken for it. The verdict independently ANDs ten conditions:
+
+1. the authority column exists on BOTH tables **with type `timestamp with time zone`**;
+2. the address index is structurally the required single-expression key (right table, one
+   key column, no INCLUDE columns, no partial predicate, unique/valid/ready/live, expression
+   compared structurally);
+3. all four functions exist under their **exact signatures** — `p_targets jsonb` for the
+   primitive and both wrappers, `p_mode text` for the installer;
+4. the three callable functions carry the declared **security mode** (primitive DEFINER,
+   wrappers INVOKER), a pinned **`search_path = pg_catalog, public`**, owner `postgres`,
+   `service_role` EXECUTE, and no `anon`/`authenticated`/PUBLIC EXECUTE;
+5. the **trigger installer** is present, owned by `postgres`, and callable by no application
+   role;
+6. the statement trigger is **ENABLED** (`tgenabled = 'O'`), **BEFORE**, **STATEMENT-level**,
+   covers **INSERT and UPDATE**, on **BOTH** tables, and calls the exclusive-global function;
+7. **effective TABLE access** is withdrawn from `anon`/`authenticated` — inheritance-aware,
+   on the server's own privilege list;
+8. **effective COLUMN access** is withdrawn, on a deliberately version-independent list;
+9. no **PUBLIC** grant on tables, columns, or the four guarded functions — detected with
+   `aclexplode`, because a grantee of 0 *is* PUBLIC, and a NULL `proacl` means the default
+   PUBLIC grant is still in place;
+10. RLS is **enabled on both tables**, the withdrawn `allow_authenticated_read` policy is
+    absent, and **no policy** on either table is visible to `anon`/`authenticated`/PUBLIC.
 
 Coverage:
 
@@ -138,6 +173,76 @@ Coverage:
   two "an attested row suppresses an unattested paid row" populations.
 * **Installation prerequisites** — the global entry point present, the trigger installer
   present, and `service_role` able to call the entry point.
+* **A red gate names its cause** — `scripts/batch14ax-verdict-components.sql` re-evaluates
+  the verdict's ten conditions separately, prints only the ones that do NOT hold, and then
+  prints the raw facts behind them (owner, security mode, search_path, ACLs, per-role
+  EXECUTE) for each of the four guarded functions. Both harnesses run it automatically
+  whenever the verdict is not `t`. A gate that reports only "false" is itself a defect.
+
+## 4b. Gate validation, on PostgreSQL 16 AND 17
+
+Both harnesses are version-parameterised (`PGBIN=…`), so the same file runs against either
+server:
+
+| Run | Result |
+|---|---|
+| `batch14ax-install-bundle-validate.sh` on **PostgreSQL 16.15** | **49 / 0** |
+| `batch14ax-install-bundle-validate.sh` on **PostgreSQL 17** | **48 / 0** |
+| `batch14ax-gate-negatives.sh` on **PostgreSQL 16.15** | **36 / 0** |
+| `batch14ax-gate-negatives.sh` on **PostgreSQL 17** | **36 / 0** |
+
+PostgreSQL 17 was installed from the official PGDG repository **on the test host only**,
+specifically so the version-dependent branch is exercised rather than argued: the preflight's
+P16 self-test reports the branch the *running* server takes, and on 16 the harness asserts the
+negative control — that naming `MAINTAIN` unconditionally raises
+`unrecognized privilege type: "MAINTAIN"` — which is what makes the `CASE` guard
+load-bearing rather than stylistic.
+
+**Direct writes are proven as `service_role`, not as the session user.** A superuser session
+proves nothing about the application role: it bypasses RLS and holds every privilege by
+definition. The validator therefore runs an INSERT and an UPDATE under
+`set role service_role`, asserts both persist, asserts `service_role` may execute the
+trigger's function (a missing EXECUTE would make every direct write fail with `42501`), and
+asserts a case-variant duplicate is still refused by the index on that path.
+
+### The negative-control matrix
+
+`batch14ax-gate-negatives.sh` installs a clean bundle, proves the verdict reads `t`, injects
+ONE drift, requires the verdict to stop reading `t`, reverts the drift, and requires the
+verdict to read `t` again — so every case proves both halves. Cases: **C0** clean-install
+control · **C1** table access re-granted to PUBLIC · **C2** column access granted to
+`authenticated` (a table-level check would miss it) · **C3** the trigger disabled · **C4** the
+trigger dropped on one table · **C5** the trigger installed in SHARED mode (the wrong
+protocol) · **C6** the wrapper exposed to `anon` · **C7** RLS disabled on one table · **C8**
+the withdrawn read policy re-created · **C9** the authority column dropped · **C10** a
+required signature dropped · **C11** a wrapper re-created DEFINER with no `search_path` ·
+**C12** function ownership moved off `postgres` · **C13** the verdict parser itself (a FALSE,
+NULL, missing and error-before-verdict file) · **F** the clean-install control, restored.
+
+### Three findings this validation produced
+
+1. **`ALTER FUNCTION … OWNER TO` is not ACL-neutral.** C12 moves a wrapper's owner to
+   `service_role` and back: the ownership returns, but PostgreSQL **drops the
+   `service_role=X/…` ACL entry** in the process, so the function becomes unreachable by the
+   application role even though its owner is correct again. The harness asserts this finding
+   explicitly, and the revert re-applies `20261014` (which owns both the owner and the grants)
+   rather than flipping the owner back. It is also why the verdict checks owner **and** ACLs
+   as separate conditions.
+2. **`MAINTAIN` is a TABLE privilege and `has_column_privilege()` rejects it on every
+   version.** The first revision of P12/Q8 built the column-privilege list with the same
+   version `CASE` used for tables, which fails on PostgreSQL 17 with
+   `unrecognized privilege type: "MAINTAIN"`. The column lists are now deliberately
+   version-independent (`SELECT, INSERT, UPDATE, REFERENCES`). **The PostgreSQL 17 run is what
+   caught this** — it would have failed at install time on production, which is 17.6.
+3. **The bundle's own helper functions still carry the default PUBLIC EXECUTE grant**
+   (`b14ab_*`, `b14ac_*`, the trigger functions). The release does not claim to harden them,
+   so this is NOT a mandatory gate — but it is not hidden either: the postflight's Q9 prints
+   it as `other_public_functions_with_public_execute_informational`, and the exposure is real
+   (an anonymous caller could reach `b14ab_acquire_global_lock()` and hold the exclusive
+   advisory key, which is a denial-of-service lever, not a data leak). **Follow-up, not part
+   of this release:** a later, separate migration should revoke PUBLIC on the helper
+   functions. It is deliberately not folded in here, because it would change the reviewed
+   bundle's hashes.
 
 Every postflight row whose expectation is knowable carries an `expected_met` boolean, and
 Q10 returns a single boolean ANDing the critical conditions, so a green run does not depend
@@ -148,9 +253,15 @@ never established.
 
 ## 5. Authoritative regression coverage
 
-**No application source changed in this batch** (the package roster contains only SQL,
-harnesses and this document), so the application evidence accepted at `d2b366c` stands and
-was not re-run.
+**No application source changed in this batch or in this package's follow-ups** (the roster
+contains only SQL, harnesses and this document), so the accepted application evidence stands
+and was not re-run. That evidence is the tree at **`b4f8ce7`** — the commit that completed
+the writer contract — **not `d2b366c`**. The first revision of this document cited
+`d2b366c`, which is the *intermediate* commit of that same batch: the results listed below
+(notably `batch14ai` at **48 / 0**, including cases C2 and G) were produced against
+`b4f8ce7`, where the C2 invoice-coherence fix and those two cases landed. `d2b366c` is its
+parent and corresponds to the earlier 34 / 0 revision of the same suite. No measured result
+in this record changes; the citation was wrong and is corrected here.
 
 | Suite | Result | Covers |
 |---|---|---|
@@ -251,5 +362,33 @@ There is no compensating code path.
 * **No release readiness is claimed here.** Installing the SQL, deploying the application,
   and verifying production afterwards are each separately authorized.
 
-**Production remains untouched: `main` is `605aabe`, production application `ac49ce06`, and
-no Batch 14 SQL is applied.**
+**Production remains untouched: no Batch 14 SQL is applied, and no Batch 14 application
+change is deployed.**
+
+### Production baseline, reconciled and verified read-only
+
+The first revision of this document said "production application `ac49ce06`". That was an
+**unverified claim and is withdrawn.** What the repository establishes is narrower:
+
+| Ref | Commit | What it is |
+|---|---|---|
+| `main` | `605aabea16344b476d8e76db599deaa38391007b` | trunk (`fix: render recent journal heroes`); **58 commits BEHIND** the Batch 13 tip, and does **not** contain `20261010_membership_access_hardening.sql` |
+| `ac49ce06` | `ac49ce062d66a49b0e4202a5e15755b930667bc3` | `Batch 13c: fix the PostgreSQL 17 path and make verification SELECT-only`, on `omni/batch13-membership-db-access`; a DESCENDANT of `main` and an ANCESTOR of the batch14 branch |
+
+`git merge-base main ac49ce06` = `605aabe`; `git rev-list --count main..ac49ce06` = **58**;
+`ac49ce06..main` = **0** — one lineage, not two divergent ones.
+
+* **Verified read-only:** the ancestry above; that
+  `src/app/api/stripe-webhook/route.ts` is the **same blob**
+  (`56073ee48fd1b97115e453db9809c9762aeb250c`) in `main` and `ac49ce06`; that
+  `src/lib/membership-lifecycle-atomic.ts` is **absent** from both and present only on the
+  batch14 branch; and that the Batch 13 migration file exists in `ac49ce06` and not in
+  `main`.
+* **Not established from the repository:** *which* SHA is actually deployed. That is a
+  deployment fact and must be confirmed against the running build at release time.
+* **What matters for the release** survives the correction: whichever of the two is
+  deployed, **the application does not use the atomic path** (identical webhook route blob,
+  no atomic module), so the SQL-first ordering in §2.6 holds either way. And because `main`
+  does not carry the Batch 13 migration while `ac49ce06` does, the Batch 13 boundary must be
+  verified **by effect** — the preflight's P6/P11/P12/P13/P15 and the postflight's
+  Q7–Q10 — not inferred from which branch was deployed.

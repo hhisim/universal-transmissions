@@ -34,6 +34,12 @@
 --   P8   cross-table conflict exposure                informational (counts)
 --   P9   the direct-writer coverage check             informational
 --   P10  installation prerequisites                   informational
+--   P11  EFFECTIVE table access, inheritance-aware    anon/authenticated = 0
+--   P12  EFFECTIVE column access                      anon/authenticated = 0
+--   P13  PUBLIC ACLs: table, column, function         expect 0
+--   P14  ownership of the tables and the functions    informational
+--   P15  RLS flags and the exact policy inventory     informational (baseline)
+--   P16  the version-dependent privilege list         self-test, both branches
 -- ============================================================================
 
 
@@ -275,3 +281,155 @@ select (to_regprocedure('public.apply_lifecycle_update_sync_global(jsonb)') is n
        (to_regprocedure('public.b14ac_install_trigger(text)') is not null)               as trigger_installer_present,
        coalesce(has_function_privilege('service_role',
                  to_regprocedure('public.apply_lifecycle_update_sync_global(jsonb)'), 'EXECUTE'), false) as service_role_can_call_entry_point;
+
+
+-- P11 --------------------------------------------------------------------------
+-- EFFECTIVE TABLE ACCESS, inheritance-aware. has_table_privilege() accounts for
+-- grants through PUBLIC and through role membership, so it reports what a role
+-- can really do rather than what the ACL rows say. expect anon = 0 and
+-- authenticated = 0 on BOTH tables, on the server's own privilege list.
+with roles(r) as (values ('anon'), ('authenticated'), ('service_role')),
+     privs(priv) as (
+       select unnest(
+         case when current_setting('server_version_num')::int >= 170000
+              then array_append(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'], 'MAINTAIN')
+              else array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']
+         end
+       )
+     )
+select r.r as role_name, t.tablename,
+       count(*) filter (where has_table_privilege(r.r, 'public.' || t.tablename, priv)) as effective_privileges,
+       case when r.r = 'service_role'
+            then count(*) filter (where has_table_privilege(r.r, 'public.' || t.tablename, priv)) >= 7
+            else count(*) filter (where has_table_privilege(r.r, 'public.' || t.tablename, priv)) = 0
+       end as expected_met
+from roles r
+cross join (values ('ut_members'), ('profiles')) t(tablename)
+cross join privs
+group by 1, 2
+order by 1, 2;
+
+
+-- P12 --------------------------------------------------------------------------
+-- EFFECTIVE COLUMN ACCESS. Column grants can exist independently of table grants,
+-- and a table-level REVOKE removing them is behaviour worth verifying rather than
+-- assuming. expect anon = 0, authenticated = 0.
+--
+-- The privilege list here is DELIBERATELY VERSION-INDEPENDENT: MAINTAIN (new in
+-- PostgreSQL 17) is a TABLE privilege and has_column_privilege() rejects it on
+-- every version — naming it raises `unrecognized privilege type: "MAINTAIN"`,
+-- which a PostgreSQL 17 run catches immediately.
+with roles(r) as (values ('anon'), ('authenticated')),
+     privs(priv) as (select unnest(array['SELECT','INSERT','UPDATE','REFERENCES']))
+select r.r as role_name,
+       count(*) as column_access_checks,
+       count(*) filter (where has_column_privilege(r.r, a.attrelid, a.attname, priv)) as granted,
+       count(*) filter (where has_column_privilege(r.r, a.attrelid, a.attname, priv)) = 0 as expected_met
+from roles r
+cross join (select attrelid, attname from pg_attribute
+             where attrelid in ('public.ut_members'::regclass, 'public.profiles'::regclass)
+               and attnum > 0 and not attisdropped) a
+cross join privs
+group by 1
+order by 1;
+
+
+-- P13 --------------------------------------------------------------------------
+-- PUBLIC ACLs on tables, columns and functions. expect every checkable row 0: a
+-- grant to PUBLIC reaches anon and authenticated through inheritance, which is how
+-- the Batch 13 defect was reachable in the first place.
+--
+-- PUBLIC EXECUTE is detected with aclexplode(), because grantee 0 IS PUBLIC —
+-- matching the ACL text would also match `service_role=X/postgres`, and a NULL
+-- proacl means the DEFAULT PUBLIC grant is still in place. The function rows are
+-- split so the guarded surface is checkable and everything else stays visible.
+select 'table_grants_to_public' as acl_kind, count(*) as observed, 0 as expect, count(*) = 0 as expected_met
+from information_schema.role_table_grants
+where table_schema = 'public' and table_name in ('ut_members', 'profiles') and grantee = 'PUBLIC'
+union all
+select 'column_grants_to_public', count(*), 0, count(*) = 0
+from information_schema.column_privileges
+where table_schema = 'public' and table_name in ('ut_members', 'profiles') and grantee = 'PUBLIC'
+union all
+select 'guarded_functions_public_execute', count(*), 0 as expect, count(*) = 0 as expected_met
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname in ('apply_lifecycle_update',
+                    'apply_lifecycle_update_sync',
+                    'apply_lifecycle_update_sync_global',
+                    'b14ac_install_trigger')
+  and (p.proacl is null
+       or exists (select 1 from aclexplode(p.proacl) x
+                   where x.grantee = 0 and x.privilege_type = 'EXECUTE'))
+union all
+select 'other_public_functions_with_public_execute_informational', count(*), null::bigint, null::boolean
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname not in ('apply_lifecycle_update',
+                        'apply_lifecycle_update_sync',
+                        'apply_lifecycle_update_sync_global',
+                        'b14ac_install_trigger')
+  and (p.proacl is null
+       or exists (select 1 from aclexplode(p.proacl) x
+                   where x.grantee = 0 and x.privilege_type = 'EXECUTE'))
+order by 1;
+
+
+-- P14 --------------------------------------------------------------------------
+-- OWNERSHIP. informational baseline: the bundle pins function ownership to
+-- postgres and changes no table ownership. Compare with the postflight's Q20/Q4.
+select 'table' as object_kind, c.relname as object_name, pg_get_userbyid(c.relowner) as owner
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
+union all
+select 'function', p.proname, pg_get_userbyid(p.proowner)
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname in ('apply_lifecycle_update',
+                    'apply_lifecycle_update_sync',
+                    'apply_lifecycle_update_sync_global',
+                    'b14ac_install_trigger')
+order by 1, 2;
+
+
+-- P15 --------------------------------------------------------------------------
+-- RLS FLAGS AND THE EXACT POLICY INVENTORY — the Batch 13 baseline. The bundle
+-- must change NONE of this. Record this output: the postflight's Q10/Q10b are
+-- compared against it.
+select c.relname as table_name, c.relrowsecurity as rls_enabled, c.relforcerowsecurity as rls_forced
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
+order by 1;
+
+select tablename, policyname, permissive, roles, cmd, coalesce(qual, '<none>') as using_expression
+from pg_policies
+where schemaname = 'public' and tablename in ('ut_members', 'profiles')
+order by 1, 2;
+
+
+-- P16 --------------------------------------------------------------------------
+-- THE VERSION-DEPENDENT PRIVILEGE LIST, SELF-TESTED. MAINTAIN exists only from
+-- PostgreSQL 17, so every privilege query above builds its list with array_append
+-- inside a CASE instead of naming MAINTAIN unconditionally (on 16, naming it
+-- raises `unrecognized privilege type: "MAINTAIN"` and aborts the statement).
+--
+-- This statement exercises the branch for the SERVER'S OWN version and reports
+-- whether the list and the version agree. It is run on both a 16 and a 17 server
+-- by batch14ax-install-bundle-validate.sh, so the branch that production takes is
+-- demonstrated rather than assumed.
+-- expect: count_expected_met = true and maintain_matches_version = true.
+with v as (select current_setting('server_version_num')::int as n),
+     l as (
+       select (case when (select n from v) >= 170000
+                    then array_append(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'], 'MAINTAIN')
+                    else array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']
+               end) as privs
+     )
+select (select n from v) >= 170000                                                  as server_is_17_or_later,
+       (select n from v)                                                             as server_version_num,
+       array_length(l.privs, 1)                                        as privileges_checked,
+       array_length(l.privs, 1) = (case when (select n from v) >= 170000 then 8 else 7 end) as count_expected_met,
+       ('MAINTAIN' = any(l.privs)) = ((select n from v) >= 170000)     as maintain_matches_version
+from l;
