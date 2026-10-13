@@ -1,0 +1,86 @@
+[
+  {
+    "run": 1,
+    "http": 200,
+    "chars": 3064,
+    "ends_at_sentence": true,
+    "elapsed": 47.8,
+    "tail": "de, the reading on the other. Wisdom receives; understanding shapes. The door is real, but it is not the room.",
+    "grounded": "Universal Transmissions IV — Tetra",
+    "timings": {
+      "context_validation": 4,
+      "provider_response": 46068,
+      "total": 46072
+    }
+  },
+  {
+    "run": 2,
+    "http": 200,
+    "chars": 2144,
+    "ends_at_sentence": true,
+    "elapsed": 19.4,
+    "tail": "tion, not as fact, and the difference between the two voices is the very thing the page is asking you to hear.",
+    "grounded": "Universal Transmissions IV — Tetra",
+    "timings": {
+      "context_validation": 1,
+      "provider_response": 19065,
+      "total": 19066
+    }
+  },
+  {
+    "run": 3,
+    "http": 200,
+    "chars": 2765,
+    "ends_at_sentence": true,
+    "elapsed": 40.0,
+    "tail": "ad the two registers together and the Gina'abul shows its work: the name is documented, the unfolding is ours.",
+    "grounded": "Universal Transmissions IV — Tetra",
+    "timings": {
+      "context_validation": 1,
+      "provider_response": 39642,
+      "total": 39643
+    }
+  },
+  {
+    "run": 4,
+    "http": 200,
+    "chars": 2640,
+    "ends_at_sentence": true,
+    "elapsed": 10.7,
+    "tail": "eometry means what the project says it means, the archive's own reading, offered without pretending otherwise.",
+    "grounded": "Universal Transmissions IV — Tetra",
+    "timings": {
+      "context_validation": 1,
+      "provider_response": 10078,
+      "total": 10079
+    }
+  },
+  {
+    "run": 5,
+    "http": 200,
+    "chars": 2753,
+    "ends_at_sentence": true,
+    "elapsed": 21.5,
+    "tail": "is where honesty lives, and the archive does not cross it. The seal remains on what no source here has opened.",
+    "grounded": "Universal Transmissions IV — Tetra",
+    "timings": {
+      "context_validation": 0,
+      "provider_response": 21188,
+      "total": 21188
+    }
+  },
+  {
+    "run": 6,
+    "http": 200,
+    "chars": 2068,
+    "ends_at_sentence": true,
+    "elapsed": 33.9,
+    "tail": "c as a whole, but not for this connection. Everything else is the Codex’s own voice, singing its own geometry.",
+    "grounded": "Universal Transmissions IV — Tetra",
+    "timings": {
+      "context_validation": 0,
+      "provider_response": 33572,
+      "total": 33572
+    }
+  }
+]

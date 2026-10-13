@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ResearchConnection } from "@/lib/research-connections";
 import { BASIS_STYLE } from "./basis-style";
 
@@ -12,19 +12,25 @@ export interface NexusItem {
   anchorSlug: string;
   anchorId: string;
   connection: ResearchConnection;
+  /** The references behind this relationship's room, shown so a visitor can see what it
+   *  rests on rather than being told it is well sourced. */
+  sources: Array<{ kind: string; label: string; url: string; internal?: boolean }>;
 }
 
+const keyOf = (i: NexusItem) => `${i.topicSlug}:${i.anchorSlug}`;
+
 /**
- * The Research Nexus's relationship explorer.
+ * Choosing a relationship, and inspecting it.
  *
- * A visitor picks a relationship — or a room to narrow by — and is shown, for that
- * relationship: what it connects, why it connects, its evidential basis, and where
- * exploration continues.
+ * A compact list on one side; the chosen relationship opened out beside it with what it
+ * connects, why it connects, how well it is supported, the records behind it and where
+ * to go next. On a narrow screen the list sits above the panel and the same controls
+ * are reachable by keyboard.
  *
- * Interaction is real and keyboard-first: the room filter is a set of <button
- * aria-pressed>, and every destination is an ordinary <Link>. Nothing is revealed on
- * hover alone, and nothing depends on a pointer. There is no fetch and no dependency
- * beyond React state, so first paint stays light.
+ * The list is a set of real buttons, so Tab and Enter work with no scripting at all, and
+ * Up/Down move between relationships the way a list should. The panel is announced when
+ * it changes. Nothing here fetches anything: every relationship is already in the page's
+ * own data, so first paint stays light.
  */
 export default function ResearchNexus({ items }: { items: NexusItem[] }) {
   const rooms = useMemo(() => {
@@ -34,14 +40,35 @@ export default function ResearchNexus({ items }: { items: NexusItem[] }) {
   }, [items]);
 
   const [room, setRoom] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string>(() => (items[0] ? keyOf(items[0]) : ""));
+  const listRef = useRef<HTMLUListElement | null>(null);
+
   const shown = room ? items.filter((i) => i.topicSlug === room) : items;
+  // Narrowing the list can hide the chosen relationship; fall back to the first one
+  // still on screen rather than leaving an empty panel.
+  const current = shown.find((i) => keyOf(i) === selected) ?? shown[0] ?? null;
+
+  useEffect(() => {
+    if (current && keyOf(current) !== selected) setSelected(keyOf(current));
+  }, [current, selected]);
+
+  function move(delta: number) {
+    if (!shown.length || !current) return;
+    const at = shown.findIndex((i) => keyOf(i) === keyOf(current));
+    const next = shown[(at + delta + shown.length) % shown.length];
+    setSelected(keyOf(next));
+    listRef.current
+      ?.querySelector<HTMLButtonElement>(`[data-nexus-relationship="${next.anchorSlug}"]`)
+      ?.focus();
+  }
 
   return (
     <div data-research-nexus="true">
+      {/* ── narrow by room ─────────────────────────────────────────────────── */}
       <div
         className="flex flex-wrap items-center gap-2 mb-6"
         role="group"
-        aria-label="Narrow the relationships by research room"
+        aria-label="Narrow the relationships by room"
       >
         <button
           type="button"
@@ -54,7 +81,7 @@ export default function ResearchNexus({ items }: { items: NexusItem[] }) {
             color: room === null ? "var(--ut-purple)" : "var(--ut-white-faint)",
           }}
         >
-          All rooms ({items.length})
+          Everything ({items.length})
         </button>
         {rooms.map((r) => {
           const on = room === r.slug;
@@ -85,134 +112,238 @@ export default function ResearchNexus({ items }: { items: NexusItem[] }) {
         </span>
       </div>
 
-      <ul className="space-y-4">
-        {shown.map((i) => {
-          const c = i.connection;
-          const oracleHref =
-            `/oracle?view=desktop&researchTopicId=${encodeURIComponent(i.anchorId)}` +
-            `&from=${encodeURIComponent("/research")}` +
-            `&q=${encodeURIComponent(c.suggestedQuestion)}`;
-          return (
-            <li
-              key={`${i.topicSlug}:${i.anchorSlug}`}
-              data-nexus-relationship={i.anchorSlug}
-              data-nexus-room={i.topicSlug}
-              className="ut-card p-6"
-              style={{ background: "rgba(147, 51, 234, 0.02)" }}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-5">
+        {/* ── the compact list ─────────────────────────────────────────────── */}
+        <ul
+          ref={listRef}
+          className="space-y-2"
+          aria-label="Relationships to explore"
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") { e.preventDefault(); move(1); }
+            if (e.key === "ArrowUp") { e.preventDefault(); move(-1); }
+          }}
+        >
+          {shown.map((i) => {
+            const on = current !== null && keyOf(i) === keyOf(current);
+            const c = i.connection;
+            return (
+              <li key={keyOf(i)}>
+                <button
+                  type="button"
+                  onClick={() => setSelected(keyOf(i))}
+                  aria-pressed={on}
+                  data-nexus-relationship={i.anchorSlug}
+                  data-nexus-room={i.topicSlug}
+                  className="w-full text-left ut-card px-4 py-3 transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                  style={{
+                    background: on ? "rgba(147, 51, 234, 0.07)" : "rgba(147, 51, 234, 0.02)",
+                    borderColor: on ? "rgba(147, 51, 234, 0.45)" : undefined,
+                  }}
+                >
+                  <span
+                    className="block font-mono text-[9px] tracking-[0.25em] uppercase mb-1"
+                    style={{ color: BASIS_STYLE[c.basis].color, opacity: 0.8 }}
+                  >
+                    {i.topicTitle} · {c.kind}
+                  </span>
+                  <span
+                    className="block font-body text-[13px] leading-snug"
+                    style={{ color: "var(--ut-white)", opacity: on ? 1 : 0.8 }}
+                  >
+                    {c.title}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* ── the inspector ────────────────────────────────────────────────── */}
+        {current ? (
+          <div
+            data-nexus-inspector={current.anchorSlug}
+            className="ut-card p-6"
+            style={{ background: "rgba(147, 51, 234, 0.03)" }}
+            aria-live="polite"
+          >
+            <span
+              className="inline-block font-mono text-[9px] tracking-[0.25em] uppercase px-2 py-1 mb-3 border"
+              style={{
+                borderColor: BASIS_STYLE[current.connection.basis].color,
+                color: BASIS_STYLE[current.connection.basis].color,
+              }}
+              data-nexus-basis={current.connection.basis}
             >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5 sm:gap-4 mb-2">
-                <span
-                  className="font-mono text-[9px] tracking-[0.25em] uppercase break-words"
-                  style={{ color: BASIS_STYLE[c.basis].color, opacity: 0.75 }}
-                >
-                  {c.kind} · {BASIS_STYLE[c.basis].label}
-                </span>
-                <Link
-                  href={i.topicRoute}
-                  className="font-mono text-[9px] tracking-[0.2em] uppercase min-w-0 break-words focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+              {BASIS_STYLE[current.connection.basis].label}
+            </span>
+            <h3
+              className="font-display text-lg md:text-xl mb-1"
+              style={{ color: "var(--ut-white)" }}
+            >
+              {current.connection.title}
+            </h3>
+            <p
+              className="font-mono text-[9px] tracking-[0.2em] uppercase mb-5"
+              style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
+            >
+              {current.connection.kind} · in {current.topicTitle}
+            </p>
+
+            <dl className="space-y-4 mb-5">
+              <div>
+                <dt
+                  className="font-mono text-[9px] tracking-[0.25em] uppercase mb-1"
                   style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
                 >
-                  in {i.topicTitle} →
-                </Link>
+                  What it connects
+                </dt>
+                <dd>
+                  <Link
+                    href={current.connection.href}
+                    data-nexus-destination={current.anchorSlug}
+                    className="font-mono text-[12px] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                    style={{ color: "var(--ut-cyan)" }}
+                  >
+                    {current.connection.href}
+                  </Link>
+                </dd>
               </div>
-
-              <h3
-                className="font-display text-base md:text-lg mb-3"
-                style={{ color: "var(--ut-white)" }}
-              >
-                {c.title}
-              </h3>
-
-              <dl className="space-y-2 mb-4">
-                <div>
-                  <dt
-                    className="font-mono text-[9px] tracking-[0.25em] uppercase"
-                    style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
-                  >
-                    What it connects
-                  </dt>
-                  <dd>
-                    <Link
-                      href={c.href}
-                      data-nexus-destination={i.anchorSlug}
-                      className="font-body text-[13px] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
-                      style={{ color: "var(--ut-cyan)" }}
-                    >
-                      {c.href}
-                    </Link>
-                  </dd>
-                </div>
-                <div>
-                  <dt
-                    className="font-mono text-[9px] tracking-[0.25em] uppercase"
-                    style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
-                  >
-                    Why it connects
-                  </dt>
-                  <dd
-                    className="font-body text-[13px] leading-relaxed"
-                    style={{ color: "var(--ut-white-dim)", opacity: 0.75 }}
-                  >
-                    {c.rationale}
-                  </dd>
-                </div>
-                <div>
-                  <dt
-                    className="font-mono text-[9px] tracking-[0.25em] uppercase"
-                    style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
-                  >
-                    Its evidential basis
-                  </dt>
-                  <dd
-                    className="font-body text-[13px] leading-relaxed"
-                    style={{ color: BASIS_STYLE[c.basis].color, opacity: 0.85 }}
-                    data-nexus-basis={c.basis}
-                  >
-                    {c.basisLabel} — {BASIS_STYLE[c.basis].note}
-                  </dd>
-                </div>
-              </dl>
-
-              {c.destinationNote ? (
-                <p
-                  className="font-mono text-[10px] leading-relaxed mb-4 break-words"
-                  style={{ color: "var(--ut-white-faint)", opacity: 0.7 }}
-                  data-nexus-destination-note={i.anchorSlug}
-                >
-                  Finding it once you are there: {c.destinationNote}
-                </p>
-              ) : null}
-
-              <div
-                className="pt-4 flex flex-col sm:flex-row sm:items-center gap-3"
-                style={{ borderTop: "1px solid rgba(147, 51, 234, 0.1)" }}
-              >
-                <span
-                  className="font-mono text-[9px] tracking-[0.25em] uppercase shrink-0"
+              <div>
+                <dt
+                  className="font-mono text-[9px] tracking-[0.25em] uppercase mb-1"
                   style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
                 >
-                  Continue
-                </span>
-                <Link
-                  href={c.href}
-                  className="font-mono text-[9px] tracking-[0.2em] uppercase shrink-0 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
-                  style={{ color: "var(--ut-cyan)", opacity: 0.9 }}
+                  Why it connects
+                </dt>
+                <dd
+                  className="font-body text-[13px] leading-relaxed"
+                  style={{ color: "var(--ut-white-dim)", opacity: 0.8 }}
                 >
-                  Open the record →
-                </Link>
-                <Link
-                  href={oracleHref}
-                  data-nexus-oracle={i.anchorSlug}
-                  className="font-mono text-[9px] tracking-[0.2em] uppercase shrink-0 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
-                  style={{ color: "var(--ut-purple)", opacity: 0.9 }}
-                >
-                  Ask the Oracle about this →
-                </Link>
+                  {current.connection.rationale}
+                </dd>
               </div>
-            </li>
-          );
-        })}
-      </ul>
+              <div>
+                <dt
+                  className="font-mono text-[9px] tracking-[0.25em] uppercase mb-1"
+                  style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
+                >
+                  How well it is supported
+                </dt>
+                <dd
+                  className="font-body text-[13px] leading-relaxed"
+                  style={{ color: BASIS_STYLE[current.connection.basis].color, opacity: 0.9 }}
+                >
+                  {current.connection.basisLabel}
+                </dd>
+                <dd
+                  className="font-body text-[12px] leading-relaxed mt-1"
+                  style={{ color: "var(--ut-white-faint)", opacity: 0.65 }}
+                >
+                  {BASIS_STYLE[current.connection.basis].note}
+                </dd>
+              </div>
+            </dl>
+
+            {current.connection.destinationNote ? (
+              <p
+                className="font-mono text-[10px] leading-relaxed mb-5 break-words"
+                style={{ color: "var(--ut-white-faint)", opacity: 0.7 }}
+                data-nexus-destination-note={current.anchorSlug}
+              >
+                Finding your way there: {current.connection.destinationNote}
+              </p>
+            ) : null}
+
+            {/* The records behind the relationship. */}
+            <div className="mb-5" data-nexus-records={current.anchorSlug}>
+              <p
+                className="font-mono text-[9px] tracking-[0.25em] uppercase mb-2"
+                style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
+              >
+                The records behind it
+              </p>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    href={current.connection.href}
+                    className="font-body text-[13px] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                    style={{ color: "var(--ut-cyan)" }}
+                  >
+                    {current.connection.title}
+                  </Link>
+                  <span
+                    className="font-mono text-[10px] ml-2"
+                    style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
+                  >
+                    the {current.connection.kind.toLowerCase()} itself
+                  </span>
+                </li>
+                <li>
+                  <Link
+                    href={current.topicRoute}
+                    className="font-body text-[13px] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                    style={{ color: "var(--ut-cyan)" }}
+                  >
+                    {current.topicTitle}
+                  </Link>
+                  <span
+                    className="font-mono text-[10px] ml-2"
+                    style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
+                  >
+                    the room it belongs to
+                  </span>
+                </li>
+                {current.sources
+                  .filter((s) => !s.internal)
+                  .map((s) => (
+                    <li key={s.url}>
+                      <a
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-body text-[13px] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                        style={{ color: "var(--ut-gold)" }}
+                      >
+                        {s.label}
+                      </a>
+                      <span
+                        className="font-mono text-[10px] ml-2"
+                        style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
+                      >
+                        {s.kind} source
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+
+            <div
+              className="pt-4 flex flex-col sm:flex-row sm:items-center gap-3"
+              style={{ borderTop: "1px solid rgba(147, 51, 234, 0.1)" }}
+            >
+              <Link
+                href={current.connection.href}
+                className="font-mono text-[9px] tracking-[0.2em] uppercase shrink-0 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                style={{ color: "var(--ut-cyan)", opacity: 0.9 }}
+              >
+                Open the record →
+              </Link>
+              <Link
+                href={
+                  `/oracle?view=desktop&researchTopicId=${encodeURIComponent(current.anchorId)}` +
+                  `&from=${encodeURIComponent("/research")}` +
+                  `&q=${encodeURIComponent(current.connection.suggestedQuestion)}`
+                }
+                data-nexus-oracle={current.anchorSlug}
+                className="font-mono text-[9px] tracking-[0.2em] uppercase shrink-0 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                style={{ color: "var(--ut-purple)", opacity: 0.9 }}
+              >
+                Ask the Oracle about this →
+              </Link>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

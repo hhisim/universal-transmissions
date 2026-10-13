@@ -1,0 +1,150 @@
+{
+  "base": "https://universal-transmissions-6cgf69hke-hhisim-7214s-projects.vercel.app",
+  "checks": [
+    {
+      "check": "a compact set of relationships is offered",
+      "ok": true,
+      "detail": "12"
+    },
+    {
+      "check": "an inspector opens on the first relationship",
+      "ok": true
+    },
+    {
+      "check": "choosing a relationship opens THAT relationship's inspector",
+      "ok": true
+    },
+    {
+      "check": "the inspector shows what it connects",
+      "ok": true
+    },
+    {
+      "check": "the inspector shows why it connects",
+      "ok": true
+    },
+    {
+      "check": "the inspector shows how well it is supported",
+      "ok": true
+    },
+    {
+      "check": "the inspector shows the records behind it",
+      "ok": true
+    },
+    {
+      "check": "the inspector shows where to go next",
+      "ok": true
+    },
+    {
+      "check": "the inspector states its basis in words",
+      "ok": true,
+      "detail": "DOCUMENTED REFERENCE Universal Transmissions IV — Tetra ARTWORK · IN GEOMETRY WHAT IT CONNECTS /gallery/tetra WHY IT CONNECTS The only artwork in the registry w"
+    },
+    {
+      "check": "a thematic relationship is labelled as an association, not a sourced link",
+      "ok": true,
+      "detail": "thematic association cymatics — the parallel research room research room · in geometry what it connects /research/cymatics why it connects the two rooms study t"
+    },
+    {
+      "check": "the inspector offers the contextual Oracle path",
+      "ok": true
+    },
+    {
+      "check": "every reveal wrapper is fully visible under reduced motion",
+      "ok": true,
+      "detail": "{\"total\": 12, \"hidden\": 0}"
+    },
+    {
+      "check": "the room filter operates from the keyboard",
+      "ok": true
+    },
+    {
+      "check": "Enter selects a relationship from the keyboard",
+      "ok": true
+    },
+    {
+      "check": "ArrowDown moves to the next relationship",
+      "ok": true,
+      "detail": "journal-vitruvian-spirit"
+    },
+    {
+      "check": "the Oracle link inside the inspector is focusable",
+      "ok": true
+    },
+    {
+      "check": "the inspector names its destination",
+      "ok": true,
+      "detail": "/gallery/tetra"
+    },
+    {
+      "check": "the Geometry room is reachable and lists its connections",
+      "ok": true
+    },
+    {
+      "check": "the destination record opens",
+      "ok": true,
+      "detail": "Universal Transmissions IV — Tetra | Universal Transmissions"
+    },
+    {
+      "check": "the Oracle carries the chosen Geometry relationship as context",
+      "ok": true,
+      "detail": "SPEAKING ABOUT Universal Transmissions IV — Tetra RESEARCH CONTEXT ← RETURN TO UNIVERSAL TRANSMISSIO"
+    },
+    {
+      "check": "the visitor can return to research",
+      "ok": true
+    },
+    {
+      "check": "the nexus markup is present without JavaScript",
+      "ok": true
+    },
+    {
+      "check": "a reveal wrapper is visible without JavaScript",
+      "ok": true,
+      "detail": "{\"opacity\": \"1\", \"transform\": \"none\", \"height\": 16}"
+    },
+    {
+      "check": "390: a real 390 CSS px viewport",
+      "ok": true,
+      "detail": "390"
+    },
+    {
+      "check": "390: no horizontal overflow",
+      "ok": true,
+      "detail": "0px"
+    },
+    {
+      "check": "390: the inspector fits the viewport",
+      "ok": true,
+      "detail": "{\"innerWidth\": 390, \"docOverflow\": 0, \"inspectorRight\": 366, \"inspectorWidth\": 342}"
+    },
+    {
+      "check": "390 Geometry: no horizontal overflow",
+      "ok": true,
+      "detail": "{\"innerWidth\": 390, \"docOverflow\": 0}"
+    }
+  ],
+  "failed": [],
+  "screenshots": [
+    {
+      "file": "16b-desktop-inspector-selected.png",
+      "bytes": 981265
+    },
+    {
+      "file": "16b-desktop-geometry-scrolled.png",
+      "bytes": 4484827
+    },
+    {
+      "file": "16b-nojs-nexus.png",
+      "bytes": 794773
+    },
+    {
+      "file": "16b-mobile390-inspector-selected.png",
+      "bytes": 705494
+    },
+    {
+      "file": "16b-mobile390-geometry-scrolled.png",
+      "bytes": 3761345
+    }
+  ],
+  "generatedAt": "2026-10-13T20:53:20Z"
+}

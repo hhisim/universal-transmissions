@@ -275,6 +275,14 @@ if (changed === null) {
     "src/app/research/geometry/page.tsx",
     "scripts/batch16-research-nexus.js",
     "docs/BATCH16-RESEARCH-NEXUS-AND-GEOMETRY.md",
+    // Batch 16b — selection becomes real, and the reveal wrappers get a safety net so
+    // content is never shipped invisible to a visitor without JavaScript or with
+    // reduced motion.
+    "src/components/ui/SectionReveal.tsx",
+    "src/app/globals.css",
+    "scripts/batch16b-answer-completeness.py",
+    "scripts/batch16b-research-journey.py",
+    "docs/BATCH16B-EXPLORATORY-JOURNEY.md",
   ];
   const unexpected = changed.filter((f) => !ALLOWED.includes(f)
     && !f.startsWith("docs/evidence/batch15b/") && !f.startsWith("docs/evidence/batch15c/")

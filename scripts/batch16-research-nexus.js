@@ -240,7 +240,7 @@ console.log("\n== J. incomplete domains are described honestly ==");
   }
   for (const d of registered) {
     chk(`${d.slug} is registered`, topics.isRegisteredRoom(d.slug));
-    chk(`${d.slug} standing says it is a registered room`, /registered room/i.test(d.standing));
+    chk(`${d.slug} standing says it is a full research room`, /full research room/i.test(d.standing));
   }
 }
 
@@ -274,9 +274,34 @@ console.log("\n== K. both rooms render the SAME surface, and it stays accessible
   chk("the nexus filter is keyboard-operable buttons with aria-pressed",
       /<button/.test(nexusCmp) && /aria-pressed=/.test(nexusCmp));
   chk("the nexus announces the filtered count", /aria-live="polite"/.test(nexusCmp));
-  chk("the nexus shows basis, destination, rationale and continuation",
-      /evidential basis/i.test(nexusCmp) && /What it connects/i.test(nexusCmp)
-      && /Why it connects/i.test(nexusCmp) && /Continue/i.test(nexusCmp));
+  chk("the inspector shows what it connects, why, how well supported, and where next",
+      /What it connects/i.test(nexusCmp) && /Why it connects/i.test(nexusCmp)
+      && /How well it is supported/i.test(nexusCmp)
+      && /Open the record/i.test(nexusCmp) && /Ask the Oracle about this/i.test(nexusCmp));
+
+  /* ── batch 16b: selection is real, and the copy is visitor-facing ─────────── */
+  chk("the visitor selects a relationship rather than reading a wall of cards",
+      /\[data-nexus-relationship\]|data-nexus-relationship=/.test(nexusCmp)
+      && /setSelected/.test(nexusCmp));
+  chk("the selection opens an inspector",
+      /data-nexus-inspector/.test(nexusCmp) && /data-nexus-basis/.test(nexusCmp));
+  chk("the inspector lists the records behind the relationship",
+      /data-nexus-records/.test(nexusCmp) && /the room it belongs to/.test(nexusCmp));
+  chk("narrowing the room cannot leave an empty inspector",
+      /shown\[0\] \?\? null|shown\.find\(/.test(nexusCmp));
+  chk("up/down move between relationships",
+      /ArrowDown/.test(nexusCmp) && /ArrowUp/.test(nexusCmp));
+  {
+    /* Visitor-facing language: no server/registry machinery on the page. */
+    const pageCopy = nexusPage + nexusCmp;
+    for (const jargon of ["server-resolved", "registry key", "exact-resolution",
+                          "resolveResearchTopic", "research-v1:"]) {
+      chk(`the nexus does not expose machinery language: ${jargon}`,
+          !pageCopy.includes(jargon));
+    }
+    chk("the nexus still explains what a visitor can do",
+        /what it links\s+to, why it is held/i.test(nexusPage));
+  }
 }
 
 console.log("\n== L. the grounding names the ONLY permitted external references ==");

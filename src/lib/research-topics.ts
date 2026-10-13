@@ -366,7 +366,7 @@ export const RESEARCH_DOMAINS: ResearchDomain[] = [
     route: "/research/cymatics",
     registered: true,
     standing:
-      "A registered room: a server-resolved topic record with its own sourced summary, and six curated connections you can take into the Oracle.",
+      "A full research room: a sourced overview of the subject, and six connections you can open or carry into the Oracle.",
   },
   {
     slug: "geometry",
@@ -374,7 +374,7 @@ export const RESEARCH_DOMAINS: ResearchDomain[] = [
     route: "/research/geometry",
     registered: true,
     standing:
-      "A registered room: a server-resolved topic record that keeps mathematical property, historical documentation, traditional symbolism and UT reading apart, with six curated connections.",
+      "A full research room: a sourced overview that keeps mathematical property, historical documentation, traditional symbolism and UT reading apart, with six connections you can open.",
   },
   {
     slug: "linguistics",
@@ -382,7 +382,7 @@ export const RESEARCH_DOMAINS: ResearchDomain[] = [
     route: "/research/linguistics",
     registered: false,
     standing:
-      "A reading page, not yet a room: it carries no server-resolved topic record, no sourced bibliography and no curated connection registry, so nothing here can be taken into the Oracle as a selected context.",
+      "A reading page, not yet a room: there is no sourced overview and no set of connections to explore yet, so nothing here can be carried into the Oracle as a subject.",
   },
   {
     slug: "symbolism",
@@ -390,7 +390,7 @@ export const RESEARCH_DOMAINS: ResearchDomain[] = [
     route: "/research/symbolism",
     registered: false,
     standing:
-      "A reading page, not yet a room: it carries no server-resolved topic record, no sourced bibliography and no curated connection registry, so nothing here can be taken into the Oracle as a selected context.",
+      "A reading page, not yet a room: there is no sourced overview and no set of connections to explore yet, so nothing here can be carried into the Oracle as a subject.",
   },
 ];
 
@@ -402,6 +402,9 @@ export function allRegisteredConnections(): Array<{
   connection: ResearchConnection;
   /** The identifier its Oracle anchor answers to — the same key the server resolves. */
   anchorId: string;
+  /** The references behind this relationship's room, so the nexus can show what it
+   *  rests on instead of asking the visitor to take it on trust. */
+  sources: ResearchSource[];
 }> {
   return Object.entries(RESEARCH_TOPICS).flatMap(([slug, topic]) =>
     (CONNECTIONS_BY_TOPIC[slug] ?? []).map((connection) => ({
@@ -410,6 +413,7 @@ export function allRegisteredConnections(): Array<{
       topicRoute: topic.route,
       connection,
       anchorId: researchConnectionTopicId(slug, connection.anchorSlug),
+      sources: topic.sources,
     }))
   );
 }

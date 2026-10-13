@@ -870,3 +870,25 @@ body::-webkit-scrollbar-thumb:hover {
     padding: 4rem 0;
   }
 }
+
+/* ============================================================
+   REVEAL SAFETY NET
+   ============================================================
+   SectionReveal ships its hidden state (opacity 0, translated) in the
+   prerendered HTML and reveals on scroll. Two visitors would otherwise be
+   shown blank sections and never be helped by the script:
+
+     - anyone without JavaScript, since nothing can trigger the reveal;
+     - anyone who asked for reduced motion, who should not be given a
+       translate-and-fade at all.
+
+   These rules win over the inline style because they are !important, so the
+   content is simply present in both cases. Everyone else keeps the animation. */
+
+@media (scripting: none), (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

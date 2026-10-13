@@ -34,6 +34,11 @@ export default function SectionReveal({
       animate={isInView ? { opacity: 1, y: 0, x: 0 } : getInitial()}
       transition={{ duration: 0.8, delay, ease: "easeOut" }}
       className={className}
+      /* The hidden state ships in the prerendered HTML, so a visitor without
+         JavaScript (or one who asked for reduced motion) would be shown blank
+         sections. globals.css overrides this element back to visible in exactly
+         those two cases; see the [data-reveal] rules there. */
+      data-reveal="true"
     >
       {children}
     </motion.div>

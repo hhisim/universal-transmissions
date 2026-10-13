@@ -102,6 +102,12 @@ export default function ResearchPage() {
     anchorSlug: r.connection.anchorSlug,
     anchorId: r.anchorId,
     connection: r.connection,
+    sources: r.sources.map((s) => ({
+      kind: s.kind,
+      label: s.label,
+      url: s.url,
+      internal: s.internal ?? false,
+    })),
   }));
 
   return (
@@ -237,7 +243,7 @@ export default function ResearchPage() {
                             }}
                             data-research-domain-state={d.slug}
                           >
-                            {d.registered ? "Registered room" : "Reading page — not yet a room"}
+                            {d.registered ? "Research room" : "Reading page — not yet a room"}
                           </span>
                           <p
                             className="font-mono text-[10px] leading-relaxed"
@@ -302,11 +308,10 @@ export default function ResearchPage() {
                   className="font-body text-sm leading-relaxed mb-8"
                   style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
                 >
-                  Every relationship the registered rooms hold, in one place. Select one and you
-                  are shown what it connects, why it connects, how strongly it is supported, and
-                  where exploration continues — or take it straight into the Oracle as its own
-                  context. Narrow the list by room, or open the room itself for the full
-                  treatment.
+                  Pick any connection the archive stands behind and open it up: what it links
+                  to, why it is held, how well it is supported, and where to go next. Choose one
+                  to read the record itself, or carry it into the Oracle and put your own
+                  question to it.
                 </p>
               </SectionReveal>
 
@@ -320,9 +325,9 @@ export default function ResearchPage() {
                   style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
                   data-nexus-coverage-note="true"
                 >
-                  This list is complete for what is registered: {nexusItems.length} relationships
-                  across two rooms. Linguistics and Symbolism are reading pages, not rooms — they
-                  carry no curated relationship to show here yet, and none has been invented to
+                  These are the connections the archive can currently stand behind: {nexusItems.length}{" "}
+                  of them, across two research rooms. Linguistics and Symbolism are still reading
+                  pages — they hold no explored connections yet, and none has been invented to
                   fill the gap.
                 </p>
               </SectionReveal>
