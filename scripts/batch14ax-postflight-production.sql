@@ -119,41 +119,70 @@ order by 1;
 
 
 -- Q4 ---------------------------------------------------------------------------
--- EXACT SIGNATURES, SECURITY MODE, search_path, OWNER AND ACLs.
+-- THE COMPLETE RETAINED FUNCTION SURFACE, one row per function.
 -- expect every row expected_met = true:
---   * the signature is exactly (p_targets jsonb) / (p_mode text)
---   * the owner is postgres (every file pins it)
---   * search_path is pinned to `pg_catalog, public`, as declared — a SECURITY
---     DEFINER function without a pinned search_path is an escalation surface
---   * the primitive is SECURITY DEFINER; the two wrappers are SECURITY INVOKER
---     (they make no privileged access of their own and run as the caller)
---   * service_role may EXECUTE the three callable entry points, and may NOT
---     execute the trigger installer (policy, not a read helper)
---   * anon and authenticated may execute NONE of them, and PUBLIC holds no
---     EXECUTE grant on any of them
-select p.proname                                                                as function_name,
-       pg_get_function_identity_arguments(p.oid)                                as signature,
-       pg_get_userbyid(p.proowner)                                              as owner,
-       case when p.prosecdef then 'DEFINER' else 'INVOKER' end                  as security_mode,
-       coalesce(replace(array_to_string(p.proconfig, ','), ' ', ''), '<unset>') as search_path,
-       (pg_get_function_identity_arguments(p.oid) in ('p_targets jsonb', 'p_mode text')
+--   * the signature is EXACT (the identity arguments, so an overload cannot pass)
+--   * the owner is postgres
+--   * search_path is pinned to `pg_catalog, public` on EVERY bundle-owned function,
+--     not only the callable entries — an unpinned helper resolves names through a
+--     session-controlled path
+--   * the security mode is the declared one (the primitive DEFINER; everything
+--     else INVOKER)
+--   * service_role may EXECUTE EXACTLY the release closure — the global entry
+--     point, the reviewed primitive it calls, and the two advisory-lock helpers on
+--     the wrapper's and the trigger's INVOKER path — and NOT the withdrawn
+--     per-identity variant nor the operator-only installer
+--   * anon and authenticated may execute NONE of them, and PUBLIC holds no EXECUTE
+--     grant on any of them
+-- A function that is MISSING still produces a row (LEFT JOIN), with expected_met
+-- NULL rather than absent: an absent row must never read as "nothing to check".
+select e.proname                                                                 as function_name,
+       coalesce(pg_get_function_identity_arguments(p.oid), '<MISSING>')           as signature,
+       coalesce(pg_get_userbyid(p.proowner), '<MISSING>')                         as owner,
+       case when p.oid is null then '<MISSING>'
+            when p.prosecdef then 'DEFINER' else 'INVOKER' end                    as security_mode,
+       coalesce(replace(array_to_string(p.proconfig, ','), ' ', ''), '<unset>')   as search_path,
+       (p.oid is not null
+        and pg_get_function_identity_arguments(p.oid) = e.signature
         and pg_get_userbyid(p.proowner) = 'postgres'
         and replace(array_to_string(p.proconfig, ','), ' ', '') = 'search_path=pg_catalog,public'
-        and p.prosecdef = (p.proname = 'apply_lifecycle_update')
-        and has_function_privilege('service_role', p.oid, 'EXECUTE')
-             = (p.proname <> 'b14ac_install_trigger')
+        and p.prosecdef = e.is_definer
+        and has_function_privilege('service_role', p.oid, 'EXECUTE') = e.svc
         and not has_function_privilege('anon', p.oid, 'EXECUTE')
         and not has_function_privilege('authenticated', p.oid, 'EXECUTE')
         and not (p.proacl is null
                  or exists (select 1 from aclexplode(p.proacl) x
-                             where x.grantee = 0 and x.privilege_type = 'EXECUTE')))   as expected_met
-from pg_proc p
-join pg_namespace n on n.oid = p.pronamespace
-where n.nspname = 'public'
-  and p.proname in ('apply_lifecycle_update',
-                    'apply_lifecycle_update_sync',
-                    'apply_lifecycle_update_sync_global',
-                    'b14ac_install_trigger')
+                             where x.grantee = 0 and x.privilege_type = 'EXECUTE'))) as expected_met
+from (values
+        ('apply_lifecycle_update',             'p_targets jsonb',           true,  true),
+        ('apply_lifecycle_update_sync',        'p_targets jsonb',           false, false),
+        ('apply_lifecycle_update_sync_global', 'p_targets jsonb',           false, true),
+        ('b14ab_acquire_global_lock',          'p_shared boolean',          false, true),
+        ('b14ab_linkage_global_key',           '',                          false, true),
+        ('b14ab_linkage_key',                  'p_kind text, p_value text', false, false),
+        ('b14ac_install_trigger',              'p_mode text',               false, false),
+        ('b14ac_linkage_keys_for_payload',     'p_targets jsonb',           false, false),
+        ('b14ac_trg_stmt_exclusive',           '',                          false, false),
+        ('b14ac_trg_stmt_shared',              '',                          false, false)
+     ) as e(proname, signature, is_definer, svc)
+left join (select q.* from pg_proc q
+             join pg_namespace qn on qn.oid = q.pronamespace
+            where qn.nspname = 'public') p on p.proname = e.proname
+order by 1;
+
+
+-- Q4b --------------------------------------------------------------------------
+-- The Batch 14ab PROTOTYPE entry points are EXCLUDED from the installed surface.
+-- expect every row expected_met = true. RESTRICT is what makes the exclusion
+-- fail-closed: if something still depends on one, the boundary migration ABORTS
+-- rather than dropping it out from under its dependent.
+select 'b14ab_install_trigger'        as prototype, to_regprocedure('public.b14ab_install_trigger(text)') is null as expected_met
+union all select 'b14ab_trg_row',               to_regprocedure('public.b14ab_trg_row()') is null
+union all select 'b14ab_trg_stmt',              to_regprocedure('public.b14ab_trg_stmt()') is null
+union all select 'b14ab_lifecycle_apply',       to_regprocedure('public.b14ab_lifecycle_apply(text,text,text,text,bigint[],text,text)') is null
+union all select 'b14ab_lifecycle_apply_nosync',to_regprocedure('public.b14ab_lifecycle_apply_nosync(text,text,text,text,bigint[],text,text)') is null
+union all select 'b14ab_acquire_linkage_locks', to_regprocedure('public.b14ab_acquire_linkage_locks(text,text,text,text)') is null
+union all select 'b14ab_linkage_keys',          to_regprocedure('public.b14ab_linkage_keys(text,text,text,text)') is null
 order by 1;
 
 
@@ -259,13 +288,16 @@ order by 1;
 -- Q9 ---------------------------------------------------------------------------
 -- Batch 13 preservation — PUBLIC ACLs, on tables, columns and functions.
 --
--- The function row is scoped to the GUARDED surface: the four functions this
--- release owns. PUBLIC EXECUTE is detected with aclexplode(), because a grantee
--- of 0 IS PUBLIC — matching text of the ACL would also match
--- `service_role=X/postgres`, and a NULL proacl means the DEFAULT PUBLIC grant.
--- The final row is INFORMATIONAL: it lists any OTHER function in the schema that
--- still carries the default PUBLIC grant, so that exposure is visible rather than
--- silently out of scope.
+-- The function row is scoped to the BUNDLE-OWNED surface — every function this
+-- release's files create, not only the callable entries. PUBLIC EXECUTE is detected
+-- with aclexplode(), because a grantee of 0 IS PUBLIC — matching the text of the ACL
+-- would also match `service_role=X/postgres`, and a NULL proacl means the DEFAULT
+-- PUBLIC grant is still in place.
+-- The final row is INFORMATIONAL and scoped to UNRELATED functions: those are
+-- outside this release's authority to change, so counting them as a failure would
+-- be a gate nothing could pass — but they are reported, so exposure is visible
+-- rather than silently out of scope. (Earlier revisions listed the bundle's own
+-- helpers here, which both under-reported the surface and mis-scoped the check.)
 select 'table_grants_to_public' as acl_kind, count(*) as offending, count(*) = 0 as expected_met
 from information_schema.role_table_grants
 where table_schema = 'public' and table_name in ('ut_members', 'profiles') and grantee = 'PUBLIC'
@@ -274,26 +306,24 @@ select 'column_grants_to_public', count(*), count(*) = 0
 from information_schema.column_privileges
 where table_schema = 'public' and table_name in ('ut_members', 'profiles') and grantee = 'PUBLIC'
 union all
-select 'guarded_functions_public_execute', count(*), count(*) = 0
+select 'bundle_owned_functions_public_execute', count(*), count(*) = 0
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
-  and p.proname in ('apply_lifecycle_update',
-                    'apply_lifecycle_update_sync',
-                    'apply_lifecycle_update_sync_global',
-                    'b14ac_install_trigger')
+  and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
   and (p.proacl is null
        or exists (select 1 from aclexplode(p.proacl) x
                    where x.grantee = 0 and x.privilege_type = 'EXECUTE'))
 union all
-select 'other_public_functions_with_public_execute_informational', count(*), null::boolean
+-- INFORMATIONAL, and now CORRECTLY SCOPED: it reports the functions the bundle did
+-- NOT create. Those are out of this release's authority ("do not revoke permissions
+-- on unrelated existing functions"), so the row is not a gate — but it is a real
+-- number, so exposure is visible instead of hidden. expected_met is NULL on purpose.
+select 'unrelated_functions_with_public_execute_informational', count(*), null::boolean
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
-  and p.proname not in ('apply_lifecycle_update',
-                        'apply_lifecycle_update_sync',
-                        'apply_lifecycle_update_sync_global',
-                        'b14ac_install_trigger')
+  and not (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
   and (p.proacl is null
        or exists (select 1 from aclexplode(p.proacl) x
                    where x.grantee = 0 and x.privilege_type = 'EXECUTE'))
@@ -435,27 +465,45 @@ select
       and replace(pg_get_expr(i.indexprs, i.indrelid), ' ', '')
           in ('lower(btrim(email))', 'lower(btrim((email)::text))'))
   and
-  -- (3) EXACT signatures — all four present under their own names
-  (select count(*) = 4 from pg_proc p
+  -- (3) EXACT signatures — the COMPLETE retained surface present under its own name
+  (select count(*) = 10 from pg_proc p
      join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
       and (p.proname, pg_get_function_identity_arguments(p.oid)) in (
             ('apply_lifecycle_update', 'p_targets jsonb'),
             ('apply_lifecycle_update_sync', 'p_targets jsonb'),
             ('apply_lifecycle_update_sync_global', 'p_targets jsonb'),
-            ('b14ac_install_trigger', 'p_mode text')))
+            ('b14ab_acquire_global_lock', 'p_shared boolean'),
+            ('b14ab_linkage_global_key', ''),
+            ('b14ab_linkage_key', 'p_kind text, p_value text'),
+            ('b14ac_install_trigger', 'p_mode text'),
+            ('b14ac_linkage_keys_for_payload', 'p_targets jsonb'),
+            ('b14ac_trg_stmt_exclusive', ''),
+            ('b14ac_trg_stmt_shared', '')))
   and
-  -- (4) security mode, search_path, owner and ACLs on the three callable functions
-  (select count(*) = 3 from pg_proc p
+  -- (4) the COMPLETE retained surface: owner, PINNED search_path on every function,
+  --     declared security mode, no anon/authenticated/PUBLIC EXECUTE, and
+  --     service_role EXACTLY where the boundary intends it — the release closure,
+  --     not "whatever happens to be callable"
+  (select count(*) = 10 from pg_proc p
      join pg_namespace n on n.oid = p.pronamespace
+     join (values
+             ('apply_lifecycle_update',             true,  true),
+             ('apply_lifecycle_update_sync',        false, false),
+             ('apply_lifecycle_update_sync_global', false, true),
+             ('b14ab_acquire_global_lock',          false, true),
+             ('b14ab_linkage_global_key',           false, true),
+             ('b14ab_linkage_key',                  false, false),
+             ('b14ac_install_trigger',              false, false),
+             ('b14ac_linkage_keys_for_payload',     false, false),
+             ('b14ac_trg_stmt_exclusive',           false, false),
+             ('b14ac_trg_stmt_shared',              false, false)
+          ) e(proname, is_definer, svc) on e.proname = p.proname
     where n.nspname = 'public'
-      and p.proname in ('apply_lifecycle_update',
-                        'apply_lifecycle_update_sync',
-                        'apply_lifecycle_update_sync_global')
       and pg_get_userbyid(p.proowner) = 'postgres'
       and replace(array_to_string(p.proconfig, ','), ' ', '') = 'search_path=pg_catalog,public'
-      and p.prosecdef = (p.proname = 'apply_lifecycle_update')
-      and has_function_privilege('service_role', p.oid, 'EXECUTE')
+      and p.prosecdef = e.is_definer
+      and has_function_privilege('service_role', p.oid, 'EXECUTE') = e.svc
       and not has_function_privilege('anon', p.oid, 'EXECUTE')
       and not has_function_privilege('authenticated', p.oid, 'EXECUTE')
       and not (p.proacl is null
@@ -513,18 +561,44 @@ select
   (select count(*) = 0 from information_schema.column_privileges
     where table_schema = 'public' and table_name in ('ut_members', 'profiles') and grantee = 'PUBLIC')
   and
-  -- (9b) no PUBLIC EXECUTE on the four guarded functions. grantee 0 IS PUBLIC;
-  --      a NULL proacl means the DEFAULT PUBLIC grant is still in place.
+  -- (9b) no PUBLIC EXECUTE on ANY bundle-owned function — the whole surface, not
+  --      only the callable entries. grantee 0 IS PUBLIC; a NULL proacl means the
+  --      DEFAULT PUBLIC grant is still in place.
   (select count(*) = 0 from pg_proc p
      join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
-      and p.proname in ('apply_lifecycle_update',
-                        'apply_lifecycle_update_sync',
-                        'apply_lifecycle_update_sync_global',
-                        'b14ac_install_trigger')
+      and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
       and (p.proacl is null
            or exists (select 1 from aclexplode(p.proacl) x
                        where x.grantee = 0 and x.privilege_type = 'EXECUTE')))
+  and
+  -- (11) the Batch 14ab prototype entry points are EXCLUDED from the installed
+  --      surface (RESTRICT in the boundary: a dependent object aborts the migration)
+  (to_regprocedure('public.b14ab_install_trigger(text)') is null
+   and to_regprocedure('public.b14ab_trg_row()') is null
+   and to_regprocedure('public.b14ab_trg_stmt()') is null
+   and to_regprocedure('public.b14ab_lifecycle_apply(text,text,text,text,bigint[],text,text)') is null
+   and to_regprocedure('public.b14ab_lifecycle_apply_nosync(text,text,text,text,bigint[],text,text)') is null
+   and to_regprocedure('public.b14ab_acquire_linkage_locks(text,text,text,text)') is null
+   and to_regprocedure('public.b14ab_linkage_keys(text,text,text,text)') is null)
+  and
+  -- (12) NO other bundle-owned function was left behind: the surface is exactly
+  --      the ten above, so a stray helper cannot hide from every other condition
+  (select count(*) = 0 from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
+      and (p.proname, pg_get_function_identity_arguments(p.oid)) not in (
+            ('apply_lifecycle_update', 'p_targets jsonb'),
+            ('apply_lifecycle_update_sync', 'p_targets jsonb'),
+            ('apply_lifecycle_update_sync_global', 'p_targets jsonb'),
+            ('b14ab_acquire_global_lock', 'p_shared boolean'),
+            ('b14ab_linkage_global_key', ''),
+            ('b14ab_linkage_key', 'p_kind text, p_value text'),
+            ('b14ac_install_trigger', 'p_mode text'),
+            ('b14ac_linkage_keys_for_payload', 'p_targets jsonb'),
+            ('b14ac_trg_stmt_exclusive', ''),
+            ('b14ac_trg_stmt_shared', '')))
   and
   -- (10) Batch 13: RLS enabled, the withdrawn policy absent, no policy visible to
   --      anon/authenticated/PUBLIC

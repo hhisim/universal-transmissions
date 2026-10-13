@@ -44,6 +44,7 @@ DB=b14ax
 POST="$REPO/scripts/batch14ax-postflight-production.sql"
 COMPONENTS="$REPO/scripts/batch14ax-verdict-components.sql"
 BATCH13="20261010_membership_access_hardening.sql"
+BOUNDARY="20261017_function_surface_boundary.sql"
 BUNDLE=(
   "20261010_membership_write_contract.sql"
   "20261012_apply_lifecycle_update.sql"
@@ -51,6 +52,7 @@ BUNDLE=(
   "20261014_lifecycle_sync_wrapper.sql"
   "20261015_lifecycle_per_entry_skip.sql"
   "20261016_entitlement_authority.sql"
+  "20261017_function_surface_boundary.sql"
 )
 
 fails=0
@@ -270,6 +272,7 @@ echo "== CASE 10: a required function signature dropped =="
 q "drop function public.apply_lifecycle_update_sync(jsonb)" >/dev/null 2>&1
 expect_verdict "C10 missing signature" reject
 run_file "$MIG/20261014_lifecycle_sync_wrapper.sql" >/dev/null 2>&1
+run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # 20261014 re-grants the per-identity variant; the boundary is the authoritative surface statement
 expect_verdict "C10 reverted" t
 
 echo ""
@@ -293,6 +296,7 @@ if [ "$C11_RC" != "0" ]; then sed -n '1,6p' "$BASE/c11_inject.out"; fi
 expect_verdict "C11 wrong security mode / unpinned search_path" reject
 q "drop function if exists public.apply_lifecycle_update_sync(jsonb)" >/dev/null 2>&1
 run_file "$MIG/20261014_lifecycle_sync_wrapper.sql" >/dev/null 2>&1
+run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # 20261014 re-grants the per-identity variant; the boundary is the authoritative surface statement
 expect_verdict "C11 reverted" t
 
 echo ""
@@ -308,6 +312,7 @@ q "alter function public.apply_lifecycle_update_sync_global(jsonb) owner to post
 chkeq "C12 the owner round-trip alone does NOT restore the ACL (the finding)" "f" \
   "$(q "select has_function_privilege('service_role', 'public.apply_lifecycle_update_sync_global(jsonb)', 'EXECUTE')")"
 run_file "$MIG/20261014_lifecycle_sync_wrapper.sql" >/dev/null 2>&1
+run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # 20261014 re-grants the per-identity variant; the boundary is the authoritative surface statement
 chkeq "C12 re-applying the migration restores the EXECUTE grant" "t" \
   "$(q "select has_function_privilege('service_role', 'public.apply_lifecycle_update_sync_global(jsonb)', 'EXECUTE')")"
 expect_verdict "C12 reverted" t
@@ -330,6 +335,44 @@ chkeq "C13 a file with no verdict is reported as 'missing'" "missing" "$(verdict
 chkeq "C13 an error before the verdict is reported as an error" "error:3" "$(verdict_of "$BASE/c13_error.sql" c13error)"
 printf 'select false as verdict;\n' >"$BASE/c13_false.sql"; chmod 644 "$BASE/c13_false.sql"
 chkeq "C13 a FALSE verdict is reported as f" "f" "$(verdict_of "$BASE/c13_false.sql" c13false)"
+
+echo ""
+echo "== CASE 14: PUBLIC EXECUTE re-granted on a bundle-owned helper =="
+q "grant execute on function public.b14ab_acquire_global_lock(boolean) to public" >/dev/null 2>&1
+expect_verdict "C14 PUBLIC EXECUTE on a helper" reject
+q "revoke all on function public.b14ab_acquire_global_lock(boolean) from public" >/dev/null 2>&1
+expect_verdict "C14 reverted" t
+
+echo ""
+echo "== CASE 15: a Batch 14ab prototype function re-created =="
+# Written to a file: the body needs dollar quoting, and passing it through `psql -c`
+# from inside `su -c` lets the INNER shell expand `$fn` to nothing — the injection then
+# fails, nothing is installed, and the case reports the drift as "not caught". Exactly
+# the trap C11 hit; both now go through a file and assert that the injection SUCCEEDED.
+cat >"$BASE/c15_proto.sql" <<'EOF'
+create function public.b14ab_trg_row() returns trigger language plpgsql as $fn$ begin return null; end $fn$;
+EOF
+chmod 644 "$BASE/c15_proto.sql"
+C15_RC=$(psql_ "$BASE/c15_proto.sql" >"$BASE/c15_proto.out" 2>&1; echo $?)
+chkeq "C15 the drift is installed (the injection itself succeeds)" "0" "$C15_RC"
+if [ "$C15_RC" != "0" ]; then sed -n '1,4p' "$BASE/c15_proto.out"; fi
+expect_verdict "C15 a prototype function present again" reject
+run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # the boundary itself is the revert: it DROPs it
+expect_verdict "C15 reverted (the boundary drops it again)" t
+
+echo ""
+echo "== CASE 16: service_role's grant on a required helper revoked =="
+q "revoke all on function public.b14ab_acquire_global_lock(boolean) from service_role" >/dev/null 2>&1
+expect_verdict "C16 the release closure broken" reject
+run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # the boundary GRANTs the closure
+expect_verdict "C16 reverted" t
+
+echo ""
+echo "== CASE 17: a bundle helper's search_path unpinned =="
+q "alter function public.b14ac_trg_stmt_exclusive() reset search_path" >/dev/null 2>&1
+expect_verdict "C17 an unpinned helper" reject
+run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # the boundary re-pins it
+expect_verdict "C17 reverted" t
 
 echo ""
 echo "== FINAL: the clean-install control, restored =="

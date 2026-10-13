@@ -124,12 +124,10 @@ select p.proname                                        as function_name,
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
-  and p.proname in ('apply_lifecycle_update',
-                    'apply_lifecycle_update_sync',
-                    'apply_lifecycle_update_sync_global',
-                    'b14ac_install_trigger',
-                    'b14ab_lifecycle_apply',
-                    'b14ab_acquire_global_lock')
+  -- EVERY function this release's files create, retained or prototype: the operator
+  -- should see the pre-install state of the whole surface. Before the bundle these are
+  -- absent; after it, 20261017 keeps ten and drops the seven Batch 14ab prototypes.
+  and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
 order by 1;
 
 

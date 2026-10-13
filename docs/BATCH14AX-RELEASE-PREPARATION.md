@@ -25,15 +25,47 @@ file in this package.
 | 5 | `20261015_lifecycle_per_entry_skip.sql` (**SUPERSEDED** by 6) | `c92e41e78385366402d1bca9d07b4d1ed2030d217b3a76de4c8581a391c9c382` | `7022e4568e016f799b6572cbb9e1ae588b8f7e86` |
 | 6 | `20261016_entitlement_authority.sql` (authority column + primitive) | `e87041b08042c297f8f8f410febb02cf1d5883180c3715cf2b747a322f22fbbf` | `961f27cdf92404bdf7f8dcd6cd64ddd334061eb1` |
 | 7 | **policy step, not a file:** `select public.b14ac_install_trigger('exclusive');` | — | — |
+| 8 | `20261017_function_surface_boundary.sql` (**NEW — the callable surface**: revokes PUBLIC/anon/authenticated on all 17 bundle-owned functions, grants `service_role` exactly the release closure, withdraws the non-composing per-identity entry point, excludes the seven Batch 14ab prototypes, pins `search_path` on the helpers, then asserts the result and aborts if it is not as intended) | see §1a-bis | see §1a-bis |
 
 `20261012` references `20261015` in the sense that 15/16 both replace its function body;
 the reviewed FILE is byte-identical before and after being applied, asserted by both
 harnesses on every run (`REV_SHA_BEFORE`).
 
+`20261017` is the **last** step and is what makes the surface safe to release: before it,
+13 of the 17 bundle-owned functions carry the DEFAULT PUBLIC EXECUTE grant and two helpers the
+released paths depend on are reachable by `service_role` only through it. It is a separate
+migration — not edits to `20261010`–`20261016` — so every reviewed file stays byte-identical.
+It drops seven Batch 14ab prototype functions, which is why §7's rollback table changed.
+Full inventory, call graph and evidence: `docs/BATCH14AY-SQL-SURFACE.md`.
+
 `20261015` is superseded by `20261016` (a mechanical derivation with exactly four
 changes). It is listed because it is part of the **validated sequence** and both harnesses
 apply it; installing 16 alone produces the same end state, since 16 replaces the function
 body 15 installs. The bundle is stated as validated rather than minimal.
+
+### 1a-bis. Step 8 — the boundary migration
+
+| # | File | sha256 | git blob |
+|---|---|---|---|
+| 8 | `20261017_function_surface_boundary.sql` | `ac39a47d8c33f9b20b9d58dbb21dad1dcbdf1149e6f1902ae029d8b46c1c9294` | `878af9c7d8c44d969497ffbda6462b391bc5605c` |
+
+**Every reviewed file above is byte-identical to the hashes this record already carried** —
+re-verified after this batch: `20261010` `73cf618e…`, `20261012` `b352afa0…`, `20261013`
+`dc4b0e9a…`, `20261014` `2472d272…`, `20261015` `c92e41e7…`, `20261016` `e87041b0…`. The
+surface decision lives in step 8 precisely so that stays true.
+
+### 1c-bis. Harness files changed or added in this batch
+
+| File | sha256 | git blob |
+|---|---|---|
+| `scripts/batch14ax-preflight-production.sql` | `2bb03de36a1ea8622fad24516ba1043d87ee2c1031263ab80018445f9c5a2fe9` | `2749f08f5baea187d9abe76c3b53dfa1c387294c` |
+| `scripts/batch14ax-postflight-production.sql` | `125a43639aca33d72683835dc7b38bb9a27f4f7af5db7ccc79cec9a89aa550c1` | `19ce17fedba401b68e516bd1fef1dc4760f7fbdd` |
+| `scripts/batch14ax-install-bundle-validate.sh` | `2493bcd415deb02d9f33020d3b348b08595bdd50b0b6faaac8668213bb2dff57` | `a33cae4429da26612cb130faf654d07050ec0d12` |
+| `scripts/batch14ax-gate-negatives.sh` | `bb27c7e8663cfa6de438949a012419c505f606119654e40a3910644e5bdd3280` | `8594293c1445bbd162bc447de4239d706cf05c2a` |
+| `scripts/batch14ax-verdict-components.sql` | `1c6085049ed0ce2a10c79c12895e1385c75034a43c115d3d98d149b9d896495b` | `a08b7f14cbb2e9575554036205d5c258f61749b0` |
+| `scripts/batch14ay-function-surface.sh` (**NEW** — the inventory dump) | `67962eef6536f60524213aa719d8fb7ea751e96da9f2d94d37b9406fc979622a` | `71186eb18ac42c4f8d675221fd913ca73e5f0177` |
+| `scripts/batch14ay-surface-gate.sh` (**NEW** — the focused surface gate) | `78aded4192deaf893b8c99458b698046425f61b134b30082e2ad879e049845f6` | `3535a3eebf061d81fccb1e569231497f303d6d52` |
+| `docs/BATCH14AY-SQL-SURFACE.md` (**NEW** — inventory, boundary, evidence) | `2b8e21183b81e92e4e794554068986eb64868aab4ef242bd0bb71e431f06c46d` | `e4c96031343d3524e56b70b29188be44bca79fac` |
 
 ### 1b. Candidate SHA
 
@@ -56,7 +88,12 @@ Hashes as of this revision. The gate harnesses are version-parameterised: run th
 | `scripts/batch14ax-gate-negatives.sh` | `a376d108f84e72c2a0909249b8d4c952c2bbc28fa931c27ad9a5f9fe88c43727` | `f326ea1ad69d3267553319f28a253d38de8e95a4` |
 | `scripts/batch14ax-verdict-components.sql` | `ecfdebd262fd8f628a4afe5f2dfe4889dc056e841733b0c44feda5da9370cff2` | `4ddfc5446a969cfd2f4f18f059c16e7c0dd83b9c` |
 | `scripts/batch14ax-preflight-production.sql` | `180e38e718f59ec7270c719b02bda99a52213b6f6d968f971bbfcd2290406577` | `f4d83eeba8e31f64929bd2cd26d20bf8a4135fcb` |
-| `scripts/batch14ax-postflight-production.sql` | `ade89dc18094d10757eae4776253d842f3c5194d720dd39fce33953d8b6f4c37` | `187db9487369244dfd34905e2c8b261ad66bc852` |
+| `scripts/batch14ax-postflight-production.sql` | see §1c-bis (rewritten this batch: complete surface + corrected PUBLIC diagnostic) | see §1c-bis |
+| `scripts/batch14ax-install-bundle-validate.sh` | see §1c-bis (components extended to the complete surface) | see §1c-bis |
+| `scripts/batch14ax-gate-negatives.sh` | see §1c-bis (C14–C17 added for the new conditions) | see §1c-bis |
+| `scripts/batch14ax-verdict-components.sql` | see §1c-bis (components 11–12 added) | see §1c-bis |
+| `scripts/batch14ay-function-surface.sh` | **NEW** — the inventory dump (17 functions, ACLs, per-role EXECUTE, bodies, triggers) | see §1c-bis |
+| `scripts/batch14ay-surface-gate.sh` | **NEW** — the focused surface gate: denials, authorized paths, load-bearing grants, RESTRICT, coverage | see §1c-bis |
 
 ## 2. Installation prerequisites
 
@@ -277,13 +314,46 @@ in this record changes; the citation was wrong and is corrected here.
 | `scripts/batch14af-atomic-integration.sh` | 24 / 0 (isolated PG16, module compiled) | the integrated TS lifecycle path |
 | `npx tsc --noEmit` / `npm run build` | exit 0 / exit 0 | types, build |
 
-New for this batch, both against private isolated PostgreSQL 16 clusters (unix socket, no
-TCP listener asserted, torn down with the data directory):
+### 5b. Gate validation, on PostgreSQL 16 AND 17 (current results)
+
+Everything here runs against private isolated clusters (unix socket, `listen_addresses`
+empty, asserted; data directory torn down at the end) and is version-parameterised
+(`PGBIN=/usr/lib/postgresql/<major>/bin`):
 
 | Harness | Result | Proves |
 |---|---|---|
-| `scripts/batch14ax-email-index-negatives.sh` | **27 / 0** | the hardened guards: clean apply, wrong-table / partial / composite / invalid / not-ready / not-unique / wrong-expression negatives all ABORT, and a second clean apply is a no-op |
-| `scripts/batch14ax-install-bundle-validate.sh` | **37 / 0** | Batch 13 applied first (as in production), the preflight EXECUTES against the pre-install state, every bundle file applies in order, the reviewed file is byte-identical after being applied, the exclusive trigger covers both tables, an unknown mode is refused (22023), a direct writer still commits, the index enforces uniqueness, Batch 13 preservation survives, the postflight EXECUTES, and both files are SELECT-only |
+| `scripts/batch14ay-function-surface.sh` | inventory | the complete surface it dumps — 17 functions with signature, mode, owner, pinned path, raw ACL, per-role **effective** EXECUTE, bodies and triggers — is the basis of the §1a-bis decisions, and its call graph is derived from the bodies (plpgsql records nothing in `pg_depend`) |
+| `scripts/batch14ay-surface-gate.sh` | **83 / 0** (PG17) | the focused surface validation: §4 of `docs/BATCH14AY-SQL-SURFACE.md` (denials for all ten functions × three roles, authorized direct writes and atomic RPC, the withdrawn per-identity variant, the installer's modes, load-bearing grant and denial controls, RESTRICT, and completed-call coverage) |
+| `scripts/batch14ax-install-bundle-validate.sh` | **51 / 0** (PG16) · **50 / 0** (PG17) | Batch 13 applied first, every bundle file applies in order **including the boundary**, the preflight EXECUTES against the pre-install state, the reviewed file is byte-identical after being applied, the exclusive trigger covers both tables, an unknown mode is refused (22023), direct writes as `service_role` commit and the index refuses a case-variant duplicate, Batch 13 preservation survives, the postflight EXECUTES with a mandatory verdict of `t`, and both files are SELECT-only |
+| `scripts/batch14ax-gate-negatives.sh` | **45 / 0** (PG16) · **45 / 0** (PG17) | 16 cases: the clean-install control, PUBLIC table access, column access, disabled trigger, partial trigger coverage, shared-mode trigger, exposed wrapper, RLS drift, re-created read policy, missing authority column, missing signature, wrong security mode/search_path, moved ownership, PUBLIC EXECUTE on a helper, a re-created prototype, a revoked release-closure grant, an unpinned helper — plus the verdict-parser controls and the restored clean-install control |
+| `scripts/batch14ax-email-index-negatives.sh` | 27 / 0 | the hardened index guards (unchanged this batch) |
+
+The 17 branch of the privilege `CASE` **is** exercised (PostgreSQL 17 is installed on the test
+host from PGDG), which is what makes the version-independent column-privilege list a measured
+decision rather than an argument.
+
+**Defects this validation found and fixed in this package:**
+
+1. **The boundary migration was not idempotent.** Seven of the functions it revokes are dropped
+   later in the same file, so a bare `revoke … on function` made the SECOND run fail. Caught by
+   the focused gate's A2 assertion (`re-applying it is a no-op`). Fixed with an
+   existence-guarded loop over `to_regprocedure`.
+2. **An assertion in the validator rested on a false rationale.** It required `service_role` to
+   hold EXECUTE on the trigger function, reasoning that "a missing EXECUTE would make every
+   direct write fail with 42501". The boundary closes PUBLIC — removing that grant — and the
+   harness's own direct writes still commit and persist, so the rationale is false: trigger
+   invocation does not consult the function's EXECUTE. The assertion now records the measured
+   fact, and the requirement that actually matters (EXECUTE on the INVOKER helper the trigger
+   calls) is asserted directly.
+3. **The PUBLIC diagnostic was mis-scoped.** It reported the bundle's own helpers as "other
+   functions", under-reporting the surface this release owns while the mandatory check covered
+   only four functions. Now: mandatory `= 0` across every bundle-owned function, informational
+   scoped to unrelated ones.
+4. **A negative control did not inject its drift.** C15's prototype re-creation passed its
+   dollar-quoted body through nested `psql -c` / `su -c`, so the inner shell expanded `$fn` to
+   nothing, the injection failed, and the case reported "the drift was not caught" — the same
+   trap C11 hit earlier. Both now write the injection to a FILE and assert that the injection
+   itself succeeded, so a failed injection can never masquerade as a caught mutation.
 
 **Two defects were found by that validation and fixed in this package** — which is why the
 files are validated rather than merely written:
@@ -313,10 +383,15 @@ being applied.
 * **`batch14s`'s header** still reads "PINNED DEFECT — EXPECTED RED"; its unchanged bytes are
   the evidence the rule landed. Updating that header is the owner's call.
 * **`20261015` is superseded** by `20261016` (§1a) and is retained only for sequence fidelity.
-* **The harness cluster is PostgreSQL 16**; production is 17.6. That is exactly why the
-  privilege lists in the preflight/postflight are built with `array_append` inside a `CASE`
-  (the `MAINTAIN` privilege does not exist on 16) — the 17 branch runs only in production.
-  The isolated runs therefore do not exercise the MAINTAIN path.
+* **WITHDRAWN (was: "the harness cluster is PostgreSQL 16 … the 17 branch runs only in
+  production").** PostgreSQL 17 is now installed on the test host from PGDG and both gate
+  harnesses are version-parameterised (`PGBIN=…`), so the 17 branch of the privilege `CASE`
+  **is** exercised, and running it is what caught a real defect: the first revision of the
+  column-privilege check used the same version `CASE` as the table list, and
+  `has_column_privilege()` rejects `MAINTAIN` on **every** version — it would have failed at
+  production install time. Column lists are now version-independent. What remains true is
+  narrower: the isolated runs are on 16.15 and 17, production is **17.6**, and no isolated run
+  is production.
 
 ## 7. Rollback
 
@@ -327,11 +402,12 @@ symmetric. Roll back the database in reverse installation order.
 
 | Step | Rollback | Consequence |
 |---|---|---|
+| 8 `20261017` (boundary) | restore the withdrawn grant (`grant execute on function public.apply_lifecycle_update_sync(jsonb) to service_role;`) and re-apply `20261012`–`20261016` to recreate the prototype functions and unpin the search paths. Simply dropping this file from the sequence is also safe. | the pre-boundary surface returns: PUBLIC EXECUTE on 13 bundle-owned functions (including the global advisory key) and the seven prototypes back in place. Nothing is lost, but the exposure returns. |
 | 7 policy step | `select public.b14ac_install_trigger('none');` | removes both statement triggers. **Do this FIRST**: it is the only step whose removal stops direct writers taking a key whose helper functions the later steps drop. |
 | 6 `20261016` | `drop column entitlement_authority_at` on both tables | **DESTRUCTIVE and NOT reversible**: the recorded reconciliation evidence is lost, and every row reverts to "no reconciliation on record". With the new application still deployed, every membership READ and WRITE fails with `42703` (undefined column). Leaving the column in place is inert for an older application and is the safer half-measure. |
 | 5 `20261015` | nothing | superseded; re-applying 6 or 2 restores a primitive body. |
 | 4 `20261014` | drop the two wrapper functions and `b14ac_install_trigger` | the application's entry point disappears → every atomic write fails with `42883`. Must follow an application rollback. |
-| 3 `20261013` | drop the `b14ab_*` helper functions | only safe once step 4 is gone; the wrapper and the triggers depend on them. |
+| 3 `20261013` | drop the remaining `b14ab_*` helper functions — the boundary has already dropped seven of them, so what is left is `b14ab_acquire_global_lock` and `b14ab_linkage_global_key` (plus `b14ab_linkage_key`, used by the per-identity path) | only safe once step 4 is gone; the wrapper and the installed trigger depend on the lock helper. |
 | 2 `20261012` | `drop function public.apply_lifecycle_update(jsonb)` | removes the reviewed primitive; the wrapper then fails. |
 | 1 `20261010` | `drop index public.ut_members_email_lower_key;` | instant, no data loss, no rewrite — but it re-opens the address-uniqueness defect: `A@x.com` and `a@x.com` can again coexist as separate members. Reversal is not neutral. |
 
@@ -384,9 +460,33 @@ The first revision of this document said "production application `ac49ce06`". Th
   `src/lib/membership-lifecycle-atomic.ts` is **absent** from both and present only on the
   batch14 branch; and that the Batch 13 migration file exists in `ac49ce06` and not in
   `main`.
-* **Not established from the repository:** *which* SHA is actually deployed. That is a
-  deployment fact and must be confirmed against the running build at release time.
-* **What matters for the release** survives the correction: whichever of the two is
+* **NOW ESTABLISHED — measured read-only through the Vercel API, not inferred from the
+  repository.** Both production aliases resolve to a single deployment:
+
+  | | |
+  |---|---|
+  | Project | `universal-transmissions` — `prj_E5hqrQHvT2gE0sirOyjN9dwscJyY`, framework nextjs |
+  | Deployment ID | **`dpl_F54o7a73ehL1ouHwMXzqhZ8ZNgRa`** |
+  | Immutable URL | `universal-transmissions-bv473auep-hhisim-7214s-projects.vercel.app` |
+  | State | `READY`, `target: production`, `aliasAssigned: true` |
+  | **Source SHA** | **`ac49ce062d66a49b0e4202a5e15755b930667bc3`** |
+  | Git baseline | repo `hhisim/universal-transmissions`, ref `main`, author Hakan Hisim — "Batch 13c: fix the PostgreSQL 17 path and make verification SELECT-only" |
+  | Created → ready | 2026-10-10T23:13:52Z → 2026-10-10T23:15:56Z |
+  | Aliases on it | `universal-transmissions.com`, `www.universal-transmissions.com`, `universal-transmissions.net`, `www.universal-transmissions.net`, `universal-transmissions.vercel.app`, `universal-transmissions-hhisim-7214s-projects.vercel.app`, `universal-transmissions-git-main-hhisim-7214s-projects.vercel.app` |
+  | Live probe | both `.com` aliases HTTP 200 with the **identical** `etag: "3bd84e80dacd12e3008b94bb08761f69"` |
+
+  So the production baseline is `ac49ce06` **by measurement**, and the previous revision's
+  withdrawal is now resolved in the other direction: it was right that the repository could
+  not establish the deployed SHA, and the deployed SHA is nevertheless `ac49ce06`.
+  Note the consequence: the deployed commit is **58 commits AHEAD of `main`** as `main`
+  stands today, so `git push` to `main` is not what keeps this project deployed.
+* **Credential finding (operational, read-only):** the Vercel token stored at
+  `/root/.config/omni-commerce/platform-credentials.json` and the token documented in the
+  `ut-vercel-deploy` skill are **both rotated/invalid** (`403 {"invalidToken":true}`). The
+  live token is the one in `/mnt/hermes-ssd/thoth-clean/.env` **on the Pi** (validated:
+  `200`, user `hhisim-7214`). Any deploy or API call that used the local copies would have
+  failed; this verification used the live one. The skill has been corrected.
+* **What matters for the release** is unchanged by all of the above: whichever commit is
   deployed, **the application does not use the atomic path** (identical webhook route blob,
   no atomic module), so the SQL-first ordering in §2.6 holds either way. And because `main`
   does not carry the Batch 13 migration while `ac49ce06` does, the Batch 13 boundary must be

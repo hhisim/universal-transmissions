@@ -61,6 +61,7 @@ BUNDLE=(
   "20261014_lifecycle_sync_wrapper.sql"
   "20261015_lifecycle_per_entry_skip.sql"
   "20261016_entitlement_authority.sql"
+  "20261017_function_surface_boundary.sql"
 )
 BATCH13="20261010_membership_access_hardening.sql"
 REVIEWED="20261012_apply_lifecycle_update.sql"
@@ -286,10 +287,19 @@ chkeq "a direct UPDATE as service_role succeeds" "free" \
   "$(svc "update public.ut_members set plan='free' where email='svc-writer@example.com' returning plan" | tail -1)"
 chkeq "  ...and the update is persisted" "free" \
   "$(q "select plan from public.ut_members where email='svc-writer@example.com'")"
-# The trigger is only coverage if the writing role can reach its function: a
-# missing EXECUTE would make every direct write fail with 42501 instead.
-chkeq "service_role may execute the trigger function" "t" \
+# CORRECTED ASSERTION — the previous revision asserted that `service_role` must hold
+# EXECUTE on the trigger function, reasoning that "a missing EXECUTE would make every
+# direct write fail with 42501". That rationale is FALSE, and this harness measures it:
+# the boundary migration closes PUBLIC (which removes that grant) and the two direct
+# writes above still commit and persist. Trigger invocation does not consult the
+# function's EXECUTE privilege; what the direct-write path DOES require is EXECUTE on
+# the INVOKER helper the trigger function calls. Both facts are asserted here, and the
+# regression the old assertion was protecting (a direct write failing with 42501) is
+# asserted directly by the two writes above.
+chkeq "trigger invocation does NOT require EXECUTE on the trigger function" "f" \
   "$(q "select has_function_privilege('service_role', 'public.b14ac_trg_stmt_exclusive()', 'EXECUTE')")"
+chkeq "the INVOKER helper on the direct-write path IS granted to service_role" "t" \
+  "$(q "select has_function_privilege('service_role', 'public.b14ab_acquire_global_lock(boolean)', 'EXECUTE')")"
 
 echo ""
 echo "== the address index enforces uniqueness on the service_role path =="
@@ -350,22 +360,39 @@ with c as (
         and t2.relname = 'ut_members' and i.indisunique and i.indisvalid and i.indisready and i.indislive
         and i.indnkeyatts = 1 and i.indnatts = 1 and i.indpred is null
         and replace(pg_get_expr(i.indexprs, i.indrelid), ' ', '') in ('lower(btrim(email))','lower(btrim((email)::text))'))
-  union all select 3, 'four exact signatures',
-    (select count(*) = 4 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  union all select 3, 'the complete retained surface: exact signatures (10)',
+    (select count(*) = 10 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public'
         and (p.proname, pg_get_function_identity_arguments(p.oid)) in (
               ('apply_lifecycle_update','p_targets jsonb'),
               ('apply_lifecycle_update_sync','p_targets jsonb'),
               ('apply_lifecycle_update_sync_global','p_targets jsonb'),
-              ('b14ac_install_trigger','p_mode text')))
-  union all select 4, 'mode + search_path + owner + ACLs',
-    (select count(*) = 3 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              ('b14ab_acquire_global_lock','p_shared boolean'),
+              ('b14ab_linkage_global_key',''),
+              ('b14ab_linkage_key','p_kind text, p_value text'),
+              ('b14ac_install_trigger','p_mode text'),
+              ('b14ac_linkage_keys_for_payload','p_targets jsonb'),
+              ('b14ac_trg_stmt_exclusive',''),
+              ('b14ac_trg_stmt_shared','')))
+  union all select 4, 'mode + pinned search_path + owner + ACLs (all 10)',
+    (select count(*) = 10 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+       join (values
+               ('apply_lifecycle_update',             true,  true),
+               ('apply_lifecycle_update_sync',        false, false),
+               ('apply_lifecycle_update_sync_global', false, true),
+               ('b14ab_acquire_global_lock',          false, true),
+               ('b14ab_linkage_global_key',           false, true),
+               ('b14ab_linkage_key',                  false, false),
+               ('b14ac_install_trigger',              false, false),
+               ('b14ac_linkage_keys_for_payload',     false, false),
+               ('b14ac_trg_stmt_exclusive',           false, false),
+               ('b14ac_trg_stmt_shared',              false, false)
+            ) e(proname, is_definer, svc) on e.proname = p.proname
       where n.nspname = 'public'
-        and p.proname in ('apply_lifecycle_update','apply_lifecycle_update_sync','apply_lifecycle_update_sync_global')
         and pg_get_userbyid(p.proowner) = 'postgres'
         and replace(array_to_string(p.proconfig, ','), ' ', '') = 'search_path=pg_catalog,public'
-        and p.prosecdef = (p.proname = 'apply_lifecycle_update')
-        and has_function_privilege('service_role', p.oid, 'EXECUTE')
+        and p.prosecdef = e.is_definer
+        and has_function_privilege('service_role', p.oid, 'EXECUTE') = e.svc
         and not has_function_privilege('anon', p.oid, 'EXECUTE')
         and not has_function_privilege('authenticated', p.oid, 'EXECUTE')
         and not (p.proacl is null or exists (select 1 from aclexplode(p.proacl) x
@@ -399,15 +426,14 @@ with c as (
                       and attnum > 0 and not attisdropped) a
        cross join (select unnest(array['SELECT','INSERT','UPDATE','REFERENCES']) as priv) p
       where has_column_privilege(r.role_name, a.attrelid, a.attname, p.priv))
-  union all select 9, 'no PUBLIC grant (tables, columns, guarded functions)',
+  union all select 9, 'no PUBLIC grant (tables, columns, any bundle-owned function)',
     ((select count(*) = 0 from information_schema.role_table_grants
        where table_schema = 'public' and table_name in ('ut_members','profiles') and grantee = 'PUBLIC')
      and (select count(*) = 0 from information_schema.column_privileges
        where table_schema = 'public' and table_name in ('ut_members','profiles') and grantee = 'PUBLIC')
      and (select count(*) = 0 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
        where n.nspname = 'public'
-         and p.proname in ('apply_lifecycle_update','apply_lifecycle_update_sync',
-                           'apply_lifecycle_update_sync_global','b14ac_install_trigger')
+         and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
          and (p.proacl is null or exists (select 1 from aclexplode(p.proacl) x
                     where x.grantee = 0 and x.privilege_type = 'EXECUTE'))))
   union all select 10, 'RLS on both + policy not visible to anon/authenticated',
@@ -418,6 +444,30 @@ with c as (
      and (select count(*) = 0 from pg_policies
        where schemaname = 'public' and tablename in ('ut_members','profiles')
          and (roles::text[] && array['anon','authenticated','public'])))
+  union all select 11, 'the 7 Batch 14ab prototype entry points are ABSENT',
+    (to_regprocedure('public.b14ab_install_trigger(text)') is null
+     and to_regprocedure('public.b14ab_trg_row()') is null
+     and to_regprocedure('public.b14ab_trg_stmt()') is null
+     and to_regprocedure('public.b14ab_lifecycle_apply(text,text,text,text,bigint[],text,text)') is null
+     and to_regprocedure('public.b14ab_lifecycle_apply_nosync(text,text,text,text,bigint[],text,text)') is null
+     and to_regprocedure('public.b14ab_acquire_linkage_locks(text,text,text,text)') is null
+     and to_regprocedure('public.b14ab_linkage_keys(text,text,text,text)') is null)
+  union all select 12, 'no unexpected bundle-owned function present',
+    (select count(*) = 0 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public'
+        and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
+        and (p.proname, pg_get_function_identity_arguments(p.oid)) not in (
+              ('apply_lifecycle_update','p_targets jsonb'),
+              ('apply_lifecycle_update_sync','p_targets jsonb'),
+              ('apply_lifecycle_update_sync_global','p_targets jsonb'),
+              ('b14ab_acquire_global_lock','p_shared boolean'),
+              ('b14ab_linkage_global_key',''),
+              ('b14ab_linkage_key','p_kind text, p_value text'),
+              ('b14ac_install_trigger','p_mode text'),
+              ('b14ac_linkage_keys_for_payload','p_targets jsonb'),
+              ('b14ac_trg_stmt_exclusive',''),
+              ('b14ac_trg_stmt_shared','')))
+
 )
 select n as component_no, component, holds
 from c where not holds order by n;

@@ -30,7 +30,7 @@ with c as (
         and i.indnkeyatts = 1 and i.indnatts = 1 and i.indpred is null
         and replace(pg_get_expr(i.indexprs, i.indrelid), ' ', '')
             in ('lower(btrim(email))','lower(btrim((email)::text))'))
-  union all select 3, 'four exact function signatures',
+  union all select 3, 'the complete retained surface: exact signatures (10)',
     (select count(*) = 4 from pg_proc p
        join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public'
@@ -39,20 +39,32 @@ with c as (
               ('apply_lifecycle_update_sync','p_targets jsonb'),
               ('apply_lifecycle_update_sync_global','p_targets jsonb'),
               ('b14ac_install_trigger','p_mode text')))
-  union all select 4, 'security mode + search_path + owner + ACLs (three callable functions)',
-    (select count(*) = 3 from pg_proc p
-       join pg_namespace n on n.oid = p.pronamespace
-      where n.nspname = 'public'
-        and p.proname in ('apply_lifecycle_update','apply_lifecycle_update_sync','apply_lifecycle_update_sync_global')
-        and pg_get_userbyid(p.proowner) = 'postgres'
-        and replace(array_to_string(p.proconfig, ','), ' ', '') = 'search_path=pg_catalog,public'
-        and p.prosecdef = (p.proname = 'apply_lifecycle_update')
-        and has_function_privilege('service_role', p.oid, 'EXECUTE')
-        and not has_function_privilege('anon', p.oid, 'EXECUTE')
-        and not has_function_privilege('authenticated', p.oid, 'EXECUTE')
-        and not (p.proacl is null or exists (select 1 from aclexplode(p.proacl) x
-                    where x.grantee = 0 and x.privilege_type = 'EXECUTE')))
-  union all select 5, 'trigger installer present, owned by postgres, not callable by an app role',
+  union all select 4, 'security mode + pinned search_path + owner + ACLs (all 10 retained functions)',
+       (select count(*) = 10 from pg_proc p
+          join pg_namespace n on n.oid = p.pronamespace
+          join (values
+                  ('apply_lifecycle_update',             true,  true),
+                  ('apply_lifecycle_update_sync',        false, false),
+                  ('apply_lifecycle_update_sync_global', false, true),
+                  ('b14ab_acquire_global_lock',          false, true),
+                  ('b14ab_linkage_global_key',           false, true),
+                  ('b14ab_linkage_key',                  false, false),
+                  ('b14ac_install_trigger',              false, false),
+                  ('b14ac_linkage_keys_for_payload',     false, false),
+                  ('b14ac_trg_stmt_exclusive',           false, false),
+                  ('b14ac_trg_stmt_shared',              false, false)
+               ) e(proname, is_definer, svc) on e.proname = p.proname
+         where n.nspname = 'public'
+           and pg_get_userbyid(p.proowner) = 'postgres'
+           and replace(array_to_string(p.proconfig, ','), ' ', '') = 'search_path=pg_catalog,public'
+           and p.prosecdef = e.is_definer
+           and has_function_privilege('service_role', p.oid, 'EXECUTE') = e.svc
+           and not has_function_privilege('anon', p.oid, 'EXECUTE')
+           and not has_function_privilege('authenticated', p.oid, 'EXECUTE')
+           and not (p.proacl is null
+                    or exists (select 1 from aclexplode(p.proacl) x
+                                where x.grantee = 0 and x.privilege_type = 'EXECUTE')))
+union all select 5, 'trigger installer present, owned by postgres, not callable by an app role',
     (select count(*) = 1 from pg_proc p
        join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public' and p.proname = 'b14ac_install_trigger'
@@ -89,7 +101,7 @@ with c as (
                       and attnum > 0 and not attisdropped) a
        cross join (select unnest(array['SELECT','INSERT','UPDATE','REFERENCES']) as priv) p
       where has_column_privilege(r.role_name, a.attrelid, a.attname, p.priv))
-  union all select 9, 'no PUBLIC grant on tables, columns or the four guarded functions',
+  union all select 9, 'no PUBLIC grant on tables, columns or any bundle-owned function',
     ((select count(*) = 0 from information_schema.role_table_grants
        where table_schema = 'public' and table_name in ('ut_members','profiles') and grantee = 'PUBLIC')
      and (select count(*) = 0 from information_schema.column_privileges
@@ -97,11 +109,8 @@ with c as (
      and (select count(*) = 0 from pg_proc p
             join pg_namespace n on n.oid = p.pronamespace
            where n.nspname = 'public'
-             and p.proname in ('apply_lifecycle_update','apply_lifecycle_update_sync',
-                               'apply_lifecycle_update_sync_global','b14ac_install_trigger')
-             and (p.proacl is null or exists (select 1 from aclexplode(p.proacl) x
-                    where x.grantee = 0 and x.privilege_type = 'EXECUTE'))))
-  union all select 10, 'RLS enabled on both tables, withdrawn policy absent, no anon/authenticated policy',
+             and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%'))
+union all select 10, 'RLS enabled on both tables, withdrawn policy absent, no anon/authenticated policy',
     ((select count(*) = 2 from pg_class c
         join pg_namespace n on n.oid = c.relnamespace
        where n.nspname = 'public' and c.relname in ('ut_members','profiles') and c.relrowsecurity)
@@ -110,6 +119,30 @@ with c as (
      and (select count(*) = 0 from pg_policies
        where schemaname = 'public' and tablename in ('ut_members','profiles')
          and (roles::text[] && array['anon','authenticated','public'])))
+ union all select 11, 'the 7 Batch 14ab prototype entry points are ABSENT',
+       (to_regprocedure('public.b14ab_install_trigger(text)') is null
+        and to_regprocedure('public.b14ab_trg_row()') is null
+        and to_regprocedure('public.b14ab_trg_stmt()') is null
+        and to_regprocedure('public.b14ab_lifecycle_apply(text,text,text,text,bigint[],text,text)') is null
+        and to_regprocedure('public.b14ab_lifecycle_apply_nosync(text,text,text,text,bigint[],text,text)') is null
+        and to_regprocedure('public.b14ab_acquire_linkage_locks(text,text,text,text)') is null
+        and to_regprocedure('public.b14ab_linkage_keys(text,text,text,text)') is null)
+ union all select 12, 'no unexpected bundle-owned function present',
+       (select count(*) = 0 from pg_proc p
+          join pg_namespace n on n.oid = p.pronamespace
+         where n.nspname = 'public'
+           and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
+           and (p.proname, pg_get_function_identity_arguments(p.oid)) not in (
+                 ('apply_lifecycle_update', 'p_targets jsonb'),
+                 ('apply_lifecycle_update_sync', 'p_targets jsonb'),
+                 ('apply_lifecycle_update_sync_global', 'p_targets jsonb'),
+                 ('b14ab_acquire_global_lock', 'p_shared boolean'),
+                 ('b14ab_linkage_global_key', ''),
+                 ('b14ab_linkage_key', 'p_kind text, p_value text'),
+                 ('b14ac_install_trigger', 'p_mode text'),
+                 ('b14ac_linkage_keys_for_payload', 'p_targets jsonb'),
+                 ('b14ac_trg_stmt_exclusive', ''),
+                 ('b14ac_trg_stmt_shared', '')))
 )
 select n as component_no, component, holds
 from c
