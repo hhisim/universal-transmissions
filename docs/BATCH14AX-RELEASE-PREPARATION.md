@@ -86,7 +86,7 @@ that names the candidate — see §1b.
 
 ### 1b. Candidate SHA
 
-**`44c5a0f62ddae613fd10e13e0312ea612da5c398`**
+**`2fc48d4afd55e13376be69a15405214282cdf43d`**
 
 That is the single candidate identifier for this package: the commit that carries every artifact
 in §1a, §1a-bis and §1c-bis (the migration, the harnesses, the smoke script and the documents).
