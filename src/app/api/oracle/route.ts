@@ -249,6 +249,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       response: answer,
+      /* A capped fragment is never presented as a finished answer. The backend flags it
+         and marks the text itself; this carries the flag through so the site can say so
+         in its own words rather than leaving the visitor to notice a mid-sentence end. */
+      answerTruncated: data.answer_truncated === true,
       groundedArtworkId: artwork?.id ?? null,
       // Resolved research context, or an honest null / unavailable state.
       groundedResearch: topic

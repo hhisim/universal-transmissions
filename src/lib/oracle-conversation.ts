@@ -21,7 +21,12 @@
  *   MAX_MESSAGE_CHARS      6000 per individual message
  *   MAX_TOTAL_CHARS        24000 across the whole retained transcript
  *   MAX_QUESTION_CHARS     2000 current question (pre-existing route bound)
- *   MAX_GRINDED_CHARS      9000 whole composed provider message
+ *   MAX_GRINDED_CHARS      11000 whole composed provider message
+ *
+ * MAX_GRINDED_CHARS is raised from 9000 because selected-connection grounding now
+ * carries the room's own registers and each reference's "what it supports" line. The
+ * invariant is that grounding + a maximum-length question still fits, asserted for
+ * every registered anchor.
  *
  * ── How the two budgets reconcile (S4) ──────────────────────────────────────
  * MAX_TOTAL_CHARS (24000) bounds the ACCEPTED transcript at the route boundary.
@@ -76,7 +81,15 @@ export const MAX_HISTORY_MESSAGES = 8;
 export const MAX_MESSAGE_CHARS = 6000;
 export const MAX_TOTAL_CHARS = 24000;
 export const MAX_QUESTION_CHARS = 2000;
-export const MAX_GRINDED_CHARS = 9000;
+/* Raised from 9000 when selected-connection grounding began carrying the ROOM's own
+   registers and each reference's "what it supports" description. The bound exists to
+   keep the sent message honest and economical, not to match a provider ceiling (the
+   synthesis model's context is far larger), and the route REFUSES rather than
+   truncating when it is exceeded - so a bound that no longer fits legitimate grounding
+   turns a good answer into a 413 instead of a cheaper one. The invariant that must hold
+   is asserted in scripts/batch16-research-nexus.js: for every registered anchor,
+   grounding + MAX_QUESTION_CHARS <= this value. */
+export const MAX_GRINDED_CHARS = 11000;
 
 export interface HistoryValidation {
   ok: boolean;

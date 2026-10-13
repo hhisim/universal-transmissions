@@ -304,25 +304,67 @@ console.log("\n== K. both rooms render the SAME surface, and it stays accessible
   }
 }
 
-console.log("\n== L. the grounding names the ONLY permitted external references ==");
+console.log("\n== L. the grounding carries the room's facts and its references' scope ==");
 {
-  /* The live journey found the Oracle attributing authors that were never supplied.
-     The grounding now names its permitted references explicitly, so the model has a
-     stated boundary to stay inside — asserted here on the actual prompt block. */
   const prompt = topics.researchPromptBlock(geo);
-  chk("the prompt block names the permitted external references",
+  chk("the room prompt block names the permitted external references",
       /ONLY external references supplied/.test(prompt));
   for (const src of geo.sources) {
     chk(`the permitted list includes: ${src.label.slice(0, 34)}`, prompt.includes(src.label));
   }
-  chk("the prompt block forbids attributing anything else",
+  chk("the room prompt block forbids attributing anything else",
       /Do not attribute any other author, title, work or page number/.test(prompt));
-  const anchorPrompt = topics.researchPromptBlock(
-    topics.resolveResearchTopic("research-v1:geometry/connection/artwork-tetra"));
-  chk("a connection anchor's grounding carries the same boundary",
-      /ONLY external references supplied/.test(anchorPrompt));
-  chk("the anchor names the topic's references, not the anchor's own",
-      anchorPrompt.includes(geo.sources[0].label));
+
+  const anchor = topics.resolveResearchTopic("research-v1:geometry/connection/artwork-tetra");
+  const anchorPrompt = topics.researchPromptBlock(anchor);
+
+  /* The completed contract: a selected connection is answered with the ROOM's own
+     material, not just the connection's blurb. */
+  chk("the anchor's grounding carries the room's registers",
+      /WHAT THE GEOMETRY ROOM HOLDS/.test(anchorPrompt)
+      && anchorPrompt.includes(geo.summary));
+  chk("the room's mathematical result travels with the anchor", /EXACTLY FIVE/.test(anchorPrompt));
+  chk("the room's resemblance limit travels with the anchor",
+      /resemblance[\s\S]{0,120}shared mechanism/i.test(anchorPrompt));
+
+  /* Each reference arrives with the catalogue's own statement of what it supports. */
+  for (const src of geo.sources) {
+    chk(`the anchor lists the reference: ${src.label.slice(0, 30)}`,
+        anchorPrompt.includes(src.label));
+    chk(`the anchor carries that reference's SUPPORTS description: ${src.label.slice(0, 26)}`,
+        anchorPrompt.includes(src.supports));
+  }
+  chk("the anchor states that supports-descriptions are scope, not contents",
+      /SCOPE, NOT CONTENTS/.test(anchorPrompt)
+      && /has not read these works/i.test(anchorPrompt));
+  chk("the anchor forbids attributing anything not listed",
+      /Attribute no other author, title, work or page number/.test(anchorPrompt));
+  chk("the anchor keeps the four registers apart in words",
+      /mathematical property is established[\s\S]{0,200}keep the four apart/i.test(anchorPrompt));
+  chk("the anchor still carries its own basis, not only the room's",
+      /How strongly it is supported/.test(anchorPrompt));
+}
+
+console.log("\n== L2. every anchor's grounding still fits the composed-message budget ==");
+{
+  /* The route REFUSES (413) rather than truncating when the composed message would
+     exceed MAX_GRINDED_CHARS, so grounding + a maximum-length question MUST fit for
+     every registered anchor. Carrying the room facts made this budget real: it was
+     raised once, and this assertion is what stops it silently regressing. */
+  const conv = require(path.join(ROOT, "src/lib/oracle-conversation.ts"));
+  const LIMIT = conv.MAX_GRINDED_CHARS;
+  const QMAX = conv.MAX_QUESTION_CHARS;
+  const anchors = topics.allRegisteredConnections();
+  chk("the budget is large enough to be worth asserting", LIMIT > QMAX, `${LIMIT} vs ${QMAX}`);
+  let worst = 0;
+  let worstId = "";
+  for (const a of [...anchors.map((r) => r.anchorId), ...topics.researchTopicSlugs().map(topics.researchTopicId)]) {
+    const block = topics.researchPromptBlock(topics.resolveResearchTopic(a));
+    const total = block.length + QMAX;
+    if (total > worst) { worst = total; worstId = a; }
+    chk(`fits the budget: ${a}`, total <= LIMIT, `${total} > ${LIMIT}`);
+  }
+  console.log(`  (worst case: ${worstId} at ${worst} of ${LIMIT}, headroom ${LIMIT - worst})`);
 }
 
 console.log("\n== M. the batch stayed inside its lane ==");

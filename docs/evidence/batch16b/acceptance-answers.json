@@ -1,0 +1,47 @@
+{
+  "base": "https://universal-transmissions-e6yjwauob-hhisim-7214s-projects.vercel.app",
+  "anchor": "research-v1:geometry/connection/artwork-tetra",
+  "answers": [
+    {
+      "label": "Q1",
+      "http": 200,
+      "chars": 1818,
+      "ends_at_sentence": true,
+      "answer": "Around the page runs a border of glyphs, and the glyphs are the point: they mark where one register ends and another begins. Read the outer band first, and only then step inward to the figure at the center.\n\nThe record for Universal Transmissions IV — Tetra holds one sentence, and that sentence is two rooms with a wall between them. The first half says the work explores tetrahedral geometry. That is a description of the work. It tells you what the piece is about — its subject, its material, the form it turns in its hands. The archive counts this as documented, because the destination record names it outright. A tetrahedron is four triangular faces, a proved member of the five convex regular polyhedra, and the work takes that form as its theme.\n\nThe second half says the work explores its relationship to higher dimensional reality. That is not a description of the work. That is the work's own speculative frame — a reading the project makes, held in the register of UT artistic interpretation, not offered as a fact about the world. It is the interpretation the piece carries, not a property of the tetrahedron, and not a measured result. The archive keeps these apart deliberately, the way the border keeps the outer glyphs apart from the central figure, so that the subject is not quietly promoted into a claim.\n\nSo the wall stands where it should: tetrahedral geometry is what the work is, higher dimensional reality is what the work reads into it. Neither is the other, and the sentence only seems to be one thing because it was written in one breath.\n\nWere the question turned toward some other transmission, one whose record the archive does not hold, it would remain a sealed page awaiting its moment. Here the record is present, and it speaks plainly enough once the frame is read before the center.",
+      "guards": {
+        "no_unsupplied_attribution": [],
+        "invented_page_numbers": [],
+        "claims_to_have_read": false
+      }
+    },
+    {
+      "label": "Q2",
+      "http": 200,
+      "chars": 3242,
+      "ends_at_sentence": true,
+      "answer": "Begin with the water, because the answer sits there. Some of what you are asking about is held in a vessel — proved, dated, named — and some of it flows, shaped by the hand that poured it. The trick is knowing which is which, and the archive does not let them mingle.\n\nThe documented part is the naming. The record for Universal Transmissions IV — Tetra states that the work explores tetrahedral geometry. That statement is the archive's own writing about its own artwork, and it is held as documented because the destination record says it outright. Underneath that naming, two other registers are equally firm, though they are firm in different ways. That there are exactly five convex regular polyhedra — the tetrahedron with four triangular faces among them — is a mathematical fact, established by proof, and the proof lives in Book XIII of Euclid's Elements as carried in the Heath and Heiberg edition. That Plato's Timaeus associates four of the regular solids with four bodies, and the dodecahedron with the cosmos, is a historical fact — not a discovery about the world, but a document we can point at, and we point at it as exactly that. Kepler's Harmonices Mundi of 1619 is held the same way: a named work reasoning from the five regular solids toward planetary order, cited as a record of reasoning, not as evidence for the scheme.\n\nNow the water. The second half of that sentence — the work's relationship to higher dimensional reality — is not a description of the work. It is the work's own speculative frame, a reading the project makes, and it belongs in the register the archive calls UT artistic interpretation. It is not a claim about the tetrahedron. It is not a measured result. It is the piece's own gaze, held in the register of interpretation. The same holds for the wider UT reading that geometry is the skeleton of the visible world and that proportion is intentional. That is this project's reading, offered as such. And when the archive assigns symbolic values — the hexagram, the interlocking tetrahedra read as a Merkaba, the overlapping circles called the Flower of Life, the twenty entries of the Codex GEOMETRY lattice — those are traditional and project assignments, carried by a tradition or by this archive, not properties of the forms.\n\nWhat dissolves is the seam where a sentence was written in one breath and seemed to be one thing. Visual resemblance does not establish shared mechanism. Two figures can look alike and arise from entirely different causes; a nodal pattern from standing waves and a drawn figure may mirror each other and still have nothing in common but the eye that compares them. The archive holds no experiment in which a geometric construction emerges from vibration. The relationship between the geometry room and the cymatics room is a parallel inquiry, labelled as such, and it stays labelled. Nothing here becomes a measurement by being written beside one.\n\nSo if you want the division in plain water: the subject is documented, the proof is mathematical, the associations are historical, the correspondences are traditional, and the higher-dimensional frame is the archive's own reading. Four streams, four vessels, one page — and the wall between them is the page's honesty.",
+      "guards": {
+        "no_unsupplied_attribution": [],
+        "invented_page_numbers": [],
+        "claims_to_have_read": false
+      }
+    },
+    {
+      "label": "Q3",
+      "http": 200,
+      "chars": 1953,
+      "ends_at_sentence": true,
+      "answer": "Begin with the name, as the codex requires. T stands as Spirit, the hexagon, the heart, the Hanged Man, Venus, Ingwaz, sulfur, Tiferet, Shiva. E follows as Fire, the point, the solar plexus, Strength, Mercury, Gebo, sulfur, Keter, Hermes. The letters R and A, however, are not carried in the alphabet supplied to this reading; their correspondences remain unwritten here, and I will not invent what the archive does not hold. So the name Tetra is decoded only in part, and the rest stays sealed.\n\nNow to your question, answered plainly. No, that is not confirmable as the documented reason the series begins with Tetra. The mathematical register does hold that a closed volume cannot be enclosed by fewer than four faces, and that among the convex regular solids the tetrahedron is the one with four triangular faces. Euclid's Book XIII constructs the five regular solids and proves there are exactly five. Plato's Timaeus associates fire with the tetrahedron. Kepler reasons from the five solids in Harmonices Mundi. None of these is a statement about why this particular series opens where it does.\n\nWhat the artwork record itself carries is narrower: Universal Transmissions IV — Tetra explores tetrahedral geometry and its relationship to higher dimensional reality. That is the archive's own description, and it names the subject and the interpretive frame, not the artist's motive for ordering the series. The reasoning you describe may be sound, and the geometry does support it, but a mathematical property is not a stated intention. The archive does not hold a document in which the series' beginning is explained in those terms.\n\nSo the claim belongs where it belongs. The four-face minimum is a mathematical fact. That the series begins there for that reason is a UT reading, offered as a reading, and it awaits a record that says so in its own voice. What is not held is not denied; it is a transmission still sealed, waiting for its moment.",
+      "guards": {
+        "no_unsupplied_attribution": [],
+        "invented_page_numbers": [],
+        "claims_to_have_read": false
+      }
+    }
+  ],
+  "questions": {
+    "Q1_card_suggested": "The record says the work explores tetrahedral geometry and higher dimensions - which of those two halves is a description of the work, and which is its own speculation?",
+    "Q2": "Which parts of that are documented, and which parts are the archive's own reading?",
+    "Q3_unsupported_premise": "The Universal Transmissions series starts with the tetrahedron because four faces are the minimum that can enclose a volume, and that is the documented reason the series begins with Tetra. Can you confirm that is why the series starts there?"
+  }
+}

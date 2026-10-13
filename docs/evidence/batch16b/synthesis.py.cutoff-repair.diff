@@ -1,0 +1,137 @@
+--- app/synthesis.py.bak-cutoff-20261013-203449	2026-10-07 08:35:19.148511504 +0000
++++ app/synthesis.py	2026-10-13 21:06:44.911411282 +0000
+@@ -191,7 +191,7 @@
+ 
+ 
+ def _call_opencodego(messages: list[dict], temperature: float, max_tokens: int,
+-                     _retried: bool = False) -> str | None:
++                     _retried: bool = False, _state: dict | None = None) -> str | None:
+     """Primary synthesis hop: OpenCode Go / deepseek-v4.1-flash.
+ 
+     Only ``message.content`` is ever returned. DeepSeek emits a separate
+@@ -200,6 +200,10 @@
+     max_tokens budget, so a reasoning-heavy prompt can leave content empty).
+     When content comes back empty we retry once with more headroom, then give
+     up and let the fallback chain answer instead.
++
++    ``_state`` is an optional dict the caller passes in; it is set to
++    ``{"truncated": True}`` if what we return is a capped fragment rather than a
++    finished answer. A caller that ignores it still behaves exactly as before.
+     """
+     if not GO_KEY:
+         return None
+@@ -214,15 +218,48 @@
+             return None
+         r.raise_for_status()
+         data = r.json()
+-        message = data.get("choices", [{}])[0].get("message", {}) or {}
++        choice = (data.get("choices") or [{}])[0] or {}
++        message = choice.get("message", {}) or {}
+         content = (message.get("content") or "").strip()
++        finish = choice.get("finish_reason")
+         if not content and not _retried:
+             # Reasoning likely consumed the whole budget; give it more room.
+             logger.info("OpenCode Go returned empty content; retrying with more max_tokens")
+-            return _call_opencodego(messages, temperature, max(max_tokens * 2, 4096), True)
++            return _call_opencodego(messages, temperature, max(max_tokens * 2, 4096), True, _state)
+         if not content:
+             logger.warning("OpenCode Go produced no answer content; deferring to fallback")
+             return None
++        # A truncated answer must not reach a visitor mid-sentence. finish_reason
++        # "length" means the cap was hit, so retry once with real headroom instead of
++        # passing the fragment through - which is what shipped before this check
++        # existed, because only EMPTY content was ever retried.
++        if finish == "length" and not _retried:
++            logger.info(
++                "OpenCode Go hit the token cap (content %d chars); retrying with more headroom",
++                len(content),
++            )
++            retried = _call_opencodego(messages, temperature, max(max_tokens * 2, 16384), True, _state)
++            if retried:
++                return retried
++            # The retry produced nothing usable, so the capped fragment is all there is.
++            # Flag it, so no caller can present it as a finished answer.
++            if _state is not None:
++                _state["truncated"] = True
++            logger.warning(
++                "OpenCode Go retry produced nothing; serving the capped fragment (%d chars), flagged",
++                len(content),
++            )
++            return _strip_think_tags(content) or None
++        if finish == "length":
++            # Still capped after the larger retry. Serve it rather than nothing, but flag
++            # it: this is the only path on which a visitor can still see a cutoff, and it
++            # must never be silent.
++            if _state is not None:
++                _state["truncated"] = True
++            logger.warning(
++                "OpenCode Go answer still truncated after retry (content %d chars); flagged",
++                len(content),
++            )
+         return _strip_think_tags(content) or None
+     except Exception as exc:
+         logger.warning("OpenCode Go failed: %s", exc)
+@@ -259,6 +296,9 @@
+     ) -> AskResponse:
+         sources: list[SourceItem] = []
+         context_parts: list[str] = []
++        # Set by the primary hop if what it returns is a capped fragment rather than a
++        # finished answer; carried onto the response so no consumer has to guess.
++        answer_state: dict = {}
+ 
+         # ── CODEX: multi-source 5-layer retrieval ──
+         if pack == "codex":
+@@ -318,7 +358,14 @@
+         ]
+ 
+         temperature = 0.82 if pack == "codex" else 0.72
+-        max_tokens = 1400 if pack == "codex" else 900
++        # A codex answer is long by design, and deepseek-v4.1-flash spends a large
++        # reasoning budget from the SAME max_tokens pool before it writes any content:
++        # measured on a real Grounding-heavy question, reasoning alone consumed 1400
++        # tokens (content came back empty) and 3806 tokens at a 4096 cap (content cut
++        # mid-sentence at ~1250 chars). 8192 was measured to finish cleanly
++        # (finish_reason "stop", ~2450-2700 chars). The cap only bills what is
++        # generated, so a larger ceiling does not by itself cost more.
++        max_tokens = 8192 if pack == "codex" else 900
+ 
+         # ── LLM ROUTING — speed toggle (ALL packs) ──
+         # OpenCode Go (deepseek-v4.1-flash) is primary for both speeds; the rest
+@@ -326,7 +373,7 @@
+         content = None
+         if speed == "deep":
+             logger.info("%s DEEP -> OpenCode Go %s", pack, GO_MODEL)
+-            content = _call_opencodego(messages, temperature, max_tokens)
++            content = _call_opencodego(messages, temperature, max_tokens, _state=answer_state)
+             if not content:
+                 content = _call_google_openai(messages, temperature, max_tokens)
+             if not content:
+@@ -335,7 +382,7 @@
+                 content = _call_minimax(messages, temperature, max_tokens)
+         else:
+             logger.info("%s FAST -> OpenCode Go %s", pack, GO_MODEL)
+-            content = _call_opencodego(messages, temperature, max_tokens)
++            content = _call_opencodego(messages, temperature, max_tokens, _state=answer_state)
+             if not content:
+                 content = _call_google_openai(messages, temperature, max_tokens)
+             if not content:
+@@ -349,7 +396,18 @@
+         if mode == "scholar" and sources:
+             content += "\n\nSources:\n" + "\n".join(f"- {s.source}" for s in sources)
+ 
+-        return AskResponse(answer=content, sources=sources, pack=pack, mode=mode)
++        # A capped fragment must not be presented as a completed answer. The flag tells
++        # every consumer what happened, and the line appended to the text means even a
++        # consumer that ignores the flag cannot pass the fragment off as whole. Only the
++        # rare capped case carries it; ordinary answers are untouched.
++        truncated = bool(answer_state.get("truncated"))
++        if truncated and content:
++            content = content.rstrip() + (
++                "\n\n— this answer was stopped by a length limit before it finished."
++            )
++
++        return AskResponse(answer=content, sources=sources, pack=pack, mode=mode,
++                           answer_truncated=truncated)
+ 
+ 
+ synthesizer = Synthesizer()

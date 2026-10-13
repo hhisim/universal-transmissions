@@ -276,20 +276,30 @@ function connectionTopic(topic: ResearchTopic, c: ResearchConnection): ResearchT
          the link lands the visitor on it. */
       ...(c.destinationNote ? ["", `Reaching it: ${c.destinationNote}`] : []),
       "",
-      "The topic it was selected from carries its own standing, which still applies here:",
-      "- OBSERVED means the pattern is experimentally demonstrated and reproducible.",
-      "- HISTORICAL means a named primary document records it.",
-      "- UT ARTISTIC INTERPRETATION means it is this project's reading, not a fact about the world.",
+      /* The room's own registers travel with the connection. Without this, a visitor
+         asking about one relationship was answered without the room's actual material -
+         its mathematical properties, its historical record, its traditional symbolism -
+         and could only be given the connection's own blurb. Kept as tight as the
+         MAX_GRINDED_CHARS budget allows: grounding + a full-length question must still
+         fit inside it, since the route refuses rather than truncate. */
       "",
-      "The external references listed with this entry belong to the TOPIC as a whole. This",
-      "connection itself is a UT record, not an external citation, and nothing here asserts that",
-      "an external source has endorsed the relationship.",
+      `WHAT THE ${topic.title.toUpperCase()} ROOM HOLDS, in the registers it keeps apart:`,
+      topic.summary,
       "",
-      `The ONLY external references supplied with this context are: ${topic.sources
-        .map((s) => s.label)
-        .join("; ")}. Do not attribute any other author, title, work or page number. If a`,
-      "claim would need a source that is not listed here, say that the archive does not hold",
-      "it rather than naming one.",
+      /* The references, each with the catalogue's own statement of what it supports. */
+      "REFERENCES SUPPLIED WITH THIS CONTEXT, and what each is offered as support for",
+      ...topic.sources.flatMap((s) => [
+        `- ${s.label} [${s.kind}]${s.internal ? " (archive material, not an external citation)" : ` - ${s.url}`}`,
+        `  Offered as support for: ${s.supports}`,
+      ]),
+      "",
+      "Those lines are SCOPE, NOT CONTENTS: the archive has not read these works on your",
+      "behalf, and nothing should be presented as consulted, quoted or verified against a",
+      "source on the strength of that description. A mathematical property is established",
+      "by proof, a historical claim by the named document, a traditional correspondence by",
+      "the tradition that makes it, and a UT reading by this project - keep the four apart.",
+      "Attribute no other author, title, work or page number. If a claim would need a source",
+      "that is not listed above, say the archive does not hold it rather than naming one.",
     ].join("\n"),
     sources: [
       {
