@@ -62,7 +62,11 @@ Apply in this order, as `postgres`, one transaction per file, `-v ON_ERROR_STOP=
 | 5 | `20261015_lifecycle_per_entry_skip.sql` (superseded by 6) | `c92e41e78385366402d1bca9d07b4d1ed2030d217b3a76de4c8581a391c9c382` |
 | 6 | `20261016_entitlement_authority.sql` | `e87041b08042c297f8f8f410febb02cf1d5883180c3715cf2b747a322f22fbbf` |
 | 7 | **policy step:** `select public.b14ac_install_trigger('exclusive');` | — |
-| 8 | `20261017_function_surface_boundary.sql` | `ac39a47d8c33f9b20b9d58dbb21dad1dcbdf1149e6f1902ae029d8b46c1c9294` |
+| 8 | `20261017_function_surface_boundary.sql` — **REPLACED after the production incident**; see `docs/BATCH14AZ-BOUNDARY-REPAIR.md` | `cf8111657045cf2260992484c5b53b5d791395afa787f8e91967161d23fbb0ac` |
+
+**Steps 1–7 are ALREADY COMMITTED on production** (the authorized installation reached step 8 and
+stopped there). Do not re-apply them. The remaining work is step 8 alone, using the replacement
+artifact above, followed by §3.2–§3.4.
 
 Step 7 must precede step 8: the boundary drops seven prototype functions, and the exclusive
 statement trigger is what covers direct writers. Step 8 ends by asserting the whole surface and

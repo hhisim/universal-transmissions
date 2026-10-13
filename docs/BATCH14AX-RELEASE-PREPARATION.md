@@ -27,6 +27,8 @@ file in this package.
 | 7 | **policy step, not a file:** `select public.b14ac_install_trigger('exclusive');` | — | — |
 | 8 | `20261017_function_surface_boundary.sql` (**NEW — the callable surface**: revokes PUBLIC/anon/authenticated on all 17 bundle-owned functions, grants `service_role` exactly the release closure, withdraws the non-composing per-identity entry point, excludes the seven Batch 14ab prototypes, pins `search_path` on the helpers, then asserts the result and aborts if it is not as intended) | see §1a-bis | see §1a-bis |
 
+**REPLACED after the production incident** (see `docs/BATCH14AZ-BOUNDARY-REPAIR.md`): the pre-repair artifact was `ac39a47d8c33f9b20b9d58dbb21dad1dcbdf1149e6f1902ae029d8b46c1c9294` / blob `878af9c7d8c44d969497ffbda6462b391bc5605c`. It aborted on production because it never withdrew `service_role` from the survivors outside the release closure, which is required when a database's default function privileges grant it. The current artifact — the one to apply as step 8 — is sha256 `cf8111657045cf2260992484c5b53b5d791395afa787f8e91967161d23fbb0ac` / blob `51ad730052c30cd420b545c07b751de4686566d8`.
+
 `20261012` references `20261015` in the sense that 15/16 both replace its function body;
 the reviewed FILE is byte-identical before and after being applied, asserted by both
 harnesses on every run (`REV_SHA_BEFORE`).
@@ -47,7 +49,8 @@ body 15 installs. The bundle is stated as validated rather than minimal.
 
 | # | File | sha256 | git blob |
 |---|---|---|---|
-| 8 | `20261017_function_surface_boundary.sql` | `ac39a47d8c33f9b20b9d58dbb21dad1dcbdf1149e6f1902ae029d8b46c1c9294` | `878af9c7d8c44d969497ffbda6462b391bc5605c` |
+| 8 | `20261017_function_surface_boundary.sql` (**REPLACED** — see §1a and `docs/BATCH14AZ-BOUNDARY-REPAIR.md`) | `cf8111657045cf2260992484c5b53b5d791395afa787f8e91967161d23fbb0ac` | `51ad730052c30cd420b545c07b751de4686566d8` |
+| `batch14az-boundary-default-acl-regression.sh` (**NEW** — the focused regression for the default-ACL defect) | `5a084d24271ced540a9fd55e9fe61f8260ba60f46d5d29e33ba75d952eb0c318` | `75904ff5fb6fbc1cedefe0322d2a13c107ad6060` |
 
 **Every reviewed file above is byte-identical to the hashes this record already carried** —
 re-verified after this batch: `20261010` `73cf618e…`, `20261012` `b352afa0…`, `20261013`
@@ -62,7 +65,8 @@ were re-verified after this batch.
 
 | File | sha256 | git blob |
 |---|---|---|
-| `20261017_function_surface_boundary.sql` | `ac39a47d8c33f9b20b9d58dbb21dad1dcbdf1149e6f1902ae029d8b46c1c9294` | `878af9c7d8c44d969497ffbda6462b391bc5605c` |
+| `20261017_function_surface_boundary.sql` (**REPLACED** — see §1a and `docs/BATCH14AZ-BOUNDARY-REPAIR.md`) | `cf8111657045cf2260992484c5b53b5d791395afa787f8e91967161d23fbb0ac` | `51ad730052c30cd420b545c07b751de4686566d8` |
+| `batch14az-boundary-default-acl-regression.sh` (**NEW** — the focused regression for the default-ACL defect) | `5a084d24271ced540a9fd55e9fe61f8260ba60f46d5d29e33ba75d952eb0c318` | `75904ff5fb6fbc1cedefe0322d2a13c107ad6060` |
 | `batch14ax-preflight-production.sql` | `2bb03de36a1ea8622fad24516ba1043d87ee2c1031263ab80018445f9c5a2fe9` | `2749f08f5baea187d9abe76c3b53dfa1c387294c` |
 | `batch14ax-postflight-production.sql` | `8acbfa584d3e88d0f8c6e3157617297a744b9d3fa88b6f8b25474e5ded2ea305` | `eab700b786c0937aab07004505786b63fdb71309` |
 | `batch14ax-install-bundle-validate.sh` | `84d64bd27e608f495431938431ef4e152e3391177eb4e93cc6480f26fbde0029` | `3f215121c789c5d732c3cac1980203cc562c855f` |
@@ -365,6 +369,9 @@ empty, asserted; data directory torn down at the end) and is version-parameteris
 | `scripts/batch14ay-function-surface.sh` | inventory | the complete surface it dumps — 17 functions with signature, mode, owner, pinned path, raw ACL, per-role **effective** EXECUTE, bodies and triggers — is the basis of the §1a-bis decisions, and its call graph is derived from the bodies (plpgsql records nothing in `pg_depend`) |
 | `scripts/batch14ay-surface-gate.sh` | **83 / 0** (PG17) | the focused surface validation: §4 of `docs/BATCH14AY-SQL-SURFACE.md` (denials for all ten functions × three roles, authorized direct writes and atomic RPC, the withdrawn per-identity variant, the installer's modes, load-bearing grant and denial controls, RESTRICT, and completed-call coverage) |
 | `scripts/batch14ax-install-bundle-validate.sh` | **58 / 0** (PG16) · **57 / 0** (PG17) | Batch 13 applied first, every bundle file applies in order **including the boundary**, the preflight EXECUTES against the pre-install state, the reviewed file is byte-identical after being applied, the exclusive trigger covers both tables, an unknown mode is refused (22023), direct writes as `service_role` commit and the index refuses a case-variant duplicate, Batch 13 preservation survives, the postflight EXECUTES with a mandatory verdict of `t`, and both files are SELECT-only |
+| `scripts/batch14az-boundary-default-acl-regression.sh` | **72 / 0** (PG16) · **72 / 0** (PG17) | both default-ACL regimes: reproduces the incident with the pre-repair boundary (attested blob `878af9c7…`) which must FAIL and name the five unrevoked grants under production-shaped defaults, must PASS under ordinary defaults (the portability gap as a control), then the repaired boundary applies, re-applies, restricts the surface, and the postflight reads `t` with both smoke post-conditions true |
+| `scripts/batch14ax-install-bundle-validate.sh` (re-run after the repair) | **58 / 0** (PG16) · **57 / 0** (PG17) | unchanged |
+| `scripts/batch14ax-gate-negatives.sh` (re-run after the repair) | **66 / 0** (PG16) · **66 / 0** (PG17) | unchanged |
 | `scripts/batch14ax-gate-negatives.sh` | **66 / 0** (PG16) · **66 / 0** (PG17) | 24 cases: the clean-install control, PUBLIC table access, column access, disabled trigger, partial trigger coverage, shared-mode trigger, exposed wrapper, RLS drift, re-created read policy, missing authority column, missing signature, wrong security mode/search_path, moved ownership, PUBLIC EXECUTE on a helper, a re-created prototype, a revoked release-closure grant, an unpinned helper, and the six POLICY-SHAPE cases: open on both sides (reject), `service_role` + `true/true` (GREEN), the exact production shape (GREEN), restricted `USING` with unrestricted `WITH CHECK` (reject), unrestricted `USING` with restricted `WITH CHECK` (reject), omitted `WITH CHECK` defaulting to `USING` (GREEN), and an unapproved authenticated shape (reject) — plus the verdict-parser controls, the smoke and its rollback control, and the restored clean-install control |
 | `scripts/batch14ax-email-index-negatives.sh` | 27 / 0 | the hardened index guards (unchanged this batch) |
 
@@ -423,7 +430,20 @@ decision rather than an argument.
    runs inside an explicit `BEGIN READ ONLY` transaction, where the server refuses any write with
    `25006`, and the run begins with a **negative control** that must be refused. The production run
    reported the control refused before any preflight statement was sent.
-8. **A negative control did not inject its drift.** C15's prototype re-creation passed its
+8. **The boundary assumed the cluster's default function ACL.** It revoked PUBLIC, anon and
+   authenticated and granted `service_role` the closure, but never WITHDREW `service_role` from the
+   survivors outside it. A private cluster's default ACL has no `service_role` entry, so that was
+   sufficient there; `public` on Supabase grants EXECUTE on functions to `anon`, `authenticated`
+   and `service_role` (two `pg_default_acl` rows, owned by `supabase_admin` and `postgres`), so an
+   explicit grant survives the revoke and the boundary's own assertion aborted — **on production,
+   rolling the whole boundary back and leaving 13 bundle functions PUBLIC-executable.** Found by
+   applying it, not by any isolated run. Repaired by withdrawing `service_role` from every
+   non-closure survivor, existence-guarded; the four closure grants, the PUBLIC/anon/authenticated
+   revokes, the prototype drops and the pinned `search_path` are untouched, and **no production
+   default privilege was changed.** `scripts/batch14az-boundary-default-acl-regression.sh` pins it:
+   the pre-repair artifact must still fail under production-shaped defaults and still pass under
+   ordinary ones, and the repaired one must apply, re-apply and restrict the surface under both.
+9. **A negative control did not inject its drift.** C15's prototype re-creation passed its
    dollar-quoted body through nested `psql -c` / `su -c`, so the inner shell expanded `$fn` to
    nothing, the injection failed, and the case reported "the drift was not caught" — the same
    trap C11 hit earlier. Both now write the injection to a FILE and assert that the injection

@@ -121,8 +121,44 @@ grant execute on function public.apply_lifecycle_update_sync_global(jsonb) to se
 grant execute on function public.b14ab_acquire_global_lock(boolean)        to service_role;
 grant execute on function public.b14ab_linkage_global_key()                to service_role;
 
--- ------------------------------- 3. withdraw the non-composing entry point --
-revoke all on function public.apply_lifecycle_update_sync(jsonb) from service_role;
+-- ------------- 3. withdraw service_role from every non-closure survivor ------
+-- service_role gets the closure in section 2 and NOTHING else. This used to be a single
+-- statement for the per-identity entry point, which was sufficient in a cluster whose
+-- default function ACL carries no service_role entry — and WRONG on a database whose
+-- default privileges grant it. Supabase's `public` schema is exactly that: pg_default_acl
+-- grants EXECUTE on functions to anon, authenticated and service_role (two rows, owned by
+-- supabase_admin and postgres). Section 1 revokes PUBLIC, anon and authenticated, so on
+-- such a database an EXPLICIT service_role grant survives it, the surface stays wider than
+-- the closure, and the assertion at the end of this file aborts — which rolls the whole
+-- boundary back and leaves the pre-boundary surface exposed.
+--
+-- These six are the survivors section 2 does not grant. `apply_lifecycle_update_sync` is
+-- the non-composing per-identity entry point the release withdraws; the other five are
+-- internal helpers reached through the SECURITY DEFINER / trigger paths, which do not
+-- consult the CALLER's EXECUTE privilege. Existence-guarded for the same reason as
+-- section 1: re-applying must be a no-op, not an error.
+do $b14ay$
+declare
+  r record;
+  v_signature text;
+begin
+  for r in
+    select * from (values
+      ('apply_lifecycle_update_sync',    'jsonb'),   -- the non-composing per-identity entry point
+      ('b14ab_linkage_key',              'text, text'),
+      ('b14ac_install_trigger',          'text'),
+      ('b14ac_linkage_keys_for_payload', 'jsonb'),
+      ('b14ac_trg_stmt_exclusive',       ''),
+      ('b14ac_trg_stmt_shared',          '')
+    ) as t(nm, args)
+  loop
+    v_signature := 'public.' || quote_ident(r.nm) || '(' || r.args || ')';
+    if to_regprocedure(v_signature) is not null then
+      execute format('revoke all on function public.%I(%s) from service_role', r.nm, r.args);
+    end if;
+  end loop;
+end
+$b14ay$;
 
 -- ------------------------------------------- 4. exclude the prototype set ---
 -- RESTRICT on purpose: a dependent object must stop the migration, not be removed
