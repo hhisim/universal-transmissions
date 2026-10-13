@@ -150,6 +150,9 @@ grant all privileges on public.ut_members to anon, authenticated, service_role;
 grant all privileges on public.profiles   to anon, authenticated, service_role;
 create schema if not exists auth;
 create or replace function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
+-- auth.role() too: production's policies are addressed TO public and constrain on it, so
+-- the corrected policy condition can only be exercised faithfully if it exists here.
+create or replace function auth.role() returns text language sql stable as $$ select current_setting('request.jwt.claim.role', true) $$;
 create policy allow_authenticated_read on public.ut_members for select to authenticated using (auth.uid() is not null);
 create policy srv_full_access on public.ut_members for all to service_role using (true) with check (true);
 alter table public.ut_members enable row level security;
@@ -373,6 +376,37 @@ q "alter function public.b14ac_trg_stmt_exclusive() reset search_path" >/dev/nul
 expect_verdict "C17 an unpinned helper" reject
 run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # the boundary re-pins it
 expect_verdict "C17 reverted" t
+
+echo ""
+echo "== CASE 18: a policy addressed TO public with NO service_role constraint =="
+# The corrected condition must still FAIL here: this is the shape that actually grants.
+cat >"$BASE/c18.sql" <<'EOF'
+create policy b14ay_open_policy on public.ut_members for select to public using (true);
+EOF
+chmod 644 "$BASE/c18.sql"
+C18_RC=$(psql_ "$BASE/c18.sql" >"$BASE/c18.out" 2>&1; echo $?)
+chkeq "C18 the drift is installed (the injection itself succeeds)" "0" "$C18_RC"
+if [ "$C18_RC" != "0" ]; then sed -n '1,4p' "$BASE/c18.out"; fi
+expect_verdict "C18 an open policy for PUBLIC" reject
+q "drop policy if exists b14ay_open_policy on public.ut_members" >/dev/null 2>&1
+expect_verdict "C18 reverted" t
+
+echo ""
+echo "== CASE 19: a policy TO public that CONSTRAINS to service_role (production's shape) =="
+# The other direction: this must NOT be reported as a violation. Without this control the
+# relaxation in CASE 18 would be untested in the direction that matters — a gate that
+# rejects a correct production boundary blocks the rollout for a non-defect.
+cat >"$BASE/c19.sql" <<'EOF'
+create policy b14ay_srv_policy on public.ut_members for all to public
+  using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+EOF
+chmod 644 "$BASE/c19.sql"
+C19_RC=$(psql_ "$BASE/c19.sql" >"$BASE/c19.out" 2>&1; echo $?)
+chkeq "C19 the production-shaped policy is installed (the injection itself succeeds)" "0" "$C19_RC"
+if [ "$C19_RC" != "0" ]; then sed -n '1,4p' "$BASE/c19.out"; fi
+expect_verdict "C19 a service_role policy addressed TO public" t
+q "drop policy if exists b14ay_srv_policy on public.ut_members" >/dev/null 2>&1
+expect_verdict "C19 reverted" t
 
 echo ""
 echo "== FINAL: the clean-install control, restored =="

@@ -118,7 +118,9 @@ union all select 10, 'RLS enabled on both tables, withdrawn policy absent, no an
        where schemaname = 'public' and policyname = 'allow_authenticated_read')
      and (select count(*) = 0 from pg_policies
        where schemaname = 'public' and tablename in ('ut_members','profiles')
-         and (roles::text[] && array['anon','authenticated','public'])))
+         and (roles::text[] && array['anon','authenticated','public'])
+         and not (coalesce(qual,'') || ' ' || coalesce(with_check,'')
+                  ~* 'auth\.role\(\)\s*=\s*''service_role'''))
  union all select 11, 'the 7 Batch 14ab prototype entry points are ABSENT',
        (to_regprocedure('public.b14ab_install_trigger(text)') is null
         and to_regprocedure('public.b14ab_trg_row()') is null

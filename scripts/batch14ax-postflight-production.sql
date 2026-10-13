@@ -348,11 +348,25 @@ select 'withdrawn_read_policy_present',
        count(*), 0, count(*) = 0
 from pg_policies where schemaname = 'public' and policyname = 'allow_authenticated_read'
 union all
-select 'policies_visible_to_anon_authenticated_or_public',
+-- CORRECTED (production preflight, 2026-10-13): the previous revision tested the ROLE
+-- LIST alone and counted a policy addressed TO public as a violation even when its own
+-- expression constrains it to service_role. That is the trap this project's own notes
+-- name — "`polroles` of `{0}` is PUBLIC, not 'no roles' … the role list is not the gate,
+-- the USING/WITH CHECK expression is" — and production proved it: all three deployed
+-- policies are `TO public` with `auth.role() = 'service_role'`, and the earlier condition
+-- read them as three violations on a database whose boundary is correct.
+--
+-- A policy is a violation only when it is addressed to anon/authenticated/PUBLIC *and*
+-- does not constrain them out. The withdrawn `allow_authenticated_read` policy
+-- (`TO authenticated USING auth.uid() IS NOT NULL`) still trips this, which is what the
+-- requirement is for.
+select 'policies_giving_anon_authenticated_or_public_access',
        count(*), 0, count(*) = 0
 from pg_policies
 where schemaname = 'public' and tablename in ('ut_members', 'profiles')
   and (roles::text[] && array['anon', 'authenticated', 'public'])
+  and not (coalesce(qual, '') || ' ' || coalesce(with_check, '')
+           ~* 'auth\.role\(\)\s*=\s*''service_role''')
 order by 1;
 
 
@@ -611,5 +625,7 @@ select
   and
   (select count(*) = 0 from pg_policies
     where schemaname = 'public' and tablename in ('ut_members', 'profiles')
-      and (roles::text[] && array['anon', 'authenticated', 'public']))
+      and (roles::text[] && array['anon', 'authenticated', 'public'])
+      and not (coalesce(qual, '') || ' ' || coalesce(with_check, '')
+               ~* 'auth\.role\(\)\s*=\s*''service_role'''))
   as verdict;
