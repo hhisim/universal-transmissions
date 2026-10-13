@@ -28,6 +28,21 @@
 -- This migration changes no rows, no columns, no ownership and no policies.
 -- It is idempotent. It aborts rather than guessing when existing data would be
 -- incompatible.
+--
+-- Batch 14ax HARDENING (same file, unapplied candidate — no application change).
+-- A NAME IS NOT A CONSTRAINT. The preflight and postflight now verify the index
+-- STRUCTURALLY, on both sides of the create:
+--
+--   * the correct TABLE           — public.ut_members, not merely a matching name
+--   * EXACTLY ONE key expression  — not a composite, and no INCLUDE columns
+--   * NO partial predicate        — a partial unique index enforces nothing about
+--                                   the rows its predicate excludes
+--   * uniqueness                  — indisunique
+--   * valid / READY / live        — indisvalid, indisready, indislive
+--   * the expression itself       — lower(btrim(email)), compared structurally
+--
+-- The negatives are exercised in scripts/batch14ax-email-index-negatives.sh
+-- (wrong table, partial, composite, invalid) — each must ABORT, not be accepted.
 
 begin;
 
@@ -78,22 +93,85 @@ begin
   end if;
 
   -- An object already carrying the expected name is NOT accepted as the
-  -- required constraint. If it exists and is not exactly the index this
-  -- migration creates, abort rather than build on top of an unknown object.
+  -- required constraint. If it exists it must be structurally IDENTICAL to the
+  -- index this migration creates; every property is checked, in a fixed order,
+  -- so the abort names the specific defect. `create unique index if not exists`
+  -- would otherwise silently accept any object wearing this name — including one
+  -- on a different table, a composite, or a partial index that enforces nothing.
   declare
-    existing_def text;
-    existing_n   integer;
+    existing_n     integer;
+    existing_def   text;
+    existing_tbl   text;
+    existing_keyats integer;
+    existing_natts integer;
+    existing_pred  text;
+    existing_uniq  boolean;
+    existing_valid boolean;
+    existing_ready boolean;
+    existing_live  boolean;
+    existing_expr  text;
   begin
-    select count(*), min(pg_get_indexdef(i.indexrelid))
-      into existing_n, existing_def
+    select count(*) into existing_n
       from pg_index i
       join pg_class ic on ic.oid = i.indexrelid
       join pg_namespace n2 on n2.oid = ic.relnamespace
      where n2.nspname = 'public' and ic.relname = 'ut_members_email_lower_key';
 
-    if existing_n > 0 and existing_def not like '%lower(btrim(email))%' then
-      raise exception
-        'BATCH14 ABORT: an index named ut_members_email_lower_key already exists with an unexpected definition: %', existing_def;
+    if existing_n > 0 then
+      select pg_get_indexdef(i.indexrelid),
+             ic2.relname,
+             i.indnkeyatts,
+             i.indnatts,
+             pg_get_expr(i.indpred, i.indrelid),
+             i.indisunique, i.indisvalid, i.indisready, i.indislive,
+             pg_get_expr(i.indexprs, i.indrelid)
+        into existing_def, existing_tbl, existing_keyats, existing_natts,
+             existing_pred, existing_uniq, existing_valid, existing_ready,
+             existing_live, existing_expr
+        from pg_index i
+        join pg_class ic  on ic.oid = i.indexrelid
+        join pg_class ic2 on ic2.oid = i.indrelid
+        join pg_namespace n2 on n2.oid = ic.relnamespace
+       where n2.nspname = 'public' and ic.relname = 'ut_members_email_lower_key';
+
+      if existing_tbl <> 'ut_members' then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key already exists on table %, not public.ut_members; it does not constrain the identity the write contract uses (def: %)',
+          existing_tbl, existing_def;
+      end if;
+      if existing_keyats <> 1 or existing_natts <> 1 then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key is not the single-expression address key (% key column(s), % column(s) total); a composite or INCLUDE index does not enforce uniqueness of the address alone (def: %)',
+          existing_keyats, existing_natts, existing_def;
+      end if;
+      if existing_pred is not null then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key is a PARTIAL index (predicate: %); it would enforce uniqueness over a subset of rows only (def: %)',
+          existing_pred, existing_def;
+      end if;
+      if not existing_uniq then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key already exists but is NOT unique (def: %)', existing_def;
+      end if;
+      if not existing_valid then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key already exists but is INVALID (a failed build leaves this state) (def: %)', existing_def;
+      end if;
+      if not existing_ready then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key already exists but is not READY (indisready = false) (def: %)', existing_def;
+      end if;
+      if not existing_live then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key already exists but is not live (def: %)', existing_def;
+      end if;
+      if existing_expr is null
+         or replace(existing_expr, ' ', '') not in ('lower(btrim(email))', 'lower(btrim((email)::text))') then
+        raise exception
+          'BATCH14 ABORT: ut_members_email_lower_key exists with expression %, not lower(btrim(email)) (def: %)',
+          coalesce(existing_expr, '<none>'), existing_def;
+      end if;
+      raise notice 'BATCH14 preflight: an existing ut_members_email_lower_key already satisfies every structural check; the create will be a no-op';
     end if;
   end;
 
@@ -112,6 +190,11 @@ declare
   idx_unique   boolean;
   idx_valid    boolean;
   idx_live     boolean;
+  idx_ready    boolean;
+  idx_tbl      text;
+  idx_keyats   integer;
+  idx_natts    integer;
+  idx_pred     text;
   idx_def      text;
   idx_expr     text;
   still_dupes  integer;
@@ -129,13 +212,29 @@ begin
     raise exception 'BATCH14 ABORT: expected exactly one index named ut_members_email_lower_key, found %', idx_count;
   end if;
 
-  select i.indisunique, i.indisvalid, i.indislive, pg_get_indexdef(i.indexrelid)
-    into idx_unique, idx_valid, idx_live, idx_def
+  select i.indisunique, i.indisvalid, i.indislive, i.indisready,
+         ic2.relname, i.indnkeyatts, i.indnatts,
+         pg_get_expr(i.indpred, i.indrelid),
+         pg_get_indexdef(i.indexrelid)
+    into idx_unique, idx_valid, idx_live, idx_ready,
+         idx_tbl, idx_keyats, idx_natts, idx_pred, idx_def
     from pg_index i
     join pg_class ic on ic.oid = i.indexrelid
+    join pg_class ic2 on ic2.oid = i.indrelid
     join pg_namespace n2 on n2.oid = ic.relnamespace
    where n2.nspname = 'public' and ic.relname = 'ut_members_email_lower_key';
 
+  if idx_tbl <> 'ut_members' then
+    raise exception 'BATCH14 ABORT: the index named ut_members_email_lower_key is on table %, not public.ut_members', idx_tbl;
+  end if;
+  if idx_keyats <> 1 or idx_natts <> 1 then
+    raise exception
+      'BATCH14 ABORT: the index keys on % column(s) (% key column(s)); the contract requires the single address expression (def: %)',
+      idx_natts, idx_keyats, idx_def;
+  end if;
+  if idx_pred is not null then
+    raise exception 'BATCH14 ABORT: the index is PARTIAL (predicate: %); uniqueness over a subset is not the contract', idx_pred;
+  end if;
   if not idx_unique then
     raise exception 'BATCH14 ABORT: the index exists but is NOT unique; the write contract would not be enforced';
   end if;
@@ -144,6 +243,9 @@ begin
   end if;
   if not idx_live then
     raise exception 'BATCH14 ABORT: the index is not live';
+  end if;
+  if not idx_ready then
+    raise exception 'BATCH14 ABORT: the index is not READY (indisready = false); it does not yet enforce anything';
   end if;
 
   -- Compare the expression the planner recorded, not a substring of the text.
