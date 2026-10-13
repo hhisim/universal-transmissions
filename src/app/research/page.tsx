@@ -4,6 +4,8 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import Link from "next/link";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import ResearchNexus from "@/components/research/ResearchNexus";
+import { RESEARCH_DOMAINS, allRegisteredConnections } from "@/lib/research-topics";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
@@ -84,7 +86,24 @@ const researchTopics = [
   },
 ];
 
+/**
+ * What each domain actually is today, read from the registry rather than retyped.
+ * Two of these four are registered rooms; two are reading pages. The cards say which.
+ */
+const DOMAIN_BY_ROUTE = new Map(RESEARCH_DOMAINS.map((d) => [d.route, d]));
+
 export default function ResearchPage() {
+  // Read from the registry, not retyped: the nexus shows the same relationships the
+  // rooms themselves render, with the same identifiers, so nothing here can drift.
+  const nexusItems = allRegisteredConnections().map((r) => ({
+    topicSlug: r.topicSlug,
+    topicTitle: r.topicTitle,
+    topicRoute: r.topicRoute,
+    anchorSlug: r.connection.anchorSlug,
+    anchorId: r.anchorId,
+    connection: r.connection,
+  }));
+
   return (
     <>
       <PageBackground variant="research" />
@@ -203,6 +222,34 @@ export default function ResearchPage() {
                       {topic.description}
                     </p>
 
+                    {/* What this domain ACTUALLY is, from the registry. A reading page
+                        is shown as a reading page rather than padded into a room. */}
+                    {(() => {
+                      const d = DOMAIN_BY_ROUTE.get(topic.href);
+                      if (!d) return null;
+                      return (
+                        <div className="mb-6">
+                          <span
+                            className="font-mono text-[9px] tracking-[0.25em] uppercase inline-block px-2 py-1 mb-3 border"
+                            style={{
+                              borderColor: d.registered ? "rgba(147, 51, 234, 0.45)" : "var(--ut-border)",
+                              color: d.registered ? "var(--ut-purple)" : "var(--ut-white-faint)",
+                            }}
+                            data-research-domain-state={d.slug}
+                          >
+                            {d.registered ? "Registered room" : "Reading page — not yet a room"}
+                          </span>
+                          <p
+                            className="font-mono text-[10px] leading-relaxed"
+                            style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
+                            data-research-domain-standing={d.slug}
+                          >
+                            {d.standing}
+                          </p>
+                        </div>
+                      );
+                    })()}
+
                     {/* CTA */}
                     <span
                       className="inline-flex items-center gap-2 font-heading text-[10px] tracking-[0.3em] uppercase transition-all duration-500"
@@ -226,6 +273,59 @@ export default function ResearchPage() {
                   </Link>
                 </SectionReveal>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CHOOSE A RELATIONSHIP — the nexus explorer ── */}
+        <section
+          className="py-20"
+          style={{ borderTop: "1px solid rgba(147, 51, 234, 0.08)" }}
+          data-research-nexus-section="true"
+        >
+          <div className="container-ut">
+            <div className="max-w-3xl mx-auto">
+              <SectionReveal>
+                <p
+                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
+                  style={{ color: "var(--ut-purple)", opacity: 0.5 }}
+                >
+                  [ The Nexus ]
+                </p>
+                <h2
+                  className="font-display text-2xl md:text-3xl glow-purple mb-4"
+                  style={{ color: "var(--ut-purple)" }}
+                >
+                  <ZalgoText text="Choose a Relationship" intensity="subtle" />
+                </h2>
+                <p
+                  className="font-body text-sm leading-relaxed mb-8"
+                  style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
+                >
+                  Every relationship the registered rooms hold, in one place. Select one and you
+                  are shown what it connects, why it connects, how strongly it is supported, and
+                  where exploration continues — or take it straight into the Oracle as its own
+                  context. Narrow the list by room, or open the room itself for the full
+                  treatment.
+                </p>
+              </SectionReveal>
+
+              <SectionReveal delay={0.1}>
+                <ResearchNexus items={nexusItems} />
+              </SectionReveal>
+
+              <SectionReveal delay={0.15}>
+                <p
+                  className="font-mono text-[10px] leading-relaxed mt-8"
+                  style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
+                  data-nexus-coverage-note="true"
+                >
+                  This list is complete for what is registered: {nexusItems.length} relationships
+                  across two rooms. Linguistics and Symbolism are reading pages, not rooms — they
+                  carry no curated relationship to show here yet, and none has been invented to
+                  fill the gap.
+                </p>
+              </SectionReveal>
             </div>
           </div>
         </section>

@@ -123,6 +123,104 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
 ];
 
 /**
+ * Geometry connections, curated from records that already exist in this repo.
+ * Same contract as above: every href is a real route, every title is the record's
+ * own title, and every entry states why it belongs and on what basis.
+ *
+ * The registers this room keeps apart are mathematical property, historical
+ * documentation, traditional symbolism and UT artistic reading. A connection that
+ * rests on a traditional reading says so, and one that rests on a UT record is
+ * never dressed as an external citation.
+ */
+export const GEOMETRY_CONNECTIONS: ResearchConnection[] = [
+  {
+    anchorSlug: "room-cymatics",
+    href: "/research/cymatics",
+    kind: "Research room",
+    title: "Cymatics — the parallel research room",
+    rationale:
+      "The two rooms study the same question from opposite ends. Geometry asks what the ratios themselves are; cymatics asks what a driven medium does. The relationship is real and worth following, but its limit matters: a Chladni figure and a constructed mandala can look alike, and that resemblance is NOT evidence of a shared mechanism. The plate's nodal pattern is produced by standing waves in a specific medium at a specific frequency; a drawn figure is produced by an intention. Nothing in this archive measures a geometric construction emerging from vibration, and the archive holds no experiment of that kind. It is linked here as a parallel inquiry, in that order.",
+    basis: "thematic",
+    basisLabel: "Parallel inquiry — resemblance is not mechanism",
+    suggestedQuestion:
+      "Both rooms talk about pattern in vibration and form — where exactly does the archive stop short of claiming that geometry and sound share one mechanism?",
+  },
+  {
+    anchorSlug: "codex-geometry-lattice",
+    href: "/experience/correspondence-codex",
+    kind: "Codex",
+    title: "The UT Correspondence Codex",
+    rationale:
+      "The archive's own GEOMETRY system, 20 entries — Circle, Cube, Hexagon, Hexagram, Decagon, Dodecagon, Flower of Life, Metatron's Cube and others — each carrying UT's symbolic correspondences (alchemical stage, deity, colour, crystal, tone). It is the archive's geometric index and the record set the symbolic readings in this room come from. It is a symbolic lattice, not a geometric reference: the correspondence of the Hexagon to Venus is an assignment this project makes, and the entries state no mathematical property of a hexagon.",
+    destinationNote:
+      "The Codex has no link that targets a single system, so this opens its front page. GEOMETRY is one of the 27 system cards on the Codex Home tab: choose \"🔺 GEOMETRY (20 entries)\", which opens the Matrix tab with that system selected. The same button sits in the Matrix tab's system bar.",
+    basis: "documented",
+    basisLabel: "Catalogued in the archive's own GEOMETRY lattice",
+    suggestedQuestion:
+      "The codex catalogs geometric forms with symbolic correspondences - which parts of that are properties of the forms, and which are symbolic assignments?",
+  },
+  {
+    anchorSlug: "artwork-tetra",
+    href: "/gallery/tetra",
+    kind: "Artwork",
+    title: "Universal Transmissions IV — Tetra",
+    rationale:
+      "The only artwork in the registry whose own record names its geometry outright: it \"explores tetrahedral geometry and its relationship to higher dimensional reality\". The first half of that sentence is a description of the work's subject; the second half is the work's own speculative frame, and the two are held apart here rather than merged.",
+    basis: "documented",
+    basisLabel: "Named in the artwork's own record",
+    suggestedQuestion:
+      "The record says the work explores tetrahedral geometry and higher dimensions - which of those two halves is a description of the work, and which is its own speculation?",
+  },
+  {
+    anchorSlug: "journal-vitruvian-spirit",
+    href: "/journal/universal-transmissions-xi-vitruvian-spirit-seeding-the-new-renaissance",
+    kind: "Journal",
+    title: "Universal Transmissions XI - Vitruvian Spirit (Seeding the New Renaissance)",
+    rationale:
+      "The archive's own treatment of proportion in the Vitruvian register — the human figure resolved into a circle and a square. It is included because proportion is the subject here and the Journal is where this archive argues for it at length. The Vitruvian construction is a Renaissance drawing of an ancient proportion text; it is not a measurement of the body.",
+    basis: "documented",
+    basisLabel: "UT writing on this subject",
+    suggestedQuestion:
+      "The Vitruvian construction places a figure in a circle and a square - what is documented about the proportions it uses, and what is the archive reading into it?",
+  },
+  {
+    anchorSlug: "journal-walter-russell-universal-one",
+    href: "/journal/walter-russell-universal-one-cosmology-of-light",
+    kind: "Journal",
+    title: "Walter Russell's The Universal One: When Cosmology Became a Diagram of Light",
+    rationale:
+      "A documented case of cosmological argument carried by a drawn geometry rather than by mathematics. It belongs here as evidence of a practice — a twentieth-century author reasoning in diagrams — and the Journal piece treats it as such. Russell's diagrams are not derived from measurement, and the entry is placed with that stated.",
+    basis: "documented",
+    basisLabel: "UT writing on this subject",
+    suggestedQuestion:
+      "Russell reasoned in diagrams rather than equations - what can a diagram establish on its own, and where does that practice need a measurement underneath it?",
+  },
+  {
+    anchorSlug: "artwork-merkaba",
+    href: "/gallery/merkaba",
+    kind: "Artwork",
+    title: "Universal Transmissions III — Merkaba",
+    rationale:
+      "The artwork's record names the Merkaba — \"a spiraling force of counter-rotating fields of light\". The interlocking-tetrahedron form is a TRADITIONAL reading of that name, not something the record states, and its description is of a light vehicle rather than of a solid. Held as a UT artistic interpretation that draws on a traditional form, so the geometric reading is not presented as the record's own claim.",
+    basis: "interpretation",
+    basisLabel: "UT artwork read through its traditional form",
+    suggestedQuestion:
+      "The record describes a light vehicle and the geometry comes from a traditional reading - how should the two be held together without one standing in for the other?",
+  },
+];
+
+/**
+ * Geometry's honest absences. The room is new, so what it does NOT yet hold is
+ * stated as plainly as what it does.
+ */
+export const GEOMETRY_GAPS = [
+  "This room does not claim that any UT symbolic correspondence in the Codex's GEOMETRY lattice is a property of the form itself. The lattice assigns meanings; it does not measure.",
+  "The Geometry↔Cymatics relationship is presented as a parallel inquiry. No experiment in this archive shows a geometric construction emerging from vibration, and visual resemblance between a nodal pattern and a drawn figure is not offered here as evidence of a shared mechanism.",
+  "External references on this page support historical and mathematical statements only — that a treatise exists, that a construction is documented, that a solid was associated with an element in a named text. They are not presented as endorsing any UT reading.",
+  "The room covers classical Euclidean and Platonic material. Non-Euclidean geometry, higher-dimensional and projective treatments are not yet part of it, and no entry above should be read as covering them.",
+];
+
+/**
  * What the archive does NOT have. Stated rather than padded: an honest absence is
  * more useful than a thin link, and it keeps the section from implying coverage
  * it cannot support.
@@ -132,3 +230,21 @@ export const CYMATICS_GAPS = [
   "The tone values used in the work (432, 528, 639, 741, 852, 963 Hz) are UT symbolic material. They are catalogued in the archive's own frequency lattice and are not presented here as measured physical properties.",
   "The labels above describe how each connection is held, not scientific evidence. \"Documented\" means the record names the relationship; \"thematic\" means it shares an idea; and every connection here is a UT record, not an external citation.",
 ];
+
+/**
+ * Connections per research topic, keyed by the topic's registry slug.
+ *
+ * ONE map for every room: `research-topics.ts` derives each room's Oracle anchors from
+ * this, so a second room cannot end up with a second registry or a second resolver.
+ * Declared here, after both arrays, so the ordering is explicit rather than incidental.
+ */
+export const CONNECTIONS_BY_TOPIC: Record<string, ResearchConnection[]> = {
+  cymatics: CYMATICS_CONNECTIONS,
+  geometry: GEOMETRY_CONNECTIONS,
+};
+
+/** Honest absences per research topic. */
+export const GAPS_BY_TOPIC: Record<string, string[]> = {
+  cymatics: CYMATICS_GAPS,
+  geometry: GEOMETRY_GAPS,
+};

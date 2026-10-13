@@ -95,12 +95,17 @@ const FORGERIES = [
   "research-v1:cymatics/connection/../../etc/passwd",
   "cymatic", "CYMATICS", "Cymatics", "cymatics-x", "cymatics/connection",
   "research-v1:cymatics/connection",
-  "research-v1:geometry", "research-v1:linguistics",
+  /* Batch 16 made Geometry a registered room, so it is no longer a forgery — asserted
+     positively below. Linguistics and Symbolism are still pages with no record. */
+  "research-v1:linguistics", "research-v1:symbolism",
   "research-v1:cymatics/connection/journal-cymatics-language-of-form/extra",
 ];
 for (const f of FORGERIES) {
   chk(`no record for ${JSON.stringify(f)}`, topics.resolveResearchTopic(f) === null);
 }
+const geometryRoom = topics.resolveResearchTopic("research-v1:geometry");
+chk("Geometry resolves as the second registered room (batch 16)",
+    !!geometryRoom && geometryRoom.id === "geometry" && geometryRoom.route === "/research/geometry");
 const valid = topics.resolveResearchTopic(topics.researchConnectionTopicId(TOPIC_SLUG, CONNS[0].anchorSlug));
 chk("the exact key still resolves after the forgery sweep", !!valid);
 // The shipped resolver trims surrounding whitespace BEFORE the exact-key lookup. That
@@ -127,7 +132,17 @@ for (const c of CONNS) {
 
 console.log("\n== E. the page and its section keep the journey's contracts ==");
 const page = fs.readFileSync(path.join(ROOT, "src/app/research/cymatics/page.tsx"), "utf8");
-const section = fs.readFileSync(path.join(ROOT, "src/components/research/CymaticsConnections.tsx"), "utf8");
+/* The behaviour lives in the SHARED component, which both rooms render; the Cymatics
+   file is the released wiring around it. Assert both, so neither the contract nor the
+   room's own data can go missing unnoticed. */
+const section = fs.readFileSync(path.join(ROOT, "src/components/research/ResearchConnections.tsx"), "utf8");
+const wrapper = fs.readFileSync(path.join(ROOT, "src/components/research/CymaticsConnections.tsx"), "utf8");
+chk("the Cymatics room still renders the shared connections surface",
+    wrapper.includes("ResearchConnections") && wrapper.includes("data-cymatics-connections"));
+chk("the Cymatics room still feeds its OWN honest absences to it",
+    wrapper.includes("CYMATICS_GAPS") && wrapper.includes("gaps={CYMATICS_GAPS}"));
+chk("the shared surface actually renders the gaps it is given",
+    section.includes("<ResearchConnections") === false && /gaps\.map|{gaps\.map/.test(section));
 chk("the hero no longer attributes the epigraph to Pythagoras", !/— Pythagoras/.test(page));
 chk("the epigraph itself is kept", page.includes("we become what we sing"));
 chk("the connections section receives the topic slug and a return path",
@@ -141,7 +156,9 @@ chkeq("the card holds exactly two links (destination + Oracle entry, never neste
 chk("the Oracle link is NOT inside the destination link",
     section.indexOf("data-connection-oracle") > section.indexOf("</Link>"));
 chk("the section is anchored for a return link", section.includes('id="connections"'));
-chk("the honest-absence block survives", section.includes("CYMATICS_GAPS") && connections.CYMATICS_GAPS.length >= 2);
+chk("the honest-absence block survives",
+    wrapper.includes("CYMATICS_GAPS") && /\{gaps\.map/.test(section)
+    && connections.CYMATICS_GAPS.length >= 2);
 chk("the gaps state the codex is linked as a system, not as one entry read",
     /FREQUENCY system as a whole/.test(connections.CYMATICS_GAPS.join(" ")));
 chk("no graph engine, canvas or new visualisation dependency",
@@ -249,9 +266,19 @@ if (changed === null) {
     "scripts/lib/ut-membership-webhook-harness.cjs",
     "scripts/batch15c-sale-alert-notification.js",
     "docs/BATCH15C-SALE-ALERT-COMBINATION.md",
+    // Batch 16 — the research nexus and the second room. The connections surface was
+    // generalised so both rooms share it, so these files are in scope by design.
+    "src/components/research/ResearchConnections.tsx",
+    "src/components/research/ResearchNexus.tsx",
+    "src/components/research/basis-style.ts",
+    "src/app/research/page.tsx",
+    "src/app/research/geometry/page.tsx",
+    "scripts/batch16-research-nexus.js",
+    "docs/BATCH16-RESEARCH-NEXUS-AND-GEOMETRY.md",
   ];
   const unexpected = changed.filter((f) => !ALLOWED.includes(f)
-    && !f.startsWith("docs/evidence/batch15b/") && !f.startsWith("docs/evidence/batch15c/"));
+    && !f.startsWith("docs/evidence/batch15b/") && !f.startsWith("docs/evidence/batch15c/")
+    && !f.startsWith("docs/evidence/batch16/"));
   chkeq("only the pilot's own files changed", unexpected.length, 0);
   chk("public/ media untouched", !changed.some((f) => f.startsWith("public/")));
   chk("the artwork registry is untouched", !changed.includes("src/data/artworks.ts"));

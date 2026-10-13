@@ -5,6 +5,9 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import ResearchConnections from "@/components/research/ResearchConnections";
+import { GEOMETRY_CONNECTIONS, GEOMETRY_GAPS } from "@/lib/research-connections";
+import { resolveResearchTopic, researchTopicId } from "@/lib/research-topics";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/geometry" },
@@ -95,6 +98,11 @@ const chakraResonances = [
 ];
 
 export default function ResearchGeometryPage() {
+  // Resolved server-side from the registry, so the page and the Oracle grounding
+  // read the SAME record: the registers below and the references cited with them
+  // cannot drift apart from what a selected Geometry anchor is given.
+  const topic = resolveResearchTopic(researchTopicId("geometry"));
+
   return (
     <>
 <PageBackground variant="geometry" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
@@ -894,6 +902,196 @@ export default function ResearchGeometryPage() {
               label: "Oracle Surface",
             },
           ]}
+        />
+
+        {/* ── THE FOUR REGISTERS — kept apart on purpose ── */}
+        <section
+          className="py-20"
+          style={{ borderTop: "1px solid rgba(212, 168, 71, 0.06)" }}
+          data-geometry-registers="true"
+        >
+          <div className="container-ut">
+            <div className="max-w-3xl mx-auto">
+              <SectionReveal>
+                <p
+                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
+                  style={{ color: "var(--ut-gold)", opacity: 0.5 }}
+                >
+                  [ The Registers ]
+                </p>
+                <h2
+                  className="font-display text-2xl md:text-3xl glow-gold mb-4"
+                  style={{ color: "var(--ut-gold)" }}
+                >
+                  <ZalgoText text="Four Kinds of Statement, Kept Apart" intensity="subtle" />
+                </h2>
+                <p
+                  className="font-body text-sm leading-relaxed mb-8"
+                  style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
+                >
+                  Geometry is the subject where a proved property, a documented source, a
+                  traditional meaning and an artist&apos;s reading are most often spoken in one
+                  voice. This room keeps them in four registers, and says which one a statement
+                  belongs to. A claim is only ever as strong as its register allows.
+                </p>
+              </SectionReveal>
+
+              <SectionReveal delay={0.1}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    {
+                      key: "mathematical",
+                      label: "Mathematical",
+                      standing: "True of the form itself. Established by proof, not by citation.",
+                      example:
+                        "There are exactly five convex regular polyhedra. The golden ratio is the positive root of x² = x + 1, and is irrational.",
+                    },
+                    {
+                      key: "historical",
+                      label: "Historical",
+                      standing: "Recorded by a named document that can be pointed at.",
+                      example:
+                        "Euclid's Book XIII constructs the five regular solids; the Timaeus associates four of them with four bodies.",
+                    },
+                    {
+                      key: "traditional",
+                      label: "Traditional symbolism",
+                      standing: "A meaning a tradition assigns to a form. An assignment, not a property.",
+                      example:
+                        "The hexagram read as the union of opposites; interlocking tetrahedra read as a Merkaba.",
+                    },
+                    {
+                      key: "ut",
+                      label: "UT interpretation",
+                      standing: "What this archive reads into the material. Not a claim about the world.",
+                      example:
+                        "UT builds its imagery on proportion as intentional, and assigns symbolic correspondences in the Codex GEOMETRY lattice.",
+                    },
+                  ].map((r) => (
+                    <div
+                      key={r.key}
+                      data-geometry-register={r.key}
+                      className="ut-card p-6"
+                      style={{ background: "rgba(212, 168, 71, 0.02)" }}
+                    >
+                      <p
+                        className="font-mono text-[9px] tracking-[0.3em] uppercase mb-2"
+                        style={{ color: "var(--ut-gold)", opacity: 0.75 }}
+                      >
+                        {r.label}
+                      </p>
+                      <p
+                        className="font-body text-[13px] leading-relaxed mb-3"
+                        style={{ color: "var(--ut-white-dim)", opacity: 0.75 }}
+                      >
+                        {r.standing}
+                      </p>
+                      <p
+                        className="font-body text-[12px] leading-relaxed"
+                        style={{ color: "var(--ut-white-faint)", opacity: 0.6 }}
+                      >
+                        {r.example}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </SectionReveal>
+
+              {/* The one limit this room states loudest. */}
+              <SectionReveal delay={0.15}>
+                <div
+                  className="ut-card p-6 mt-6"
+                  style={{ borderColor: "rgba(212, 168, 71, 0.14)" }}
+                  data-geometry-limit="cymatics"
+                >
+                  <p
+                    className="font-mono text-[9px] tracking-[0.25em] uppercase mb-3"
+                    style={{ color: "var(--ut-gold)", opacity: 0.7 }}
+                  >
+                    [ The Geometry ↔ Cymatics limit ]
+                  </p>
+                  <p
+                    className="font-body text-[13px] leading-relaxed"
+                    style={{ color: "var(--ut-white-dim)", opacity: 0.75 }}
+                  >
+                    Geometry and cymatics can look as though they are one subject: a nodal
+                    pattern on a driven plate and a constructed figure often resemble each
+                    other. They are not one subject here. A Chladni figure is produced by
+                    standing waves in a specific medium at a specific frequency; a drawn
+                    figure is produced by an intention. <strong>Resemblance is not a
+                    mechanism</strong>, and this archive holds no experiment in which a
+                    geometric construction emerges from vibration. The two rooms are linked
+                    below as a <em>parallel inquiry</em>, which is what the evidence supports.
+                  </p>
+                </div>
+              </SectionReveal>
+
+              {/* Primary sources, read from the same record the Oracle grounding uses. */}
+              {topic && topic.sources.length ? (
+                <SectionReveal delay={0.2}>
+                  <div className="mt-10">
+                    <p
+                      className="font-mono text-[9px] tracking-[0.25em] uppercase mb-4"
+                      style={{ color: "var(--ut-white-faint)" }}
+                    >
+                      References ({topic.sources.length}) — they support the historical and
+                      mathematical statements only
+                    </p>
+                    <ul className="space-y-3">
+                      {topic.sources.map((s) => (
+                        <li key={s.url}>
+                          <a
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-geometry-source={s.kind}
+                            className="ut-card p-5 block focus-visible:outline focus-visible:outline-1 focus-visible:outline-gold"
+                            style={{ background: "rgba(212, 168, 71, 0.02)" }}
+                          >
+                            <span
+                              className="font-mono text-[9px] tracking-[0.25em] uppercase"
+                              style={{ color: "var(--ut-gold)", opacity: 0.7 }}
+                            >
+                              {s.kind} ·
+                            </span>{" "}
+                            <span
+                              className="font-display text-[15px]"
+                              style={{ color: "var(--ut-white)" }}
+                            >
+                              {s.label}
+                            </span>
+                            <span
+                              className="block font-body text-[12px] leading-relaxed mt-2"
+                              style={{ color: "var(--ut-white-dim)", opacity: 0.65 }}
+                            >
+                              What it supports: {s.supports}
+                            </span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </SectionReveal>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CONNECTIONS — the same surface the Cymatics room uses ── */}
+        <ResearchConnections
+          connections={GEOMETRY_CONNECTIONS}
+          gaps={GEOMETRY_GAPS}
+          topicSlug="geometry"
+          returnHref="/research/geometry"
+          topicTitle="Geometry"
+          eyebrow="[ Connections in the Archive ]"
+          heading="Where Geometry Already Runs"
+          intro="Geometry is not a topic that lives on one page either. It runs through the artwork records, the Journal, the Codex's own GEOMETRY lattice and the parallel cymatics room. Each link below states why it belongs and on which basis — and the one that rests on resemblance says so, rather than implying a shared mechanism. Open a destination to read it, or take a single connection into the Oracle as its own context."
+          accent="var(--ut-gold)"
+          tint="rgba(212, 168, 71, 0.02)"
+          border="rgba(212, 168, 71, 0.08)"
+          topBorder="rgba(212, 168, 71, 0.06)"
+          glowClass="glow-gold"
         />
 
         {/* ── CROSS-LINK TO VoA ─────────────────────── */}

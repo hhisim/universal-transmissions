@@ -14,7 +14,7 @@
  */
 
 import {
-  CYMATICS_CONNECTIONS,
+  CONNECTIONS_BY_TOPIC,
   type ConnectionBasis,
   type ResearchConnection,
 } from "./research-connections";
@@ -134,6 +134,101 @@ const CYMATICS: ResearchTopic = {
 };
 
 /**
+ * Geometry. The second registered research room.
+ *
+ * Four registers are kept apart on purpose, because this subject is where they are
+ * most often merged: what is MATHEMATICALLY true of a form, what a HISTORICAL
+ * DOCUMENT records, what a TRADITION assigns it, and what UT READS into it. Sources
+ * are cited only for the first two.
+ */
+const GEOMETRY: ResearchTopic = {
+  id: "geometry",
+  title: "Geometry",
+  route: "/research/geometry",
+  summary: [
+    "Geometry concerns the properties, construction and relations of figures in space.",
+    "This room holds four registers apart, because they are the ones most often merged.",
+    "",
+    "MATHEMATICAL (properties of the forms themselves, independent of any reading):",
+    "- A regular polygon has all sides and all interior angles equal. The classical",
+    "  constructible family includes the triangle, square, pentagon, hexagon, octagon,",
+    "  decagon and dodecagon.",
+    "- There are EXACTLY FIVE convex regular polyhedra: tetrahedron (4 triangular faces),",
+    "  cube (6 square faces), octahedron (8 triangular faces), dodecahedron (12 pentagonal",
+    "  faces) and icosahedron (20 triangular faces). That the list is complete is a proved",
+    "  result, not an aesthetic preference: at each vertex the face angles must sum to less",
+    "  than 360 degrees, which admits only these five.",
+    "- The golden ratio phi = (1 + sqrt(5)) / 2 = 1.6180339887..., the positive root of",
+    "  x^2 = x + 1. It is irrational. The ratio of consecutive Fibonacci numbers converges",
+    "  to it.",
+    "",
+    "HISTORICAL (recorded by a named document we can point at):",
+    "- Euclid's Elements (c. 300 BCE), Book XIII, constructs the five regular solids and",
+    "  proves there are no others. The Heath/Heiberg edition is cited below; the volume",
+    "  digitised there is the one covering Books X-XIII.",
+    "- Plato's Timaeus associates four of the regular solids with four bodies - fire with",
+    "  the tetrahedron, earth with the cube, air with the octahedron, water with the",
+    "  icosahedron - and the dodecahedron with the cosmos as a whole. This is a documented",
+    "  philosophical scheme, not an experimental finding.",
+    "- Kepler's Harmonices Mundi (1619) reasons about harmony and congruence in geometrical",
+    "  forms and about the five regular solids in relation to planetary order (the appended",
+    "  Mysterium Cosmographicum). It is cited as a historical document of that reasoning,",
+    "  not as evidence for the scheme.",
+    "- 'Sacred geometry' is a modern term for a modern practice of reading meaning into",
+    "  traditional forms. It is not a classical category.",
+    "",
+    "TRADITIONAL SYMBOLISM (assignments carried by a tradition, not properties of a form):",
+    "- Forms and numbers carry traditional meanings - the hexagram, the interlocking",
+    "  tetrahedra read as a Merkaba, the overlapping-circle figure called the Flower of Life.",
+    "- These are assignments. A hexagon is not Venus; the correspondence is a reading a",
+    "  tradition makes, and this archive keeps it in this register.",
+    "- The archive's own assignment set is the Codex GEOMETRY lattice (20 entries), which",
+    "  is UT symbolic material and not a geometric reference.",
+    "",
+    "UT ARTISTIC INTERPRETATION (a reading this project makes, not a claim about the world):",
+    "- UT treats geometry as the skeleton of the visible world and proportion as",
+    "  intentional, and builds its imagery on that reading.",
+    "- UT reads particular transmissions through particular forms (tetrahedral geometry in",
+    "  Tetra, the Merkaba's traditional form in Merkaba).",
+    "",
+    "IMPORTANT LIMITS, stated plainly:",
+    "- Visual resemblance between two figures does not establish a shared mechanism. A",
+    "  nodal pattern produced by standing waves and a drawn figure can look alike and arise",
+    "  from entirely different causes; this archive holds no experiment in which a geometric",
+    "  construction emerges from vibration. The relationship between this room and the",
+    "  cymatics room is a PARALLEL INQUIRY and is labelled as such.",
+    "- A symbolic correspondence is not a mathematical property, and a mathematical",
+    "  property carries no meaning by itself. State which register a statement belongs to.",
+    "- Do not present a UT reading, or a traditional assignment, as a result of measurement.",
+  ].join("\n"),
+  sources: [
+    {
+      kind: "historical",
+      label: "Euclid, The Thirteen Books of the Elements (Heath/Heiberg, 1908) — Books X–XIII",
+      url: "https://archive.org/details/thirteenbookseu03heibgoog",
+      supports:
+        "The Heiberg edition in Heath's translation, digitised from Harvard's copy: the description states this volume carries Books X–XIII and an appendix. Book XIII is where the five regular solids are constructed and proved to be exactly five.",
+    },
+    {
+      kind: "historical",
+      label: "Plato, Timaeus (Archer-Hind edition)",
+      url: "https://archive.org/details/timaeusofplato00platiala",
+      supports:
+        "A digitised edition of the Timaeus. It is cited only for the documented association of four regular solids with four bodies and of the dodecahedron with the cosmos — a philosophical scheme stated in the text, not an experimental result.",
+    },
+    {
+      kind: "primary",
+      label: "Kepler, Ioannis Keppleri Harmonices mundi libri V (1619)",
+      url: "https://archive.org/details/ioanniskepplerih00kepl",
+      supports:
+        "The 1619 edition, digitised. The catalogue title records that the volume carries the Harmonices mundi and, appended, the Mysterium cosmographicum — the work whose title states its argument from the five regular solids ('ex quinque corporibus regularibus'). Cited as a historical document of that reasoning.",
+    },
+  ],
+  suggestedQuestion:
+    "Which of these statements about a geometric form is a property of the form, and which is a meaning a tradition or this archive assigns to it?",
+};
+
+/**
  * A connection anchor is a ResearchTopic like any other, so the Oracle keeps ONE
  * contract: a stable identifier, resolved server-side against an exact key. No
  * second registry, no second parameter, no second resolver.
@@ -205,20 +300,113 @@ function connectionTopic(topic: ResearchTopic, c: ResearchConnection): ResearchT
   };
 }
 
+/**
+ * Every REGISTERED research room. A room is registered when it has a server-resolved
+ * topic record here. A domain that has a page but no record is not a room, and the
+ * nexus states that rather than presenting it as one.
+ */
+const RESEARCH_TOPICS: Record<string, ResearchTopic> = {
+  cymatics: CYMATICS,
+  geometry: GEOMETRY,
+};
+
+/**
+ * Connection anchors for EVERY registered room, derived from the same records the
+ * room's own page renders. One registry and one exact-resolution contract for both
+ * rooms: the identifier a card sends is the key the server resolves, whichever room
+ * it came from.
+ */
 const CONNECTION_TOPICS: Record<string, ResearchTopic> = Object.fromEntries(
-  CYMATICS_CONNECTIONS.map((c) => [
-    connectionRegistryKey(CYMATICS.id, c.anchorSlug),
-    connectionTopic(CYMATICS, c),
-  ])
+  Object.entries(RESEARCH_TOPICS).flatMap(([slug, topic]) =>
+    (CONNECTIONS_BY_TOPIC[slug] ?? []).map((c) => [
+      connectionRegistryKey(slug, c.anchorSlug),
+      connectionTopic(topic, c),
+    ])
+  )
 );
 
 const REGISTRY: Record<string, ResearchTopic> = {
-  cymatics: CYMATICS,
+  ...RESEARCH_TOPICS,
   ...CONNECTION_TOPICS,
 };
 
 /** Topic slugs only - a connection anchor is not a topic of its own. */
-const TOPIC_SLUGS = [CYMATICS.id];
+const TOPIC_SLUGS = Object.keys(RESEARCH_TOPICS);
+
+/** Is this slug a registered research room (as opposed to a page that is only a reading)? */
+export function isRegisteredRoom(slug: string): boolean {
+  return Object.prototype.hasOwnProperty.call(RESEARCH_TOPICS, slug);
+}
+
+/**
+ * The four research domains the site presents, with what each one ACTUALLY is today.
+ * The standing line is the honest part: two of these are registered rooms with a
+ * sourced summary and a curated connection registry, and two are reading pages with
+ * neither. Presenting all four as equivalent rooms would be the easy lie.
+ */
+export interface ResearchDomain {
+  slug: string;
+  title: string;
+  route: string;
+  registered: boolean;
+  /** Plain statement of what the visitor will and will not find there. */
+  standing: string;
+}
+
+export const RESEARCH_DOMAINS: ResearchDomain[] = [
+  {
+    slug: "cymatics",
+    title: "Cymatics",
+    route: "/research/cymatics",
+    registered: true,
+    standing:
+      "A registered room: a server-resolved topic record with its own sourced summary, and six curated connections you can take into the Oracle.",
+  },
+  {
+    slug: "geometry",
+    title: "Geometry",
+    route: "/research/geometry",
+    registered: true,
+    standing:
+      "A registered room: a server-resolved topic record that keeps mathematical property, historical documentation, traditional symbolism and UT reading apart, with six curated connections.",
+  },
+  {
+    slug: "linguistics",
+    title: "Linguistics",
+    route: "/research/linguistics",
+    registered: false,
+    standing:
+      "A reading page, not yet a room: it carries no server-resolved topic record, no sourced bibliography and no curated connection registry, so nothing here can be taken into the Oracle as a selected context.",
+  },
+  {
+    slug: "symbolism",
+    title: "Symbolism",
+    route: "/research/symbolism",
+    registered: false,
+    standing:
+      "A reading page, not yet a room: it carries no server-resolved topic record, no sourced bibliography and no curated connection registry, so nothing here can be taken into the Oracle as a selected context.",
+  },
+];
+
+/** Every registered connection, with the room it belongs to. Powers the nexus. */
+export function allRegisteredConnections(): Array<{
+  topicSlug: string;
+  topicTitle: string;
+  topicRoute: string;
+  connection: ResearchConnection;
+  /** The identifier its Oracle anchor answers to — the same key the server resolves. */
+  anchorId: string;
+}> {
+  return Object.entries(RESEARCH_TOPICS).flatMap(([slug, topic]) =>
+    (CONNECTIONS_BY_TOPIC[slug] ?? []).map((connection) => ({
+      topicSlug: slug,
+      topicTitle: topic.title,
+      topicRoute: topic.route,
+      connection,
+      anchorId: researchConnectionTopicId(slug, connection.anchorSlug),
+    }))
+  );
+}
 
 /** Public identifier for a topic, e.g. `research-v1:cymatics`. */
 export function researchTopicId(slug: string): string {
