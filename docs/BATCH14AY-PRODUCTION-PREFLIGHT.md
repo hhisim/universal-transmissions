@@ -23,9 +23,22 @@ is not one, before it is sent.
   control**: a deliberately mutating statement is sent through the same wrapper and must be
   refused. This run reported `read-only control: … refused with 25006 (status=400)`, so the
   enforcement was demonstrated before any preflight statement was sent.
-* **The runner executes the approved SQL bytes.** Input is `git show <commit>:<path>` with the
-  blob hash checked against the release record *before* the first request; the worktree copy is
-  never the source.
+* **The EXECUTED BYTES are certified by the operator, not by the runner.**
+  `scripts/batch14ay-preflight-production-run.py` takes `--sql PATH` and **opens that path**; it
+  does not resolve a commit, shell out to `git`, or verify a hash. Before this run the operator
+  extracted the committed bytes and verified them —
+
+  ```bash
+  git show 5bc511e:scripts/batch14ax-preflight-production.sql > /tmp/preflight.sql
+  git hash-object /tmp/preflight.sql   # 2749f08f5baea187d9abe76c3b53dfa1c387294c
+  ```
+
+  — and then passed that file to `--sql`. The worktree copy was never the source. That blob is
+  **byte-identical at the current artifact candidate `44c5a0f62ddae613fd10e13e0312ea612da5c398`**, so the evidence below stands for
+  the frozen package: nothing in the preflight file changed between the run and the candidate.
+  *(Deferred defect: the runner's own header still describes the extraction and hash check as
+  things it performs. Fixing the sentence changes a frozen artifact hash, so it is recorded for the
+  next candidate rather than edited now.)*
 * **Output safety:** every result cell is scanned for an email address or a UUID and would be
   redacted before it reached the report; **0 statements were redacted** because the preflight
   projects counts and catalog facts only. No member identifier was retrieved.

@@ -92,9 +92,16 @@ commit so that it can name it; that amendment — and any later correction to th
 **`docs/` only** and is never an alternative candidate. To check: `git diff --name-only <candidate>
 <tip>` must list nothing outside `docs/`. Do not resolve the candidate to a later docs-only commit.
 
-Superseded identifiers, none of which is the candidate: `286eab5f…` (before the boundary
-migration), `5bc511e…` (before the production preflight), `41a892c…` (before the policy-shape
-gate). Each of them installs or verifies strictly less than this record describes.
+**A second candidate exists and is deliberately NOT this one.** The application release is
+`b4f8ce7149f625f3183507ffc9743e75528e742d` — approved separately, deployed only after the SQL is verified, and referenced
+by this package but never carried by it. The two are kept apart so that applying SQL from one
+commit while verifying with another is visible as a mismatch rather than a detail.
+
+**Retired identifiers**, none of which is a candidate for anything: `41a892c…` is **retired** — it
+predates the policy-shape gate and the enforced read-only preflight; `5bc511e…` (before the
+production preflight), `286eab5f…` (before the boundary migration), `f55483d…` (before the surface
+finalisation) and `56dd20f…` likewise. Each installs or verifies strictly less than this record
+describes.
 
 ### 1c. Harness files in this package
 
@@ -180,6 +187,16 @@ an unknown mode is refused with SQLSTATE `22023`.
 
 **Executed against production, read-only, statement by statement** — results, the prerequisite
 comparison and every mismatch: `docs/BATCH14AY-PRODUCTION-PREFLIGHT.md`.
+
+**The runner does not certify provenance — the operator does.** `batch14ay-preflight-production-run.py`
+takes `--sql PATH` and opens that file; it does not resolve a commit, shell out to `git`, or verify a
+hash. The executed bytes are certified by the operator procedure in
+`docs/BATCH14AY-ROLLOUT-DECISION.md` §3.1 (`git show <candidate>:<path>` → `git hash-object` must
+equal the value in §1c-bis → pass that path to `--sql`). *Deferred defect:* the runner's own header
+still claims it performs the extraction and the blob check. That sentence is wrong; correcting it
+would change a frozen artifact hash, so it is deferred to the next candidate rather than edited
+here. What the runner genuinely enforces is its own: every statement inside `BEGIN READ ONLY`
+(`25006` on a write) and a negative control that must be refused before the run.
 
 `scripts/batch14ax-preflight-production.sql` (P0–P16) and
 `scripts/batch14ax-postflight-production.sql` (Q0–Q90). Both are **SELECT-only** — the

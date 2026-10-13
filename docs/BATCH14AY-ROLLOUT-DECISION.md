@@ -4,9 +4,19 @@
 Nothing in this document has been executed: it is the decision the read-only preflight supports,
 with the evidence behind it and the consequences if it is reversed.
 
-*Prepared after the candidate. It changes no SQL, no harness and no application file, so the
-candidate for every artifact in the release record remains
-`41a892c522d5d87b9363bdf39b67f53885ad8819`.*
+*Prepared after the candidate. It changes no SQL, no harness and no application file.*
+
+**The two candidates, kept separate:**
+
+| | candidate | what it is |
+|---|---|---|
+| SQL / gate / smoke | **`44c5a0f62ddae613fd10e13e0312ea612da5c398`** | the reviewed migration, harnesses, smoke script and records this document authorises applying |
+| Application | **`b4f8ce7149f625f3183507ffc9743e75528e742d`** | the separately approved application release, deployed only after the SQL is verified |
+
+`41a892c522d5d87b9363bdf39b67f53885ad8819` is **retired**: it predates the policy-shape gate and
+the enforced read-only preflight, so it neither installs nor verifies what this decision describes.
+Applying the SQL from the retired commit while verifying with the current one is the specific
+mismatch this separation exists to prevent.
 
 ## 1. Basis — what the read-only preflight found
 
@@ -62,6 +72,22 @@ statement trigger is what covers direct writers. Step 8 ends by asserting the wh
 
 1. **Before:** `scripts/batch14ax-preflight-production.sql` — already executed read-only; re-run it
    if the window is delayed, because it proves the state *now* and does not reserve it.
+
+   **Operator procedure — the runner does not certify provenance.** Extract the committed bytes
+   yourself and verify them, then hand the file to the runner:
+
+   ```bash
+   git show 44c5a0f62ddae613fd10e13e0312ea612da5c398:scripts/batch14ax-preflight-production.sql > /tmp/preflight.sql
+   git hash-object /tmp/preflight.sql   # must equal 2749f08f5baea187d9abe76c3b53dfa1c387294c
+   SUPABASE_ACCESS_TOKEN=... python3 scripts/batch14ay-preflight-production-run.py \
+       --ref <project-ref> --sql /tmp/preflight.sql --json /tmp/preflight-report.json
+   ```
+
+   The runner **opens the path it is given** (`--sql`); it does not resolve a commit, shell out to
+   `git`, or check a hash. Provenance is this procedure, not the tool. Two further properties the
+   runner *does* enforce are its own: each statement is sent inside an explicit `BEGIN READ ONLY`
+   transaction (the server refuses writes with `25006`), and the run begins with a negative control
+   that must be refused before any preflight statement is sent.
 2. **After:** `scripts/batch14ax-postflight-production.sql` — its **last statement is the verdict**
    and must read `t`. FALSE, NULL or missing all fail. On a red verdict, run
    `scripts/batch14ax-verdict-components.sql`, which re-evaluates the twelve conditions separately
@@ -82,6 +108,19 @@ statement trigger is what covers direct writers. Step 8 ends by asserting the wh
    operator; it sets `role` to `service_role` locally for the transaction. In the isolated suite
    the same file is run with `rollback` replaced by `commit` as a **control**, which must leave the
    row behind — so "nothing persisted" is a check that can fail.
+
+   **Both post-condition rows must read `expected_met = true`.** A zero exit status is **not**
+   sufficient and must not be accepted as the smoke's result: the script raises on its own
+   assertions, but the two post-conditions are the only statements that establish the rollback-only
+   property, and they run after the transaction. Read them:
+
+   ```
+   nothing_persisted_in_ut_members | t
+   nothing_persisted_in_profiles   | t
+   ```
+
+   `f`, an absent row, or a query that did not run at all are all failures. If either row is
+   missing, treat the smoke as failed — do not infer it from the exit code.
 5. **Do not release the application in the same window** (§4).
 
 ## 4. The application release — exact SHA, and why it is second
