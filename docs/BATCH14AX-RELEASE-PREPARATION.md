@@ -37,8 +37,12 @@ body 15 installs. The bundle is stated as validated rather than minimal.
 
 ### 1b. Candidate SHA
 
-**Package commit: `<recorded by the follow-up commit>`.** No SQL, script or application
-file differs between that commit and the one that carries this document.
+**`286eab5f1044a4207c92b6a8d1d925a0aae9cccc`** — the commit that carries this package.
+
+This document was amended in the immediately following commit so that it could name its own
+candidate; that amendment changed **this document only**. No SQL, harness or application
+file differs between the two commits, so the SHA above is the exact candidate for every
+artifact in §1a, §1c and §5.
 
 ### 1c. Harness files in this package
 
