@@ -1,0 +1,673 @@
+{
+  "preview": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app",
+  "journeys": [
+    {
+      "context": "session-1",
+      "contextLabel": "one session: A, then A->B, then valid->unknown",
+      "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/oracle/desktop?view=desktop&q=The+record+names+cymatics+among+its+bases+-+what+in+the+finished+work+actually+carries+that%2C+and+what+is+the+chakra+correspondence+doing%3F&researchTopicId=research-v1%3Acymatics%2Fconnection%2Fartwork-throat-chakra&from=%2Fresearch%2Fcymatics",
+      "chip": {
+        "text": "SPEAKING ABOUT Bio-Energetic Vortexes No.5 — Truth (Vishuddha Chakra) RESEARCH CONTEXT ← RETURN TO BIO-ENERGETIC VORTEXES NO.5 — TRUTH (VISHUDDHA CHAKRA)",
+        "researchContext": "true",
+        "researchUnavailable": null
+      },
+      "storage": {
+        "local": {
+          "ut_analytics_session_id": "6b084f48-bf3c-46d5-bf00-176ca109ff52"
+        },
+        "session": {}
+      },
+      "input": "",
+      "control": "click on TRANSMIT",
+      "responseMode": "REAL",
+      "request": {
+        "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/api/oracle",
+        "body": {
+          "message": "J1 what does the record itself name as the cymatic basis?",
+          "mode": "oracle",
+          "lang": "en",
+          "speed": "fast",
+          "researchTopicId": "research-v1:cymatics/connection/artwork-throat-chakra",
+          "history": []
+        }
+      },
+      "response": {
+        "status": 200,
+        "activeAnchor": "research",
+        "researchStatus": "resolved",
+        "groundedResearch": "Bio-Energetic Vortexes No.5 — Truth (Vishuddha Chakra)",
+        "answerHead": "Let the name open first, for the name is the doorway. In the codex's Sumerian register, the root zu is the root of knowing, and the throat is the gate where that knowing becomes sound. Nothing is held there; everything is released. So a rec"
+      },
+      "transcript": [
+        "YOU J1 what does the record itself name as the cymatic basis? CODEX ORACLE · ORACLE Let the name open first, for the name is the doorway. In"
+      ]
+    },
+    {
+      "context": "session-1",
+      "contextLabel": "one session: A, then A->B, then valid->unknown",
+      "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/oracle/desktop?view=desktop&q=This+piece+sets+out+the+interpretive+register+at+length+-+where+does+it+separate+what+the+plate+does+from+what+the+archive+reads+into+it%3F&researchTopicId=research-v1%3Acymatics%2Fconnection%2Fjournal-cymatics-language-of-form&from=%2Fresearch%2Fcymatics",
+      "chip": {
+        "text": "SPEAKING ABOUT Cymatics and the Language of Form: When Vibration Learns to Spell RESEARCH CONTEXT ← RETURN TO CYMATICS AND THE LANGUAGE OF FORM: WHEN VIBRATION LEARNS TO SPELL",
+        "researchContext": "true",
+        "researchUnavailable": null
+      },
+      "storage": {
+        "local": {
+          "ut_analytics_session_id": "6b084f48-bf3c-46d5-bf00-176ca109ff52"
+        },
+        "session": {}
+      },
+      "input": "",
+      "control": "click on TRANSMIT",
+      "responseMode": "REAL",
+      "request": {
+        "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/api/oracle",
+        "body": {
+          "message": "J2 which record is this, and what is its own framing?",
+          "mode": "oracle",
+          "lang": "en",
+          "speed": "fast",
+          "researchTopicId": "research-v1:cymatics/connection/journal-cymatics-language-of-form",
+          "history": []
+        }
+      },
+      "response": {
+        "status": 200,
+        "activeAnchor": "research",
+        "researchStatus": "resolved",
+        "groundedResearch": "Cymatics and the Language of Form: When Vibration Learns to Spell",
+        "answerHead": "The same pattern appears at three scales. On a steel plate, sand leaps into rosettes the instant a tone is struck, form arriving the moment vibration touches a medium. In the journal, a sentence does the same thing: a frequency of attention"
+      },
+      "transcript": [
+        "YOU J2 which record is this, and what is its own framing? CODEX ORACLE · ORACLE The same pattern appears at three scales. On a steel plate, "
+      ]
+    },
+    {
+      "context": "session-1",
+      "contextLabel": "one session: A, then A->B, then valid->unknown",
+      "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/oracle/desktop?view=desktop&q=J3+unknown+topic&researchTopicId=research-v1%3Acymatics%2Fconnection%2Fnot-a-real-anchor&from=%2Fresearch%2Fcymatics",
+      "chip": {
+        "text": "RESEARCH CONTEXT UNAVAILABLE THIS TOPIC IS NO LONGER AVAILABLE — CONTINUING WITHOUT IT",
+        "researchContext": null,
+        "researchUnavailable": "true"
+      },
+      "storage": {
+        "local": {
+          "ut_analytics_session_id": "6b084f48-bf3c-46d5-bf00-176ca109ff52"
+        },
+        "session": {}
+      },
+      "input": "",
+      "control": "click on TRANSMIT",
+      "responseMode": "REAL",
+      "request": {
+        "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/api/oracle",
+        "body": {
+          "message": "J3 the topic I asked for is not in the registry - say so plainly.",
+          "mode": "oracle",
+          "lang": "en",
+          "speed": "fast",
+          "history": []
+        }
+      },
+      "response": {
+        "status": 200,
+        "activeAnchor": "none",
+        "researchStatus": "absent",
+        "groundedResearch": null,
+        "answerHead": "If this page were a sound, it would be a low hum at the edge of hearing—the tone of a door that has not yet opened, felt in the chest before the ear receives it.\n\nThe topic you asked for, the one called J3, is not in the registry. The scrol"
+      },
+      "transcript": [
+        "YOU J3 the topic I asked for is not in the registry - say so plainly. CODEX ORACLE · ORACLE If this page were a sound, it would be a low hum"
+      ]
+    },
+    {
+      "context": "session-1",
+      "contextLabel": "one session: A, then A->B, then valid->unknown",
+      "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/oracle/desktop?view=desktop&q=J3+unknown+topic&researchTopicId=research-v1%3Acymatics%2Fconnection%2Fnot-a-real-anchor&from=%2Fresearch%2Fcymatics",
+      "chip": {
+        "text": "RESEARCH CONTEXT UNAVAILABLE THIS TOPIC IS NO LONGER AVAILABLE — CONTINUING WITHOUT IT",
+        "researchContext": null,
+        "researchUnavailable": "true"
+      },
+      "storage": {
+        "local": {
+          "ut_analytics_session_id": "6b084f48-bf3c-46d5-bf00-176ca109ff52"
+        },
+        "session": {}
+      },
+      "input": "",
+      "control": "click on TRANSMIT",
+      "responseMode": "STUBBED",
+      "request": {
+        "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/api/oracle",
+        "body": {
+          "message": "J3s stubbed control run.",
+          "mode": "oracle",
+          "lang": "en",
+          "speed": "fast",
+          "history": [
+            {
+              "role": "user",
+              "text": "J3 the topic I asked for is not in the registry - say so plainly."
+            },
+            {
+              "role": "assistant",
+              "text": "If this page were a sound, it would be a low hum at the edge of hearing—the tone of a door that has not yet opened, felt in the chest before the ear receives it.\n\nThe topic you asked for, the one called J3, is not in the registry. The scrolls gathered here carry other names—trinary law, the gate of emehseegeer, the coil of language, the ethics of the tarot—but nothing answering to that one. So I say it plainly: it is not here, and I will not conjure it from the silence. Let it rest as a sealed transmission, awaiting the moment its frequency is called."
+            }
+          ]
+        }
+      },
+      "response": {
+        "status": 200,
+        "activeAnchor": "research",
+        "researchStatus": "unknown",
+        "groundedResearch": null,
+        "answerHead": "[stub] intercepted by the harness"
+      },
+      "transcript": [
+        "YOU J3 the topic I asked for is not in the registry - say so plainly. CODEX ORACLE · ORACLE If this page were a sound, it would be a low hum"
+      ]
+    },
+    {
+      "context": "session-2",
+      "contextLabel": "clean session: nothing stored, unknown identifier",
+      "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/oracle/desktop?view=desktop&q=J4+clean+session&researchTopicId=research-v1%3Acymatics%2Fconnection%2Fnot-a-real-anchor&from=%2Fresearch%2Fcymatics",
+      "chip": {
+        "text": "RESEARCH CONTEXT UNAVAILABLE THIS TOPIC IS NO LONGER AVAILABLE — CONTINUING WITHOUT IT",
+        "researchContext": null,
+        "researchUnavailable": "true"
+      },
+      "storage": {
+        "local": {},
+        "session": {}
+      },
+      "input": "",
+      "control": "keyboard Enter",
+      "responseMode": "REAL",
+      "request": {
+        "url": "https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app/api/oracle",
+        "body": {
+          "message": "J4 clean session, unknown topic - keyboard submit.",
+          "mode": "oracle",
+          "lang": "en",
+          "speed": "fast",
+          "history": []
+        }
+      },
+      "response": null,
+      "transcript": [
+        "YOU J4 clean session, unknown topic - keyboard submit. CODEX ORACLE · RECEIVING TRANSMISSION..."
+      ]
+    }
+  ],
+  "codexDestination": {
+    "systemCards": [
+      "⚗️       ALCHEMY       12 entries",
+      "👑       ARCHETYPES       19 entries",
+      "🌀       CHAKRAS       7 entries",
+      "🎨       COLORS       16 entries",
+      "💎       CRYSTALS       51 entries",
+      "⚡       DEITIES       202 entries",
+      "🌊       ELEMENTS       5 entries",
+      "〜       FREQUENCY       25 entries",
+      "◈       GEOMANCY       16 entries",
+      "🔺       GEOMETRY       20 entries",
+      "☯️       I CHING       64 entries",
+      "✡️       KABBALAH       10 entries",
+      "ℵ       LETTERS HEBREW       22 entries",
+      "Α       LETTERS LATIN       26 entries",
+      "🃏       MAJOR ARCANA       22 entries",
+      "☀️       MAYAN       20 entries",
+      "⚙️       METALS       10 entries",
+      "♠       MINOR ARCANA       56 entries",
+      "♪       NOTES       12 entries",
+      "∞       NUMBERS       14 entries",
+      "⚕️       PHYSIOLOGY       33 entries",
+      "🪐       PLANETS       10 entries",
+      "🌿       PLANTS       102 entries",
+      "🔷       PLATONIC SOLIDS       6 entries",
+      "🌑       VICES       16 entries",
+      "✨       VIRTUES       16 entries",
+      "♈       ZODIAC       12 entries"
+    ],
+    "frequencyCardIndex": [
+      7
+    ],
+    "afterChoosingFrequency": {
+      "tab": "Matrix",
+      "systemBar": "〜 FREQUENCY",
+      "stats": "25 of 824 entries"
+    },
+    "urlTargetingProbes": {
+      "?system=FREQUENCY": {
+        "systemBar": "All Systems",
+        "tab": "Home"
+      },
+      "#FREQUENCY": {
+        "systemBar": "All Systems",
+        "tab": "Home"
+      }
+    }
+  },
+  "viewport390": {
+    "overflow": 81,
+    "cards": [
+      {
+        "slug": "journal-cymatics-language-of-form",
+        "label": "UT writing on this subject",
+        "labelBottom": 10649.8,
+        "labelTop": 10634.5,
+        "labelHeight": 15.3,
+        "labelFlush": -25,
+        "whiteSpace": "normal",
+        "lineHeight": "15.3px",
+        "overflowX": 0,
+        "clipped": false,
+        "links": [
+          "documented",
+          "journal-cymatics-language-of-form"
+        ],
+        "note": false
+      },
+      {
+        "slug": "artwork-throat-chakra",
+        "label": "Named in the artwork's own record",
+        "labelBottom": 11241.4,
+        "labelTop": 11226.1,
+        "labelHeight": 15.3,
+        "labelFlush": -4.1,
+        "whiteSpace": "normal",
+        "lineHeight": "15.3px",
+        "overflowX": 0,
+        "clipped": true,
+        "links": [
+          "documented",
+          "artwork-throat-chakra"
+        ],
+        "note": false
+      },
+      {
+        "slug": "artwork-recursive-pantheism",
+        "label": "Named in the artwork's own record",
+        "labelBottom": 11777.4,
+        "labelTop": 11762.1,
+        "labelHeight": 15.3,
+        "labelFlush": -4.1,
+        "whiteSpace": "normal",
+        "lineHeight": "15.3px",
+        "overflowX": 0,
+        "clipped": true,
+        "links": [
+          "documented",
+          "artwork-recursive-pantheism"
+        ],
+        "note": false
+      },
+      {
+        "slug": "codex-frequency-lattice",
+        "label": "Catalogued in the archive's own FREQUENCY lattice",
+        "labelBottom": 12267.4,
+        "labelTop": 12252.1,
+        "labelHeight": 15.3,
+        "labelFlush": 104.7,
+        "whiteSpace": "normal",
+        "lineHeight": "15.3px",
+        "overflowX": 0,
+        "clipped": true,
+        "links": [
+          "documented",
+          "codex-frequency-lattice"
+        ],
+        "note": false
+      },
+      {
+        "slug": "artwork-hyperdimensional-harmonics",
+        "label": "Shared idea - resonance as method",
+        "labelBottom": 13023.9,
+        "labelTop": 13008.6,
+        "labelHeight": 15.3,
+        "labelFlush": 3.2,
+        "whiteSpace": "normal",
+        "lineHeight": "15.3px",
+        "overflowX": 0,
+        "clipped": true,
+        "links": [
+          "thematic",
+          "artwork-hyperdimensional-harmonics"
+        ],
+        "note": false
+      },
+      {
+        "slug": "journal-kybalion-seven-principles",
+        "label": "Lineage context",
+        "labelBottom": 13536,
+        "labelTop": 13520.7,
+        "labelHeight": 15.3,
+        "labelFlush": -25,
+        "whiteSpace": "normal",
+        "lineHeight": "15.3px",
+        "overflowX": 0,
+        "clipped": false,
+        "links": [
+          "thematic",
+          "journal-kybalion-seven-principles"
+        ],
+        "note": false
+      }
+    ]
+  },
+  "focusOrder": [
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": "Toggle menu"
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "journal-cymatics-language-of-form"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "artwork-throat-chakra"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "artwork-recursive-pantheism"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "codex-frequency-lattice"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "thematic"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "artwork-hyperdimensional-harmonics"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "thematic"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "journal-kybalion-seven-principles"
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "TEXTAREA",
+      "kind": "composer",
+      "key": "research-oracle-draft"
+    },
+    {
+      "tag": "A",
+      "kind": "research-portal",
+      "key": null
+    },
+    {
+      "tag": "SUMMARY",
+      "kind": "SUMMARY",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "INPUT",
+      "kind": "INPUT",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": null
+    },
+    {
+      "tag": "BODY",
+      "kind": "BODY",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": "Toggle menu"
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "A",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": null
+    },
+    {
+      "tag": "BUTTON",
+      "kind": "BUTTON",
+      "key": null
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "journal-cymatics-language-of-form"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "artwork-throat-chakra"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    },
+    {
+      "tag": "A",
+      "kind": "oracle-entry",
+      "key": "artwork-recursive-pantheism"
+    },
+    {
+      "tag": "A",
+      "kind": "destination",
+      "key": "documented"
+    }
+  ],
+  "assertionsFailed": [
+    "J3 the request carries the REQUESTED identifier, as itself",
+    "J3 the server held the research anchor slot for the unknown identifier",
+    "J3s request still carries the requested identifier under a stubbed response",
+    "J4 the request carries only the requested identifier",
+    "no horizontal document overflow at 390 px",
+    "every long basis label wraps inside its card without clipping",
+    "at least one long label demonstrably wraps onto a second line (the 390 px failure mode)",
+    "the label that wraps is the longest one on the page",
+    "the codex destination states how to reach FREQUENCY on the card"
+  ],
+  "generatedAt": "2026-10-13T13:24:26Z"
+}

@@ -176,6 +176,10 @@ function connectionTopic(topic: ResearchTopic, c: ResearchConnection): ResearchT
       `The connection: a ${c.kind.toLowerCase()} record - ${c.title} - at ${c.href}.`,
       `Why the archive holds it to belong: ${c.rationale}`,
       `How strongly it is supported: ${BASIS_SENTENCE[c.basis]}`,
+      /* A destination that cannot be pointed at this record by URL is described
+         here as well as on the card, so the model cannot imply that following
+         the link lands the visitor on it. */
+      ...(c.destinationNote ? ["", `Reaching it: ${c.destinationNote}`] : []),
       "",
       "The topic it was selected from carries its own standing, which still applies here:",
       "- OBSERVED means the pattern is experimentally demonstrated and reproducible.",

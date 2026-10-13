@@ -861,24 +861,54 @@ export default function OraclePage() {
     searchParams.get("researchTopicId"),
     MAX_ENTITY_CHARS
   );
-  /* ANCHOR POLICY, explicit:
-       - no research id      -> existing artwork/correspondence handling stands.
-       - valid research id   -> research wins; the artwork anchor is dropped.
-       - unknown research id -> we say the research context is unavailable. We do
-         NOT substitute the artwork anchor, because a confident artwork chip
-         beside an unavailable topic reads as a different subject entirely.
-         The API already refuses to fall back; the UI must not imply otherwise. */
-  const researchRequested = rawResearchId.length > 0;
-  const researchContext = useMemo(() => {
-    if (!rawResearchId) return null;
+  /* RESEARCH ANCHOR STATE, explicit:
+       - none       -> no research identifier was supplied; artwork/correspondence
+                       handling stands.
+       - resolved   -> research wins; the artwork anchor is dropped.
+       - unresolved -> the identifier was supplied and this registry does not have
+                       it. We say the research context is unavailable. We do NOT
+                       substitute the artwork anchor, because a confident artwork
+                       chip beside an unavailable topic reads as a different
+                       subject entirely. The API already refuses to fall back; the
+                       UI must not imply otherwise.
+
+     THE STATE IS DERIVED FROM THE CURRENT URL ON EVERY RENDER and is never copied
+     into component state, so there is no stored context a later route change could
+     leave behind: arriving at `unresolved` recomputes it from the identifier on
+     screen, it does not inherit the anchor that was there before. Keeping the
+     third state NAMED (rather than "resolved or nothing") is what lets the payload
+     below carry an unresolved identifier as itself instead of dropping it. */
+  const researchAnchor = useMemo<
+    | { state: "none" }
+    | { state: "unresolved"; requestedId: string }
+    | { state: "resolved"; id: string; title: string; route: string; returnTo: string }
+  >(() => {
+    if (!rawResearchId) return { state: "none" } as const;
     const topic = resolveResearchTopic(rawResearchId);
-    if (!topic) return null;
+    if (!topic) return { state: "unresolved", requestedId: rawResearchId } as const;
     const safeReturn =
       returnTo.startsWith("/") && !returnTo.startsWith("//") && !returnTo.includes("\\")
         ? returnTo
         : topic.route;
-    return { id: topic.id, title: topic.title, route: topic.route, returnTo: safeReturn };
+    return {
+      state: "resolved",
+      id: topic.id,
+      title: topic.title,
+      route: topic.route,
+      returnTo: safeReturn,
+    } as const;
   }, [rawResearchId, returnTo]);
+  /* Refreshed on every render. `send` below is a memoised callback and this file
+     has already paid once for a memoised closure outliving its render: nothing in
+     that dependency list named the research anchor, so a client-side move from a
+     resolved anchor to an unresolved one could leave `send` still holding the
+     RESOLVED identifier while the chip on screen said UNAVAILABLE. Reading the
+     anchor from this ref at submit time submits the identifier that was on screen
+     when the visitor pressed the control, whatever memoisation did. */
+  const researchAnchorRef = useRef(researchAnchor);
+  researchAnchorRef.current = researchAnchor;
+  const researchRequested = researchAnchor.state !== "none";
+  const researchContext = researchAnchor.state === "resolved" ? researchAnchor : null;
   const artworkContext = useMemo(() => {
     if (!rawArtworkId) return null;
     /* Suppressed whenever a research id was supplied, whether or not it resolved.
@@ -893,7 +923,7 @@ export default function OraclePage() {
         ? returnTo
         : `/gallery/${match.slug}`;
     return { id: match.id, slug: match.slug, title: match.title, year: match.year, returnTo: safeReturn };
-  }, [rawArtworkId, returnTo, researchContext]);
+  }, [rawArtworkId, returnTo, researchRequested]);
   const [booted, setBooted] = useState(false);
   const [bootPhase, setBootPhase] = useState(-1);
   const [mode, setMode] = useState("oracle");
@@ -1008,6 +1038,25 @@ export default function OraclePage() {
     setDraftSeeded(true);
   }, [draftSeeded, entryQuestion, artworkContext]);
 
+  /* ENTRY IDENTITY. A route change that lands on a different entry - a
+     different research identifier, or a different artwork - makes any answer
+     still being produced an answer to a question the visitor has left. An
+     older, slower resolution must not be able to land after the navigation and
+     re-attach the previous context to the conversation, so the in-flight
+     request is aborted when the identity changes. The identifier is read from
+     the URL at render time, so this compares the CURRENT entry against the
+     previous one and nothing is remembered between them. What is deliberately
+     NOT touched: the messages already exchanged, and whatever the visitor has
+     typed into the composer - leaving an entry is not a reason to discard
+     either. */
+  const entryIdentity = `${rawResearchId}\u0000${rawArtworkId}`;
+  useEffect(() => {
+    reqAbortRef.current?.abort();
+    reqAbortRef.current = null;
+    setLoading((was) => (was ? false : was));
+    setStatusKey((k) => (k === "waiting" ? "idle" : k));
+  }, [entryIdentity]);
+
   /* Speech is abortable: turning voice off, superseding a question, or
      unmounting cancels the in-flight /api/oracle/tts request instead of paying
      for audio that will never be used. `ttsPending` is cleared on abort so the
@@ -1047,6 +1096,11 @@ export default function OraclePage() {
     if (!m || loading || atLimit) return;
     setInput("");
     const useMode = forceMode || mode;
+    /* The anchor as it is ON SCREEN at the moment the control is pressed.
+       Read from the ref, not from a captured variable: the research anchor is
+       not in this callback's dependency list, so a captured copy can belong to
+       an earlier URL. */
+    const anchor = researchAnchorRef.current;
     // Resolve the anchor from the explicit argument when one is supplied. A
     // setState() earlier in the same tick has not landed yet, so reading the
     // state here would send the PREVIOUS entry (entityId: null, no evidence).
@@ -1079,10 +1133,26 @@ export default function OraclePage() {
           speed,
           artworkId: artworkContext?.id,
           /* Stable identifier only. The server resolves the record; a
-             client-supplied title or summary is never forwarded. */
-          researchTopicId: researchContext
-            ? researchTopicIdFor(researchContext.id)
-            : undefined,          // Completed previous turns only. The server appends the current
+             client-supplied title or summary is never forwarded.
+
+             The identifier comes from the SAME derived value the chip above is
+             rendered from, read through the ref so a memoised closure cannot
+             submit an anchor from a previous URL. Three cases, stated:
+               resolved   -> the canonical public identifier for this record.
+               unresolved -> the REQUESTED identifier, carried as itself. The
+                             server then states plainly that the topic is
+                             unavailable and holds the anchor slot, instead of
+                             the request looking like an ordinary ungrounded
+                             question. A previously resolved anchor is NEVER
+                             substituted for it.
+               none       -> nothing is sent, exactly as before. */
+          researchTopicId:
+            anchor.state === "resolved"
+              ? researchTopicIdFor(anchor.id)
+              : anchor.state === "unresolved"
+                ? anchor.requestedId
+                : undefined,
+          // Completed previous turns only. The server appends the current
           // question, so it is never duplicated by also sending it here.
           history: buildHistoryFromMessages(msgs, m),
           entityId: activeAnchorId ?? undefined,
@@ -1181,7 +1251,7 @@ export default function OraclePage() {
     }
   }, [
     input, mode, lang, speed, loading, atLimit, fetchTTS, outputMode, voiceOn,
-    artworkContext, cancelPendingSpeech, msgs, selectedEntryId,
+    artworkContext, researchAnchor, cancelPendingSpeech, msgs, selectedEntryId,
   ]);
 
   const lastOracleText = useMemo(() => {
@@ -1573,7 +1643,7 @@ export default function OraclePage() {
                     {entityNotice ? <span data-kind="entity" style={{ color: "#f59e0b" }}>{entityNotice}</span> : null}
                   </div>
                 ) : null}
-                {researchRequested && !researchContext && (
+                {researchAnchor.state === "unresolved" && (
                 <div
                   className="oracle-artwork-context"
                   role="note"

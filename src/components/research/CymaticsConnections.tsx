@@ -124,15 +124,15 @@ export default function CymaticsConnections({
                   className="ut-card p-6 transition-all duration-300 hover:border-cyan/20"
                   style={{ background: "rgba(34, 211, 238, 0.02)" }}
                 >
-                  <div className="flex items-start justify-between gap-4 mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5 sm:gap-4 mb-2">
                     <span
-                      className="font-mono text-[9px] tracking-[0.25em] uppercase"
+                      className="font-mono text-[9px] tracking-[0.25em] uppercase break-words"
                       style={{ color: BASIS_STYLE[c.basis].color, opacity: 0.75 }}
                     >
                       {c.kind} · {BASIS_STYLE[c.basis].label}
                     </span>
                     <span
-                      className="font-mono text-[9px] tracking-[0.2em] uppercase shrink-0"
+                      className="font-mono text-[9px] tracking-[0.2em] uppercase min-w-0 break-words"
                       style={{ color: "var(--ut-white-faint)", opacity: 0.55 }}
                     >
                       {c.basisLabel}
@@ -159,6 +159,19 @@ export default function CymaticsConnections({
                       {c.rationale}
                     </p>
                   </Link>
+
+                  {/* A destination that cannot be reached directly states how to
+                      reach it, rather than letting the card imply the link lands
+                      on it. Plain text, not a third link. */}
+                  {c.destinationNote ? (
+                    <p
+                      data-connection-destination-note={c.anchorSlug}
+                      className="font-mono text-[10px] leading-relaxed mt-3 break-words"
+                      style={{ color: "var(--ut-white-faint)", opacity: 0.7 }}
+                    >
+                      Finding it once you are there: {c.destinationNote}
+                    </p>
+                  ) : null}
 
                   <div
                     className="mt-5 pt-4 flex flex-col sm:flex-row sm:items-center gap-3"

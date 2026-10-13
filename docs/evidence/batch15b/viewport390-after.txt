@@ -1,0 +1,80 @@
+{
+  "innerWidth": 390,
+  "docOverflow": 0,
+  "cards": [
+    {
+      "slug": "journal-cymatics-language-of-form",
+      "label": "UT writing on this subject",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "1",
+      "lines": 1
+    },
+    {
+      "slug": "artwork-throat-chakra",
+      "label": "Named in the artwork's own record",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "1",
+      "lines": 1
+    },
+    {
+      "slug": "artwork-recursive-pantheism",
+      "label": "Named in the artwork's own record",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "1",
+      "lines": 1
+    },
+    {
+      "slug": "codex-frequency-lattice",
+      "label": "Catalogued in the archive's own FREQUENCY lattice",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "1",
+      "lines": 2
+    },
+    {
+      "slug": "artwork-hyperdimensional-harmonics",
+      "label": "Shared idea - resonance as method",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "1",
+      "lines": 1
+    },
+    {
+      "slug": "journal-kybalion-seven-principles",
+      "label": "Lineage context",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "1",
+      "lines": 1
+    }
+  ]
+}
+
+clipped/overflowing cards: 0

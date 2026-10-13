@@ -26,6 +26,13 @@ export interface ResearchConnection {
   rationale: string;
   basis: ConnectionBasis;
   basisLabel: string;
+  /**
+   * How to reach the specific thing this connection names, when the destination
+   * is a page that cannot be pointed at it by URL. Optional, and only a
+   * destination that does not deep-link needs one: without it a card can only
+   * imply that the link lands somewhere it does not.
+   */
+  destinationNote?: string;
   /** The question this connection's own Oracle entry opens with. */
   suggestedQuestion: string;
 }
@@ -75,9 +82,15 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     anchorSlug: "codex-frequency-lattice",
     href: "/experience/correspondence-codex",
     kind: "Codex",
-    title: "The Correspondence Codex - the FREQUENCY system",
+    // The destination's own title. This card used to name the FREQUENCY system
+    // here, which reads as a targeted destination: the link opens the Codex
+    // front page and nothing more. What the visitor does once they are there is
+    // stated in destinationNote instead of implied by the title.
+    title: "The UT Correspondence Codex",
     rationale:
       "The archive's own frequency lattice, and the record set the symbolic tone values on this page come from: the solfeggio values assigned symbolic roles in the topic summary (432, 528, 639, 741, 852, 963 Hz) are catalogued there as FREQUENCY entries. It is linked so those assignments can be inspected where they live instead of taken on trust. The lattice is UT symbolic material - the entry labelled \"528 Hz - Miracles\" carries the archive's own symbolic naming, and this page states plainly that the popular therapeutic reading of that value is not supported by the experimental literature.",
+    destinationNote:
+      "The Codex has no link that targets a single system, so this opens its front page. FREQUENCY is one of the 27 system cards on the Codex Home tab: choose \"〜 FREQUENCY (25 entries)\", which opens the Matrix tab with that system selected. The same button sits in the Matrix tab's system bar.",
     basis: "documented",
     basisLabel: "Catalogued in the archive's own FREQUENCY lattice",
     suggestedQuestion:

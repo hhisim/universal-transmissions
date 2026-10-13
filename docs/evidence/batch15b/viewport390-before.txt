@@ -1,0 +1,84 @@
+{
+  "innerWidth": 390,
+  "docOverflow": 81,
+  "cards": [
+    {
+      "slug": "journal-cymatics-language-of-form",
+      "label": "UT writing on this subject",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "0",
+      "lines": 1
+    },
+    {
+      "slug": "artwork-throat-chakra",
+      "label": "Named in the artwork's own record",
+      "headerOverflow": 21,
+      "labelOverflow": 0,
+      "labelPastCardRight": -4.1,
+      "labelRight": 361.9,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "0",
+      "lines": 1
+    },
+    {
+      "slug": "artwork-recursive-pantheism",
+      "label": "Named in the artwork's own record",
+      "headerOverflow": 21,
+      "labelOverflow": 0,
+      "labelPastCardRight": -4.1,
+      "labelRight": 361.9,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "0",
+      "lines": 1
+    },
+    {
+      "slug": "codex-frequency-lattice",
+      "label": "Catalogued in the archive's own FREQUENCY lattice",
+      "headerOverflow": 130,
+      "labelOverflow": 0,
+      "labelPastCardRight": 104.7,
+      "labelRight": 470.7,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "0",
+      "lines": 1
+    },
+    {
+      "slug": "artwork-hyperdimensional-harmonics",
+      "label": "Shared idea - resonance as method",
+      "headerOverflow": 28,
+      "labelOverflow": 0,
+      "labelPastCardRight": 3.2,
+      "labelRight": 369.2,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "0",
+      "lines": 1
+    },
+    {
+      "slug": "journal-kybalion-seven-principles",
+      "label": "Lineage context",
+      "headerOverflow": 0,
+      "labelOverflow": 0,
+      "labelPastCardRight": -25,
+      "labelRight": 341,
+      "cardRight": 366,
+      "whiteSpace": "normal",
+      "flexShrink": "0",
+      "lines": 1
+    }
+  ]
+}
+
+clipped/overflowing cards: 4
+   artwork-throat-chakra | labelOverflow 0 | pastCardRight -4.1 | headerOverflow 21 | lines 1 | flexShrink 0
+   artwork-recursive-pantheism | labelOverflow 0 | pastCardRight -4.1 | headerOverflow 21 | lines 1 | flexShrink 0
+   codex-frequency-lattice | labelOverflow 0 | pastCardRight 104.7 | headerOverflow 130 | lines 1 | flexShrink 0
+   artwork-hyperdimensional-harmonics | labelOverflow 0 | pastCardRight 3.2 | headerOverflow 28 | lines 1 | flexShrink 0

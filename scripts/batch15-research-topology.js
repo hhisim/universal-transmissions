@@ -147,6 +147,83 @@ chk("the gaps state the codex is linked as a system, not as one entry read",
 chk("no graph engine, canvas or new visualisation dependency",
     !/react-force-graph|d3-force|cytoscape|<canvas/i.test(section));
 
+console.log("\n== G. a destination that cannot be targeted says how to reach it ==");
+/* The brief for this pass: "use its existing supported navigation to expose
+   FREQUENCY, or clearly tell the visitor how to locate it. Do not imply a
+   targeted destination that the link does not provide." The Codex is a single
+   page that reads no URL parameter and no fragment (checked in the browser and
+   recorded in the journey evidence), so the note is the honest branch. */
+const codexConn = CONNS.find((c) => c.href === "/experience/correspondence-codex");
+chk("the codex connection still exists", !!codexConn);
+if (codexConn) {
+  chkeq("the card title is the destination's OWN title, not a system inside it",
+      codexConn.title, "The UT Correspondence Codex");
+  chk("the title no longer implies a targeted system", !/FREQUENCY/i.test(codexConn.title));
+  chk("the destination states how to locate FREQUENCY",
+      typeof codexConn.destinationNote === "string" && /FREQUENCY/.test(codexConn.destinationNote));
+  chk("the note names the Codex Home system grid", /Home tab/.test(codexConn.destinationNote || ""));
+  chk("the note names the Matrix tab's system bar", /Matrix/.test(codexConn.destinationNote || ""));
+  chk("the note says the link opens the front page, not a system",
+      /front page/.test(codexConn.destinationNote || ""));
+  const codexAnchor = topics.resolveResearchTopic(
+      topics.researchConnectionTopicId(TOPIC_SLUG, codexConn.anchorSlug));
+  chk("the Oracle anchor carries the same 'how to reach it' statement",
+      !!codexAnchor && codexAnchor.summary.includes(codexConn.destinationNote));
+  chk("the anchor's canonical route is still the Codex front page",
+      !!codexAnchor && codexAnchor.route === "/experience/correspondence-codex");
+}
+/* Every destination that is not a content route addressed by slug cannot be
+   pointed at from a link, so it must carry the note. */
+const needsNote = CONNS.filter((c) => !/^\/(gallery|journal)\//.test(c.href));
+chk("every destination that is not a deep-linkable content route carries a note",
+    needsNote.length > 0 && needsNote.every((c) => typeof c.destinationNote === "string" && c.destinationNote.trim().length > 40));
+chk("the card renders the note as plain text, not a third link",
+    /data-connection-destination-note/.test(section) && !/<a[^>]*data-connection-destination-note/.test(section));
+{
+  /* The long basis labels ("Catalogued in the archive's own FREQUENCY lattice")
+     sat in a nowrap, shrink-0 span; at 390 CSS px that clipped. */
+  const headFrom = section.indexOf("flex flex-col sm:flex-row sm:items-start sm:justify-between");
+  const head = headFrom < 0 ? "" : section.slice(headFrom, section.indexOf("</div>", headFrom));
+  chk("the card header stacks on narrow screens",
+      head.includes("sm:flex-row") && head.includes("flex-col"));
+  chk("both header labels are allowed to wrap, neither is shrink-0",
+      (head.match(/break-words/g) || []).length === 2 && !/shrink-0/.test(head));
+}
+
+console.log("\n== H. an unresolved identifier cannot retain or submit the previous anchor ==");
+const client = fs.readFileSync(path.join(ROOT, "src/app/oracle/page-client.tsx"), "utf8");
+chk("the research anchor is derived with the unknown case NAMED as a state",
+    /state: "unresolved"; requestedId: string/.test(client));
+chk("the anchor is derived from the URL, not copied into component state",
+    client.includes('if (!rawResearchId) return { state: "none" } as const;') &&
+    !/useState\([^)]*researchAnchor/.test(client) &&
+    !/setResearchAnchor/.test(client));
+chk("the chip renders from that derived state",
+    client.includes('{researchAnchor.state === "unresolved" && ('));
+chk("the research anchor is read through a ref that is refreshed every render",
+    /const researchAnchorRef = useRef\(researchAnchor\);/.test(client) &&
+    /researchAnchorRef\.current = researchAnchor;/.test(client));
+chk("the request identifier is read from that ref at submit time",
+    /const anchor = researchAnchorRef.current;/.test(client));
+chk("the payload is built from the same value the chip is rendered from",
+    /researchTopicId:\s*\n\s*anchor\.state === "resolved"/.test(client));
+chk("an unresolved identifier is forwarded AS ITSELF, never a resolved one",
+    client.includes('anchor.requestedId'));
+chk("the research anchor is named in the send callback's dependency list",
+    /artworkContext, researchAnchor, cancelPendingSpeech/.test(client));
+chk("the artwork anchor stays suppressed whenever a research id was supplied",
+    /if \(researchRequested\) return null;/.test(client));
+chk("a route change to a different entry aborts the in-flight resolution",
+    client.includes("const entryIdentity =") && /}, \[entryIdentity\]\);/.test(client));
+{
+  const from = client.indexOf("const entryIdentity =");
+  const guard = client.slice(from, client.indexOf("}, [entryIdentity]);", from));
+  chk("the navigation guard aborts transport only",
+      /reqAbortRef\.current\?\.abort\(\)/.test(guard) && !/setMsgs/.test(guard) && !/setInput/.test(guard));
+  chk("the guard leaves the conversation and the visitor's draft intact",
+      !/setMsgs|setInput|setDraftSeeded/.test(guard));
+}
+
 console.log("\n== F. the untouched corpus did not move ==");
 // Compared against the revision this batch started from (the clean tree's tip), not
 // against the released application commit — Batch 14's own harness files ride between
@@ -163,9 +240,11 @@ if (changed === null) {
   const ALLOWED = [
     "src/lib/research-connections.ts", "src/lib/research-topics.ts",
     "src/components/research/CymaticsConnections.tsx", "src/app/research/cymatics/page.tsx",
-    "scripts/batch15-research-topology.js", "docs/BATCH15-RESEARCH-TOPOLOGY.md",
+    "src/app/oracle/page-client.tsx",
+    "scripts/batch15-research-topology.js", "scripts/batch15b-connection-journey.py",
+    "docs/BATCH15-RESEARCH-TOPOLOGY.md", "docs/BATCH15B-SELECTED-CONNECTION-JOURNEY.md",
   ];
-  const unexpected = changed.filter((f) => !ALLOWED.includes(f));
+  const unexpected = changed.filter((f) => !ALLOWED.includes(f) && !f.startsWith("docs/evidence/batch15b/"));
   chkeq("only the pilot's own files changed", unexpected.length, 0);
   chk("public/ media untouched", !changed.some((f) => f.startsWith("public/")));
   chk("the artwork registry is untouched", !changed.includes("src/data/artworks.ts"));
