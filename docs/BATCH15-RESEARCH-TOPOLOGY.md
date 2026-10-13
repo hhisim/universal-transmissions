@@ -85,8 +85,50 @@ cannot quietly restore one or delete the other.
   the summary and prompt block carry the epistemic markers, that no graph engine or canvas was
   added, and that no untouched corpus (public media, artwork registry, journal corpus, codex corpus,
   billing/membership/migrations) moved.
-* **Browser journey** — recorded below, driven against the preview.
-* **Preview** — the immutable preview deployment is recorded below.
+* **Browser journey** — driven against the preview (below).
+* **Preview** — `dpl_2pnS9F3r3kGoaX8WDSysEd8d5RXe`, state READY, source SHA
+  `1a4814df0c9c55192a756c9a223a9b64d3452c98`, URL
+  `https://universal-transmissions-22bwygs78-hhisim-7214s-projects.vercel.app`.
+
+### 3a. The journey, as observed
+
+| Step | Observed |
+|---|---|
+| Page renders | 6 connection cards, each with kind · basis, its basis label, the **record's own title** and a rationale (257–342 chars) |
+| Legend | the three bases render as real buttons with `aria-expanded` |
+| Destinations | all six return **HTTP 200** (`/journal/…` ×2, `/gallery/…` ×3, `/experience/correspondence-codex`) |
+| Oracle entry carries the anchor | `researchTopicId=research-v1%3Acymatics%2Fconnection%2Fartwork-throat-chakra` + `from=/research/cymatics` + the seed question |
+| Hop 2 — forwarded | the parameter **survives the device-chooser redirect**: the final URL is `/oracle/desktop?researchTopicId=research-v1:cymatics/connection/artwork-throat-chakra&from=/research/cymatics&q=…` |
+| Hop 3 — rendered | chip block reads `SPEAKING ABOUT · Bio-Energetic Vortexes No.5 — Truth (Vishuddha Chakra) · RESEARCH CONTEXT · ← RETURN TO …` — the **connection's own** server-resolved title |
+| Draft | seeded with the connection's own question, editable, not auto-submitted |
+| Return | two links back to `/research/cymatics` |
+| Keyboard | both links per card focusable (`tabIndex 0`), **no nested anchors anywhere** |
+| Narrow layout | at an emulated ~390–494 px viewport: no horizontal overflow, 6 cards, the Oracle link 292 px wide and fully inside the viewport |
+
+### 3b. Defect found by the journey (reported, not patched)
+
+**A stale research context survives an unresolvable identifier.** Reproduced: open a valid
+connection anchor (chip reads the artwork's title), then open
+`/oracle?researchTopicId=research-v1:cymatics/connection/not-a-real-anchor` **in the same session** —
+the chip still reads `Research context · Cymatics` instead of the honest unknown state. Clearing
+`localStorage`/`sessionStorage` and reloading the same forged URL renders
+`RESEARCH CONTEXT UNAVAILABLE`, so the resolver is correct and the honest path exists; what is
+missing is that an unresolvable identifier does not discard the **previously resolved** context.
+
+This is the class the standing notes forbid ("a stale artwork or deity anchor cannot silently
+survive"); here it is a stale *research* anchor, and it would ground the model in the wrong topic.
+Not patched in this batch: the fix belongs in `src/app/oracle/page-client.tsx`'s research-context
+state, and it should be made **with** the payload-capture test below rather than blind.
+
+### 3c. Harness limits (stated, not claimed as passes)
+
+* The chat **send control was not driven successfully** in this session (the click landed on a
+  navigation element), so no generated answer and no **outbound payload capture** were observed.
+  The request body's contract therefore rests on the source (`page-client.tsx` sends the identifier
+  derived from the resolved record plus the visitor's message) and on the existing Batch 14 suite,
+  **not** on a captured live request.
+* The narrow-layout emulation reported an inner width of 494 px rather than the requested 390 px;
+  the no-overflow and in-viewport results stand at that width.
 
 ## 4. Limits
 
