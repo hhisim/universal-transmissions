@@ -109,18 +109,40 @@ union all select 5, 'trigger installer present, owned by postgres, not callable 
      and (select count(*) = 0 from pg_proc p
             join pg_namespace n on n.oid = p.pronamespace
            where n.nspname = 'public'
-             and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%'))
-union all select 10, 'RLS enabled on both tables, withdrawn policy absent, no anon/authenticated policy',
+             and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
+             and (p.proacl is null
+                  or exists (select 1 from aclexplode(p.proacl) x
+                              where x.grantee = 0 and x.privilege_type = 'EXECUTE'))))
+union all select 10, 'RLS enabled on both tables, withdrawn policy absent, every policy an APPROVED shape',
     ((select count(*) = 2 from pg_class c
         join pg_namespace n on n.oid = c.relnamespace
        where n.nspname = 'public' and c.relname in ('ut_members','profiles') and c.relrowsecurity)
      and (select count(*) = 0 from pg_policies
        where schemaname = 'public' and policyname = 'allow_authenticated_read')
-     and (select count(*) = 0 from pg_policies
-       where schemaname = 'public' and tablename in ('ut_members','profiles')
-         and (roles::text[] && array['anon','authenticated','public'])
-         and not (coalesce(qual,'') || ' ' || coalesce(with_check,'')
-                  ~* 'auth\.role\(\)\s*=\s*''service_role'''))
+     and (select count(*) = 0 from (
+     select c.relname as table_name, p.polname as policy_name,
+            case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT' when 'w' then 'UPDATE'
+                          when 'd' then 'DELETE' else 'ALL' end as cmd,
+            case when p.polpermissive then 'PERMISSIVE' else 'RESTRICTIVE' end as permissive,
+            (select string_agg(coalesce(r.rolname, 'public'), ',' order by coalesce(r.rolname, 'public'))
+               from unnest(p.polroles) pr left join pg_roles r on r.oid = pr) as roles,
+            case when p.polcmd = 'a' then '<n/a>'
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as using_eff,
+            case when p.polcmd in ('r', 'd') then '<n/a>'
+                 when p.polwithcheck is not null
+                   then replace(pg_get_expr(p.polwithcheck, p.polrelid), ' ', '')
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as check_eff
+     from pg_policy p join pg_class c on c.oid = p.polrelid
+     join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
+      ) pol
+    where not exists (select 1 from
+(values ('service_role', 'ALL', 'PERMISSIVE', 'true', 'true'),
+                    ('public', 'ALL', 'PERMISSIVE',
+                     '(auth.role()=''service_role''::text)', '(auth.role()=''service_role''::text)')
+           ) a(roles, cmd, permissive, using_eff, check_eff)
+           where a.roles = pol.roles and a.cmd = pol.cmd and a.permissive = pol.permissive
+             and a.using_eff = pol.using_eff and a.check_eff = pol.check_eff)))
  union all select 11, 'the 7 Batch 14ab prototype entry points are ABSENT',
        (to_regprocedure('public.b14ab_install_trigger(text)') is null
         and to_regprocedure('public.b14ab_trg_row()') is null

@@ -335,8 +335,9 @@ order by 1;
 -- every row:
 --   * row level security is ENABLED on both tables
 --   * the withdrawn policy `allow_authenticated_read` is ABSENT
---   * NO policy on either table is visible to anon, authenticated or PUBLIC — a
---     policy whose role list includes them re-opens the read path Batch 13 closed
+--   * EVERY policy on either table matches one of the APPROVED shapes (a closed set, see
+--     the row below): a policy addressed to anon/authenticated/PUBLIC that does not
+--     constrain them out is a violation, and so is any shape nobody approved.
 select 'rls_enabled_on_both_tables' as check_name,
        (select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace
          where n.nspname = 'public' and c.relname in ('ut_members', 'profiles') and c.relrowsecurity) as observed,
@@ -348,25 +349,48 @@ select 'withdrawn_read_policy_present',
        count(*), 0, count(*) = 0
 from pg_policies where schemaname = 'public' and policyname = 'allow_authenticated_read'
 union all
--- CORRECTED (production preflight, 2026-10-13): the previous revision tested the ROLE
--- LIST alone and counted a policy addressed TO public as a violation even when its own
--- expression constrains it to service_role. That is the trap this project's own notes
--- name — "`polroles` of `{0}` is PUBLIC, not 'no roles' … the role list is not the gate,
--- the USING/WITH CHECK expression is" — and production proved it: all three deployed
--- policies are `TO public` with `auth.role() = 'service_role'`, and the earlier condition
--- read them as three violations on a database whose boundary is correct.
+-- THE POLICY-SHAPE GATE — the set of APPROVED shapes is CLOSED, so a policy matching none
+-- of them FAILS review instead of being tolerated by a substring test that only looked for
+-- the service_role text somewhere in the expression.
 --
--- A policy is a violation only when it is addressed to anon/authenticated/PUBLIC *and*
--- does not constrain them out. The withdrawn `allow_authenticated_read` policy
--- (`TO authenticated USING auth.uid() IS NOT NULL`) still trips this, which is what the
--- requirement is for.
-select 'policies_giving_anon_authenticated_or_public_access',
+-- PostgreSQL's defaults are applied BEFORE comparison, because the catalog does not record
+-- them:
+--   * WITH CHECK is NOT APPLICABLE to SELECT and DELETE policies (stored NULL);
+--   * WITH CHECK DEFAULTS TO USING for UPDATE and ALL, so a policy that omits it is
+--     effectively restricted on both sides and is approved on that basis;
+--   * USING is NOT APPLICABLE to INSERT policies.
+-- Expressions are compared with whitespace removed, as pg_get_expr renders them.
+--
+-- The approved set is exactly: (a) a service_role-only policy with open predicates, and
+-- (b) a policy addressed TO public that constrains BOTH sides to service_role — the shape
+-- production is in. Anything else — including a restricted USING with an open WITH CHECK,
+-- or an open USING with a restricted WITH CHECK — is a finding.
+select 'policies_not_matching_an_approved_shape',
        count(*), 0, count(*) = 0
-from pg_policies
-where schemaname = 'public' and tablename in ('ut_members', 'profiles')
-  and (roles::text[] && array['anon', 'authenticated', 'public'])
-  and not (coalesce(qual, '') || ' ' || coalesce(with_check, '')
-           ~* 'auth\.role\(\)\s*=\s*''service_role''')
+from (
+     select c.relname as table_name, p.polname as policy_name,
+            case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT' when 'w' then 'UPDATE'
+                          when 'd' then 'DELETE' else 'ALL' end as cmd,
+            case when p.polpermissive then 'PERMISSIVE' else 'RESTRICTIVE' end as permissive,
+            (select string_agg(coalesce(r.rolname, 'public'), ',' order by coalesce(r.rolname, 'public'))
+               from unnest(p.polroles) pr left join pg_roles r on r.oid = pr) as roles,
+            case when p.polcmd = 'a' then '<n/a>'
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as using_eff,
+            case when p.polcmd in ('r', 'd') then '<n/a>'
+                 when p.polwithcheck is not null
+                   then replace(pg_get_expr(p.polwithcheck, p.polrelid), ' ', '')
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as check_eff
+     from pg_policy p join pg_class c on c.oid = p.polrelid
+     join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
+     ) pol
+where not exists (select 1 from
+(values ('service_role', 'ALL', 'PERMISSIVE', 'true', 'true'),
+                   ('public', 'ALL', 'PERMISSIVE',
+                    '(auth.role()=''service_role''::text)', '(auth.role()=''service_role''::text)')
+          ) a(roles, cmd, permissive, using_eff, check_eff)
+       where a.roles = pol.roles and a.cmd = pol.cmd and a.permissive = pol.permissive
+         and a.using_eff = pol.using_eff and a.check_eff = pol.check_eff)
 order by 1;
 
 
@@ -387,6 +411,55 @@ select c.relname as table_name, pg_get_userbyid(c.relowner) as owner,
 from pg_class c join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
 order by 1;
+
+
+-- Q10c -------------------------------------------------------------------------
+-- informational: every policy on the two tables with its EFFECTIVE predicates and
+-- whether it matches an approved shape, so a red verdict has a readable cause and a
+-- policy that only passes because a default made it look restricted is visible.
+-- THE POLICY-SHAPE GATE — the set of APPROVED shapes is CLOSED, so a policy matching none
+-- of them FAILS review instead of being tolerated by a substring test that only looked for
+-- the service_role text somewhere in the expression.
+--
+-- PostgreSQL's defaults are applied BEFORE comparison, because the catalog does not record
+-- them:
+--   * WITH CHECK is NOT APPLICABLE to SELECT and DELETE policies (stored NULL);
+--   * WITH CHECK DEFAULTS TO USING for UPDATE and ALL, so a policy that omits it is
+--     effectively restricted on both sides and is approved on that basis;
+--   * USING is NOT APPLICABLE to INSERT policies.
+-- Expressions are compared with whitespace removed, as pg_get_expr renders them.
+--
+-- The approved set is exactly: (a) a service_role-only policy with open predicates, and
+-- (b) a policy addressed TO public that constrains BOTH sides to service_role — the shape
+-- production is in. Anything else — including a restricted USING with an open WITH CHECK,
+-- or an open USING with a restricted WITH CHECK — is a finding.
+select pol.table_name, pol.policy_name, pol.cmd, pol.permissive, pol.roles,
+       pol.using_eff, pol.check_eff,
+       exists (select 1 from
+(values ('service_role', 'ALL', 'PERMISSIVE', 'true', 'true'),
+                   ('public', 'ALL', 'PERMISSIVE',
+                    '(auth.role()=''service_role''::text)', '(auth.role()=''service_role''::text)')
+          ) a(roles, cmd, permissive, using_eff, check_eff)
+         where a.roles = pol.roles and a.cmd = pol.cmd and a.permissive = pol.permissive
+           and a.using_eff = pol.using_eff and a.check_eff = pol.check_eff) as is_approved_shape
+from (
+     select c.relname as table_name, p.polname as policy_name,
+            case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT' when 'w' then 'UPDATE'
+                          when 'd' then 'DELETE' else 'ALL' end as cmd,
+            case when p.polpermissive then 'PERMISSIVE' else 'RESTRICTIVE' end as permissive,
+            (select string_agg(coalesce(r.rolname, 'public'), ',' order by coalesce(r.rolname, 'public'))
+               from unnest(p.polroles) pr left join pg_roles r on r.oid = pr) as roles,
+            case when p.polcmd = 'a' then '<n/a>'
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as using_eff,
+            case when p.polcmd in ('r', 'd') then '<n/a>'
+                 when p.polwithcheck is not null
+                   then replace(pg_get_expr(p.polwithcheck, p.polrelid), ' ', '')
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as check_eff
+     from pg_policy p join pg_class c on c.oid = p.polrelid
+     join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
+     ) pol
+order by 1, 2;
 
 
 -- Q80 --------------------------------------------------------------------------
@@ -614,8 +687,10 @@ select
             ('b14ac_trg_stmt_exclusive', ''),
             ('b14ac_trg_stmt_shared', '')))
   and
-  -- (10) Batch 13: RLS enabled, the withdrawn policy absent, no policy visible to
-  --      anon/authenticated/PUBLIC
+  -- (10) Batch 13: RLS enabled on both tables and the withdrawn read policy absent.
+  --      The policy SET is checked by the closed-shape gate in (10c) below, which subsumes
+  --      the earlier "role list includes anon/authenticated/public" test: that test read a
+  --      correct service_role-only policy addressed TO public as a violation.
   (select count(*) = 2 from pg_class c
      join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public' and c.relname in ('ut_members', 'profiles') and c.relrowsecurity)
@@ -623,9 +698,33 @@ select
   (select count(*) = 0 from pg_policies
     where schemaname = 'public' and policyname = 'allow_authenticated_read')
   and
-  (select count(*) = 0 from pg_policies
-    where schemaname = 'public' and tablename in ('ut_members', 'profiles')
-      and (roles::text[] && array['anon', 'authenticated', 'public'])
-      and not (coalesce(qual, '') || ' ' || coalesce(with_check, '')
-               ~* 'auth\.role\(\)\s*=\s*''service_role'''))
+  -- (10c) every policy on the two tables matches an APPROVED shape. The set is CLOSED and
+  --       evaluated with PostgreSQL's defaults applied (WITH CHECK defaults to USING for
+  --       UPDATE/ALL; not applicable for SELECT/DELETE; USING not applicable for INSERT),
+  --       so an unrecognised shape — including a restricted USING with an open WITH CHECK —
+  --       fails the gate rather than being tolerated by a substring match.
+  (select count(*) = 0 from (
+     select c.relname as table_name, p.polname as policy_name,
+            case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT' when 'w' then 'UPDATE'
+                          when 'd' then 'DELETE' else 'ALL' end as cmd,
+            case when p.polpermissive then 'PERMISSIVE' else 'RESTRICTIVE' end as permissive,
+            (select string_agg(coalesce(r.rolname, 'public'), ',' order by coalesce(r.rolname, 'public'))
+               from unnest(p.polroles) pr left join pg_roles r on r.oid = pr) as roles,
+            case when p.polcmd = 'a' then '<n/a>'
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as using_eff,
+            case when p.polcmd in ('r', 'd') then '<n/a>'
+                 when p.polwithcheck is not null
+                   then replace(pg_get_expr(p.polwithcheck, p.polrelid), ' ', '')
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as check_eff
+     from pg_policy p join pg_class c on c.oid = p.polrelid
+     join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
+     ) pol
+   where not exists (select 1 from
+(values ('service_role', 'ALL', 'PERMISSIVE', 'true', 'true'),
+                   ('public', 'ALL', 'PERMISSIVE',
+                    '(auth.role()=''service_role''::text)', '(auth.role()=''service_role''::text)')
+          ) a(roles, cmd, permissive, using_eff, check_eff)
+          where a.roles = pol.roles and a.cmd = pol.cmd and a.permissive = pol.permissive
+            and a.using_eff = pol.using_eff and a.check_eff = pol.check_eff))
   as verdict;

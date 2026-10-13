@@ -70,10 +70,18 @@ statement trigger is what covers direct writers. Step 8 ends by asserting the wh
    authority column **by type** on both tables; the trigger **enabled**, BEFORE, STATEMENT-level,
    covering INSERT **and** UPDATE on **both** tables; `service_role` holding exactly the release
    closure; `anon`/`authenticated`/PUBLIC holding nothing on any bundle-owned function.
-4. **Smoke, as `service_role`:** a direct INSERT/UPDATE on `ut_members` must commit (the trigger
-   fires and does not block), and `apply_lifecycle_update_sync_global(...)` must return a row.
-   Without the grant on `b14ab_acquire_global_lock` both would fail `42501` — that is the one
-   permission the boundary grants that the old PUBLIC default was silently providing.
+4. **Smoke, as `service_role` — rollback-only and synthetic:**
+   `scripts/batch14ay-service-role-smoke.sql`. One transaction: a direct INSERT, a direct UPDATE
+   that fires the exclusive-global statement trigger (the INVOKER helper path — the one permission
+   the boundary grants that the old PUBLIC default was silently providing), and the atomic RPC
+   `apply_lifecycle_update_sync_global`, each asserted. It makes **no Stripe calls, no network
+   access and no persistent membership change**: the transaction ends in `rollback`, and a failed
+   assertion ABORTS it, so the rollback-only property does not depend on reaching the final
+   statement. Two post-condition rows, evaluated from outside the transaction, assert that the
+   synthetic row is absent from both tables — the claim is measured, not promised. Run it as the
+   operator; it sets `role` to `service_role` locally for the transaction. In the isolated suite
+   the same file is run with `rollback` replaced by `commit` as a **control**, which must leave the
+   row behind — so "nothing persisted" is a check that can fail.
 5. **Do not release the application in the same window** (§4).
 
 ## 4. The application release — exact SHA, and why it is second

@@ -15,6 +15,17 @@ is not one, before it is sent.
   (`scripts/batch14ay-preflight-production-run.py`), so each has its own HTTP status and its own
   result. psql's exit code for a multi-statement file reflects the whole file; a statement that
   fails while a later one succeeds is invisible that way.
+* **Read-only is ENFORCED BY THE SERVER, not asserted by a prefix test.** Each statement is sent
+  inside an explicit `BEGIN READ ONLY` transaction, so PostgreSQL refuses any write with SQLSTATE
+  `25006`. A `SELECT`/`WITH` prefix check is applied to the file first, but that is a sanity guard
+  on the reviewed bytes and **not** the guarantee — a `SELECT` can call a volatile function that
+  writes, and a prefix test would not see it. The run therefore begins with a **negative
+  control**: a deliberately mutating statement is sent through the same wrapper and must be
+  refused. This run reported `read-only control: … refused with 25006 (status=400)`, so the
+  enforcement was demonstrated before any preflight statement was sent.
+* **The runner executes the approved SQL bytes.** Input is `git show <commit>:<path>` with the
+  blob hash checked against the release record *before* the first request; the worktree copy is
+  never the source.
 * **Output safety:** every result cell is scanned for an email address or a UUID and would be
   redacted before it reached the report; **0 statements were redacted** because the preflight
   projects counts and catalog facts only. No member identifier was retrieved.
@@ -62,6 +73,32 @@ is not one, before it is sent.
 | Legacy exposure | `ut_members`: 2 rows, 2 unattested, 1 checkout-style (customer only), 1 with no Stripe linkage. `profiles`: 19 rows, 19 unattested, 4 checkout-style, 14 with no linkage, 9 with an unrecognised plan |
 | Cross-table | 2 addresses present in both tables; **0** attested contradictions (nothing is attested yet) |
 | Unrelated functions with PUBLIC EXECUTE | **7** — all pre-existing application helpers (`increment_oracle_usage`, `increment_guest_usage`, `update_updated_at`, …), reported informationally, **not touched** by this release |
+| Policies, whole schema | **37** policies exist in `public` (see §2a). Only the three on `ut_members`/`profiles` are in this release's scope |
+
+## 2a. The complete production policy inventory (read-only)
+
+Every policy in the `public` schema, with command, roles, permissiveness, `USING` and
+`WITH CHECK` as `pg_get_expr` renders them — the two tables this release owns first.
+
+### On `ut_members` and `profiles` — the release's scope
+
+| Table | Policy | cmd | Perm. | roles | USING | WITH CHECK |
+|---|---|---|---|---|---|---|
+| `profiles` | `srv_profiles` | ALL | PERMISSIVE | `{public}` | `(auth.role() = 'service_role'::text)` | `(auth.role() = 'service_role'::text)` |
+| `ut_members` | `Service role full access` | ALL | PERMISSIVE | `{public}` | `(auth.role() = 'service_role'::text)` | `(auth.role() = 'service_role'::text)` |
+| `ut_members` | `srv_ut_members` | ALL | PERMISSIVE | `{public}` | `(auth.role() = 'service_role'::text)` | `(auth.role() = 'service_role'::text)` |
+
+All three are the **same shape**: addressed `TO public`, constrained on **both** sides to
+`service_role`. That shape is now one of the two explicitly APPROVED shapes the gate accepts.
+
+### Elsewhere in `public` — 34 further policies, out of scope and untouched
+
+`agora_posts`, `agora_threads`, `forum_*`, `newsletter_subscribers`, `ut_comments`,
+`ut_guest_usage`, `ut_likes`, `ut_oracle_usage`, `ut_orders`, `ut_usage`, `conversations`,
+`messages` carry their own public-read / authenticated-write policies (open `true` predicates,
+`auth.uid()` ownership tests, and further `auth.role() = 'service_role'` service policies). None
+of them governs membership, so the gate is scoped to the two tables this release owns and this
+release touches none of them — the same rule that keeps it away from unrelated functions.
 
 ## 3. Comparison with the installation prerequisites — every mismatch named
 

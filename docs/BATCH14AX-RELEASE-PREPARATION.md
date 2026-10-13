@@ -54,9 +54,9 @@ re-verified after this batch: `20261010` `73cf618e…`, `20261012` `b352afa0…`
 `dc4b0e9a…`, `20261014` `2472d272…`, `20261015` `c92e41e7…`, `20261016` `e87041b0…`. The
 surface decision lives in step 8 precisely so that stays true.
 
-### 1c-bis. SQL and harness files — final hashes
+### 1c-bis. Artifact hashes — the whole package
 
-Hashes of every artifact this package ships, as frozen for review. The reviewed migrations
+Every executable artifact this package ships, as frozen for review. The reviewed migrations
 `20261010` – `20261016` are **not** listed because they are unchanged: their hashes are in §1a and
 were re-verified after this batch.
 
@@ -64,39 +64,37 @@ were re-verified after this batch.
 |---|---|---|
 | `20261017_function_surface_boundary.sql` | `ac39a47d8c33f9b20b9d58dbb21dad1dcbdf1149e6f1902ae029d8b46c1c9294` | `878af9c7d8c44d969497ffbda6462b391bc5605c` |
 | `batch14ax-preflight-production.sql` | `2bb03de36a1ea8622fad24516ba1043d87ee2c1031263ab80018445f9c5a2fe9` | `2749f08f5baea187d9abe76c3b53dfa1c387294c` |
-| `batch14ax-postflight-production.sql` | `917f5ab69d9f5afbe5f0c48d122f0c58271880962086fa501999458fd935fd53` | `30b61920bf4a2b95ce4fc709684270e3db607db3` |
-| `batch14ax-install-bundle-validate.sh` | `6c76294e65d38c994ee00e5a2275108a99a2abffb454ea813818e727945977a7` | `6188be752cbcbbabaa9e1110200ef60564fd0cd3` |
-| `batch14ax-gate-negatives.sh` | `29dfad0f6cc8bd79381e23bf2506458039bc7faeb4486680f1d6ecf82300fddd` | `15e9f4f07f730f032a47f859b420b65628e498ab` |
-| `batch14ax-verdict-components.sql` | `f4ee6b333d29aafd198cb0cf4c182aead6454ffd4110534c1b33d5a308ea629f` | `94efa68c9e7ff67d389a32acaa06d676e815bb45` |
+| `batch14ax-postflight-production.sql` | `8acbfa584d3e88d0f8c6e3157617297a744b9d3fa88b6f8b25474e5ded2ea305` | `eab700b786c0937aab07004505786b63fdb71309` |
+| `batch14ax-install-bundle-validate.sh` | `84d64bd27e608f495431938431ef4e152e3391177eb4e93cc6480f26fbde0029` | `3f215121c789c5d732c3cac1980203cc562c855f` |
+| `batch14ax-gate-negatives.sh` | `b6699bb50a8296acf89ba31f1e2101deeaa0457cc7757254f7e3e03e8f030b39` | `b25487655d61d7fe7375e51582e8b63e63c2ee60` |
+| `batch14ax-verdict-components.sql` | `04f1ecea5dc5af76de25536b05c227ca615dbf5fc6b470662dac51c31e9e8459` | `4c3d3bb6c276eaef6c87a76ddf1d574734b5101f` |
 | `batch14ay-function-surface.sh` | `67962eef6536f60524213aa719d8fb7ea751e96da9f2d94d37b9406fc979622a` | `71186eb18ac42c4f8d675221fd913ca73e5f0177` |
 | `batch14ay-surface-gate.sh` | `78aded4192deaf893b8c99458b698046425f61b134b30082e2ad879e049845f6` | `3535a3eebf061d81fccb1e569231497f303d6d52` |
-| `batch14ay-preflight-production-run.py` | `ae261a2c847dd1cda1a1b2ab99c450e3e353def0c6ba7a188ec1727e4d2ce38d` | `cc62672288f630118600f20d8883e9ff8c1bb88a` |
+| `batch14ay-preflight-production-run.py` | `8dd32c3b633da7a0f4758779d5e047dddbe2e6b895c9c441326dd321b250e00d` | `7cdbb9fdd02ec2448377cd8d54752b6909f16eed` |
+| `batch14ay-service-role-smoke.sql` | `ea4d8facd8f917cb421d90027734e1eabb191b5bf97ad02dc66bceac9f173d8d` | `02a30c313b23b5346988b6de70a22eddf8b773e3` |
 | `batch14ax-email-index-negatives.sh` | `68b7da975a60293ae10329263798510ffddc40d48c9599d148337f1d4d1211b7` | `2ef4064900c78e7e3709ab5c66163d55286665c9` |
 
-`docs/BATCH14AY-SQL-SURFACE.md` (the surface inventory, call graph, boundary rationale and the
-focused-gate results) and `docs/BATCH14AY-PRODUCTION-PREFLIGHT.md` (the read-only production
-preflight, its per-statement outcomes and every mismatch) are the documents for this package; like
-this record they are amended by the follow-up commit that names the candidate, and they contain no
-executable artifact.
+`docs/BATCH14AY-SQL-SURFACE.md` (surface inventory and boundary rationale),
+`docs/BATCH14AY-PRODUCTION-PREFLIGHT.md` (the read-only production preflight and every mismatch)
+and `docs/BATCH14AY-ROLLOUT-DECISION.md` (the rollout decision and rollback consequences) are this
+package's documents. They contain no executable artifact and are amended by the follow-up commit
+that names the candidate — see §1b.
 
 ### 1b. Candidate SHA
 
-**`41a892c522d5d87b9363bdf39b67f53885ad8819`** — the commit that carries this package
-(migration `20261017`, the harnesses, the two Batch 14ay documents and this record).
+**`__CANDIDATE__`**
 
-This document was amended in the immediately following commit so that it could name its own
-candidate; that amendment changed **this document only**. No SQL, harness or application file
-differs between the two commits, so the SHA above is the exact candidate for every artifact in
-§1a, §1a-bis, §1c-bis and §5.
+That is the single candidate identifier for this package: the commit that carries every artifact
+in §1a, §1a-bis and §1c-bis (the migration, the harnesses, the smoke script and the documents).
 
-**Corrected identifiers.** The previous revision named
-`5bc511e44ecff775131bbb4c639d1654119860e2`, which was the candidate before the production
-preflight; that preflight disproved a gate condition (§5b, defect 4), so the package changed and
-the candidate moved. §1c also carried two **pre-boundary blob hashes** for
-`batch14ax-preflight-production.sql` and `batch14ax-gate-negatives.sh` that §1c-bis had already
-superseded — a self-contradicting record — and those rows now defer to §1c-bis. `286eab5f…` and
-`5bc511e…` are no longer candidate identifiers: neither would install the surface this record
-describes.
+**There is exactly one candidate, and it is not the branch tip.** This record is amended after that
+commit so that it can name it; that amendment — and any later correction to this file — changes
+**`docs/` only** and is never an alternative candidate. To check: `git diff --name-only <candidate>
+<tip>` must list nothing outside `docs/`. Do not resolve the candidate to a later docs-only commit.
+
+Superseded identifiers, none of which is the candidate: `286eab5f…` (before the boundary
+migration), `5bc511e…` (before the production preflight), `41a892c…` (before the policy-shape
+gate). Each of them installs or verifies strictly less than this record describes.
 
 ### 1c. Harness files in this package
 
@@ -349,8 +347,8 @@ empty, asserted; data directory torn down at the end) and is version-parameteris
 |---|---|---|
 | `scripts/batch14ay-function-surface.sh` | inventory | the complete surface it dumps — 17 functions with signature, mode, owner, pinned path, raw ACL, per-role **effective** EXECUTE, bodies and triggers — is the basis of the §1a-bis decisions, and its call graph is derived from the bodies (plpgsql records nothing in `pg_depend`) |
 | `scripts/batch14ay-surface-gate.sh` | **83 / 0** (PG17) | the focused surface validation: §4 of `docs/BATCH14AY-SQL-SURFACE.md` (denials for all ten functions × three roles, authorized direct writes and atomic RPC, the withdrawn per-identity variant, the installer's modes, load-bearing grant and denial controls, RESTRICT, and completed-call coverage) |
-| `scripts/batch14ax-install-bundle-validate.sh` | **51 / 0** (PG16) · **50 / 0** (PG17) | Batch 13 applied first, every bundle file applies in order **including the boundary**, the preflight EXECUTES against the pre-install state, the reviewed file is byte-identical after being applied, the exclusive trigger covers both tables, an unknown mode is refused (22023), direct writes as `service_role` commit and the index refuses a case-variant duplicate, Batch 13 preservation survives, the postflight EXECUTES with a mandatory verdict of `t`, and both files are SELECT-only |
-| `scripts/batch14ax-gate-negatives.sh` | **51 / 0** (PG16) · **51 / 0** (PG17) | 18 cases: the clean-install control, PUBLIC table access, column access, disabled trigger, partial trigger coverage, shared-mode trigger, exposed wrapper, RLS drift, re-created read policy, missing authority column, missing signature, wrong security mode/search_path, moved ownership, PUBLIC EXECUTE on a helper, a re-created prototype, a revoked release-closure grant, an unpinned helper, an open `TO public` policy, and a service-role policy addressed `TO public` (which must read GREEN) — plus the verdict-parser controls and the restored clean-install control |
+| `scripts/batch14ax-install-bundle-validate.sh` | **58 / 0** (PG16) · **57 / 0** (PG17) | Batch 13 applied first, every bundle file applies in order **including the boundary**, the preflight EXECUTES against the pre-install state, the reviewed file is byte-identical after being applied, the exclusive trigger covers both tables, an unknown mode is refused (22023), direct writes as `service_role` commit and the index refuses a case-variant duplicate, Batch 13 preservation survives, the postflight EXECUTES with a mandatory verdict of `t`, and both files are SELECT-only |
+| `scripts/batch14ax-gate-negatives.sh` | **66 / 0** (PG16) · **66 / 0** (PG17) | 24 cases: the clean-install control, PUBLIC table access, column access, disabled trigger, partial trigger coverage, shared-mode trigger, exposed wrapper, RLS drift, re-created read policy, missing authority column, missing signature, wrong security mode/search_path, moved ownership, PUBLIC EXECUTE on a helper, a re-created prototype, a revoked release-closure grant, an unpinned helper, and the six POLICY-SHAPE cases: open on both sides (reject), `service_role` + `true/true` (GREEN), the exact production shape (GREEN), restricted `USING` with unrestricted `WITH CHECK` (reject), unrestricted `USING` with restricted `WITH CHECK` (reject), omitted `WITH CHECK` defaulting to `USING` (GREEN), and an unapproved authenticated shape (reject) — plus the verdict-parser controls, the smoke and its rollback control, and the restored clean-install control |
 | `scripts/batch14ax-email-index-negatives.sh` | 27 / 0 | the hardened index guards (unchanged this batch) |
 
 The 17 branch of the privilege `CASE` **is** exercised (PostgreSQL 17 is installed on the test
@@ -385,7 +383,30 @@ decision rather than an argument.
    policy → reject; C19 production-shaped policy → green). This is why the preflight is run
    against production and not only against a fixture: the isolated fixture happened to declare
    its policies `TO service_role`, so no isolated run could have surfaced it.
-5. **A negative control did not inject its drift.** C15's prototype re-creation passed its
+5. **The policy gate tested a SUBSTRING, not a shape.** The exemption
+   `~* 'auth\.role\(\)\s*=\s*''service_role'''` accepted any expression that merely
+   *contained* that text — so `USING (true) WITH CHECK (auth.role() = 'service_role')` would have
+   passed while leaving reads open. It is replaced by a **closed set of approved shapes** compared
+   on `(roles, command, permissiveness, effective USING, effective WITH CHECK)`, with PostgreSQL's
+   defaults applied first (`WITH CHECK` defaults to `USING` for UPDATE/ALL; not applicable for
+   SELECT/DELETE; `USING` not applicable for INSERT). **An unknown shape fails review.** Six
+   controls pin it, three of them GREEN — because a gate that rejects a correct production
+   boundary is the failure mode this whole correction exists to remove.
+6. **Two bugs the new controls exposed immediately, both of which would have shipped.**
+   (a) The approved `roles` values were written `'{service_role}'`/`'{public}'` while the
+   expression emits a **bare comma-joined list** — every policy would have been reported as an
+   unapproved shape, production included. The three GREEN controls caught it; without them the
+   first red run would have looked like a production problem. (b) Component 9's
+   `PUBLIC EXECUTE` predicate had been **lost in an earlier edit**, leaving a clause that asked
+   whether any bundle-owned function exists — false after the install. It was invisible because the
+   components run only on a red verdict, which then printed a misleading cause. Both are fixed.
+7. **The preflight's read-only claim was overstated and is now enforced.** The runner asserted
+   that "SELECT/WITH prefixes make it read-only"; a prefix test does not constrain a `SELECT` that
+   calls a volatile function, so that was a declaration rather than a guarantee. Each statement now
+   runs inside an explicit `BEGIN READ ONLY` transaction, where the server refuses any write with
+   `25006`, and the run begins with a **negative control** that must be refused. The production run
+   reported the control refused before any preflight statement was sent.
+8. **A negative control did not inject its drift.** C15's prototype re-creation passed its
    dollar-quoted body through nested `psql -c` / `su -c`, so the inner shell expanded `$fn` to
    nothing, the injection failed, and the case reported "the drift was not caught" — the same
    trap C11 hit earlier. Both now write the injection to a FILE and assert that the injection

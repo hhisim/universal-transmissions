@@ -378,35 +378,54 @@ run_file "$MIG/$BOUNDARY" >/dev/null 2>&1   # the boundary re-pins it
 expect_verdict "C17 reverted" t
 
 echo ""
-echo "== CASE 18: a policy addressed TO public with NO service_role constraint =="
-# The corrected condition must still FAIL here: this is the shape that actually grants.
-cat >"$BASE/c18.sql" <<'EOF'
-create policy b14ay_open_policy on public.ut_members for select to public using (true);
-EOF
-chmod 644 "$BASE/c18.sql"
-C18_RC=$(psql_ "$BASE/c18.sql" >"$BASE/c18.out" 2>&1; echo $?)
-chkeq "C18 the drift is installed (the injection itself succeeds)" "0" "$C18_RC"
-if [ "$C18_RC" != "0" ]; then sed -n '1,4p' "$BASE/c18.out"; fi
-expect_verdict "C18 an open policy for PUBLIC" reject
-q "drop policy if exists b14ay_open_policy on public.ut_members" >/dev/null 2>&1
-expect_verdict "C18 reverted" t
+echo "== CASES 18-23: the approved policy SHAPES (closed set) =="
+# Each case installs ONE policy and asserts the verdict. The two GREEN cases matter as much
+# as the red ones: without them the gate would be untested in the direction that blocks a
+# correct production boundary, which is exactly how the previous substring exemption failed.
+mk_policy() {  # mk_policy <name> <sql>
+  printf '%s\n' "$2" >"$BASE/$1.sql"; chmod 644 "$BASE/$1.sql"
+  local rc
+  rc=$(psql_ "$BASE/$1.sql" >"$BASE/$1.out" 2>&1; echo $?)
+  chkeq "$1 the injection itself succeeds" "0" "$rc"
+  if [ "$rc" != "0" ]; then sed -n '1,4p' "$BASE/$1.out"; fi
+}
+drop_policy() { q "drop policy if exists $1 on public.ut_members" >/dev/null 2>&1; }
 
-echo ""
-echo "== CASE 19: a policy TO public that CONSTRAINS to service_role (production's shape) =="
-# The other direction: this must NOT be reported as a violation. Without this control the
-# relaxation in CASE 18 would be untested in the direction that matters — a gate that
-# rejects a correct production boundary blocks the rollout for a non-defect.
-cat >"$BASE/c19.sql" <<'EOF'
-create policy b14ay_srv_policy on public.ut_members for all to public
-  using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
-EOF
-chmod 644 "$BASE/c19.sql"
-C19_RC=$(psql_ "$BASE/c19.sql" >"$BASE/c19.out" 2>&1; echo $?)
-chkeq "C19 the production-shaped policy is installed (the injection itself succeeds)" "0" "$C19_RC"
-if [ "$C19_RC" != "0" ]; then sed -n '1,4p' "$BASE/c19.out"; fi
-expect_verdict "C19 a service_role policy addressed TO public" t
-q "drop policy if exists b14ay_srv_policy on public.ut_members" >/dev/null 2>&1
-expect_verdict "C19 reverted" t
+# C18 — open on BOTH sides, addressed to public: must fail
+mk_policy c18 "create policy b14ay_c18 on public.ut_members for all to public using (true) with check (true);"
+expect_verdict "C18 open USING and WITH CHECK for PUBLIC" reject
+drop_policy b14ay_c18; expect_verdict "C18 reverted" t
+
+# C19 — service-role role list with open predicates: APPROVED, must stay green
+mk_policy c19 "create policy b14ay_c19 on public.ut_members for all to service_role using (true) with check (true);"
+expect_verdict "C19 service_role + true/true (approved shape)" t
+drop_policy b14ay_c19; expect_verdict "C19 reverted" t
+
+# C20 — the exact approved production shape: must stay green
+mk_policy c20 "create policy b14ay_c20 on public.ut_members for all to public using (auth.role() = 'service_role') with check (auth.role() = 'service_role');"
+expect_verdict "C20 the exact production shape (public + service_role both sides)" t
+drop_policy b14ay_c20; expect_verdict "C20 reverted" t
+
+# C21 — restricted USING with UNRESTRICTED WITH CHECK: must fail
+mk_policy c21 "create policy b14ay_c21 on public.ut_members for all to public using (auth.role() = 'service_role') with check (true);"
+expect_verdict "C21 restricted USING + unrestricted WITH CHECK" reject
+drop_policy b14ay_c21; expect_verdict "C21 reverted" t
+
+# C22 — unrestricted USING with RESTRICTED WITH CHECK: must fail
+mk_policy c22 "create policy b14ay_c22 on public.ut_members for all to public using (true) with check (auth.role() = 'service_role');"
+expect_verdict "C22 unrestricted USING + restricted WITH CHECK" reject
+drop_policy b14ay_c22; expect_verdict "C22 reverted" t
+
+# C23 — PostgreSQL's DEFAULT: WITH CHECK defaults to USING for ALL, so a policy that omits
+# it is effectively restricted on both sides and must be APPROVED on that basis.
+mk_policy c23 "create policy b14ay_c23 on public.ut_members for all to public using (auth.role() = 'service_role');"
+expect_verdict "C23 omitted WITH CHECK defaults to USING (approved)" t
+drop_policy b14ay_c23; expect_verdict "C23 reverted" t
+
+# C24 — an UNKNOWN shape that is not the withdrawn policy by name: must fail on shape
+mk_policy c24 "create policy b14ay_c24 on public.ut_members for select to authenticated using (auth.uid() is not null);"
+expect_verdict "C24 an unapproved shape (authenticated SELECT)" reject
+drop_policy b14ay_c24; expect_verdict "C24 reverted" t
 
 echo ""
 echo "== FINAL: the clean-install control, restored =="

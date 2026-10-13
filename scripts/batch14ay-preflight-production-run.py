@@ -10,9 +10,14 @@ batch, so a failure in statement 7 is invisible if statement 12 succeeds. Each s
 here gets its own request, its own HTTP status and its own result, and the report names
 any statement that did not return rows.
 
-READ-ONLY BY CONSTRUCTION:
-  * every statement is checked to begin with SELECT or WITH before it is sent — a
-    read-only intent cannot drift into a mutation, and the check is a refusal, not advice;
+READ-ONLY, ENFORCED BY THE SERVER:
+  * every statement is sent inside an explicit `BEGIN READ ONLY` transaction, so PostgreSQL
+    itself refuses any write with SQLSTATE 25006 — this is the enforcement, and it does not
+    depend on what the statement looks like;
+  * a SELECT/WITH prefix check is applied to the file first, but that is a cheap SANITY
+    GUARD on the reviewed bytes, not the guarantee: a `SELECT` can call a volatile function
+    that writes, and a prefix test would not see it. The server-side read-only transaction
+    is what makes the claim true, and a negative control (below) proves it can fail;
   * the preflight file itself is separately asserted to contain no writing statement
     (the gate harness does that too);
   * NO statement is assembled from anything but the committed file: the bytes that run
@@ -153,7 +158,15 @@ def redact(value):
 
 
 def run_statement(ref, token, stmt):
-    body = json.dumps({"query": stmt}).encode()
+    """Send ONE statement inside an explicit READ ONLY transaction.
+
+    The transaction is the enforcement: if the statement tries to write, the server refuses
+    it with 25006 regardless of how the statement is shaped. The transaction is rolled back
+    rather than committed — a read-only transaction can commit nothing, but rolling back
+    also makes the intent unambiguous in the server log.
+    """
+    wrapped = "begin read only;\n" + stmt.rstrip().rstrip(";") + ";\nrollback;"
+    body = json.dumps({"query": wrapped}).encode()
     req = urllib.request.Request(API.format(ref=ref), data=body,
                                  headers=dict(HEADERS, Authorization="Bearer " + token))
     try:
@@ -180,6 +193,21 @@ def main():
         sys.exit("--ref (or UT_PROJECT_REF) is required")
 
     sql = open(args.sql, encoding="utf-8").read()
+
+    # ------------------------------------------------------------------ control --
+    # Prove the read-only enforcement can actually fail before trusting it for the run: a
+    # deliberately mutating statement is sent through the SAME wrapper and must be refused
+    # with 25006. Without this, "wrapped in a read-only transaction" is a claim about code.
+    ctl_status, ctl_body = run_statement(
+        args.ref, token,
+        "insert into public.ut_members (id, email) values "
+        "(gen_random_uuid(), 'b14ay-readonly-control@invalid.test')")
+    if ctl_status in (200, 201) or "25006" not in ctl_body:
+        sys.exit(f"REFUSING TO RUN: the read-only control was NOT refused "
+                 f"(status={ctl_status}, body={ctl_body[:200]}) — the wrapper does not "
+                 f"enforce read-only, so the preflight could write.")
+    print(f"read-only control: a mutating statement was refused with 25006 "
+          f"(status={ctl_status}) — enforcement verified")
 
     # Refuse to send anything that is not a read. Checked on the FILE, before any request.
     for label, stmt in split_statements(sql):

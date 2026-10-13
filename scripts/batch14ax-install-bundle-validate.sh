@@ -302,6 +302,35 @@ chkeq "the INVOKER helper on the direct-write path IS granted to service_role" "
   "$(q "select has_function_privilege('service_role', 'public.b14ab_acquire_global_lock(boolean)', 'EXECUTE')")"
 
 echo ""
+echo "== the rollback-only service_role smoke (synthetic; no Stripe; nothing persists) =="
+cp "$REPO/scripts/batch14ay-service-role-smoke.sql" "$BASE/smoke.sql"; chmod 644 "$BASE/smoke.sql"
+MEM_BEFORE=$(q "select count(*) from public.ut_members")
+PROF_BEFORE=$(q "select count(*) from public.profiles")
+SMOKE_OUT=$(psql_ "$BASE/smoke.sql" 2>&1)
+chkeq "the smoke raises no error" "0" "$(grep -c ERROR <<<"$SMOKE_OUT")"
+if grep -q "SMOKE OK" <<<"$SMOKE_OUT"; then
+  ok "the smoke's own assertions passed (direct INSERT, direct UPDATE with the trigger, and the atomic RPC)"
+else
+  bad "the smoke did not report OK (output: $(grep -m1 -i 'error\|failed' <<<"$SMOKE_OUT"))"
+fi
+chkeq "  ...nothing persisted in ut_members" "t" \
+  "$(grep 'nothing_persisted_in_ut_members' <<<"$SMOKE_OUT" | awk -F'|' '{print $2}' | tr -d ' ')"
+chkeq "  ...nothing persisted in profiles" "t" \
+  "$(grep 'nothing_persisted_in_profiles' <<<"$SMOKE_OUT" | awk -F'|' '{print $2}' | tr -d ' ')"
+chkeq "  ...and the row counts are unchanged" "$MEM_BEFORE|$PROF_BEFORE" \
+  "$(q "select count(*) from public.ut_members")|$(q "select count(*) from public.profiles")"
+
+# CONTROL: the same smoke with `rollback` replaced by `commit` MUST leave the row behind,
+# so "nothing persisted" is a measurement and not a statement that is true either way.
+sed 's/^rollback;/commit;/' "$BASE/smoke.sql" >"$BASE/smoke_commit.sql"; chmod 644 "$BASE/smoke_commit.sql"
+psql_ "$BASE/smoke_commit.sql" >"$BASE/smoke_commit.out" 2>&1
+chkeq "control: with commit instead of rollback the row DOES persist (so the check can fail)" "1" \
+  "$(q "select count(*) from public.ut_members where id='b14a0000-0000-4000-8000-000000000001'")"
+q "delete from public.ut_members where id='b14a0000-0000-4000-8000-000000000001'" >/dev/null 2>&1
+chkeq "control: cleaned up" "0" \
+  "$(q "select count(*) from public.ut_members where id='b14a0000-0000-4000-8000-000000000001'")"
+
+echo ""
 echo "== the address index enforces uniqueness on the service_role path =="
 DUP=$(svc "insert into public.ut_members (email) values ('SVC-WRITER@example.com')" 2>&1)
 if printf '%s' "$DUP" | grep -q 'duplicate key value violates unique constraint'; then
@@ -436,16 +465,35 @@ with c as (
          and (p.proname like 'b14a%' or p.proname like 'apply_lifecycle_update%')
          and (p.proacl is null or exists (select 1 from aclexplode(p.proacl) x
                     where x.grantee = 0 and x.privilege_type = 'EXECUTE'))))
-  union all select 10, 'RLS on both + policy not visible to anon/authenticated',
+  union all select 10, 'RLS on both + every policy an APPROVED shape',
     ((select count(*) = 2 from pg_class c join pg_namespace n on n.oid = c.relnamespace
        where n.nspname = 'public' and c.relname in ('ut_members','profiles') and c.relrowsecurity)
      and (select count(*) = 0 from pg_policies
        where schemaname = 'public' and policyname = 'allow_authenticated_read')
-     and (select count(*) = 0 from pg_policies
-       where schemaname = 'public' and tablename in ('ut_members','profiles')
-         and (roles::text[] && array['anon','authenticated','public'])
-         and not (coalesce(qual,'') || ' ' || coalesce(with_check,'')
-                  ~* 'auth\.role\(\)\s*=\s*''service_role'''))
+     and (select count(*) = 0 from (
+     select c.relname as table_name, p.polname as policy_name,
+            case p.polcmd when 'r' then 'SELECT' when 'a' then 'INSERT' when 'w' then 'UPDATE'
+                          when 'd' then 'DELETE' else 'ALL' end as cmd,
+            case when p.polpermissive then 'PERMISSIVE' else 'RESTRICTIVE' end as permissive,
+            (select string_agg(coalesce(r.rolname, 'public'), ',' order by coalesce(r.rolname, 'public'))
+               from unnest(p.polroles) pr left join pg_roles r on r.oid = pr) as roles,
+            case when p.polcmd = 'a' then '<n/a>'
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as using_eff,
+            case when p.polcmd in ('r', 'd') then '<n/a>'
+                 when p.polwithcheck is not null
+                   then replace(pg_get_expr(p.polwithcheck, p.polrelid), ' ', '')
+                 else replace(coalesce(pg_get_expr(p.polqual, p.polrelid), '<NULL>'), ' ', '') end as check_eff
+     from pg_policy p join pg_class c on c.oid = p.polrelid
+     join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relname in ('ut_members', 'profiles')
+      ) pol
+    where not exists (select 1 from
+(values ('service_role', 'ALL', 'PERMISSIVE', 'true', 'true'),
+                    ('public', 'ALL', 'PERMISSIVE',
+                     '(auth.role()=''service_role''::text)', '(auth.role()=''service_role''::text)')
+           ) a(roles, cmd, permissive, using_eff, check_eff)
+           where a.roles = pol.roles and a.cmd = pol.cmd and a.permissive = pol.permissive
+             and a.using_eff = pol.using_eff and a.check_eff = pol.check_eff)))
   union all select 11, 'the 7 Batch 14ab prototype entry points are ABSENT',
     (to_regprocedure('public.b14ab_install_trigger(text)') is null
      and to_regprocedure('public.b14ab_trg_row()') is null
