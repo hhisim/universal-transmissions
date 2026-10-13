@@ -47,6 +47,8 @@ const EMAIL = "member@example.com";
 const CUS = "cus_1";
 const A = "sub_A";
 const B = "sub_B";
+/** What a completed, verified reconciliation records. */
+const STAMP = "2026-05-01T00:00:00.000Z";
 const PROF = () => state.tables.profiles[0] || {};
 const MEM = () => state.tables.ut_members[0] || {};
 const attested = (row) => typeof row.entitlement_authority_at === "string" && row.entitlement_authority_at.length > 0;
@@ -145,6 +147,36 @@ const rowsAppliedSince = (mark) => {
   ok(eff !== "READ_ERROR" && eff === "initiate",
     "C TARGET: the invoice must not attest a contradicted pair and lock the member out (got " + eff + ")");
 
+  // ── C2 both rows ALREADY attested, to the subscription that is now canceled ─
+  console.log("  --- C2 both rows already attested to A; B's invoice arrives before B's lifecycle event ---");
+  h.reset();
+  state.tables.ut_members.push({
+    id: "m1", email: EMAIL, plan: "initiate", subscription_status: "active",
+    stripe_customer_id: CUS, stripe_subscription_id: A, entitlement_authority_at: STAMP,
+  });
+  state.tables.profiles.push({
+    user_id: "u1", email: EMAIL, plan: "initiate", subscription_status: "active",
+    stripe_customer_id: CUS, stripe_subscription_id: A, entitlement_authority_at: STAMP,
+  });
+  // Independently seeded: A is canceled, B is active. B's lifecycle notification
+  // has NOT been delivered — the invoice arrives first.
+  state.stripe = { [A]: { status: "canceled", customer: CUS }, [B]: { status: "active", customer: CUS } };
+  h.nextEvent("invoice.payment_succeeded", { id: "in_1", customer: CUS, customer_email: EMAIL, subscription: B });
+  r = await h.post();
+  eff = await read();
+  console.error("    status=" + r.status + " member.sub=" + MEM().stripe_subscription_id +
+    " profiles.sub=" + PROF().stripe_subscription_id +
+    " bothAttested=" + (attested(MEM()) && attested(PROF())) + " eff=" + eff);
+  ok(r.status === 200, "C2 the invoice is acknowledged (got " + r.status + ")");
+  ok(MEM().stripe_subscription_id === B,
+    "C2 the member records the governing subscription (is " + MEM().stripe_subscription_id + ")");
+  ok(attested(MEM()) && attested(PROF()), "C2 no target loses the authority it already had");
+  ok(PROF().stripe_subscription_id === B,
+    "C2 TARGET: every target the invoice attests must record the SAME governing subscription (profiles records " +
+      PROF().stripe_subscription_id + ")");
+  ok(eff === "initiate",
+    "C2 TARGET: an invoice delivered before the lifecycle event must not lock the member out (got " + eff + ")");
+
   // ── D the attesting revocation still rolls back, and still retries ─────────
   console.log("  --- D an attesting revocation must still roll back, then complete on retry ---");
   h.reset();
@@ -217,6 +249,49 @@ const rowsAppliedSince = (mark) => {
     profile: { snapshot: snap(["u1"]), fields: { plan: "free", stripe_subscription_id: null, entitlement_authority_at: "x" } },
   });
   ok(accepted.ok === true, "E a complete pair is accepted (got " + JSON.stringify(accepted.ok ? "ok" : accepted.detail) + ")");
+
+  // ── G BOTH entry points refuse an unattestable write, with no round trip ────
+  console.log("  --- G both entry points refuse an unattestable write with ZERO RPC calls ---");
+  h.reset();
+  state.tables.ut_members.push({
+    id: "m1", email: EMAIL, plan: "initiate", subscription_status: "active",
+    stripe_customer_id: CUS, stripe_subscription_id: A,
+  });
+  state.tables.profiles.push({
+    user_id: "u1", email: EMAIL, plan: "initiate", subscription_status: "active",
+    stripe_customer_id: CUS, stripe_subscription_id: A,
+  });
+  const liveClient = h.dbClient();
+  const sideOf = (fields) => ({ snapshot: snap(["m1"]), fields });
+  const rpcCalls = () => state.writes.filter((w) => w.op === "rpc").length;
+  const markG = rpcCalls();
+
+  const gSingle = await mod.applyAtomicLifecycleUpdateOne(liveClient, {
+    authority: { customerId: CUS, subscriptionIds: [A] },
+    table: "ut_members",
+    side: sideOf({ subscription_status: "past_due", entitlement_authority_at: STAMP }),
+  });
+  ok(gSingle.ok === false && gSingle.write.code === "UNATTESTABLE_WRITE",
+    "G single-target: a NAMED refusal (got " + JSON.stringify({ ok: gSingle.ok, code: gSingle.write.code }) + ")");
+  ok(gSingle.retryable === false, "G single-target: the refusal is not retryable");
+  ok(/ut_members/.test(String(gSingle.write.detail)) && /plan/.test(String(gSingle.write.detail)),
+    "G single-target: the refusal names the target and what is missing (got " + gSingle.write.detail + ")");
+
+  const gPair = await mod.applyAtomicLifecycleUpdate(liveClient, {
+    authority: { customerId: CUS, subscriptionIds: [A] },
+    member: sideOf({ plan: "guest", stripe_subscription_id: null, entitlement_authority_at: STAMP }),
+    profile: sideOf({ plan: "initiate", stripe_customer_id: CUS, entitlement_authority_at: STAMP }),
+  });
+  ok(gPair.ok === false && gPair.member.code === "UNATTESTABLE_WRITE" && gPair.profile.code === "UNATTESTABLE_WRITE",
+    "G two-target: a NAMED refusal on both sides (got " + JSON.stringify([gPair.member.code, gPair.profile.code]) + ")");
+  ok(gPair.retryable === false, "G two-target: the refusal is not retryable");
+  ok(/profiles/.test(String(gPair.profile.detail)) && /stripe_subscription_id/.test(String(gPair.profile.detail)),
+    "G two-target: the refusal names the target and the missing linkage (got " + gPair.profile.detail + ")");
+
+  ok(rpcCalls() === markG, "G ZERO RPC calls were made by either refusal (calls=" + (rpcCalls() - markG) + ")");
+  ok(h.attempts().length === 0, "G ZERO write attempts recorded (attempts=" + h.attempts().length + ")");
+  ok(MEM().subscription_status === "active" && !attested(MEM()) && !attested(PROF()),
+    "G the refused writes changed nothing in either table");
 
   // ── F stale-event protection is unchanged ──────────────────────────────────
   console.log("  --- F a superseded deletion still writes nothing ---");

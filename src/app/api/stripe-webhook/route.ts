@@ -840,10 +840,15 @@ export async function POST(req: NextRequest) {
               fields: {
                 stripe_customer_id: customerId,
                 plan: "initiate",
-                // Batch 14ai: this write settles the mirror's plan and customer but
-                // NOT its subscription linkage, so it does not attest. Attesting
-                // made the invoice's own successful write leave a contradicted
-                // attested pair behind.
+                // Batch 14ai/14aj: EVERY target this invoice changes records the
+                // SAME governing relationship. Omitting the stamp did not remove
+                // the mirror's EXISTING authority, so a mirror already attested to
+                // a superseded subscription stayed attested and contradicted the
+                // member the invoice had just corrected — the reader failed closed
+                // on the invoice's own successful write. The linkage is therefore
+                // corrected here too, not concealed.
+                stripe_subscription_id: currentSubscriptionId,
+                entitlement_authority_at: reconciliationStamp(),
               },
             },
           });

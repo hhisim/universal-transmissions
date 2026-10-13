@@ -86,7 +86,7 @@ that decision.* It is that reconciliation's timestamp.
 |---|---|---|
 | `customer.subscription.created` / `.updated` | **YES** | it reconciled against Stripe's current state and applied the decision atomically |
 | `customer.subscription.deleted` (cancellation) | **YES** — corrected in Batch 14ai | a cancellation IS a completed, verified reconciliation: it establishes authority on the first one and refreshes it afterwards, and it clears the mirror's linkage too. Leaving it out meant a first cancellation established nothing, so an unreconciled paid row kept access |
-| `invoice.payment_succeeded` | **member YES; profile NO** — corrected in Batch 14ai | the member write settles the plan AND the governing subscription; the mirror write settles only the plan and the customer, so attesting it made the invoice's own write leave a contradicted attested pair behind |
+| `invoice.payment_succeeded` | **YES on every target it changes** — corrected in Batch 14ai, completed in 14aj | the member write settles the plan and the governing subscription; the mirror write settles the plan, the customer AND the SAME governing subscription. Omitting the mirror's stamp did not remove the authority the mirror already carried, so a mirror attested to a superseded subscription still contradicted the corrected member and locked it out |
 | `invoice.payment_failed` (dunning) | **NO** — corrected in Batch 14ai | dunning determines the PAYMENT status, not the plan; attesting it turned an untouched cached plan into a complete entitlement decision |
 | `api/billing/checkout` (customer creation), `writeMembershipRow` | **NO** | not a subscription reconciliation; nothing changes in that path |
 

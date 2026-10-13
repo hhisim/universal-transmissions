@@ -198,7 +198,7 @@ export function buildAtomicTarget(
 /** The full `p_targets` payload: both tables, always, as TARGET OBJECTS. */
 export function buildAtomicLifecyclePayload(
   input: AtomicLifecycleInput
-): { ok: true; targets: Record<string, unknown>[] } | { ok: false; detail: string } {
+): { ok: true; targets: Record<string, unknown>[] } | { ok: false; detail: string; code: string } {
   const targets: Record<string, unknown>[] = [];
   for (const [table, side] of [
     ["ut_members", input.member],
@@ -209,6 +209,7 @@ export function buildAtomicLifecyclePayload(
       return {
         ok: false,
         detail: `${table}: the snapshot is not usable for an atomic write`,
+        code: "SNAPSHOT_UNUSABLE",
       };
     }
     const unattestable = unattestableWrite(side.fields);
@@ -218,6 +219,7 @@ export function buildAtomicLifecyclePayload(
       return {
         ok: false,
         detail: `${table}: a write that attests entitlement authority must supply ${unattestable} in the same write`,
+        code: "UNATTESTABLE_WRITE",
       };
     }
     // The envelope is the builder's own result shape. The RPC takes the TARGET.
@@ -366,11 +368,12 @@ export async function applyAtomicLifecycleUpdate(
   const built = buildAtomicLifecyclePayload(input);
   if (!built.ok) {
     // A LOCAL REFUSAL NEVER BECOMES A PAYLOAD: return before the round trip.
+    const code = built.code ?? "SNAPSHOT_UNUSABLE";
     return {
       ok: false,
       retryable: false,
-      member: failureWrite("ut_members", "lifecycle_update_failed", built.detail, "SNAPSHOT_UNUSABLE"),
-      profile: failureWrite("profiles", "lifecycle_update_failed", built.detail, "SNAPSHOT_UNUSABLE"),
+      member: failureWrite("ut_members", "lifecycle_update_failed", built.detail, code),
+      profile: failureWrite("profiles", "lifecycle_update_failed", built.detail, code),
     };
   }
   const payload = built.targets;
@@ -441,6 +444,23 @@ export async function applyAtomicLifecycleUpdateOne(
         "lifecycle_update_failed",
         `${input.table}: the write names a column the lifecycle contract does not own (${invalid})`,
         "COLUMN_NOT_WRITABLE"
+      ),
+    };
+  }
+
+  // Batch 14ai/14aj: the SAME attestation contract, on the single-target entry
+  // point. Refused here, before any payload is built or sent, so an unattestable
+  // write costs ZERO RPC calls on either entry point.
+  const unattestable = unattestableWrite(input.side.fields);
+  if (unattestable) {
+    return {
+      ok: false,
+      retryable: false,
+      write: failureWrite(
+        input.table,
+        "lifecycle_update_failed",
+        `${input.table}: a write that attests entitlement authority must supply ${unattestable} in the same write`,
+        "UNATTESTABLE_WRITE"
       ),
     };
   }
