@@ -279,7 +279,28 @@ console.log("\n== K. both rooms render the SAME surface, and it stays accessible
       && /Why it connects/i.test(nexusCmp) && /Continue/i.test(nexusCmp));
 }
 
-console.log("\n== L. the batch stayed inside its lane ==");
+console.log("\n== L. the grounding names the ONLY permitted external references ==");
+{
+  /* The live journey found the Oracle attributing authors that were never supplied.
+     The grounding now names its permitted references explicitly, so the model has a
+     stated boundary to stay inside — asserted here on the actual prompt block. */
+  const prompt = topics.researchPromptBlock(geo);
+  chk("the prompt block names the permitted external references",
+      /ONLY external references supplied/.test(prompt));
+  for (const src of geo.sources) {
+    chk(`the permitted list includes: ${src.label.slice(0, 34)}`, prompt.includes(src.label));
+  }
+  chk("the prompt block forbids attributing anything else",
+      /Do not attribute any other author, title, work or page number/.test(prompt));
+  const anchorPrompt = topics.researchPromptBlock(
+    topics.resolveResearchTopic("research-v1:geometry/connection/artwork-tetra"));
+  chk("a connection anchor's grounding carries the same boundary",
+      /ONLY external references supplied/.test(anchorPrompt));
+  chk("the anchor names the topic's references, not the anchor's own",
+      anchorPrompt.includes(geo.sources[0].label));
+}
+
+console.log("\n== M. the batch stayed inside its lane ==");
 {
   /* `three`, @react-three/fiber and @react-three/drei are PRE-EXISTING dependencies of
      this site. The honest check is not "no such word appears in package.json" — it is

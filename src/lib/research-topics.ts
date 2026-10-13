@@ -284,6 +284,12 @@ function connectionTopic(topic: ResearchTopic, c: ResearchConnection): ResearchT
       "The external references listed with this entry belong to the TOPIC as a whole. This",
       "connection itself is a UT record, not an external citation, and nothing here asserts that",
       "an external source has endorsed the relationship.",
+      "",
+      `The ONLY external references supplied with this context are: ${topic.sources
+        .map((s) => s.label)
+        .join("; ")}. Do not attribute any other author, title, work or page number. If a`,
+      "claim would need a source that is not listed here, say that the archive does not hold",
+      "it rather than naming one.",
     ].join("\n"),
     sources: [
       {
@@ -448,5 +454,9 @@ export function researchPromptBlock(topic: ResearchTopic): string {
     "- UT ARTISTIC INTERPRETATION means it is this project's reading, not a fact about the world.",
     "Do not present an interpretation or a symbolic frequency assignment as an experimental",
     "result, and do not offer medical or healing claims about specific frequencies.",
+    `The ONLY external references supplied with this context are: ${topic.sources
+      .map((s) => s.label)
+      .join("; ")}. Do not attribute any other author, title, work or page number — if a claim`,
+    "would need a source that is not listed here, say that the archive does not hold it.",
   ].join("\n");
 }
