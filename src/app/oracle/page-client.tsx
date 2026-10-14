@@ -19,7 +19,7 @@ import {
   resolveResearchTopic,
   researchTopicId as researchTopicIdFor,
 } from "@/lib/research-topics";import { buildHistoryFromMessages } from "@/lib/oracle-conversation";
-import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
+import { CORRESPONDENCE_ENTRY_PREFIX, correspondenceEntryId } from "@/lib/oracle-entry-resolver";
 
 const CosmicBackground = dynamic(() => import("@/components/oracle/CosmicBackground"), { ssr: false });
 
@@ -854,6 +854,16 @@ export default function OraclePage() {
   const rawArtworkId = boundedParam(searchParams.get("artworkId"), MAX_ENTITY_CHARS);
   const entryQuestion = boundedParam(searchParams.get("q"), MAX_DRAFT_CHARS);
   const returnTo = boundedParam(searchParams.get("from"), MAX_RETURN_CHARS);
+  /* A correspondence record travels as its STABLE IDENTIFIER only - the same
+     `corr-v1:` identifier the server resolver already understands. Nothing
+     descriptive is read from the URL: the record's title and system come from
+     the server, so a rewritten URL cannot present a different record as this one. */
+  const rawEntryId = boundedParam(searchParams.get("entryId"), MAX_ENTITY_CHARS);
+  const entryAnchorId = rawEntryId.startsWith(CORRESPONDENCE_ENTRY_PREFIX) ? rawEntryId : "";
+  const safeReturnTo =
+    returnTo.startsWith("/") && !returnTo.startsWith("//") && !returnTo.includes("\\")
+      ? returnTo
+      : "";
   /* A research entry carries a stable identifier only. The title and route below
      come from the server registry, so a forged id or a rewritten URL cannot
      present itself as a real research topic. */
@@ -1049,6 +1059,13 @@ export default function OraclePage() {
      NOT touched: the messages already exchanged, and whatever the visitor has
      typed into the composer - leaving an entry is not a reason to discard
      either. */
+  /* A record selected in the archive arrives as a stable identifier in the URL.
+     Seeding the dock's selection from it is what makes the Oracle answer about
+     THIS record, and the request carries the identifier alone. */
+  useEffect(() => {
+    if (entryAnchorId) setSelectedEntryId(entryAnchorId);
+  }, [entryAnchorId]);
+
   const entryIdentity = `${rawResearchId}\u0000${rawArtworkId}`;
   useEffect(() => {
     reqAbortRef.current?.abort();
@@ -1671,6 +1688,19 @@ export default function OraclePage() {
                   <a href={researchContext.returnTo} className="oracle-artwork-context-return">
                     &#8592; RETURN TO {researchContext.title.toUpperCase()}
                   </a>
+                </div>
+              )}
+                {entryAnchorId && (
+                <div className="oracle-artwork-context" role="note" data-entry-context="true">
+                  <span className="oracle-artwork-context-label">SPEAKING ABOUT A CODEX RECORD</span>
+                  <span className="oracle-artwork-context-meta">
+                    <code>{entryAnchorId}</code>
+                  </span>
+                  {safeReturnTo && (
+                    <a href={safeReturnTo} className="oracle-artwork-context-return">
+                      &#8592; RETURN TO THE RECORD
+                    </a>
+                  )}
                 </div>
               )}
                 {artworkContext && (
