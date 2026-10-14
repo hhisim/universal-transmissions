@@ -257,28 +257,85 @@ export function recordsInSystem(sys: string): Array<{ sys: string; e: string; id
 }
 
 /**
- * A small representative set, DERIVED rather than hand-picked: entries that point to
- * between three and twelve other Codex records, taking one per system so the set spans
- * the corpus.
+ * Relationships grouped by the SYSTEM they lead into.
  *
- * The bound matters. Ranking by raw connection count surfaces the degenerate hubs — a
- * crystal named in hundreds of records, or the note "A" — and those open onto a list so
- * long it tells the visitor nothing. A moderate band is where a record is genuinely
- * explorable.
+ * Every record in this corpus names a great many others — a single Deities value can name
+ * three records, and the corpus holds 202 deities — so a flat list of named records is not
+ * a usable map of anything. Grouping by target system is what makes the reach legible:
+ * "this record touches Geometry, Planets and Tarot" is information; 340 links are not.
+ * Each group shows a bounded number of examples and the honest total.
  */
-export function representativeSet(limit = 8): Array<{ sys: string; e: string; id: string; links: number }> {
-  const bySys = new Map<string, { sys: string; e: string; id: string; links: number }>();
-  for (const entry of codex) {
-    const sys = String(entry.sys || "");
-    const e = String(entry.e || "");
-    if (!sys || !e || bySys.has(sys)) continue;
-    const n = relationshipsFor(sys, e).filter((r) => r.kind === "names").length;
-    if (n < 3 || n > 12) continue;
-    bySys.set(sys, { sys, e, id: correspondenceEntryId(entry), links: n });
+export interface SystemLinkGroup {
+  sys: string;
+  count: number;
+  basis: Basis;
+  basisLabel: string;
+  examples: Relationship[];
+}
+
+const _groupCache = new Map<string, SystemLinkGroup[]>();
+
+export function relationshipSystems(sys: string, e: string, perSystem = 2): SystemLinkGroup[] {
+  const key = `${sys}\u0000${e}`;
+  const hit = _groupCache.get(key);
+  if (hit) return hit;
+  const bySys = new Map<string, Relationship[]>();
+  for (const r of relationshipsFor(sys, e)) {
+    if (r.kind !== "names") continue;
+    const arr = bySys.get(r.target.sys) || [];
+    arr.push(r);
+    bySys.set(r.target.sys, arr);
   }
-  return Array.from(bySys.values())
-    .sort((a, b) => b.links - a.links || a.sys.localeCompare(b.sys))
-    .slice(0, limit);
+  const groups = Array.from(bySys.entries())
+    .map(([targetSys, items]) => ({
+      sys: targetSys,
+      count: items.length,
+      basis: items[0].basis,
+      basisLabel: BASIS_LABEL[items[0].basis],
+      examples: items.slice(0, perSystem),
+    }))
+    .sort((a, b) => b.count - a.count || a.sys.localeCompare(b.sys));
+  _groupCache.set(key, groups);
+  return groups;
+}
+
+/** How many DIFFERENT systems this record's own values reach into. */
+export function systemsReached(sys: string, e: string): number {
+  return relationshipSystems(sys, e).length;
+}
+
+/**
+ * A small representative set, DERIVED rather than hand-picked: for each system, the record
+ * whose own values reach into the most DIFFERENT systems, then the widest of those overall.
+ *
+ * The measure is breadth of reach, not volume of links. Volume is near-useless here — every
+ * record names forty or more others, and ranking by that surfaces the degenerate hubs (a
+ * crystal named in hundreds of records, the note "A") whose pages open onto a list that
+ * tells a visitor nothing. Breadth picks records that visibly connect distant parts of the
+ * archive, which is what an explorable entry point should be.
+ */
+let _repCache: Array<{ sys: string; e: string; id: string; reaches: number }> | null = null;
+
+function computeRepresentative() {
+  const best = new Map<string, { sys: string; e: string; id: string; reaches: number }>();
+  for (const entry of codex) {
+    const s = String(entry.sys || "");
+    const en = String(entry.e || "");
+    if (!s || !en) continue;
+    const reaches = systemsReached(s, en);
+    const cur = best.get(s);
+    if (!cur || reaches > cur.reaches) {
+      best.set(s, { sys: s, e: en, id: correspondenceEntryId(entry), reaches });
+    }
+  }
+  return Array.from(best.values())
+    .filter((x) => x.reaches >= 4)
+    .sort((a, b) => b.reaches - a.reaches || a.sys.localeCompare(b.sys));
+}
+
+export function representativeSet(limit = 8) {
+  if (!_repCache) _repCache = computeRepresentative();
+  return _repCache.slice(0, limit);
 }
 
 export function relationshipsFor(sys: string, e: string): Relationship[] {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ARCHIVE_FIELDS, BASIS_LABEL, BASIS_NOTE, FIELD_LABELS, MEASURED_LOOKING,
-  SYSTEMS, archiveHref, recordFromId, recordsInSystem, relationshipsFor,
+  SYSTEMS, archiveHref, recordFromId, recordsInSystem, relationshipSystems,
   representativeSet, researchRouteForSystem, sharedWith, toArchiveRecord,
   SYSTEMS_WITH_RESEARCH_ROUTE,
 } from "@/lib/codex-archive";
@@ -58,8 +58,9 @@ export default function ArchivePage({
         <section className="cx-section" aria-labelledby="cx-seeds-h">
           <h2 className="cx-h2" id="cx-seeds-h">A way in</h2>
           <p className="cx-sub">
-            Records from different systems that point to between three and twelve other
-            Codex records — enough to explore, few enough to read.
+            One record from each system, chosen for the breadth of the archive its own
+            values reach into — not for how many links it has, which measures almost nothing
+            in a corpus this densely cross-linked.
           </p>
           <ul className="cx-grid">
             {seeds.map((s) => (
@@ -69,7 +70,7 @@ export default function ArchivePage({
                     {s.sys}
                   </span>
                   <span className="cx-card-name">{s.e}</span>
-                  <span className="cx-card-meta">{s.links} named records</span>
+                  <span className="cx-card-meta">reaches {s.reaches} systems</span>
                 </Link>
               </li>
             ))}
@@ -121,8 +122,7 @@ export default function ArchivePage({
     // recordFromId already verified the pair exists
     { sys: pair.sys, e: pair.e } as never
   );
-  const relationships = relationshipsFor(pair.sys, pair.e);
-  const named = relationships.filter((r) => r.kind === "names");
+  const groups = relationshipSystems(pair.sys, pair.e);
   const shared = sharedWith(pair.sys, pair.e).slice(0, MAX_SHARED_GROUPS);
   const research = researchRouteForSystem(pair.sys);
   const selfHref = archiveHref(entry.id, "/codex/archive");
@@ -190,7 +190,7 @@ export default function ArchivePage({
       {/* ── relationships ── */}
       <section className="cx-section" aria-labelledby="cx-rel-h">
         <h2 className="cx-h2" id="cx-rel-h">Where this record leads</h2>
-        {named.length === 0 ? (
+        {groups.length === 0 ? (
           <p className="cx-sub">
             None of this record&rsquo;s fields names another Codex record, so no links are
             shown. That absence is the corpus&rsquo;s, not an omission here.
@@ -198,28 +198,39 @@ export default function ArchivePage({
         ) : (
           <>
             <p className="cx-sub">
-              {named.length} of this record&rsquo;s own values name another record in the
-              archive.
+              This record&rsquo;s own values name records in <strong>{groups.length}</strong>{" "}
+              other systems. Each group shows a few; the number is the true total.
             </p>
             <ul className="cx-rel">
-              {named.slice(0, MAX_NAMES_SHOWN).map((r, i) => (
-                <li className="cx-relitem" key={`${r.field}-${r.value}-${i}`}>
-                  <p className="cx-relwhy">{r.rationale}</p>
-                  <p className="cx-relbasis">
-                    <span className={`cx-basis cx-basis-${r.basis}`}>{BASIS_LABEL[r.basis]}</span>
-                    <span className="cx-rellabel">via {r.fieldLabel}</span>
+              {groups.map((g) => (
+                <li className="cx-relitem" key={g.sys}>
+                  <p className="cx-relwhy">
+                    <strong>{g.count}</strong> {g.count === 1 ? "record" : "records"} in the{" "}
+                    {g.sys} system, reached through this record&rsquo;s own fields.
                   </p>
-                  <Link className="cx-rellink" href={archiveHref(r.target.id, selfHref)}>
-                    {r.target.e} <span className="cx-relsys">{r.target.sys}</span> →
-                  </Link>
+                  <p className="cx-relbasis">
+                    <span className={`cx-basis cx-basis-${g.basis}`}>{g.basisLabel}</span>
+                  </p>
+                  <ul className="cx-sharedlist">
+                    {g.examples.map((r, i) => (
+                      <li key={`${r.target.id}-${i}`}>
+                        <Link className="cx-rellink" href={archiveHref(r.target.id, selfHref)}>
+                          {r.target.e}
+                        </Link>
+                        <span className="cx-relvia">
+                          via {r.fieldLabel}: &ldquo;{r.value}&rdquo;
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {g.count > g.examples.length && (
+                    <p className="cx-more">
+                      &hellip;and {g.count - g.examples.length} more in {g.sys}.
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
-            {named.length > MAX_NAMES_SHOWN && (
-              <p className="cx-more">
-                …and {named.length - MAX_NAMES_SHOWN} more from this record&rsquo;s other fields.
-              </p>
-            )}
           </>
         )}
 
@@ -384,6 +395,8 @@ const CSS = `
 .cx-sharedgroup{border-left:2px solid rgba(255,255,255,.12);padding-left:16px}
 .cx-sharedwhy{margin:0 0 8px;font-size:13.5px;line-height:1.6;color:rgba(240,236,255,.8)}
 .cx-sharedlist{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-wrap:wrap;gap:6px 18px}
+.cx-relvia{display:block;font-family:var(--font-mono,monospace);font-size:10px;
+  letter-spacing:.08em;color:rgba(240,236,255,.42);margin-top:4px}
 .cx-more{font-size:12px;color:rgba(240,236,255,.45);margin:10px 0 0}
 .cx-onward{display:grid;gap:1px;background:rgba(255,255,255,.07);margin-bottom:22px}
 .cx-onwarditem{padding:20px;background:#05040c}
