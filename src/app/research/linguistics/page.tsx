@@ -96,6 +96,22 @@ export default function ResearchLinguisticsPage() {
                 language as a construct, a framework that shapes perception itself — and what becomes
                 possible when you reconfigure that framework from first principles.
               </p>
+              {/* The proposition just made is a UT reading, not a finding. Labelled where it
+                  is made, in two lines, rather than in a disclaimer further down the page. */}
+              <p
+                className="font-mono text-[10px] tracking-[0.22em] uppercase mt-6"
+                style={{ color: "var(--ut-gold)", opacity: 0.8 }}
+                data-register-label="linguistics-single-origin"
+              >
+                UT&apos;s speculative perspective — not an established finding
+              </p>
+              <p
+                className="font-body text-[12.5px] leading-relaxed mt-2 max-w-2xl"
+                style={{ color: "var(--ut-white-faint)", opacity: 0.7 }}
+              >
+                That all human languages descend from a single source is a reading this project
+                makes. Linguistics has not established it.
+              </p>
             </SectionReveal>
           </div>
         </section>
@@ -117,6 +133,21 @@ export default function ResearchLinguisticsPage() {
                   >
                     <ZalgoText text="The Roots of Language" intensity="subtle" />
                   </h2>
+                  <p
+                    className="font-mono text-[10px] tracking-[0.22em] uppercase mb-4"
+                    style={{ color: "var(--ut-gold)", opacity: 0.8 }}
+                    data-register-label="linguistics-roots-and-cymatics"
+                  >
+                    UT&apos;s speculative perspective — not an established finding
+                  </p>
+                  <p
+                    className="font-body text-[12.5px] leading-relaxed mb-6 max-w-2xl"
+                    style={{ color: "var(--ut-white-faint)", opacity: 0.7 }}
+                  >
+                    The single-origin proposition below, and the parallel drawn between cymatic
+                    patterns and linguistic structure, are this project&apos;s own readings. No
+                    experiment here shows linguistic structure forming the way a nodal pattern does.
+                  </p>
                   <div className="space-y-6 font-body text-base leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
                     <p>
                       The roots of all languages in every human culture lead us to a singular source

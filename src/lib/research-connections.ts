@@ -270,7 +270,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Journal",
     title: "Universal Transmissions Alphabet",
     rationale:
-      "The archive's own account of its constructed alphabet. This is the clearest case of UT material that must stay in the construction register: the alphabet is a designed system, and the piece does not present it as a decipherment of, or a descendant of, any historical script. It is linked so the construction can be examined as a construction.",
+      "The archive's own note on its constructed alphabet - a short process entry recording \"functional pictographic morphemes\" and interactive decoding of the artist's own cipher. The clearest case of UT material that belongs in the construction register: the piece presents the alphabet as something the project is building.",
     basis: "interpretation",
     basisLabel: "UT's own script construction",
     suggestedQuestion:
@@ -282,7 +282,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Artwork",
     title: "Translinguistic Equation",
     rationale:
-      "The record describes encoding DNA electron spin resonance into harmala alkaloids and calls the result a visualisation of language as a living quantum field. That is a UT artistic construction stated in mechanistic vocabulary, and this room holds it as such: the artwork does not model a physical process, and none of the physics or pharmacology it names is being asserted. It is the sharpest example on this page of why the construction register exists.",
+      "The record's own words are that the work concerns \"amplifying the higher cortical experience by translinguistically encoding DNA electron spin resonance into monoamine inhibited harmala alkaloids\", and calls the result a visualisation of language as a living quantum field. The record is written in mechanistic vocabulary. This room places it in the construction register: it is treated as an artwork, not as a model of a physical process. That is this room's classification, and it is not a claim about what the record intended.",
     basis: "interpretation",
     basisLabel: "UT artistic construction - not a physical mechanism",
     suggestedQuestion:
@@ -294,11 +294,11 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Artwork",
     title: "Linguistic Mystic",
     rationale:
-      "Its record names the subject as the mystic relationship between language, consciousness and the cosmos, and credits invented mentors of \"Translinguistic syntax\". The piece is a study in that reading rather than a report on it, so it belongs in the interpretive register - the record itself frames the mentors as legendary.",
+      "Its record names the subject as the mystic relationship between language, consciousness and the cosmos, and states its inspiration as \"the age old Strophariad Mystic mentors of Translinguistic syntax, that launched legendary ludicrous lexicons of language into the Noosphere\". That is the artist's own wording and is reproduced as such. The record does not call these mentors invented, and this room does not either: they are the piece's stated inspiration, and the room simply does not treat them as documented historical figures. Note that \"legendary\" there describes the lexicons, not the mentors.",
     basis: "interpretation",
-    basisLabel: "UT artistic reading",
+    basisLabel: "UT artistic reading - the artist's own stated inspiration",
     suggestedQuestion:
-      "The record frames its mentors as legendary - what is this piece doing with the idea of a mystic relation between language and consciousness?",
+      "The record names its inspiration as the Strophariad Mystic mentors - what is this piece doing with the idea of a mystic relation between language and consciousness?",
   },
   {
     anchorSlug: "journal-reality-as-syntax",
@@ -306,7 +306,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Journal",
     title: "Reality as Syntax: When Language Becomes the Architecture of Perception",
     rationale:
-      "The Journal's long-form argument that language shapes perception. This is where the room's central reading is set out at length, and it is included so the reading can be read rather than summarised - it is a UT position piece, not a linguistics paper, and it is labelled accordingly.",
+      "The Journal's long-form piece on language as the ground of reality, included so the reading can be read rather than summarised. It is an argument, not a linguistics paper, and it builds on an external book - Gallimore's Alien Information Theory - whose central line it quotes and then asserts as \"mathematical fact\". That assertion is the piece's own, not an established result; the gaps below say why that book is not citable here.",
     basis: "interpretation",
     basisLabel: "UT position - the archive's own argument",
     suggestedQuestion:
@@ -342,7 +342,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Codex",
     title: "The Archive — LETTERS_LATIN system (26 records)",
     rationale:
-      "The corresponding lattice for the Latin alphabet, which is what makes the archive's own reference point explicit: the letters of the alphabet UT's constructed script would stand beside. Reading the two systems side by side is the honest way to see whether a resemblance is being claimed, because both are visible and neither asserts descent from the other.",
+      "The corresponding lattice for the Latin alphabet. Reading the two systems side by side is the honest way to see whether a resemblance is being claimed, because both are visible and neither asserts descent from the other.",
     basis: "documented",
     basisLabel: "Catalogued in the archive's own LETTERS_LATIN lattice",
     suggestedQuestion:
@@ -354,7 +354,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Journal",
     title: "Enochian: Angelic Language and the Modern Occult Revival",
     rationale:
-      "A historical account of a constructed language with a documented origin: Enochian is recorded as having been produced by John Dee and Edward Kelley in the late sixteenth century, and published by Meric Casaubon in 1659. It is the room's worked example that an invented script has a date, authors and a publication history - which is precisely the kind of provenance UT's own constructions do not claim.",
+      "A historical account of a constructed language with a documented origin: the material is recorded as produced by John Dee and Edward Kelley in the late sixteenth century, and published in London in 1659. It is the room's worked example that an invented script can have a date, authors and a publication history - a comparison this room draws, not a claim about UT's intent.",
     basis: "documented",
     basisLabel: "Historical account of a constructed language",
     suggestedQuestion:
@@ -369,6 +369,7 @@ export const LINGUISTICS_GAPS = [
   "The archive does not hold that all human languages descend from a single source. Monogenesis is not an established result in linguistics, and where the room's own writing reaches for that idea it is a UT reading and is labelled as one.",
   "The Sefer Yetzirah letter assignments belong to a tradition and to the texts that carry it. They are not properties of the Hebrew letters, and nothing here claims that the assignments were verified or that they produce effects.",
   "The external references below support statements about what texts exist and what they say - that a treatise was published, that an author reasoned a particular way. They are not presented as endorsing any UT reading, and their presence is not a claim that the archive has consulted them beyond the catalogue description that is quoted.",
+  "The permitted references are the five listed. A work cited only INSIDE a Journal piece is NOT carried into the Oracle as citable: the reality-as-syntax link builds on John R. Gallimore's Alien Information Theory, which the Oracle is instructed it cannot attribute, so the honest answer about that book is that this room does not hold it.",
   "This room covers alphabetic writing and a small number of constructed scripts. It does not cover sign languages, tonal or click phonology, language acquisition, or the quantitative methods of historical linguistics, and no entry above should be read as covering them.",
 ];
 
@@ -386,7 +387,7 @@ export const SYMBOLISM_CONNECTIONS: ResearchConnection[] = [
     kind: "Journal",
     title: "The Tarot: A Symbolic Machine for Mapping the Architecture of Fate",
     rationale:
-      "The archive's own long-form treatment of the Tarot as a structured symbolic system. Included because it is the room's clearest example of a symbol set with an internal grammar - the cards carry positions and relations rather than isolated meanings - and because the piece states its own framing rather than presenting the system as a mechanism.",
+      "The archive's own treatment of the Tarot as a structured symbolic system, and the clearest example in this room of a symbol set with an internal grammar - the cards carry relations rather than isolated meanings. It also carries documented history: the deck's appearance in fifteenth-century northern Italy as carte da trionfi, and the late-eighteenth-century origin of its esoteric reading, including the Egyptian attribution made then rather than found.",
     basis: "documented",
     basisLabel: "UT writing on this subject",
     suggestedQuestion:
@@ -410,7 +411,7 @@ export const SYMBOLISM_CONNECTIONS: ResearchConnection[] = [
     kind: "Artwork",
     title: "Universal Transmissions VIII — Recursive Pantheism",
     rationale:
-      "The record states its influences by name - Athanasius Kircher and Robert Fludd - and describes an attempt to syncretise macro and micro, zodiac to chakra centres, and their correlation to organs, cymatic patterns and frequencies. Because the record names what it draws on, this is a documented case rather than an inferred one: it shows UT deliberately building on an earlier syncretic tradition that itself mixed emblem, cosmology and correspondence.",
+      "The record states its influences by name - Athanasius Kircher and Robert Fludd - and describes an attempt to syncretise macro and micro, zodiac to chakra centres, and their correlation to organs, cymatic patterns and frequencies. Because the record names what influenced it, this is a documented case rather than an inferred one: the earlier syncretic tradition it names - itself a mixture of emblem, cosmology and correspondence - is stated by the record, not attributed to it here.",
     basis: "documented",
     basisLabel: "Influences named in the artwork's own record",
     suggestedQuestion:
@@ -446,7 +447,7 @@ export const SYMBOLISM_CONNECTIONS: ResearchConnection[] = [
     kind: "Artwork",
     title: "Polarity Modulation",
     rationale:
-      "The record describes an alchemical art of navigating between opposing forces to generate harmonic resonance in a personal energetic field. The polar-pairs scheme has a documented place in alchemical and Hermetic writing; the energetic field and the resonance it is said to generate do not, and are UT's construction. The card is labelled for the register its claim actually occupies.",
+      "The record's own words are \"the alchemical art of polarity management - the science of navigating between opposing forces to generate harmonic resonance within the personal energetic field\". Polar pairs have a documented place in alchemical and Hermetic writing. The energetic field, and the resonance the record says the practice generates in it, do not: this room places that part in the construction register, which is this room's classification rather than a statement about the artist's intent.",
     basis: "interpretation",
     basisLabel: "UT construction in alchemical vocabulary",
     suggestedQuestion:

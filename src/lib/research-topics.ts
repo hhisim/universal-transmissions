@@ -285,38 +285,38 @@ const LINGUISTICS: ResearchTopic = {
   sources: [
     {
       kind: "reference",
-      label: "Saussure, Course in General Linguistics (Bally & Sechehaye, eds.)",
+      label: "Saussure, Course in General Linguistics (eds Bally & Sechehaye), Open Court, 1986",
       url: "https://archive.org/details/courseingenerall00ferd",
       supports:
-        "The catalogue record identifies the Course in General Linguistics by Saussure, edited by Bally and Sechehaye. Cited only for the two foundational claims attributed to the discipline above: the sign as signifier and signified, and the study of a language at a moment versus across time.",
+        "Course in General Linguistics, Saussure with Bally, Sechehaye and Riedlinger, Open Court 1986 - an ENGLISH TRANSLATION of the Cours de linguistique generale. Cited only for the two foundational claims attributed above.",
     },
     {
       kind: "reference",
-      label: "Ogden & Richards, The Meaning of Meaning (1923)",
+      label: "Ogden & Richards, The Meaning of Meaning (London: Kegan Paul, 1923)",
       url: "https://archive.org/details/meaningofmeaning00ogde",
       supports:
-        "Catalogued as the 1923 study of the influence of language upon thought, by Ogden and Richards. Cited for the semiotic treatment of meaning this room refers to. Its presence supports that the work exists and takes that position, not that its arguments are correct.",
+        "The Meaning of Meaning, Ogden and Richards, London: Kegan Paul, 1923. Cited for the semiotic treatment of meaning above - that the work takes that position, not that its arguments are correct.",
     },
     {
       kind: "historical",
-      label: "Isaac Taylor, The History of the Alphabet (1899)",
+      label: "Isaac Taylor, The History of the Alphabet, vol. 2 (New York: Scribner, 1899)",
       url: "https://archive.org/details/historyofalphabe02tayluoft",
       supports:
-        "A nineteenth-century account of the origin and development of letters, catalogued under Isaac Taylor. Cited as a historical document of how alphabetic descent was argued at the time. It is dated scholarship, not current comparative linguistics.",
+        "The History of the Alphabet vol. 2, Taylor, New York: Scribner, 1899. A historical document of how alphabetic descent was argued then: dated scholarship, not current linguistics.",
     },
     {
-      kind: "primary",
-      label: "Sefer Yetzirah (Hebrew text, first millennium CE)",
-      url: "https://archive.org/details/sefer-yetzirah",
+      kind: "reference",
+      label: "Kaplan, Sefer Yetzirah: The Book of Creation (York Beach, ME: Samuel Weiser, 1997)",
+      url: "https://archive.org/details/seferyetzirah00arye",
       supports:
-        "A digitised Sefer Yetzirah, cited as the text carrying the letter assignments this room places in the tradition register. A reference to the text is not a claim that its assignments are correct or describe anything beyond the tradition holding them.",
+        "Sefer Yetzirah = The Book of Creation, Kaplan (1934-1983), Samuel Weiser 1997, English and Hebrew. A TRANSLATION WITH COMMENTARY, not the bare text: the letter assignments reach us through editions of this kind, and Kaplan's readings are his own. Cited for what the tradition carries, not as evidence they are correct.",
     },
     {
       kind: "historical",
-      label: "John Dee, A true and faithful relation... (London, 1659)",
+      label: "A True and Faithful Relation... (London: D. Maxwell for T. Garthwait, 1659)",
       url: "https://archive.org/details/b30324282_0002",
       supports:
-        "The 1659 publication of the Dee and Kelley material, catalogued under Dee. Cited for the documented date, authorship and publication of the Enochian material - not for the account it gives of the language's origin, which a historical register cannot settle.",
+        "Catalogued under John Dee with the London imprint D. Maxwell for T. Garthwait, 1659. Cited for the documented date, authorship and publication of the Enochian material - not for the account the volume gives of where the language came from, which a historical register cannot settle.",
     },
   ],
   suggestedQuestion:
@@ -383,31 +383,31 @@ const SYMBOLISM: ResearchTopic = {
   sources: [
     {
       kind: "reference",
-      label: "Jung (ed.), Man and His Symbols",
-      url: "https://archive.org/details/man-and-his-symbols-by-carl-jung",
+      label: "Jung & von Franz (eds), Man and His Symbols (Garden City, NY: Doubleday, 1964)",
+      url: "https://archive.org/details/manhissymbols00jung",
       supports:
-        "Catalogued as Man and His Symbols, the late Jung's presentation of his approach. Cited for the existence and shape of the Jungian framework described above - not as evidence that archetypes are established structures.",
+        "Man and His Symbols, eds C. G. Jung and Marie-Luise von Franz, Doubleday 1964. The catalogue records that final editing was done after Jung's death by von Franz: the book is partly another hand's, and this room says so.",
     },
     {
       kind: "reference",
-      label: "Cirlot, A Dictionary of Symbols",
+      label: "Cirlot, A Dictionary of Symbols (New York: Philosophical Library, 1962)",
       url: "https://archive.org/details/dictionaryofsymb0000cirl",
       supports:
-        "Catalogued as A Dictionary of Symbols by Juan Eduardo Cirlot. Cited as an example of the catalogue form itself - a work recording what symbols have been taken to mean across traditions. Its presence supports what such a catalogue does, not any entry in it.",
+        "A Dictionary of Symbols, Cirlot, Philosophical Library 1962, recorded as a TRANSLATION of the Diccionario de simbolos tradicionales. An example of the catalogue form: what such a work does, not that any entry in it is true.",
     },
     {
       kind: "reference",
-      label: "Eliade, Images and Symbols",
+      label: "Eliade, Images and Symbols (London, 1952)",
       url: "https://archive.org/details/in.gov.ignca.11012",
       supports:
-        "Catalogued as Images and Symbols by Mircea Eliade. Cited for the comparative-religion treatment referred to above. Eliade's comparative method has since been heavily criticised; the reference is to the work's position, not its authority.",
+        "Images and Symbols, Eliade, London 1952. Cited for the comparative-religion treatment above; Eliade's method has since been heavily criticised, so the reference is to its position, not its authority.",
     },
     {
       kind: "primary",
-      label: "A. E. Waite, The Pictorial Key to the Tarot",
+      label: "A. E. Waite, The Pictorial Key to the Tarot (Blauvelt, NY: Rudolf Steiner, 1971)",
       url: "https://archive.org/details/pictorialkeytota0000unse_b9d6",
       supports:
-        "Catalogued as The Pictorial Key to the Tarot by Arthur Edward Waite - a tarot system's exposition by one of the deck's own authors. Cited as a system stating itself in its own terms, and as the primary source for how that symbolic set organises meaning.",
+        "The Pictorial Key to the Tarot, Waite, Rudolf Steiner Publications 1971 - a REISSUE of the 1911 work. A tarot system's exposition by one of the deck's own authors.",
     },
   ],
   suggestedQuestion:
