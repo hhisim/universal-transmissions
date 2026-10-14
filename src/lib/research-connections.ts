@@ -253,6 +253,228 @@ export const CYMATICS_GAPS = [
   "The labels above describe how each connection is held, not scientific evidence. \"Documented\" means the record names the relationship; \"thematic\" means it shares an idea; and every connection here is a UT record, not an external citation.",
 ];
 
+
+/**
+ * Linguistics connections.
+ *
+ * Four registers are kept apart here, because this is the room where they are most
+ * easily merged: established linguistic knowledge, historical accounts of real
+ * writing systems, tradition-specific letter associations, and UT's own script and
+ * xenolinguistic constructions. Nothing below claims that a UT construction descends
+ * from a historical script, and resemblance between glyphs is not offered as descent.
+ */
+export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
+  {
+    anchorSlug: "journal-universal-transmissions-alphabet",
+    href: "/journal/universal-transmissions-alphabet",
+    kind: "Journal",
+    title: "Universal Transmissions Alphabet",
+    rationale:
+      "The archive's own account of its constructed alphabet. This is the clearest case of UT material that must stay in the construction register: the alphabet is a designed system, and the piece does not present it as a decipherment of, or a descendant of, any historical script. It is linked so the construction can be examined as a construction.",
+    basis: "interpretation",
+    basisLabel: "UT's own script construction",
+    suggestedQuestion:
+      "This alphabet is UT's own construction - what in it is a design decision, and is any part of it claimed to derive from a historical writing system?",
+  },
+  {
+    anchorSlug: "artwork-translinguistic-equation",
+    href: "/gallery/translinguistic-equation",
+    kind: "Artwork",
+    title: "Translinguistic Equation",
+    rationale:
+      "The record describes encoding DNA electron spin resonance into harmala alkaloids and calls the result a visualisation of language as a living quantum field. That is a UT artistic construction stated in mechanistic vocabulary, and this room holds it as such: the artwork does not model a physical process, and none of the physics or pharmacology it names is being asserted. It is the sharpest example on this page of why the construction register exists.",
+    basis: "interpretation",
+    basisLabel: "UT artistic construction - not a physical mechanism",
+    suggestedQuestion:
+      "The record describes this in mechanistic terms - electron spin resonance, alkaloids. What is actually being claimed, and what is the artwork doing instead?",
+  },
+  {
+    anchorSlug: "artwork-linguistic-mystic",
+    href: "/gallery/linguistic-mystic",
+    kind: "Artwork",
+    title: "Linguistic Mystic",
+    rationale:
+      "Its record names the subject as the mystic relationship between language, consciousness and the cosmos, and credits invented mentors of \"Translinguistic syntax\". The piece is a study in that reading rather than a report on it, so it belongs in the interpretive register - the record itself frames the mentors as legendary.",
+    basis: "interpretation",
+    basisLabel: "UT artistic reading",
+    suggestedQuestion:
+      "The record frames its mentors as legendary - what is this piece doing with the idea of a mystic relation between language and consciousness?",
+  },
+  {
+    anchorSlug: "journal-reality-as-syntax",
+    href: "/journal/linguistics-2026-03-19-reality-as-syntax",
+    kind: "Journal",
+    title: "Reality as Syntax: When Language Becomes the Architecture of Perception",
+    rationale:
+      "The Journal's long-form argument that language shapes perception. This is where the room's central reading is set out at length, and it is included so the reading can be read rather than summarised - it is a UT position piece, not a linguistics paper, and it is labelled accordingly.",
+    basis: "interpretation",
+    basisLabel: "UT position - the archive's own argument",
+    suggestedQuestion:
+      "This piece argues language becomes the architecture of perception - how much of that is a claim about how minds work, and how much is a frame UT is choosing to work inside?",
+  },
+  {
+    anchorSlug: "journal-sefer-yetzirah-32-paths",
+    href: "/journal/sefer-yetzirah-32-paths-of-wisdom",
+    kind: "Journal",
+    title: "Sefer Yetzirah and the 32 Paths of Wisdom: The Hebrew Alphabet as the Software of Creation",
+    rationale:
+      "The Hebrew letters carry number, planet and element assignments through an actual textual tradition, and this is the archive's treatment of that tradition. It is tradition-specific: the assignments are what the Sefer Yetzirah and its commentary carry, not findings about the alphabet, and the title's \"software\" is the archive's own metaphor rather than the text's claim.",
+    basis: "thematic",
+    basisLabel: "Tradition-specific letter associations",
+    suggestedQuestion:
+      "Which letter assignments here come from the text and its commentators, and where does the archive's own \"software\" framing start?",
+  },
+  {
+    anchorSlug: "codex-archive-hebrew-letters",
+    href: "/codex/archive?system=LETTERS_HEBREW",
+    kind: "Codex",
+    title: "The Archive — LETTERS_HEBREW system (22 records)",
+    rationale:
+      "The archive's own letter records, where each Hebrew letter carries the full set of correspondences UT assigns it. This is the lattice itself rather than a description of it, so the assignments can be inspected one record at a time and their basis read on each record.",
+    basis: "documented",
+    basisLabel: "Catalogued in the archive's own LETTERS_HEBREW lattice",
+    suggestedQuestion:
+      "These letter records carry number, planet and element assignments - which register does each of those belong to, and does the archive claim any of them are properties of the letters?",
+  },
+  {
+    anchorSlug: "codex-archive-latin-letters",
+    href: "/codex/archive?system=LETTERS_LATIN",
+    kind: "Codex",
+    title: "The Archive — LETTERS_LATIN system (26 records)",
+    rationale:
+      "The corresponding lattice for the Latin alphabet, which is what makes the archive's own reference point explicit: the letters of the alphabet UT's constructed script would stand beside. Reading the two systems side by side is the honest way to see whether a resemblance is being claimed, because both are visible and neither asserts descent from the other.",
+    basis: "documented",
+    basisLabel: "Catalogued in the archive's own LETTERS_LATIN lattice",
+    suggestedQuestion:
+      "With both letter lattices visible - is any relationship being claimed between the Latin letters and UT's own alphabet, or are these two separate assignment sets?",
+  },
+  {
+    anchorSlug: "journal-enochian-angelic-language",
+    href: "/journal/enochian-angelic-language-modern-occultism",
+    kind: "Journal",
+    title: "Enochian: Angelic Language and the Modern Occult Revival",
+    rationale:
+      "A historical account of a constructed language with a documented origin: Enochian is recorded as having been produced by John Dee and Edward Kelley in the late sixteenth century, and published by Meric Casaubon in 1659. It is the room's worked example that an invented script has a date, authors and a publication history - which is precisely the kind of provenance UT's own constructions do not claim.",
+    basis: "documented",
+    basisLabel: "Historical account of a constructed language",
+    suggestedQuestion:
+      "Enochian has a documented origin and publication history - how does that compare with how UT presents its own constructed alphabet?",
+  },
+];
+
+export const LINGUISTICS_GAPS = [
+  "This room does not claim that UT's constructed alphabet, or any other UT script, descends from a historical writing system. Visual resemblance between a UT glyph and an older sign is not offered here as evidence of descent, borrowing or decipherment.",
+  "The Universal Transmissions Alphabet is UT's own design. It is presented as an artistic construction, not as a recovered, channelled or decoded language, and no claim is made that it has been used or understood by anyone outside the project.",
+  "The Translinguistic Equation's record uses mechanistic vocabulary - DNA, electron spin resonance, harmala alkaloids. That vocabulary is part of the artwork's construction. No physical mechanism is being modelled or asserted, and this room does not treat the record as a scientific claim.",
+  "The archive does not hold that all human languages descend from a single source. Monogenesis is not an established result in linguistics, and where the room's own writing reaches for that idea it is a UT reading and is labelled as one.",
+  "The Sefer Yetzirah letter assignments belong to a tradition and to the texts that carry it. They are not properties of the Hebrew letters, and nothing here claims that the assignments were verified or that they produce effects.",
+  "The external references below support statements about what texts exist and what they say - that a treatise was published, that an author reasoned a particular way. They are not presented as endorsing any UT reading, and their presence is not a claim that the archive has consulted them beyond the catalogue description that is quoted.",
+  "This room covers alphabetic writing and a small number of constructed scripts. It does not cover sign languages, tonal or click phonology, language acquisition, or the quantitative methods of historical linguistics, and no entry above should be read as covering them.",
+];
+
+/**
+ * Symbolism connections.
+ *
+ * The register discipline here is the one this subject most needs: an established
+ * reference work on symbols is a CATALOGUE of interpretations, not evidence that an
+ * interpretation holds. Jung, Cirlot, Eliade and Waite are cited as what they are.
+ */
+export const SYMBOLISM_CONNECTIONS: ResearchConnection[] = [
+  {
+    anchorSlug: "journal-tarot-symbolic-machine",
+    href: "/journal/tarot-symbolic-machine-for-fate",
+    kind: "Journal",
+    title: "The Tarot: A Symbolic Machine for Mapping the Architecture of Fate",
+    rationale:
+      "The archive's own long-form treatment of the Tarot as a structured symbolic system. Included because it is the room's clearest example of a symbol set with an internal grammar - the cards carry positions and relations rather than isolated meanings - and because the piece states its own framing rather than presenting the system as a mechanism.",
+    basis: "documented",
+    basisLabel: "UT writing on this subject",
+    suggestedQuestion:
+      "Is the Tarot being described here as a system with an internal grammar, or as something that produces effects - and where does the archive draw that line?",
+  },
+  {
+    anchorSlug: "codex-archive-major-arcana",
+    href: "/codex/archive?system=MAJOR_ARCANA",
+    kind: "Codex",
+    title: "The Archive — MAJOR_ARCANA system (22 records)",
+    rationale:
+      "The archive's own twenty-two Major Arcana records, each carrying the correspondences UT assigns it. This is the lattice rather than a description of it, so an assignment can be opened and read on the record that makes it, and compared with the traditional attributions the same card carries elsewhere.",
+    basis: "documented",
+    basisLabel: "Catalogued in the archive's own MAJOR_ARCANA lattice",
+    suggestedQuestion:
+      "These Arcana records carry correspondence sets - which of those are traditional attributions the card already had, and which are this archive's own additions?",
+  },
+  {
+    anchorSlug: "artwork-recursive-pantheism",
+    href: "/gallery/recursive-pantheism",
+    kind: "Artwork",
+    title: "Universal Transmissions VIII — Recursive Pantheism",
+    rationale:
+      "The record states its influences by name - Athanasius Kircher and Robert Fludd - and describes an attempt to syncretise macro and micro, zodiac to chakra centres, and their correlation to organs, cymatic patterns and frequencies. Because the record names what it draws on, this is a documented case rather than an inferred one: it shows UT deliberately building on an earlier syncretic tradition that itself mixed emblem, cosmology and correspondence.",
+    basis: "documented",
+    basisLabel: "Influences named in the artwork's own record",
+    suggestedQuestion:
+      "The record names Kircher and Fludd - what is this piece taking from that earlier syncretic tradition, and what does it add that is UT's own?",
+  },
+  {
+    anchorSlug: "artwork-trinary-transcendence",
+    href: "/gallery/trinary-transcendence",
+    kind: "Artwork",
+    title: "Trinary Transcendence",
+    rationale:
+      "The record describes using archetypes of the trinity and the Trimurti to move beyond binary modes, and states it was made in a hypomanic state. That last detail is in the record and is kept here: it is a statement about the conditions of making, and it is not offered as evidence for the symbolism's validity.",
+    basis: "thematic",
+    basisLabel: "Tradition-specific archetypes, used as UT material",
+    suggestedQuestion:
+      "This draws on trinitarian and Trimurti archetypes - what is being borrowed from those traditions, and what does the piece do with them that the traditions do not?",
+  },
+  {
+    anchorSlug: "artwork-ethera-24",
+    href: "/gallery/ethera-24",
+    kind: "Artwork",
+    title: "ETHERA 24",
+    rationale:
+      "An exploration of the alchemical quintessence - the fifth element set beyond earth, water, fire and air. The four-element scheme and the fifth are a documented historical idea, while the record's own gloss of it as the universal solvent of consciousness is UT's reading of that idea. Both are visible here so neither is mistaken for the other.",
+    basis: "thematic",
+    basisLabel: "Historical element scheme, glossed by UT",
+    suggestedQuestion:
+      "The fifth element is a historical idea - which part of this is the alchemical scheme, and which is UT's own gloss on it?",
+  },
+  {
+    anchorSlug: "artwork-polarity-modulation",
+    href: "/gallery/polarity-modulation",
+    kind: "Artwork",
+    title: "Polarity Modulation",
+    rationale:
+      "The record describes an alchemical art of navigating between opposing forces to generate harmonic resonance in a personal energetic field. The polar-pairs scheme has a documented place in alchemical and Hermetic writing; the energetic field and the resonance it is said to generate do not, and are UT's construction. The card is labelled for the register its claim actually occupies.",
+    basis: "interpretation",
+    basisLabel: "UT construction in alchemical vocabulary",
+    suggestedQuestion:
+      "How much of the polarity scheme here is historical alchemical writing, and how much is UT's own energetic construction?",
+  },
+  {
+    anchorSlug: "journal-kybalion-hermetic-lineage",
+    href: "/journal/the-kybalion-7-principles-hermetic-philosophy",
+    kind: "Journal",
+    title: "The Kybalion: The Seven Principles of Hermetic Philosophy Decoded",
+    rationale:
+      "The Archive's treatment of the seven principles, which is the modern Hermetic vocabulary a great deal of contemporary symbol work runs on. It is included for lineage, and with the same caveat the cymatics room carries: the Kybalion is an early-twentieth-century modern esoteric text, not an ancient source, and citing it does not make its principles older than they are.",
+    basis: "documented",
+    basisLabel: "UT writing, with the text's own dating stated",
+    suggestedQuestion:
+      "The Kybalion is a modern text - what does that do to the claim that these principles are ancient Hermetic teaching?",
+  },
+];
+
+export const SYMBOLISM_GAPS = [
+  "A symbol's meaning is not a property of the symbol. Every association on this page is held by someone - a tradition, a text, or this archive - and none of them is offered as a universal meaning that a form carries by itself.",
+  "Visual resemblance is not evidence of shared meaning or shared origin. Two traditions can use the same figure and mean unrelated things by it, and this room does not treat a likeness as a link.",
+  "The archive's own correspondence lattice assigns meanings to colours, arcana and deities. It does not measure them, and no entry here should be read as a finding about how anything behaves.",
+  "The external references below are catalogues and arguments: Jung, Cirlot and Eliade are records of what symbols have been taken to mean, and Waite is a tarot system's own exposition. None of them is evidence that a reading is correct, and their presence is not a claim that the archive has read beyond the catalogue description quoted.",
+  "The archive does not claim that archetypes are scientifically established, testable structures. Where \"archetype\" appears it is used as the vocabulary of a tradition and of this project, not as an empirical finding.",
+  "This room covers Western esoteric, emblematic and comparative symbol systems. It does not cover iconography of specific non-Western traditions in their own terms, semiotics as a formal discipline, or mathematical notation, and no entry above should be read as covering them.",
+];
+
 /**
  * Connections per research topic, keyed by the topic's registry slug.
  *
@@ -263,10 +485,14 @@ export const CYMATICS_GAPS = [
 export const CONNECTIONS_BY_TOPIC: Record<string, ResearchConnection[]> = {
   cymatics: CYMATICS_CONNECTIONS,
   geometry: GEOMETRY_CONNECTIONS,
+  linguistics: LINGUISTICS_CONNECTIONS,
+  symbolism: SYMBOLISM_CONNECTIONS,
 };
 
 /** Honest absences per research topic. */
 export const GAPS_BY_TOPIC: Record<string, string[]> = {
   cymatics: CYMATICS_GAPS,
   geometry: GEOMETRY_GAPS,
+  linguistics: LINGUISTICS_GAPS,
+  symbolism: SYMBOLISM_GAPS,
 };

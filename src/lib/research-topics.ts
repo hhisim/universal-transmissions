@@ -228,6 +228,202 @@ const GEOMETRY: ResearchTopic = {
     "Which of these statements about a geometric form is a property of the form, and which is a meaning a tradition or this archive assigns to it?",
 };
 
+const LINGUISTICS: ResearchTopic = {
+  id: "linguistics",
+  title: "Linguistics",
+  route: "/research/linguistics",
+  summary: [
+    "Linguistics is the study of language: its sounds, its structures, how it is",
+    "acquired, how it changes, and how it is written down. This room holds four",
+    "registers apart, because they are the ones most often merged here.",
+    "",
+    "ESTABLISHED LINGUISTIC KNOWLEDGE (what the discipline holds, independent of any reading):",
+    "- Language is studied as a system of signs. Saussure's distinction between the sign",
+    "  as a union of signifier and signified, and between the study of a language at a",
+    "  moment and across time, is foundational to modern linguistics.",
+    "- Writing is a technology that came late and was invented more than once. Alphabetic",
+    "  writing is one family among several, alongside syllabic and logographic systems, and",
+    "  it is not the case that all writing descends from a single invention.",
+    "- Speech and writing are separate systems: writing does not merely transcribe speech,",
+    "  and many languages have no writing system at all.",
+    "- Monogenesis - that all human languages descend from one ancestral language - is NOT",
+    "  an established result. Some researchers have argued for it; it is not settled, and",
+    "  the comparative method cannot reach far enough back to demonstrate it.",
+    "",
+    "HISTORICAL (recorded by a named document we can point at):",
+    "- The earliest writing systems are documented in Mesopotamia (cuneiform, late fourth",
+    "  millennium BCE), Egypt and China, each independently. The Vinca signs of south-east",
+    "  Europe (from c. 5500 BCE) are older marks, and whether they are writing at all is",
+    "  debated; they are cited here as an open question, not as a first script.",
+    "- Enochian is a constructed language with a documented origin: produced by John Dee and",
+    "  Edward Kelley in the late sixteenth century and published by Meric Casaubon in 1659.",
+    "  Whatever one makes of the account given for it, its date, authorship and publication",
+    "  history are recorded - which is what makes it a historical case rather than a claim.",
+    "- The Sefer Yetzirah is a Hebrew text of the first millennium CE that assigns the",
+    "  letters of the Hebrew alphabet roles in creation, and carries a set of letter",
+    "  associations through its commentary tradition.",
+    "",
+    "TRADITION-SPECIFIC SYMBOLIC ASSOCIATIONS (assignments carried by a tradition):",
+    "- The Hebrew letters carry number, planet and element assignments through the Sefer",
+    "  Yetzirah and the Kabbalistic tradition. These are assignments held within a textual",
+    "  tradition; they are not properties of the letters and were not established by",
+    "  linguistic analysis.",
+    "- The Tetragrammaton is the four-letter Hebrew name of God. Its treatment as a portal",
+    "  into meaning is a traditional and UT reading, not a linguistic finding.",
+    "- The archive's own assignment sets are the Codex LETTERS_HEBREW lattice (22 entries)",
+    "  and LETTERS_LATIN lattice (26 entries). These are UT symbolic material, not linguistic",
+    "  reference works.",
+    "",
+    "UT ARTISTIC AND XENOLINGUISTIC CONSTRUCTIONS (made by this project, not claims about the world):",
+    "- UT designs its own scripts and alphabet. They are artistic constructions: designed",
+    "  systems presented as such, not recovered, decoded, channelled or historical languages.",
+    "- UT writes and makes work about a Translinguistic subject - language as the carrier of",
+    "  consciousness, the Noosphere, and the idea that language shapes perception itself.",
+    "  These are the project's own constructions and readings.",
+    "",
+    "IMPORTANT LIMITS, stated plainly:",
+    "- Resemblance between a UT glyph and an older sign is NOT evidence of descent,",
+    "  borrowing or decipherment. Two scripts can share a look and have no relationship.",
+    "- No physical mechanism is claimed for any UT script. Where a UT record uses mechanistic",
+    "  vocabulary (for instance DNA, electron spin resonance or alkaloids), that vocabulary",
+    "  is part of an artwork's construction, not a modelled process.",
+    "- The idea that all languages share a single root is a UT reading where it appears. It",
+    "  is not the position of linguistics, and this room does not present it as one.",
+    "- Do not present a tradition-specific letter assignment as a property of the letter, or",
+    "  a UT construction as a historical language.",
+  ].join("\n"),
+  sources: [
+    {
+      kind: "reference",
+      label: "Saussure, Course in General Linguistics (Bally & Sechehaye, eds.)",
+      url: "https://archive.org/details/courseingenerall00ferd",
+      supports:
+        "The catalogue record identifies this as the Course in General Linguistics by Ferdinand de Saussure, edited by Bally and Sechehaye. Cited only for the foundational claims attributed to the discipline in this summary - the sign as signifier and signified, and the distinction between studying a language at a moment and across time.",
+    },
+    {
+      kind: "reference",
+      label: "Ogden & Richards, The Meaning of Meaning (1923)",
+      url: "https://archive.org/details/meaningofmeaning00ogde",
+      supports:
+        "The 1923 study of the influence of language upon thought, catalogued under Ogden and Richards. Cited as a reference work for the semiotic treatment of meaning this room refers to; its presence supports that the work exists and takes that position, not that its arguments are correct.",
+    },
+    {
+      kind: "historical",
+      label: "Isaac Taylor, The History of the Alphabet (1899)",
+      url: "https://archive.org/details/historyofalphabe02tayluoft",
+      supports:
+        "A nineteenth-century account of the origin and development of letters, catalogued under Taylor. Cited as a historical document of how alphabetic descent was argued at that time. It is dated scholarship and is not presented here as current comparative linguistics.",
+    },
+    {
+      kind: "primary",
+      label: "Sefer Yetzirah (Hebrew text, first millennium CE)",
+      url: "https://archive.org/details/sefer-yetzirah",
+      supports:
+        "A digitised Sefer Yetzirah. Cited as the text that carries the letter assignments the room refers to in the tradition register. A catalogue reference to the text is not a claim that its assignments are correct, nor that they describe anything beyond the tradition that holds them.",
+    },
+    {
+      kind: "historical",
+      label: "John Dee, A true and faithful relation... (London, 1659)",
+      url: "https://archive.org/details/b30324282_0002",
+      supports:
+        "The 1659 publication of the Dee and Kelley material, catalogued under Dee with the 1659 imprint. Cited for the documented DATE, authorship and publication of the Enochian material - not for the account it gives of where the language came from, which is the part a historical register cannot settle.",
+    },
+  ],
+  suggestedQuestion:
+    "Which statements on this page are established linguistics, which are historical accounts, which are tradition-specific letter associations, and which are UT's own constructions?",
+};
+
+const SYMBOLISM: ResearchTopic = {
+  id: "symbolism",
+  title: "Symbolism",
+  route: "/research/symbolism",
+  summary: [
+    "Symbolism concerns the use of one thing to stand for another: emblems, figures,",
+    "colours, numbers, and the systems that organise them. This room holds four",
+    "registers apart, because this is the subject where they are most easily confused.",
+    "",
+    "ESTABLISHED KNOWLEDGE (what can be said without adopting a tradition's claims):",
+    "- A symbol's meaning is conventional, not intrinsic. Nothing is a symbol by itself;",
+    "  it becomes one within a group that takes it so, and the same figure means unrelated",
+    "  things in unrelated traditions.",
+    "- In semiotics, a distinction is drawn between an icon (which resembles), an index",
+    "  (which is caused by what it points to) and a symbol (which is connected by",
+    "  convention). That distinction is analytic vocabulary, and it is useful here for a",
+    "  reason: it is exactly the distinction that resemblance-based arguments skip.",
+    "- Symbols change meaning historically. An emblem that once carried one sense can carry",
+    "  an opposite one a few centuries later, which is why 'the meaning of X' is rarely a",
+    "  well-formed question without naming a tradition and a period.",
+    "",
+    "HISTORICAL (recorded by a named document we can point at):",
+    "- Comparative works of the nineteenth and twentieth centuries - Frazer's Golden Bough",
+    "  among them - assembled symbolic material across cultures and argued for patterns.",
+    "  Their methods and conclusions have since been heavily criticised within anthropology,",
+    "  and they are cited here as historical documents of that project, not as evidence.",
+    "- The Tarot's symbolic reading has a documented modern history. Court de Gebelin's",
+    "  eighteenth-century claim that the cards preserved Egyptian wisdom is a claim made at",
+    "  that time, not a finding; the cards' documented origins lie in fifteenth-century Italy.",
+    "- Jung's late work on symbols and the archetypes popularised the idea of universal",
+    "  symbolic structures. Jungian archetypes are a psychological framework, and they are",
+    "  not an established empirical result of experimental psychology.",
+    "",
+    "TRADITION-SPECIFIC SYMBOLIC ASSOCIATIONS (assignments carried by a tradition):",
+    "- Element schemes, planetary attributions, and colour and number correspondences are",
+    "  handed down within traditions - Hermetic, alchemical, Kabbalistic and others. The",
+    "  four-element scheme with a fifth quintessence is a documented historical idea.",
+    "- These are assignments. A colour is not a planet; the correspondence is a reading a",
+    "  tradition makes and holds.",
+    "- The archive's own assignment sets are the Codex lattices - MAJOR_ARCANA (22 entries),",
+    "  COLORS (16), ALCHEMY (12) and DEITIES (202) among them. These are UT symbolic",
+    "  material, not reference works, and the archive assigns the meanings.",
+    "",
+    "UT ARTISTIC INTERPRETATION (a reading this project makes, not a claim about the world):",
+    "- UT builds its imagery on symbolic correspondence, treating related figures as",
+    "  expressions of a single structure, and its records state when influences are named.",
+    "- Where a UT record uses the vocabulary of mechanism - fields, frequencies, resonance -",
+    "  the vocabulary is part of the construction. No physical effect is being claimed.",
+    "",
+    "IMPORTANT LIMITS, stated plainly:",
+    "- Resemblance between symbols is not evidence of common origin, shared meaning or a",
+    "  universal archetype. This room does not treat a likeness as a link.",
+    "- A catalogue of symbols - Cirlot, Jung, Eliade - records what symbols have been taken",
+    "  to mean. It is not evidence that any reading is correct.",
+    "- Nothing on this page is a measurement. The archive's lattices assign meanings; they",
+    "  do not detect or verify anything.",
+  ].join("\n"),
+  sources: [
+    {
+      kind: "reference",
+      label: "Jung (ed.), Man and His Symbols",
+      url: "https://archive.org/details/man-and-his-symbols-by-carl-jung",
+      supports:
+        "The catalogue record identifies this as Man and His Symbols, the late Jung's accessible presentation of his approach. Cited for the existence and shape of the Jungian framework described in the historical register - not as evidence that archetypes are established structures.",
+    },
+    {
+      kind: "reference",
+      label: "Cirlot, A Dictionary of Symbols",
+      url: "https://archive.org/details/dictionaryofsymb0000cirl",
+      supports:
+        "Catalogued as A dictionary of symbols by Juan Eduardo Cirlot. Cited as an example of the catalogue form itself: a work that records what symbols have been taken to mean across traditions. Its presence supports that such a catalogue exists and what it does, not the truth of any entry in it.",
+    },
+    {
+      kind: "reference",
+      label: "Eliade, Images and Symbols",
+      url: "https://archive.org/details/in.gov.ignca.11012",
+      supports:
+        "Catalogued as Images and symbols by Mircea Eliade. Cited for the comparative-religion treatment of symbolic material referred to in the historical register. Eliade's comparative method has been criticised in the decades since; the reference is to the work's existence and position, not to its authority.",
+    },
+    {
+      kind: "primary",
+      label: "A. E. Waite, The Pictorial Key to the Tarot",
+      url: "https://archive.org/details/pictorialkeytota0000unse_b9d6",
+      supports:
+        "Catalogued as The pictorial key to the tarot by Arthur Edward Waite: a tarot system's own exposition by one of the authors of the deck it describes. Cited because it is a system stating itself in its own terms - the primary source for how a symbolic set organises meaning internally.",
+    },
+  ],
+  suggestedQuestion:
+    "Which statements on this page are established knowledge about how symbols work, which are historical accounts of symbolic traditions, which are tradition-specific assignations, and which are UT's own interpretations?",
+};
+
 /**
  * A connection anchor is a ResearchTopic like any other, so the Oracle keeps ONE
  * contract: a stable identifier, resolved server-side against an exact key. No
@@ -324,6 +520,8 @@ function connectionTopic(topic: ResearchTopic, c: ResearchConnection): ResearchT
 const RESEARCH_TOPICS: Record<string, ResearchTopic> = {
   cymatics: CYMATICS,
   geometry: GEOMETRY,
+  linguistics: LINGUISTICS,
+  symbolism: SYMBOLISM,
 };
 
 /**
@@ -356,9 +554,9 @@ export function isRegisteredRoom(slug: string): boolean {
 
 /**
  * The four research domains the site presents, with what each one ACTUALLY is today.
- * The standing line is the honest part: two of these are registered rooms with a
- * sourced summary and a curated connection registry, and two are reading pages with
- * neither. Presenting all four as equivalent rooms would be the easy lie.
+ * The standing line is the honest part, and it is kept current rather than flattering:
+ * each of these is now a registered room with a sourced summary and a curated
+ * connection registry, and each standing says what its summary actually separates.
  */
 export interface ResearchDomain {
   slug: string;
@@ -390,17 +588,17 @@ export const RESEARCH_DOMAINS: ResearchDomain[] = [
     slug: "linguistics",
     title: "Linguistics",
     route: "/research/linguistics",
-    registered: false,
+    registered: true,
     standing:
-      "A reading page, not yet a room: there is no sourced overview and no set of connections to explore yet, so nothing here can be carried into the Oracle as a subject.",
+      "A research room: a sourced overview that keeps established linguistics, historical accounts, tradition-specific letter associations and UT's own xenolinguistic constructions apart, with eight connections you can open or carry into the Oracle.",
   },
   {
     slug: "symbolism",
     title: "Symbolism",
     route: "/research/symbolism",
-    registered: false,
+    registered: true,
     standing:
-      "A reading page, not yet a room: there is no sourced overview and no set of connections to explore yet, so nothing here can be carried into the Oracle as a subject.",
+      "A research room: a sourced overview that keeps established knowledge about symbols, historical accounts of symbolic traditions, tradition-specific assignments and UT's own readings apart, with seven connections you can open or carry into the Oracle.",
   },
 ];
 
@@ -465,12 +663,24 @@ export function researchPromptBlock(topic: ResearchTopic): string {
     "Source discipline:",
     "- OBSERVED means the pattern is experimentally demonstrated and reproducible.",
     "- HISTORICAL means a named primary document records it.",
+    "- TRADITION-SPECIFIC means the association is carried by a tradition, text or corpus.",
+    "  It is an assignment someone holds, not a property of the thing it is assigned to.",
     "- UT ARTISTIC INTERPRETATION means it is this project's reading, not a fact about the world.",
-    "Do not present an interpretation or a symbolic frequency assignment as an experimental",
-    "result, and do not offer medical or healing claims about specific frequencies.",
+    "Do not present an interpretation, a tradition-specific assignment or a symbolic frequency",
+    "assignment as an experimental result, and do not offer medical or healing claims about",
+    "specific frequencies.",
     `The ONLY external references supplied with this context are: ${topic.sources
       .map((s) => s.label)
       .join("; ")}. Do not attribute any other author, title, work or page number — if a claim`,
     "would need a source that is not listed here, say that the archive does not hold it.",
+    "",
+    "What each supplied reference does and does not support:",
+    ...topic.sources.flatMap((s) => [
+      `- ${s.label}`,
+      `  What it supports: ${s.supports}`,
+      "  A reference being listed means the archive holds it as a permitted citation. It is NOT",
+      "  a claim that this archive has read, consulted or verified the work beyond the catalogue",
+      "  description quoted above, and it is never a claim that the work endorses a UT reading.",
+    ]),
   ].join("\n");
 }

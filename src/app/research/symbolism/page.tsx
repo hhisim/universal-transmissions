@@ -4,6 +4,8 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import ResearchConnections from "@/components/research/ResearchConnections";
+import { SYMBOLISM_CONNECTIONS, SYMBOLISM_GAPS } from "@/lib/research-connections";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/symbolism" },
@@ -725,6 +727,21 @@ export default function ResearchSymbolismPage() {
           </div>
         </section>
 
+        <ResearchConnections
+          connections={SYMBOLISM_CONNECTIONS}
+          gaps={SYMBOLISM_GAPS}
+          topicSlug="symbolism"
+          returnHref="/research/symbolism"
+          topicTitle="Symbolism"
+          eyebrow="[ Connections in the Archive ]"
+          heading="Where Symbolism Already Runs"
+          intro="Symbolism is not a topic that lives on one page either. It runs through the artwork records, the Journal, the Codex's own MAJOR_ARCANA lattice and the archive's correspondence engine. Each link below states why it belongs and which register its claim occupies — established knowledge about how symbols work, a historical account of a symbolic tradition, a tradition-specific assignment, or UT's own reading. A catalogue of symbols records what symbols have been taken to mean; it is not evidence that a reading is correct, and the entries say so. Open a destination to read it, or take a single connection into the Oracle as its own context."
+          accent="var(--ut-purple)"
+          tint="rgba(139, 92, 246, 0.02)"
+          border="rgba(139, 92, 246, 0.08)"
+          topBorder="rgba(139, 92, 246, 0.06)"
+          glowClass="glow-purple"
+        />
         <ResearchPathways
           eyebrow="[ From Symbol into Correspondence ]"
           title="Move from Symbolism into the Engine"

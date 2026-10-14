@@ -4,6 +4,8 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import ResearchConnections from "@/components/research/ResearchConnections";
+import { LINGUISTICS_CONNECTIONS, LINGUISTICS_GAPS } from "@/lib/research-connections";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/linguistics" },
@@ -512,6 +514,21 @@ export default function ResearchLinguisticsPage() {
           </div>
         </section>
 
+        <ResearchConnections
+          connections={LINGUISTICS_CONNECTIONS}
+          gaps={LINGUISTICS_GAPS}
+          topicSlug="linguistics"
+          returnHref="/research/linguistics"
+          topicTitle="Linguistics"
+          eyebrow="[ Connections in the Archive ]"
+          heading="Where Language Already Runs"
+          intro="Linguistics is not a subject that lives on one page here either. It runs through the artwork records, the Journal, the Codex's own LETTERS_HEBREW and LETTERS_LATIN lattices, and UT's constructed scripts. Each link below states why it belongs and which register its claim occupies — established linguistics, a historical account, a tradition-specific association, or UT's own construction. The two entries that are UT constructions say so in the label rather than leaving it to be guessed. Open a destination to read it, or take a single connection into the Oracle as its own context."
+          accent="var(--ut-magenta)"
+          tint="rgba(224, 64, 251, 0.02)"
+          border="rgba(224, 64, 251, 0.08)"
+          topBorder="rgba(224, 64, 251, 0.06)"
+          glowClass="glow-magenta"
+        />
         <ResearchPathways
           eyebrow="[ From Language into Transmission ]"
           title="Follow Xenolinguistics into the Site"
