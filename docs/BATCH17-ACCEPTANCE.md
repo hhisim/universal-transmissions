@@ -4,6 +4,14 @@ Continuation from `d7c7e62e6234c44867ef072cef92dd37393167fb`. The implemented ro
 on-demand loading and its research links are kept as they were. **Preview only.** This
 pass exercises the instrument and changes nothing except a defect it found (see §2).
 
+**Verification identity.** Everything below was measured against the preview
+`https://universal-transmissions-iscvuxtpo-hhisim-7214s-projects.vercel.app`, built from
+`a7e2f10` — the tip *including* the sandbox fix. The delivered tip `93250fb` adds only
+this document, the evidence and the harness: its `src` and `public` trees are byte-identical
+to `a7e2f10` (`5fe3bf9a4b1d` / `0e621be6353d`), so the results apply to it exactly.
+Separately, the **production website remains `dpl_4NmToJrCT55wwC4NPDJYqJ7Uudqb`** (the
+Batch 16 release) on all canonical hosts; this batch deployed nothing.
+
 Scope limit stated up front, because it bounds every claim below: this VPS has **no GPU
 and no sound card**, and the checks run in headless Chromium. Rendering is therefore
 **software WebGL** (SwiftShader) in every measurement here, and "how it sounds" is not
