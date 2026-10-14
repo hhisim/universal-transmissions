@@ -1,0 +1,186 @@
+{
+  "originalDistFiles": 21,
+  "hostedFiles": 22,
+  "onlyInOriginal": [],
+  "onlyHosted": [
+    "THIRD_PARTY_NOTICES.txt"
+  ],
+  "hashDifferences": [],
+  "hosted": {
+    "THIRD_PARTY_NOTICES.txt": {
+      "sha256": "81b1521e8005d90a85bc3ce37d2b927695f5fb575b93bb5d39c13cd116019de0",
+      "bytes": 2715
+    },
+    "app.js": {
+      "sha256": "94baa3fce622dcbec2712281fcb6b7f2f740289fdb714825be93a5bb927c9b6d",
+      "bytes": 596905
+    },
+    "favicon.svg": {
+      "sha256": "4055d4988299e1ae5aa4267409928005d1b9e0d8fc499f65791388e153917707",
+      "bytes": 279
+    },
+    "fonts/cinzel-latin-400-normal.woff2": {
+      "sha256": "b873cdd90d6bd9ca4793c805b4175abfae00b3611ee8afccf63067133dcf1217",
+      "bytes": 14128
+    },
+    "fonts/cinzel-latin-600-normal.woff2": {
+      "sha256": "61efc27ceb7d08bb841652fa8979c0b6833b92548b7f9544c07968a6c02f28e4",
+      "bytes": 15204
+    },
+    "fonts/cinzel-latin-700-normal.woff2": {
+      "sha256": "8efa224fe70fef188a39c095e218b81fd31061809f2752537e33a9ec7b9c2263",
+      "bytes": 15184
+    },
+    "fonts/cinzel-latin-ext-400-normal.woff2": {
+      "sha256": "4fc5b16d66f7ec618140abe75294dfb615c34ab2d824bd8a67691af58ddf6640",
+      "bytes": 7856
+    },
+    "fonts/cinzel-latin-ext-600-normal.woff2": {
+      "sha256": "a5779eb98b5046090f99169b529743e356b452909295ad7db4cb70011e0425e0",
+      "bytes": 8352
+    },
+    "fonts/cormorant-garamond-latin-400-italic.woff2": {
+      "sha256": "e48e58027030df56869b795ca6f19b7012158275f7ad7cde1900b4a0b68d02e2",
+      "bytes": 23660
+    },
+    "fonts/cormorant-garamond-latin-400-normal.woff2": {
+      "sha256": "8048ac209bec741e1c29cd0cfac5aac1c0c2ba8c3ddbd4a58fa9bd92ef5c63c2",
+      "bytes": 22876
+    },
+    "fonts/cormorant-garamond-latin-500-italic.woff2": {
+      "sha256": "4fb55a7a6d564d428061fe12c82c896264bcc8b7f0b52840bf88e0db5b91256f",
+      "bytes": 23924
+    },
+    "fonts/cormorant-garamond-latin-500-normal.woff2": {
+      "sha256": "8197bf53615ddc8c423f444c7f0eec63b7fa0ba093fcfbec60dfdd28429b0fc8",
+      "bytes": 23312
+    },
+    "fonts/cormorant-garamond-latin-600-normal.woff2": {
+      "sha256": "ae062b6d5ae308e7edf61b28b07b9984bbb6e961b1f34d9b2c2f4389c33f21ea",
+      "bytes": 23396
+    },
+    "fonts/cormorant-garamond-latin-ext-400-italic.woff2": {
+      "sha256": "96ec6109d044a8f2b279937499923fc0435db3e6bd91ce4cb1fd806d566378b9",
+      "bytes": 20284
+    },
+    "fonts/cormorant-garamond-latin-ext-400-normal.woff2": {
+      "sha256": "375a088756d1cb10eb91a9a7de18ad5e9858689abe76496dd78e560fef0bbebb",
+      "bytes": 19888
+    },
+    "fonts/space-mono-latin-400-normal.woff2": {
+      "sha256": "fb4a81a2d0a893e5c38c394a7e716a1cef0b24610a0af49c96f6d529bd66bf2b",
+      "bytes": 16520
+    },
+    "fonts/space-mono-latin-700-normal.woff2": {
+      "sha256": "2d46bd159b53f55c41167a4f1540a074649464194fd1e416f5b4694a6c0f282c",
+      "bytes": 16724
+    },
+    "fonts/space-mono-latin-ext-400-normal.woff2": {
+      "sha256": "44ad50c760fa8f5b62da3d489edb40adebabaf97988b9b0adbbc3f0be859050a",
+      "bytes": 15832
+    },
+    "index.html": {
+      "sha256": "6aa63e1ec243c7f3260edba21be7ff1149e950bd54876648b24d3f6a081bbade",
+      "bytes": 13407
+    },
+    "style.css": {
+      "sha256": "36453fb3bf62b72be66a90b45068f8294e838d540128750283cf2cf470f144d7",
+      "bytes": 42742
+    },
+    "ut-logo.svg": {
+      "sha256": "0534447eedfb9f7c83dc1c34e7e3d6e991ec6c8e589e9eda9f372995d544d468",
+      "bytes": 4172
+    },
+    "worker.js": {
+      "sha256": "8bf6975bb2ad03964b36c06f641e88be3c47fae6b742b912b77a3444d49355de",
+      "bytes": 7060
+    }
+  },
+  "original": {
+    "app.js": {
+      "sha256": "94baa3fce622dcbec2712281fcb6b7f2f740289fdb714825be93a5bb927c9b6d",
+      "bytes": 596905
+    },
+    "favicon.svg": {
+      "sha256": "4055d4988299e1ae5aa4267409928005d1b9e0d8fc499f65791388e153917707",
+      "bytes": 279
+    },
+    "fonts/cinzel-latin-400-normal.woff2": {
+      "sha256": "b873cdd90d6bd9ca4793c805b4175abfae00b3611ee8afccf63067133dcf1217",
+      "bytes": 14128
+    },
+    "fonts/cinzel-latin-600-normal.woff2": {
+      "sha256": "61efc27ceb7d08bb841652fa8979c0b6833b92548b7f9544c07968a6c02f28e4",
+      "bytes": 15204
+    },
+    "fonts/cinzel-latin-700-normal.woff2": {
+      "sha256": "8efa224fe70fef188a39c095e218b81fd31061809f2752537e33a9ec7b9c2263",
+      "bytes": 15184
+    },
+    "fonts/cinzel-latin-ext-400-normal.woff2": {
+      "sha256": "4fc5b16d66f7ec618140abe75294dfb615c34ab2d824bd8a67691af58ddf6640",
+      "bytes": 7856
+    },
+    "fonts/cinzel-latin-ext-600-normal.woff2": {
+      "sha256": "a5779eb98b5046090f99169b529743e356b452909295ad7db4cb70011e0425e0",
+      "bytes": 8352
+    },
+    "fonts/cormorant-garamond-latin-400-italic.woff2": {
+      "sha256": "e48e58027030df56869b795ca6f19b7012158275f7ad7cde1900b4a0b68d02e2",
+      "bytes": 23660
+    },
+    "fonts/cormorant-garamond-latin-400-normal.woff2": {
+      "sha256": "8048ac209bec741e1c29cd0cfac5aac1c0c2ba8c3ddbd4a58fa9bd92ef5c63c2",
+      "bytes": 22876
+    },
+    "fonts/cormorant-garamond-latin-500-italic.woff2": {
+      "sha256": "4fb55a7a6d564d428061fe12c82c896264bcc8b7f0b52840bf88e0db5b91256f",
+      "bytes": 23924
+    },
+    "fonts/cormorant-garamond-latin-500-normal.woff2": {
+      "sha256": "8197bf53615ddc8c423f444c7f0eec63b7fa0ba093fcfbec60dfdd28429b0fc8",
+      "bytes": 23312
+    },
+    "fonts/cormorant-garamond-latin-600-normal.woff2": {
+      "sha256": "ae062b6d5ae308e7edf61b28b07b9984bbb6e961b1f34d9b2c2f4389c33f21ea",
+      "bytes": 23396
+    },
+    "fonts/cormorant-garamond-latin-ext-400-italic.woff2": {
+      "sha256": "96ec6109d044a8f2b279937499923fc0435db3e6bd91ce4cb1fd806d566378b9",
+      "bytes": 20284
+    },
+    "fonts/cormorant-garamond-latin-ext-400-normal.woff2": {
+      "sha256": "375a088756d1cb10eb91a9a7de18ad5e9858689abe76496dd78e560fef0bbebb",
+      "bytes": 19888
+    },
+    "fonts/space-mono-latin-400-normal.woff2": {
+      "sha256": "fb4a81a2d0a893e5c38c394a7e716a1cef0b24610a0af49c96f6d529bd66bf2b",
+      "bytes": 16520
+    },
+    "fonts/space-mono-latin-700-normal.woff2": {
+      "sha256": "2d46bd159b53f55c41167a4f1540a074649464194fd1e416f5b4694a6c0f282c",
+      "bytes": 16724
+    },
+    "fonts/space-mono-latin-ext-400-normal.woff2": {
+      "sha256": "44ad50c760fa8f5b62da3d489edb40adebabaf97988b9b0adbbc3f0be859050a",
+      "bytes": 15832
+    },
+    "index.html": {
+      "sha256": "6aa63e1ec243c7f3260edba21be7ff1149e950bd54876648b24d3f6a081bbade",
+      "bytes": 13407
+    },
+    "style.css": {
+      "sha256": "36453fb3bf62b72be66a90b45068f8294e838d540128750283cf2cf470f144d7",
+      "bytes": 42742
+    },
+    "ut-logo.svg": {
+      "sha256": "0534447eedfb9f7c83dc1c34e7e3d6e991ec6c8e589e9eda9f372995d544d468",
+      "bytes": 4172
+    },
+    "worker.js": {
+      "sha256": "8bf6975bb2ad03964b36c06f641e88be3c47fae6b742b912b77a3444d49355de",
+      "bytes": 7060
+    }
+  },
+  "hostedTotalBytes": 934420
+}

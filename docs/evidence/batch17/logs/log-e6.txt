@@ -1,0 +1,28 @@
+  ok   the instrument is live with sound before the Oracle is opened
+  ok   the room's Oracle link carries the instrument's anchor
+  ok   the link carries the instrument's own suggested question
+      [question] The instrument solves a model rather than measuring a real plate - what exactly is it solving, and where does that model stop being able to tell you about a physical plate?
+  ok   the Oracle opens with the instrument as its subject
+      [context chip] SPEAKING ABOUT The Universal Resonator RESEARCH CONTEXT ← RETURN TO THE UNIVERSAL RESONATOR
+  ok   the Oracle produces a rendered answer
+  ok   the answer is complete, not a capped fragment
+  ok   the answer explains the model rather than deflecting
+  ok   it distinguishes the idealised model from a physical measurement
+  ok   the Oracle does NOT claim access to the visitor's live sound or canvas
+  ok   it conveys the model's limit towards a real plate, not merely avoiding banned words
+      [forbidden-claim scan] 6 patterns checked, 0 matched
+  ok   it does not claim to have read material it was not supplied
+  ok   the answer ends at a sentence boundary
+
+      [answer head] YOU
+The instrument solves a model rather than measuring a real plate - what exactly is it solving, and where does that model stop being able to tell you about a physical plate?
+CODEX ORACLE · ORACLE
+This page belongs to the albedo, the whitening, where the raw matter of the Codex has been dissolved into pure syntax and only the articulate pattern remains. The Universal Resonator solves an idealise
+
+      [answer tail] ...'s patterns are real and reproducible in the laboratory. The instrument's rendering is a solved model, honest in its own domain. It can teach the grammar of vibration, and it can show how nodes and antinodes arise from a driven field. It cannot replace the plate. It tells you what an idealised driven medium must do; it does not tell you what an actual piece of matter will do until you measure one.
+
+passed 12 / 12 -> /root/b17/acceptance/e_results.json
+      [saved] journey evidence persisted before the return step
+
+=== returning to research ===
+E_EXIT=143

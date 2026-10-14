@@ -1,0 +1,37 @@
+  ok   the instrument's own probe is live
+  ok   the instrument is fully built before the teardown test begins
+  ok   the instrument frame is addressable
+  ok   the instrument is computing (animation frames are advancing)
+      [cadence] 19 -> 20 animation frames (software WebGL renders slowly in headless)
+  ok   the solver worker is exchanging messages
+  ok   its AudioContext is running
+  ok   the microphone track is live
+  ok   a recorder is capturing
+  ok   sound is playing at the moment of exit
+  ok   the microphone is the active source at the moment of exit
+      [before exit] sound=True source=mic ctx=['running'] tracks=['live'] recorder=['recording']
+  ok   the parent now holds the instrument's own context and track objects
+      [held by parent] {"contexts": ["running"], "tracks": ["live"], "counts": {"ctx": 1, "tracks": 1, "workers": 1, "recorders": 1}}
+
+=== leaving while sound, microphone and recording are live ===
+  ok   the instrument frame is detached from the page
+  ok   the instrument's AudioContext is closed after it is gone
+  ok   the microphone capture track has ENDED (the device is released)
+  ok   no audio-producing instrument realm remains
+  ok   background computation stopped (its heartbeat is frozen)
+  ok   the instrument's realm is unreachable from the parent (destroyed, not hidden)
+      [teardown mechanism] the frame's document is destroyed by removal; Chromium fires no pagehide for it (pagehide=None), so the instrument gets no cleanup callback - and the browser still releases the devices, as measured above.
+  ok   the recording in progress never delivered a file (the recorder died with it)
+      [after exit] contexts=['closed'] tracks=['ended'] frames=0 heartbeat 26->26
+
+=== reopening ===
+  ok   reopening brings a fresh instrument up
+  ok   the fresh instrument is responsive
+  ok   the fresh instrument starts clean (not still recording or listening)
+  ok   the reopened instrument computes again
+  ok   the reopened instrument has a NEW audio context (a fresh realm, not a revival)
+  ok   the reopened instrument plays sound
+  ok   the reopened worker is exchanging messages
+      [reopened] ctx=['running'] ticks 17->18 source=synth
+
+passed 25 / 25 -> /root/b17/acceptance/c_results.json

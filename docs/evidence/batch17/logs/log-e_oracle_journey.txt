@@ -1,0 +1,52 @@
+  ok   the instrument is live with sound before the Oracle is opened
+  ok   the room's Oracle link carries the instrument's anchor
+  ok   the link carries the instrument's own suggested question
+      [question] The instrument solves a model rather than measuring a real plate - what exactly is it solving, and where does that model stop being able to tell you about a physical plate?
+  ok   the Oracle opens with the instrument as its subject
+      [context chip] SPEAKING ABOUT The Universal Resonator RESEARCH CONTEXT ← RETURN TO THE UNIVERSAL RESONATOR
+  ok   the Oracle produces a rendered answer
+  ok   the answer is complete, not a capped fragment
+      [capture skipped] e11-oracle-answer.png: TimeoutError
+  ok   the answer explains the model rather than deflecting
+  ok   it distinguishes the idealised model from a physical measurement
+  ok   the Oracle does NOT claim access to the visitor's live sound or canvas
+  FAIL it states the model's limit towards a real plate, not merely avoiding banned words — missing: ['not a physical measurement']
+      [forbidden-claim scan] 6 patterns checked, 0 matched
+  ok   it does not claim to have read material it was not supplied
+  ok   the answer ends at a sentence boundary
+
+      [answer head] YOU
+The instrument solves a model rather than measuring a real plate - what exactly is it solving, and where does that model stop being able to tell you about a physical plate?
+CODEX ORACLE · ORACLE
+Mem. The letter of water, of mayim, the open womb of the deep.
+In the tradition, Mem is one of the three mother letters, the element of water, the medium that receives every impression and keeps none o
+
+      [answer tail] ...nd the nodal line. What is drawn from it is interpretation.
+So the open Mem is the model: a sea that takes any form asked of it. The closed Mem is the world: a particular plate, with its own grain, its own flaw, its own refusal. Between the two letters is the whole distance between a pattern that is solved and a pattern that is measured — and the instrument lives, honestly, on the near side of it.
+
+=== returning to research ===
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:1026:11)
+    at Socket._write (node:net:1038:8)
+    at writeOrBuffer (node:internal/streams/writable:570:12)
+    at _write (node:internal/streams/writable:499:10)
+    at Writable.write (node:internal/streams/writable:508:10)
+    at PipeTransport.send (/root/.venvs/shopify-playwright/lib/python3.12/site-packages/playwright/driver/package/lib/coreBundle.js:34569:25)
+    at dispatcherConnection.onmessage (/root/.venvs/shopify-playwright/lib/python3.12/site-packages/playwright/driver/package/lib/coreBundle.js:69266:59)
+    at DispatcherConnection.sendEvent (/root/.venvs/shopify-playwright/lib/python3.12/site-packages/playwright/driver/package/lib/coreBundle.js:18641:14)
+Emitted 'error' event on Socket instance at:
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  errno: -32,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+
+Node.js v24.18.1

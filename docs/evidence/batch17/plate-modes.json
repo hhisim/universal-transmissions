@@ -1,0 +1,10 @@
+[
+  {
+    "value": "source",
+    "text": "Source plate / membrane"
+  },
+  {
+    "value": "section",
+    "text": "Actual 3D section at local Z"
+  }
+]

@@ -1,0 +1,48 @@
+=== synthesized sound ===
+  ok   synthesis runs (the engine reports running)
+  ok   the source is the built-in synthesizer
+  ok   all nine sound modes are offered and selectable
+  ok   the instrument reports a live fundamental
+      [readout] 528 Hz / FUNDAMENTAL
+  ok   sound mode 'Solfeggio frequencies' engages
+  ok   sound mode 'Singing bowls' engages
+  ok   sound mode 'Binaural harmonics' engages
+
+=== a short recording, inspected with ffprobe ===
+  ok   recording starts (the button shows a running timer)
+  ok   the recording downloads a real file
+  ok   the recording carries real encoded video frames
+  ok   the recording has a real measurable length
+      [container note] the WebM container reports 0.00s duration and the video stream carries 7 packets - captureStream only emits a frame when the canvas is redrawn, and this software rasteriser redraws rarely. Decoded audio length is the measurement that survives: 17.04s
+  ok   it carries the 3D field as video
+  ok   it carries the instrument's audio
+  ok   the recorded audio is real signal, not silence
+  ok   the recorded audio decodes cleanly through the full file
+      [recording] Universal-Transmissions-Resonance-1791957765981.webm 369864 bytes, 1232x900 vp9+opus, 0.00s container, audio Nones RMS -33.182818 dBFS
+  ok   the recorded video contains a rendered field, not a black frame
+
+=== PNG snapshot ===
+  ok   SNAPSHOT saves a PNG
+  ok   the snapshot is a real image of the field
+  ok   the snapshot is not blank
+      [snapshot] Universal-Transmissions-Resonance-1791957771230.png 1232x900, 786089 bytes
+
+=== local audio file ===
+  ok   a local audio file becomes the source
+  ok   the instrument names the file it loaded
+  ok   playback continues with the file as the source
+      [file] source=file name=local-audio-test.wav
+  ok   the loaded file is referenced as a blob URL (it stays on the device)
+
+=== microphone (granted device) ===
+  ok   with permission granted the instrument connects the microphone
+  ok   the microphone becomes the active source
+      [mic] button='DISCONNECT MICROPHONE' source='mic' (Chromium FAKE capture device)
+
+=== microphone (permission denied) ===
+  ok   with permission denied there is no live capture track
+  ok   with permission denied the instrument does not pretend to be listening
+  ok   denial is reported honestly and an alternative is offered
+      [mic denied] toast='Microphone access is unavailable or was declined. You can use an audio file instead.' button='CONNECT MICROPHONE'
+
+passed 28 / 28 -> /root/b17/acceptance/b_results.json

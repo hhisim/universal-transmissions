@@ -1,0 +1,38 @@
+[
+  {
+    "value": "solfeggio",
+    "text": "Solfeggio frequencies"
+  },
+  {
+    "value": "bowl",
+    "text": "Singing bowls"
+  },
+  {
+    "value": "binaural",
+    "text": "Binaural harmonics"
+  },
+  {
+    "value": "iso",
+    "text": "Isochronic pulses"
+  },
+  {
+    "value": "drone",
+    "text": "Harmonic drone"
+  },
+  {
+    "value": "trance",
+    "text": "Trance sequence"
+  },
+  {
+    "value": "rain",
+    "text": "Rain environment"
+  },
+  {
+    "value": "om",
+    "text": "OM \u00b7 synthesized voice"
+  },
+  {
+    "value": "mix",
+    "text": "Open synthesis / mixer"
+  }
+]

@@ -270,6 +270,26 @@ contain. That rubric accepts all three real answers and would still fail one tha
 the limit. This is Batch 16's own lesson applied to generated prose: **keyword checks are
 not a quality verdict**, and a test fitted to one output is not a test.
 
+**The answer delivered with this batch** is the final saved run's (a fourth phrasing, and
+the strongest of them), in `evidence/oracle-journey.json`:
+
+> *"The Universal Resonator solves an idealised mathematical standing-wave problem for a
+> driven plate or membrane… The live monitor is a diagnostic of the model itself, not a
+> photograph of a physical experiment."*
+>
+> *"The model stops being able to tell you about a physical plate the moment the plate stops
+> being ideal… It cannot predict what any particular plate will do, and it is not an
+> experimental result. The archive is explicit that this limit travels with the instrument.
+> Idealised is not false, but it is not measurement."*
+
+**One artifact mismatch was found while assembling the release package and corrected.**
+The committed `evidence/oracle-journey.json` still held an *earlier* run's answer (3,269
+characters) while `evidence/e_results.json` was from the final run — two runs' evidence
+presented as one. The file was replaced with the final run's answer (1,920 characters), so
+the delivered question-and-answer now matches the delivered result. No other evidence file
+was affected: every other result, log and data file was hash-verified against the final
+artifacts and matched.
+
 Worth stating plainly, since it is the strongest thing this pass found: the Oracle
 answered its own instrument's question well and consistently. It explained what is solved
 (normal modes of a driven idealised plate or membrane), what is not (grain, thickness,
@@ -304,17 +324,24 @@ The **original ZIP is untouched** — its SHA-256 before and after this pass is
 
 ## 7. Delivery
 
-- **Integration source delta** — `delivery/INTEGRATION-DELTA.md`
-- **Asset hash manifest** — `delivery/asset-manifest.json`: the **21** files of the ZIP's
-  `dist/` are hosted **byte-identical** (zero hash mismatches), plus the notices file that
-  lives outside `dist/` in the ZIP; 22 files, 934,420 bytes
-- **Results** — `a_results.json`, `b_results.json`, `c_results.json`, `d_results.json`,
-  `e_results.json`, `evolution.json`, `webgl.json`, `mobile-perf.json`,
-  `oracle-journey.json`, `v7-tests.txt`, plus the raw run logs
-- **Captures** — worlds, immersive, both monitor modes, microphone granted/denied,
-  snapshot, recording frame, before/after teardown, mobile, and the Oracle answer
+Committed under `docs/` — the review package carries the same artifacts as a single archive.
 
-Changes made in this pass: **one**, the `allow-downloads` sandbox fix, for a concrete
-visitor-facing failure found by exercising capture. Everything else is verification.
+- **Integration source delta** — `evidence/batch17/INTEGRATION-DELTA.md`, and
+  `INTEGRATION-DELTA-vs-40755e8.md` for the diff against the released base specifically
+- **Asset hash manifest** — `evidence/batch17/asset-manifest.json`, with the original-vs-hosted
+  comparison in `evidence/batch17/ASSET-COMPARISON.json`: the **21** files of the ZIP's
+  `dist/` are hosted **byte-identical** (zero hash differences), plus the notices file that
+  lives outside `dist/` in the ZIP; 22 files, 934,420 bytes
+- **Results** — `evidence/batch17/{a,b,c,d,e,f}_results.json`, plus `evolution.json`,
+  `webgl.json`, `mobile-perf.json`, `oracle-journey.json`, `census.json`, `plate-modes.json`,
+  `sound-modes.json`, `v7-tests.txt`, and the raw run logs in `evidence/batch17/logs/`
+- **Captures** — in the review package's `captures/`: worlds, immersive, both monitor modes,
+  microphone granted/denied, snapshot, recording frame, before/after teardown, mobile, and
+  the Oracle answer
+
+Changes made in this pass: **one** — the `allow-downloads` sandbox fix, for a concrete
+visitor-facing failure found by exercising capture. The only later amendment was the
+evidence mismatch corrected in §5, made when the release package was assembled. Everything
+else is verification.
 
 No pricing, paywalls, billing, memberships, SQL, backend changes or production deployment.

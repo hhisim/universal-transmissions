@@ -1,0 +1,42 @@
+  ok   a real 390 CSS px viewport
+  ok   the reading page does not overflow horizontally
+  ok   the launch control scrolls into view and is big enough to tap
+  ok   the instrument launches from a tap
+  ok   the mobile viewport gets a live WebGL context
+  ok   the renderer in use is identified (hardware or software)
+      [renderer] ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+      [hardware or software] SOFTWARE (SwiftShader)
+  ok   the mobile instrument uses the mobile grain budget
+      [grains] 24000
+
+=== operating it at 390 ===
+  ok   390: topPlay is present and laid out
+  ok   390: sentient is present and laid out
+  ok   390: capture is present and laid out
+  ok   390: record is present and laid out
+  ok   390: immersive is present and laid out
+  ok   390: plateToggle is present and laid out
+  ok   390: the core controls are reachable without horizontal scrolling
+  ok   390: one-finger drag orbits the view
+  ok   390: two-finger pinch zooms/pans
+  ok   390: the instrument runs on mobile (sound engaged)
+  ok   390: the 2D monitor is accessible and inside the viewport
+  ok   390: the 'modeM' control is reachable
+  ok   390: the 'interference' control is reachable
+  ok   390: the 'hue' control is reachable
+  ok   390: the 'sectionPosition' control is reachable
+  ok   390: the 'evolutionSpeed' control is reachable
+
+=== measured performance (software WebGL, emulated 390) ===
+  ok   390: the instrument keeps animating (measured frame cadence)
+  ok   390: the measured cadence is reported with its renderer, not generalised
+  ok   390: frame cadence measured over a real window
+      [fps] 1.8 over 6.01s (11 frames) — software rasteriser
+  ok   390: the solver is updating its readout
+      [readout] LIVE 4.08 : 3.00
+
+=== exit at 390 ===
+  ok   390: the exit control is present and tappable
+  ok   390: exiting returns to the reading page
+
+passed 29 / 29 -> /root/b17/acceptance/d_results.json

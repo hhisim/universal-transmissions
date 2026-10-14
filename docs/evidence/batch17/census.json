@@ -1,0 +1,568 @@
+{
+ "btns": [
+  "2D PLATE #plateToggle",
+  "\u25b6 #topPlay",
+  "? #help",
+  "SNAPSHOT #capture",
+  "\u25cf RECORD #record",
+  "IMMERSE #immersive",
+  "PLATE",
+  "CIRCLE",
+  "CYLINDER",
+  "3D FIELD",
+  "VOLUME",
+  "ENTER SENTIENT MODE #sentient",
+  "NEXT PATTERN #patternNext",
+  "AUTO PATTERNS #patternAuto",
+  "\u266a",
+  "\u266a",
+  "\u266a",
+  "\u266a",
+  " #hueAuto",
+  " #spectralAuto",
+  "SYNTHESIS",
+  "AUDIO FILE",
+  "LIVE INPUT",
+  "174",
+  "285",
+  "396",
+  "417",
+  "528",
+  "639",
+  "741",
+  "852",
+  "963",
+  "\u25b6\nAWAKEN THE FIELD\nSPACE #play",
+  "\u27e1\nAETHER",
+  "\u2748\nLOTUS",
+  "\u229a\nTUNNEL",
+  "\u25b3\nTEMPLE",
+  "\u25c7\nPRISM",
+  "\u25ce\nPULSE",
+  "\u224b\nMONSOON",
+  "RESET VIEW #resetCamera",
+  "\u26f6 #plateExpand",
+  "\u00d7 #plateClose"
+ ],
+ "ins": [
+  {
+   "t": "range",
+   "id": "evolutionSpeed",
+   "cls": "",
+   "v": "1",
+   "mn": "0.4",
+   "mx": "3",
+   "st": "0.05"
+  },
+  {
+   "t": "checkbox",
+   "id": "patternTunes",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "range",
+   "id": "modeM",
+   "cls": "",
+   "v": "4",
+   "mn": "1",
+   "mx": "10",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "modeN",
+   "cls": "",
+   "v": "3",
+   "mn": "1",
+   "mx": "8",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "interference",
+   "cls": "",
+   "v": "0.28",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "phase",
+   "cls": "",
+   "v": "0.2",
+   "mn": "0",
+   "mx": "6.28",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "coupling",
+   "cls": "",
+   "v": "0.65",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "spacing",
+   "cls": "",
+   "v": "2.6",
+   "mn": "0.3",
+   "mx": "5",
+   "st": "0.1"
+  },
+  {
+   "t": "range",
+   "id": "layers",
+   "cls": "",
+   "v": "3",
+   "mn": "3",
+   "mx": "7",
+   "st": "2"
+  },
+  {
+   "t": "range",
+   "id": "cycleSeconds",
+   "cls": "",
+   "v": "10",
+   "mn": "3",
+   "mx": "40",
+   "st": "1"
+  },
+  {
+   "t": "range",
+   "id": "sectionFocus",
+   "cls": "",
+   "v": "0.85",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "sectionPosition",
+   "cls": "",
+   "v": "0",
+   "mn": "-0.9",
+   "mx": "0.9",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "coherence",
+   "cls": "",
+   "v": "0.76",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "layerVisibility",
+   "cls": "",
+   "v": "0.72",
+   "mn": "0.05",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "scatter",
+   "cls": "",
+   "v": "0.03",
+   "mn": "0",
+   "mx": "0.7",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "particleSize",
+   "cls": "",
+   "v": "0.7",
+   "mn": "0.3",
+   "mx": "3",
+   "st": "0.05"
+  },
+  {
+   "t": "range",
+   "id": "glow",
+   "cls": "",
+   "v": "0.52",
+   "mn": "0",
+   "mx": "2",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "geometryX",
+   "cls": "",
+   "v": "0.018",
+   "mn": "-0.3",
+   "mx": "0.3",
+   "st": "0.001"
+  },
+  {
+   "t": "range",
+   "id": "geometryY",
+   "cls": "",
+   "v": "0.035",
+   "mn": "-0.3",
+   "mx": "0.3",
+   "st": "0.001"
+  },
+  {
+   "t": "range",
+   "id": "geometryZ",
+   "cls": "",
+   "v": "0.012",
+   "mn": "-0.3",
+   "mx": "0.3",
+   "st": "0.001"
+  },
+  {
+   "t": "range",
+   "id": "strokeSpeed",
+   "cls": "",
+   "v": "0.18",
+   "mn": "0",
+   "mx": "0.6",
+   "st": "0.001"
+  },
+  {
+   "t": "range",
+   "id": "hue",
+   "cls": "",
+   "v": "185",
+   "mn": "0",
+   "mx": "360",
+   "st": "1"
+  },
+  {
+   "t": "range",
+   "id": "hueSpeed",
+   "cls": "",
+   "v": "0.025",
+   "mn": "0",
+   "mx": "0.2",
+   "st": "0.001"
+  },
+  {
+   "t": "range",
+   "id": "spectralShift",
+   "cls": "",
+   "v": "0",
+   "mn": "-0.5",
+   "mx": "0.5",
+   "st": "0.01"
+  },
+  {
+   "t": "checkbox",
+   "id": "hueReact",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "checkbox",
+   "id": "liveMotion",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "range",
+   "id": "settling",
+   "cls": "",
+   "v": "7",
+   "mn": "0.5",
+   "mx": "10",
+   "st": "0.1"
+  },
+  {
+   "t": "range",
+   "id": "travelSpeed",
+   "cls": "",
+   "v": "1",
+   "mn": "0.2",
+   "mx": "3",
+   "st": "0.1"
+  },
+  {
+   "t": "range",
+   "id": "excitation",
+   "cls": "",
+   "v": "1.2",
+   "mn": "0",
+   "mx": "2",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "modalDance",
+   "cls": "",
+   "v": "1.35",
+   "mn": "0",
+   "mx": "3",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "orbitSpeed",
+   "cls": "",
+   "v": "0.32",
+   "mn": "-0.8",
+   "mx": "0.8",
+   "st": "0.01"
+  },
+  {
+   "t": "checkbox",
+   "id": "autoOrbit",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "checkbox",
+   "id": "flyScroll",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "range",
+   "id": "frequency",
+   "cls": "",
+   "v": "528",
+   "mn": "40",
+   "mx": "1200",
+   "st": "1"
+  },
+  {
+   "t": "range",
+   "id": "fm",
+   "cls": "",
+   "v": "0",
+   "mn": "0",
+   "mx": "120",
+   "st": "0.1"
+  },
+  {
+   "t": "range",
+   "id": "fmRate",
+   "cls": "",
+   "v": "0.4",
+   "mn": "0.05",
+   "mx": "30",
+   "st": "0.05"
+  },
+  {
+   "t": "checkbox",
+   "id": "voice0",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "number",
+   "id": "ratio0",
+   "cls": "",
+   "v": "1",
+   "mn": "0.125",
+   "mx": "8",
+   "st": "0.125"
+  },
+  {
+   "t": "range",
+   "id": "level0",
+   "cls": "",
+   "v": "0.7",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "checkbox",
+   "id": "voice1",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "number",
+   "id": "ratio1",
+   "cls": "",
+   "v": "1.5",
+   "mn": "0.125",
+   "mx": "8",
+   "st": "0.125"
+  },
+  {
+   "t": "range",
+   "id": "level1",
+   "cls": "",
+   "v": "0.15",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "checkbox",
+   "id": "voice2",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "number",
+   "id": "ratio2",
+   "cls": "",
+   "v": "2",
+   "mn": "0.125",
+   "mx": "8",
+   "st": "0.125"
+  },
+  {
+   "t": "range",
+   "id": "level2",
+   "cls": "",
+   "v": "0.13",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "checkbox",
+   "id": "voice3",
+   "cls": "",
+   "v": "on",
+   "mn": "",
+   "mx": "",
+   "st": ""
+  },
+  {
+   "t": "number",
+   "id": "ratio3",
+   "cls": "",
+   "v": "3",
+   "mn": "0.125",
+   "mx": "8",
+   "st": "0.125"
+  },
+  {
+   "t": "range",
+   "id": "level3",
+   "cls": "",
+   "v": "0.08",
+   "mn": "0",
+   "mx": "1",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "volume",
+   "cls": "",
+   "v": "0.22",
+   "mn": "0",
+   "mx": "0.8",
+   "st": "0.01"
+  },
+  {
+   "t": "range",
+   "id": "reverb",
+   "cls": "",
+   "v": "0.42",
+   "mn": "0",
+   "mx": "0.9",
+   "st": "0.01"
+  }
+ ],
+ "sels": [
+  {
+   "id": "patternSelect",
+   "opts": [
+    "Crossing tides \u00b7 2:1 \u00b7 174 Hz",
+    "Twin resonance \u00b7 3:1 \u00b7 222 Hz",
+    "Harmonic diamond \u00b7 3:2 \u00b7 285 Hz",
+    "Fourfold gate \u00b7 4:1 \u00b7 333 Hz",
+    "Star lattice \u00b7 4:2 \u00b7 396 Hz",
+    "Aether weave \u00b7 4:3 \u00b7 417 Hz",
+    "Pentagonal current \u00b7 5:2 \u00b7 432 Hz",
+    "Golden interference \u00b7 5:3 \u00b7 528 Hz",
+    "Sixfold bloom \u00b7 6:2 \u00b7 639 Hz",
+    "Hexagonal ripples \u00b7 6:3 \u00b7 666 Hz",
+    "Sevenfold veil \u00b7 7:2 \u00b7 741 Hz",
+    "Octave mandala \u00b7 8:3 \u00b7 852 Hz",
+    "Ninefold corona \u00b7 9:2 \u00b7 888 Hz",
+    "Decagonal web \u00b7 10:4 \u00b7 963 Hz",
+    "Dense harmonic lace \u00b7 9:5 \u00b7 1024 Hz",
+    "Interference labyrinth \u00b7 8:5 \u00b7 1111 Hz"
+   ]
+  },
+  {
+   "id": "geometry",
+   "opts": [
+    "Pure sand",
+    "Flower of life",
+    "Sri yantra \u00b7 stylized",
+    "Merkaba",
+    "Tetrahedron",
+    "Hexahedron",
+    "Octahedron",
+    "Dodecahedron",
+    "Icosahedron",
+    "Adinkrahene \u00b7 concentric circles"
+   ]
+  },
+  {
+   "id": "soundMode",
+   "opts": [
+    "Solfeggio frequencies",
+    "Singing bowls",
+    "Binaural harmonics",
+    "Isochronic pulses",
+    "Harmonic drone",
+    "Trance sequence",
+    "Rain environment",
+    "OM \u00b7 synthesized voice",
+    "Open synthesis / mixer"
+   ]
+  },
+  {
+   "id": "waveform",
+   "opts": [
+    "Sine / pure harmonic",
+    "Triangle / soft overtones",
+    "Saw / full spectrum",
+    "Square / odd harmonics"
+   ]
+  },
+  {
+   "id": "plateMode",
+   "opts": [
+    "Source plate / membrane",
+    "Actual 3D section at local Z"
+   ]
+  }
+ ],
+ "canvasCount": 3
+}
