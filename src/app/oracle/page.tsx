@@ -6,7 +6,12 @@ import { redirect } from "next/navigation";
    chooser or the Oracle loses the research anchor on redirect. An identifier
    only: the title, summary and permitted sources are resolved server-side
    from the research registry, never forwarded from the URL. */
-const FORWARDED_PARAMS = ["view", "q", "artworkId", "researchTopicId", "from"] as const;
+/* `entryId` is the same kind of value for a Codex correspondence record: a
+   stable `corr-v1:<system>::<entry>` identifier. Without it here the chooser
+   silently dropped a record selected in the archive, and the Oracle answered
+   the question with no anchor at all - the request looked ordinary rather
+   than anchored. Identifier only; the record is resolved server-side. */
+const FORWARDED_PARAMS = ["view", "q", "artworkId", "researchTopicId", "entryId", "from"] as const;
 
 function buildForwardQuery(sp: Record<string, string | string[] | undefined>): string {
   const params = new URLSearchParams();
