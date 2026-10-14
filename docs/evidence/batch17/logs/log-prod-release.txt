@@ -1,0 +1,25 @@
+=== production: https://www.universal-transmissions.com ===
+  ok   Cymatics links to the instrument
+  ok   its six existing anchors remain, in order
+  ok   the instrument is the seventh connection, not a replacement
+  ok   the room is reachable from Cymatics
+  ok   no instrument assets load before launch
+  ok   no instrument frame exists before launch
+  ok   launch starts the instrument
+  ok   the instrument reports its own state
+  ok   it uses the desktop grain budget
+  ok   the controls are present and laid out
+  ok   sound engages
+  ok   SNAPSHOT delivers a real PNG download on production
+  ok   the snapshot is a real image of the field
+  ok   shutdown removes the instrument frame
+  ok   shutdown returns to the reading page
+  ok   reopening brings a fresh instrument up
+  ok   the reopened instrument is clean (not still listening or recording)
+  ok   the room offers a contextual Oracle entry
+  ok   the Oracle opens carrying the instrument as its subject
+  ok   the Oracle offers a return to the instrument
+  ok   the return link goes back to Cymatics research
+
+passed 21 / 21 -> /root/b17/acceptance/prod-release.json
+EXIT=0

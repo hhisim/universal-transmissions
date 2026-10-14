@@ -1,0 +1,112 @@
+{
+  "base": "https://www.universal-transmissions.com",
+  "checks": [
+    {
+      "check": "Cymatics links to the instrument",
+      "ok": true,
+      "detail": "['journal-cymatics-language-of-form', 'artwork-throat-chakra', 'artwork-recursive-pantheism', 'codex-frequency-lattice', 'artwork-hyperdimensional-harmonics', 'journal-kybalion-seven-principles', 'instrument-universal-resonator']"
+    },
+    {
+      "check": "its six existing anchors remain, in order",
+      "ok": true,
+      "detail": "['journal-cymatics-language-of-form', 'artwork-throat-chakra', 'artwork-recursive-pantheism', 'codex-frequency-lattice', 'artwork-hyperdimensional-harmonics', 'journal-kybalion-seven-principles', 'instrument-universal-resonator']"
+    },
+    {
+      "check": "the instrument is the seventh connection, not a replacement",
+      "ok": true,
+      "detail": "7"
+    },
+    {
+      "check": "the room is reachable from Cymatics",
+      "ok": true,
+      "detail": "https://www.universal-transmissions.com/experience/universal-resonator"
+    },
+    {
+      "check": "no instrument assets load before launch",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "no instrument frame exists before launch",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "launch starts the instrument",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "the instrument reports its own state",
+      "ok": true,
+      "detail": "72000"
+    },
+    {
+      "check": "it uses the desktop grain budget",
+      "ok": true,
+      "detail": "72000"
+    },
+    {
+      "check": "the controls are present and laid out",
+      "ok": true,
+      "detail": "['topPlay', 'sentient', 'capture', 'record', 'immersive', 'plateToggle']"
+    },
+    {
+      "check": "sound engages",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "SNAPSHOT delivers a real PNG download on production",
+      "ok": true,
+      "detail": "/root/b17/acceptance/downloads-prod/Universal-Transmissions-Resonance-1791967017745.png (603897 bytes)"
+    },
+    {
+      "check": "the snapshot is a real image of the field",
+      "ok": true,
+      "detail": "1232x800"
+    },
+    {
+      "check": "shutdown removes the instrument frame",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "shutdown returns to the reading page",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "reopening brings a fresh instrument up",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "the reopened instrument is clean (not still listening or recording)",
+      "ok": true,
+      "detail": "synth"
+    },
+    {
+      "check": "the room offers a contextual Oracle entry",
+      "ok": true,
+      "detail": "/oracle?view=desktop&researchTopicId=research-v1%3Acymatics%2Fconnection%2Finstrument-universal-resonator&from=%2Fexperience%2Funiversal-resonator&q=The%20instrument%20solves%20a%20model%20rather%20than%20measuring%20a%20real%20plate%20-%20what%20exactly%20is%20it%20solving%2C%20and%20where%20does%2"
+    },
+    {
+      "check": "the Oracle opens carrying the instrument as its subject",
+      "ok": true,
+      "detail": "SPEAKING ABOUT The Universal Resonator RESEARCH CONTEXT \u2190 RETURN TO THE UNIVERSAL RESONATOR"
+    },
+    {
+      "check": "the Oracle offers a return to the instrument",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "the return link goes back to Cymatics research",
+      "ok": true,
+      "detail": "https://www.universal-transmissions.com/research/cymatics"
+    }
+  ],
+  "passed": 21,
+  "failed": []
+}

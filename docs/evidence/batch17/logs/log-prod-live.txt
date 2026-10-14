@@ -1,0 +1,55 @@
+=== the reading page, before any launch ===
+  ok   no instrument asset is requested before launch
+  ok   no app.js request
+  ok   no worker request
+  ok   no instrument font is fetched
+  ok   no iframe exists in the DOM yet
+  ok   no instrument frame exists to run WebGL
+  ok   the launch action is present and explicit
+  ok   the page says nothing has started yet
+
+=== what the room explains before you run it ===
+  ok   the room explains what the instrument solves
+  ok   the room states the model's limit
+  ok   the room carries the references
+  ok   the references link out to their sources
+  ok   the third-party notices are linked
+
+=== launch ===
+  ok   launching requests the instrument bundle
+  ok   the engine bundle itself loads
+  ok   the solver worker loads
+  ok   its own stylesheet loads
+  ok   its own fonts load
+  ok   the stage replaces the launch panel
+  ok   the instrument's own document is running
+  ok   a canvas appears inside the instrument (WebGL is running)
+  ok   WebGL is available to the instrument
+  ok   the instrument's own interface is up (engine, not a stub)
+
+=== leaving ===
+  ok   leaving unmounts the instrument
+  ok   the launch panel returns
+
+=== Cymatics -> instrument -> back ===
+  ok   the Cymatics room links to the instrument
+  ok   the instrument is listed as a connection of the room
+  ok   the six released anchors are still there, in order
+  ok   following it lands on the instrument room
+  ok   the room returns to Cymatics research
+
+=== the Oracle, in the instrument's context ===
+  ok   the Oracle link carries the instrument anchor
+  ok   the Oracle link carries the instrument's own question
+  ok   the Oracle opens carrying the instrument as its subject
+
+=== 390 CSS px, and reduced motion ===
+  ok   390: a real 390 CSS px viewport
+  ok   390: no horizontal overflow
+  ok   390: the launch action fits the viewport
+  ok   reduced motion: every reveal wrapper is fully visible
+
+assertions passed: 37
+assertions failed: 0
+BATCH17_LIVE_PASSED
+EXIT=0
