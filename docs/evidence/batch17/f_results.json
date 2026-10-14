@@ -1,0 +1,36 @@
+{
+  "results": [
+    {
+      "check": "the instrument room is reachable from Cymatics research",
+      "ok": true,
+      "group": "5b. return to research"
+    },
+    {
+      "check": "the instrument is listed as a connection of the room",
+      "ok": true,
+      "group": "5b. return to research",
+      "detail": "[\"journal-cymatics-language-of-form\", \"artwork-throat-chakra\", \"artwork-recursive-pantheism\", \"codex-frequency-lattice\", \"artwork-hyperdimensional-harmonics\", \"journal-kybalion-seven-principles\", \"instrument-universal-resonator\"]"
+    },
+    {
+      "check": "the six released anchors are still there, in order",
+      "ok": true,
+      "group": "5b. return to research",
+      "detail": "[\"journal-cymatics-language-of-form\", \"artwork-throat-chakra\", \"artwork-recursive-pantheism\", \"codex-frequency-lattice\", \"artwork-hyperdimensional-harmonics\", \"journal-kybalion-seven-principles\", \"instrument-universal-resonator\"]"
+    },
+    {
+      "check": "following it lands on the instrument room",
+      "ok": true,
+      "group": "5b. return to research",
+      "detail": "https://universal-transmissions-iscvuxtpo-hhisim-7214s-projects.vercel.app/experience/universal-resonator"
+    },
+    {
+      "check": "the room returns to Cymatics research",
+      "ok": true,
+      "group": "5b. return to research",
+      "detail": "https://universal-transmissions-iscvuxtpo-hhisim-7214s-projects.vercel.app/research/cymatics"
+    }
+  ],
+  "passed": 5,
+  "failed": [],
+  "generatedAt": "2026-10-14T06:40:50Z"
+}

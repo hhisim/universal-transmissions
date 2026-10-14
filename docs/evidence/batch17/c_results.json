@@ -1,0 +1,153 @@
+{
+  "results": [
+    {
+      "check": "the instrument's own probe is live",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "{'rafTicks': 11, 'workerMessages': 0, 'workerPosts': 1, 'workerTerminate': 0, 'contexts': [], 'tracks': [], 'recorders': [], 'pagehide': None, 'at': 1791957865373}"
+    },
+    {
+      "check": "the instrument is fully built before the teardown test begins",
+      "ok": true,
+      "group": "3. shutdown and reopening"
+    },
+    {
+      "check": "the instrument frame is addressable",
+      "ok": true,
+      "group": "3. shutdown and reopening"
+    },
+    {
+      "check": "the instrument is computing (animation frames are advancing)",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "19 -> 20"
+    },
+    {
+      "check": "the solver worker is exchanging messages",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "posts=5 messages=4"
+    },
+    {
+      "check": "its AudioContext is running",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "['running']"
+    },
+    {
+      "check": "the microphone track is live",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "['live']"
+    },
+    {
+      "check": "a recorder is capturing",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "['recording']"
+    },
+    {
+      "check": "sound is playing at the moment of exit",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "True"
+    },
+    {
+      "check": "the microphone is the active source at the moment of exit",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "mic"
+    },
+    {
+      "check": "the parent now holds the instrument's own context and track objects",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "{\"contexts\": [\"running\"], \"tracks\": [\"live\"], \"counts\": {\"ctx\": 1, \"tracks\": 1, \"workers\": 1, \"recorders\": 1}}"
+    },
+    {
+      "check": "the instrument frame is detached from the page",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "0"
+    },
+    {
+      "check": "the instrument's AudioContext is closed after it is gone",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "['closed']"
+    },
+    {
+      "check": "the microphone capture track has ENDED (the device is released)",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "['ended']"
+    },
+    {
+      "check": "no audio-producing instrument realm remains",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "{\"contexts\": [\"closed\"], \"tracks\": [\"ended\"], \"trackMuted\": [false], \"streamActive\": [false], \"instrumentFrames\": 0}"
+    },
+    {
+      "check": "background computation stopped (its heartbeat is frozen)",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "26 -> 26 over 4s"
+    },
+    {
+      "check": "the instrument's realm is unreachable from the parent (destroyed, not hidden)",
+      "ok": true,
+      "group": "3. shutdown and reopening"
+    },
+    {
+      "check": "the recording in progress never delivered a file (the recorder died with it)",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "[]"
+    },
+    {
+      "check": "reopening brings a fresh instrument up",
+      "ok": true,
+      "group": "3. shutdown and reopening"
+    },
+    {
+      "check": "the fresh instrument is responsive",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "{\"space\": \"lattice\", \"m\": 4, \"n\": 3, \"interference\": 0.28, \"phase\": 0.2, \"coupli"
+    },
+    {
+      "check": "the fresh instrument starts clean (not still recording or listening)",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "synth"
+    },
+    {
+      "check": "the reopened instrument computes again",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "17 -> 18"
+    },
+    {
+      "check": "the reopened instrument has a NEW audio context (a fresh realm, not a revival)",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "['running']"
+    },
+    {
+      "check": "the reopened instrument plays sound",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "True"
+    },
+    {
+      "check": "the reopened worker is exchanging messages",
+      "ok": true,
+      "group": "3. shutdown and reopening",
+      "detail": "11"
+    }
+  ],
+  "passed": 25,
+  "failed": [],
+  "generatedAt": "2026-10-14T06:07:10Z"
+}

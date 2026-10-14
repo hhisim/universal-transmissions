@@ -1,0 +1,174 @@
+{
+  "results": [
+    {
+      "check": "synthesis runs (the engine reports running)",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "True"
+    },
+    {
+      "check": "the source is the built-in synthesizer",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "synth"
+    },
+    {
+      "check": "all nine sound modes are offered and selectable",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "['Solfeggio frequencies', 'Singing bowls', 'Binaural harmonics', 'Isochronic pulses', 'Harmonic drone', 'Trance sequence', 'Rain environment', 'OM · synthesized voice', 'Open synthesis / mixer']"
+    },
+    {
+      "check": "the instrument reports a live fundamental",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "528 Hz / FUNDAMENTAL"
+    },
+    {
+      "check": "sound mode 'Solfeggio frequencies' engages",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "solfeggio"
+    },
+    {
+      "check": "sound mode 'Singing bowls' engages",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "bowl"
+    },
+    {
+      "check": "sound mode 'Binaural harmonics' engages",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "binaural"
+    },
+    {
+      "check": "recording starts (the button shows a running timer)",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "■ 0:10"
+    },
+    {
+      "check": "the recording downloads a real file",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "/root/b17/acceptance/downloads/Universal-Transmissions-Resonance-1791957765981.webm (369864 bytes)"
+    },
+    {
+      "check": "the recording carries real encoded video frames",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "7 video packets"
+    },
+    {
+      "check": "the recording has a real measurable length",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "17.04s of recorded audio"
+    },
+    {
+      "check": "it carries the 3D field as video",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "vp9 1232x900"
+    },
+    {
+      "check": "it carries the instrument's audio",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "opus 48000Hz"
+    },
+    {
+      "check": "the recorded audio is real signal, not silence",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "RMS -33.182818 dBFS peak -27.284273 dBFS"
+    },
+    {
+      "check": "the recorded audio decodes cleanly through the full file",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "peak -27.284273 dBFS"
+    },
+    {
+      "check": "the recorded video contains a rendered field, not a black frame",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "{'mean': 44.781124114990234, 'std': 65.67632293701172, 'p99': 224.6666717529297, 'lit_fraction': 0.38725, 'fingerprint': [0.0, 0.4, 1.2, 1.8, 1.8, 1.2, 0.5, 0.0, 0.1, 1.1, 5.5, 9.8, 9.6, 5.3, 1.1, 0.1, 0.1, 1.2, 7.9, 14.2, 14.5, 7.6, 1.3, 0.1, 0.1, 0.9, 4.7, 9.8, 10.7, 4.6, 1.1, 0.1, 0.0, 0.4, 1.1, 1.9, 2.1, 1.2, 0.4, 0.0]}"
+    },
+    {
+      "check": "SNAPSHOT saves a PNG",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "/root/b17/acceptance/downloads/Universal-Transmissions-Resonance-1791957771230.png (786089 bytes)"
+    },
+    {
+      "check": "the snapshot is a real image of the field",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "1232x900 RGBA"
+    },
+    {
+      "check": "the snapshot is not blank",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "{'mean': 59.79322814941406, 'std': 73.42369842529297, 'p99': 238.3333282470703, 'lit_fraction': 0.5295625, 'fingerprint': [0.1, 0.9, 2.0, 2.9, 2.9, 2.1, 0.9, 0.1, 0.3, 1.9, 7.1, 11.2, 11.1, 7.0, 1.9, 0.3, 0.4, 2.2, 9.8, 15.2, 15.4, 9.5, 2.3, 0.4, 0.2, 1.7, 6.6, 11.7, 12.4, 6.4, 1.8, 0.3, 0.1, 0.8, 1.9, 3.2, 3.6, 2.2, 0.9, 0.1]}"
+    },
+    {
+      "check": "a local audio file becomes the source",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "file"
+    },
+    {
+      "check": "the instrument names the file it loaded",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "local-audio-test.wav"
+    },
+    {
+      "check": "playback continues with the file as the source",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "True"
+    },
+    {
+      "check": "the loaded file is referenced as a blob URL (it stays on the device)",
+      "ok": true,
+      "group": "2. sound and capture"
+    },
+    {
+      "check": "with permission granted the instrument connects the microphone",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "DISCONNECT MICROPHONE"
+    },
+    {
+      "check": "the microphone becomes the active source",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "mic"
+    },
+    {
+      "check": "with permission denied there is no live capture track",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "source flag='mic', live tracks=[]"
+    },
+    {
+      "check": "with permission denied the instrument does not pretend to be listening",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "CONNECT MICROPHONE"
+    },
+    {
+      "check": "denial is reported honestly and an alternative is offered",
+      "ok": true,
+      "group": "2. sound and capture",
+      "detail": "Microphone access is unavailable or was declined. You can use an audio file instead."
+    }
+  ],
+  "passed": 28,
+  "failed": [],
+  "generatedAt": "2026-10-14T06:04:11Z"
+}

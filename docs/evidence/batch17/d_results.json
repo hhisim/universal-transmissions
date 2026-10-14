@@ -1,0 +1,177 @@
+{
+  "results": [
+    {
+      "check": "a real 390 CSS px viewport",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"w\": 390, \"h\": 844, \"dpr\": 3, \"overflow\": 0}"
+    },
+    {
+      "check": "the reading page does not overflow horizontally",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "0"
+    },
+    {
+      "check": "the launch control scrolls into view and is big enough to tap",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"x\": 57, \"y\": 432.59375, \"width\": 276, \"height\": 43}"
+    },
+    {
+      "check": "the instrument launches from a tap",
+      "ok": true,
+      "group": "4. launched mobile experience"
+    },
+    {
+      "check": "the mobile viewport gets a live WebGL context",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{'ok': True, 'api': 'webgl2', 'vendor': 'Google Inc. (Google)', 'renderer': 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)', 'maxTexture': 8192}"
+    },
+    {
+      "check": "the renderer in use is identified (hardware or software)",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "check": "the mobile instrument uses the mobile grain budget",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "24000"
+    },
+    {
+      "check": "390: topPlay is present and laid out",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"topPlay\", \"exists\": true, \"w\": 40, \"h\": 34, \"x\": 130, \"inView\": true, \"vis\": true}"
+    },
+    {
+      "check": "390: sentient is present and laid out",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"sentient\", \"exists\": true, \"w\": 272, \"h\": 47, \"x\": 35, \"inView\": true, \"vis\": true}"
+    },
+    {
+      "check": "390: capture is present and laid out",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"capture\", \"exists\": true, \"w\": 82, \"h\": 34, \"x\": 212, \"inView\": true, \"vis\": true}"
+    },
+    {
+      "check": "390: record is present and laid out",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"record\", \"exists\": true, \"w\": 82, \"h\": 34, \"x\": 91, \"inView\": true, \"vis\": true}"
+    },
+    {
+      "check": "390: immersive is present and laid out",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"immersive\", \"exists\": true, \"w\": 74, \"h\": 34, \"x\": 177, \"inView\": true, \"vis\": true}"
+    },
+    {
+      "check": "390: plateToggle is present and laid out",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"plateToggle\", \"exists\": true, \"w\": 78, \"h\": 34, \"x\": 48, \"inView\": true, \"vis\": true}"
+    },
+    {
+      "check": "390: the core controls are reachable without horizontal scrolling",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "6/6 in view: ['topPlay', 'sentient', 'capture', 'record', 'immersive', 'plateToggle']"
+    },
+    {
+      "check": "390: one-finger drag orbits the view",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "5.57"
+    },
+    {
+      "check": "390: two-finger pinch zooms/pans",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "2.67"
+    },
+    {
+      "check": "390: the instrument runs on mobile (sound engaged)",
+      "ok": true,
+      "group": "4. launched mobile experience"
+    },
+    {
+      "check": "390: the 2D monitor is accessible and inside the viewport",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"hidden\": false, \"w\": 155, \"h\": 284, \"x\": 14, \"right\": 169, \"inView\": true, \"canvas\": true}"
+    },
+    {
+      "check": "390: the 'modeM' control is reachable",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"modeM\", \"exists\": true, \"w\": 272, \"h\": 18, \"inView\": true}"
+    },
+    {
+      "check": "390: the 'interference' control is reachable",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"interference\", \"exists\": true, \"w\": 272, \"h\": 18, \"inView\": true}"
+    },
+    {
+      "check": "390: the 'hue' control is reachable",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"hue\", \"exists\": true, \"w\": 272, \"h\": 18, \"inView\": true}"
+    },
+    {
+      "check": "390: the 'sectionPosition' control is reachable",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"sectionPosition\", \"exists\": true, \"w\": 272, \"h\": 18, \"inView\": true}"
+    },
+    {
+      "check": "390: the 'evolutionSpeed' control is reachable",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"id\": \"evolutionSpeed\", \"exists\": true, \"w\": 272, \"h\": 18, \"inView\": true}"
+    },
+    {
+      "check": "390: the instrument keeps animating (measured frame cadence)",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"ticks\": 11, \"seconds\": 6.01, \"fps\": 1.8}"
+    },
+    {
+      "check": "390: the measured cadence is reported with its renderer, not generalised",
+      "ok": true,
+      "group": "4. launched mobile experience"
+    },
+    {
+      "check": "390: frame cadence measured over a real window",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"ticks\": 11, \"seconds\": 6.01, \"fps\": 1.8}"
+    },
+    {
+      "check": "390: the solver is updating its readout",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "LIVE 4.08 : 3.00"
+    },
+    {
+      "check": "390: the exit control is present and tappable",
+      "ok": true,
+      "group": "4. launched mobile experience",
+      "detail": "{\"x\": 24, \"y\": 92.796875, \"width\": 342, \"height\": 48.59375}"
+    },
+    {
+      "check": "390: exiting returns to the reading page",
+      "ok": true,
+      "group": "4. launched mobile experience"
+    }
+  ],
+  "passed": 29,
+  "failed": [],
+  "generatedAt": "2026-10-14T06:10:52Z"
+}

@@ -1,0 +1,76 @@
+{
+  "results": [
+    {
+      "check": "the instrument is live with sound before the Oracle is opened",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "True"
+    },
+    {
+      "check": "the room's Oracle link carries the instrument's anchor",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "/oracle?view=desktop&researchTopicId=research-v1%3Acymatics%2Fconnection%2Finstrument-universal-resonator&from=%2Fexperience%2Funiversal-resonator&q=The%20instrument%20solves%20a%20model%20rather%20than%20measuring%20a%20real%20plate%20-%20what%20exactly%20is%20it%20solving%2C%20and%20where%20does%20that%20model%20stop%20being%20able%20to%20tell%20you%20about%20a%20physical%20plate%3F"
+    },
+    {
+      "check": "the link carries the instrument's own suggested question",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "The instrument solves a model rather than measuring a real plate - what exactly is it solving, and where does that model"
+    },
+    {
+      "check": "the Oracle opens with the instrument as its subject",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "SPEAKING ABOUT The Universal Resonator RESEARCH CONTEXT ← RETURN TO THE UNIVERSAL RESONATOR"
+    },
+    {
+      "check": "the Oracle produces a rendered answer",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "1920 chars"
+    },
+    {
+      "check": "the answer is complete, not a capped fragment",
+      "ok": true,
+      "group": "5. the contextual journey"
+    },
+    {
+      "check": "the answer explains the model rather than deflecting",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "found ['\\\\bidealised\\\\b|\\\\bidealized\\\\b', '\\\\bmodel\\\\b', '\\\\bplate\\\\b|\\\\bmembrane\\\\b', '\\\\bnodal\\\\b|\\\\bnodes\\\\b']"
+    },
+    {
+      "check": "it distinguishes the idealised model from a physical measurement",
+      "ok": true,
+      "group": "5. the contextual journey"
+    },
+    {
+      "check": "the Oracle does NOT claim access to the visitor's live sound or canvas",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "[]"
+    },
+    {
+      "check": "it conveys the model's limit towards a real plate, not merely avoiding banned words",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "missing: []"
+    },
+    {
+      "check": "it does not claim to have read material it was not supplied",
+      "ok": true,
+      "group": "5. the contextual journey"
+    },
+    {
+      "check": "the answer ends at a sentence boundary",
+      "ok": true,
+      "group": "5. the contextual journey",
+      "detail": "ust do; it does not tell you what an actual piece of matter will do until you measure one."
+    }
+  ],
+  "passed": 12,
+  "failed": [],
+  "generatedAt": "2026-10-14T06:38:45Z"
+}

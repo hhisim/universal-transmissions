@@ -1,0 +1,8 @@
+
+> resonance@7.0.0 test
+> node tests/evolution.test.mjs && node tests/audio.test.mjs && node tests/physics.test.mjs && node tests/v7.test.mjs
+
+PASS: 20 minutes of evolution, radiance/grain limits, continuous pitch and mode boundaries, manual hold, finite volume-to-Lotus morph. Worlds: Prism, Monsoon, Lotus, Temple, Tunnel sound modes: 9
+PASS: 100 uninterrupted oscillator updates, 18-second overlapping fades, nine sound worlds, cleanup on expiry and pause. Audio routing/scheduling checked with an AudioContext mock; listening test still needed.
+PASS: analytic gradients exact; sand coherence after 36 s of drift — volume densest-5% 30.5% (v5 87%), plate 15.4% (v5 69%); collapsed clouds heal; walls clear.
+PASS: four world changes in two minutes, distinct pattern destinations, bounded smooth modal steps, overlapping geometry, bidirectional circles, exact high-mode plate/section preview, focus controls and continuous morph domain.

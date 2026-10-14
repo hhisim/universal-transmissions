@@ -1,0 +1,107 @@
+{
+  "elapsed": 165.1,
+  "timeline": [
+    {
+      "t": 0.7,
+      "world": "Prism",
+      "pattern": "Golden interference",
+      "stage": null,
+      "space": "volume",
+      "m": 3.0204730048525215,
+      "n": 2.0102365024262605,
+      "glow": 0.5181588173149436,
+      "size": null
+    },
+    {
+      "t": 25.6,
+      "world": "Prism",
+      "pattern": "Pentagonal current",
+      "stage": null,
+      "space": "volume",
+      "m": 5,
+      "n": 2.489681518336022,
+      "glow": 0.36244430476836265,
+      "size": null
+    },
+    {
+      "t": 39.0,
+      "world": "Monsoon",
+      "pattern": "Decagonal web",
+      "stage": null,
+      "space": "volume",
+      "m": 5,
+      "n": 2,
+      "glow": 0.3371665334046968,
+      "size": null
+    },
+    {
+      "t": 73.8,
+      "world": "Monsoon",
+      "pattern": "Aether weave",
+      "stage": null,
+      "space": "volume",
+      "m": 6.885071414297441,
+      "n": 3.4808452357162403,
+      "glow": 0.5273882693334628,
+      "size": null
+    },
+    {
+      "t": 88.6,
+      "world": "Lotus",
+      "pattern": "Harmonic diamond",
+      "stage": null,
+      "space": "circle",
+      "m": 4,
+      "n": 3,
+      "glow": 0.5025020444986203,
+      "size": null
+    },
+    {
+      "t": 116.3,
+      "world": "Lotus",
+      "pattern": "Sevenfold veil",
+      "stage": null,
+      "space": "circle",
+      "m": 5.35054075227692,
+      "n": 2,
+      "glow": 0.3243507600383337,
+      "size": null
+    },
+    {
+      "t": 127.6,
+      "world": "Prism",
+      "pattern": "Golden interference",
+      "stage": null,
+      "space": "volume",
+      "m": 7,
+      "n": 2,
+      "glow": 0.30246388861968165,
+      "size": null
+    },
+    {
+      "t": 158.0,
+      "world": "Prism",
+      "pattern": "Ninefold corona",
+      "stage": null,
+      "space": "volume",
+      "m": 7.005222974644526,
+      "n": 2.4986942563388688,
+      "glow": 0.5090206705672898,
+      "size": null
+    }
+  ],
+  "worlds": [
+    "Lotus",
+    "Monsoon",
+    "Prism"
+  ],
+  "patterns": [
+    "Aether weave",
+    "Decagonal web",
+    "Golden interference",
+    "Harmonic diamond",
+    "Ninefold corona",
+    "Pentagonal current",
+    "Sevenfold veil"
+  ]
+}
