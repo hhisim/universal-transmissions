@@ -1694,7 +1694,7 @@ export default function OraclePage() {
                 <div className="oracle-artwork-context" role="note" data-entry-context="true">
                   <span className="oracle-artwork-context-label">SPEAKING ABOUT A CODEX RECORD</span>
                   <span className="oracle-artwork-context-meta">
-                    <code>{entryAnchorId}</code>
+                    THE RECORD YOU SELECTED IN THE ARCHIVE
                   </span>
                   {safeReturnTo && (
                     <a href={safeReturnTo} className="oracle-artwork-context-return">

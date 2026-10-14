@@ -144,6 +144,11 @@ export default function CodexPage() {
                   <a href="#behind-the-codex" className="btn-secondary">
                     Watch the Process
                   </a>
+                  {/* The archive as a third way in. This adds a door; it does not
+                      change what the page already does. */}
+                  <Link href="/codex/archive" className="btn-secondary">
+                    Explore the Archive
+                  </Link>
                 </div>
               </SectionReveal>
             </div>
