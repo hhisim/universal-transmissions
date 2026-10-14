@@ -53,13 +53,14 @@ export default function PageBackground() {
       /* Size the decoration from the layout viewport's CLIENT box, never from
          window.innerWidth/innerHeight.
          innerWidth already INCLUDES any overflow the document has, so a fixed layer sized
-         from it can widen the document and then measure that wider value again - the
-         decoration ends up setting the page's width instead of following it. At a
-         requested 390 CSS px viewport this measured 406px and was itself the 16px overflow
-         (documentElement.clientWidth 390, scrollWidth 406). The client box is the
-         configured viewport and cannot be inflated by anything the page renders, so the
-         layer now follows the viewport rather than defining it. This constrains the
-         decoration's own box; it does not hide anything. */
+         from it reports the page's current width rather than following the viewport. When
+         the document measured 406 at a requested 390 CSS px this canvas reported 406 too -
+         it was reading the value, not causing it. (The 406 itself is an un-triggered
+         SectionReveal entrance transform, matrix(1,0,0,1,40,0), on below-the-fold content;
+         it resolves to 390 once the block is revealed. See docs/BATCH18-FOLLOWUP-REVIEW.md.)
+         Measuring the client box makes the layer follow the configured viewport, which
+         cannot be inflated by anything the page renders. This constrains the decoration's
+         own box; it does not hide anything. */
       W = document.documentElement.clientWidth;
       H = document.documentElement.clientHeight;
       canvas.width = W * r;
