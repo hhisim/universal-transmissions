@@ -60,12 +60,16 @@ const cym = topics.resolveResearchTopic(topics.researchTopicId("cymatics"));
 const geo = topics.resolveResearchTopic(topics.researchTopicId("geometry"));
 chk("the Cymatics room still resolves", !!cym && cym.id === "cymatics");
 chk("the Geometry room resolves", !!geo && geo.id === "geometry");
-chkeq("both rooms are offered as topics", topics.researchTopicSlugs().sort().join(","), "cymatics,geometry");
+/** Every registered connection across every room, counted from the map itself. */
+const ALL_CONN = Object.values(connections.CONNECTIONS_BY_TOPIC).reduce((n, l) => n + l.length, 0);
+
+chkeq("the four domains are offered as topics", topics.researchTopicSlugs().sort().join(","),
+      "cymatics,geometry,linguistics,symbolism");
 
 {
   const everyConn = Object.entries(connections.CONNECTIONS_BY_TOPIC).flatMap(([slug, list]) =>
     list.map((c) => ({ slug, c })));
-  chkeq("the connection map covers both rooms", everyConn.length, CYM.length + GEOM.length);
+  chkeq("the connection map covers every room", everyConn.length, ALL_CONN);
   let resolved = 0;
   for (const { slug, c } of everyConn) {
     const id = topics.researchConnectionTopicId(slug, c.anchorSlug);
@@ -90,8 +94,11 @@ for (const bad of [
   "research-v1:geometry/connection",
   "research-v1:geometry/connection/",
   "geometry/connection/room-cymatics/suffix",
-  "research-v1:linguistics",
-  "research-v1:symbolism",
+  // Linguistics and Symbolism WERE unregistered in Batch 16 and are registered now, so
+  // they are no longer forged keys. A slug that is not in the registry still is.
+  "research-v1:alchemy",
+  "research-v1:research",
+  "research-v1:sigils",
 ]) {
   chk(`rejected: ${bad}`, topics.resolveResearchTopic(bad) === null);
 }
@@ -223,8 +230,10 @@ console.log("\n== H. a destination that cannot be targeted still says how to rea
 console.log("\n== I. the nexus shows every registered relationship, and no invented one ==");
 {
   const all = topics.allRegisteredConnections();
-  chkeq("every registered connection is exposed", all.length, CYM.length + GEOM.length);
-  chkeq("they span exactly two rooms", new Set(all.map((r) => r.topicSlug)).size, 2);
+  chkeq("every registered connection is exposed", all.length, ALL_CONN);
+  chkeq("they span every room that has connections",
+        new Set(all.map((r) => r.topicSlug)).size,
+        Object.values(connections.CONNECTIONS_BY_TOPIC).filter((l) => l.length).length);
   chk("every exposed anchorId resolves", all.every((r) => !!topics.resolveResearchTopic(r.anchorId)));
   chk("every exposed anchorId is room-scoped",
       all.every((r) => r.anchorId.includes(`${r.topicSlug}/connection/`)));
@@ -235,9 +244,13 @@ console.log("\n== J. incomplete domains are described honestly ==");
   chkeq("four domains are presented", topics.RESEARCH_DOMAINS.length, 4);
   const registered = topics.RESEARCH_DOMAINS.filter((d) => d.registered);
   const reading = topics.RESEARCH_DOMAINS.filter((d) => !d.registered);
-  chkeq("two are registered rooms", registered.length, 2);
-  chkeq("two are reading pages", reading.length, 2);
-  chkeq("the registered pair", registered.map((d) => d.slug).sort().join(","), "cymatics,geometry");
+  // Batch 20 completed the last two domains, so the honest current state is that ALL
+  // four are rooms. The reading-page branch below is kept: it is what re-checks the
+  // claim if a domain is ever reverted, and it must never be deleted to make a run pass.
+  chkeq("all four are registered rooms", registered.length, 4);
+  chkeq("no domain is left as a reading page", reading.length, 0);
+  chkeq("the registered set", registered.map((d) => d.slug).sort().join(","),
+        "cymatics,geometry,linguistics,symbolism");
   for (const d of reading) {
     chk(`${d.slug} is described as a reading page, not a room`,
         /reading page/i.test(d.standing) && /not yet a room/i.test(d.standing));
@@ -247,7 +260,7 @@ console.log("\n== J. incomplete domains are described honestly ==");
   }
   for (const d of registered) {
     chk(`${d.slug} is registered`, topics.isRegisteredRoom(d.slug));
-    chk(`${d.slug} standing says it is a full research room`, /full research room/i.test(d.standing));
+    chk(`${d.slug} standing says it is a research room`, /research room/i.test(d.standing));
   }
 }
 
