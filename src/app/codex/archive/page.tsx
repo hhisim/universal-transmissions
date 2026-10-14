@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ARCHIVE_FIELDS, BASIS_LABEL, BASIS_NOTE, FIELD_LABELS, MEASURED_LOOKING,
-  SYSTEMS, archiveHref, recordFromId, recordsInSystem, relationshipSystems,
+  SYSTEMS, archiveHref, archiveRecordFor, recordFromId, recordsInSystem, relationshipSystems,
   representativeSet, researchRouteForSystem, sharedWith, toArchiveRecord,
   SYSTEMS_WITH_RESEARCH_ROUTE,
 } from "@/lib/codex-archive";
@@ -118,10 +118,26 @@ export default function ArchivePage({
   }
 
   /* ── the selected record ──────────────────────────────────────────────── */
-  const entry = toArchiveRecord(
-    // recordFromId already verified the pair exists
-    { sys: pair.sys, e: pair.e } as never
-  );
+  /* The record must be the ACTUAL corpus entry. Synthesising { sys, e } and casting it
+     produces a record whose fields are all absent, which renders as a heading over an
+     empty list. */
+  const entry = archiveRecordFor(pair.sys, pair.e);
+  if (!entry) {
+    return (
+      <main className="cx-wrap">
+        <style>{CSS}</style>
+        <header className="cx-head">
+          <p className="cx-kicker">Universal Transmissions — Codex</p>
+          <h1 className="cx-title">That record is not in the corpus</h1>
+          <p className="cx-lede">
+            The identifier supplied does not resolve to a record in the Codex. Nothing is
+            substituted for it.
+          </p>
+          <Link className="cx-back" href="/codex/archive">← BACK TO THE ARCHIVE</Link>
+        </header>
+      </main>
+    );
+  }
   const groups = relationshipSystems(pair.sys, pair.e);
   const shared = sharedWith(pair.sys, pair.e).slice(0, MAX_SHARED_GROUPS);
   const research = researchRouteForSystem(pair.sys);

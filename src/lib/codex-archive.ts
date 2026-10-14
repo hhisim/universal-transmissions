@@ -338,6 +338,15 @@ export function representativeSet(limit = 8) {
   return _repCache.slice(0, limit);
 }
 
+/** The record for a (sys, e) pair, fully populated, or null when the pair is not in the corpus.
+ *  This exists because the fields must come from the ACTUAL entry: building a partial
+ *  { sys, e } object and casting it yields a record with no content at all, which renders
+ *  as a heading with nothing under it. */
+export function archiveRecordFor(sys: string, e: string): ArchiveRecord | null {
+  const entry = findRecord(sys, e);
+  return entry ? toArchiveRecord(entry) : null;
+}
+
 export function relationshipsFor(sys: string, e: string): Relationship[] {
   const entry = findRecord(sys, e);
   if (!entry) return [];
