@@ -1,0 +1,108 @@
+{
+  "tetra": {
+    "base": "https://www.universal-transmissions.com",
+    "image_requests": 8,
+    "image_transferred_bytes": 1778926,
+    "main_artwork_fetched_as_master": true,
+    "main_artwork_fetched_as_derivative": false,
+    "main_artwork_master_bytes": 466431,
+    "main_artwork_derivative_bytes": null,
+    "dom": {
+      "imgs": 8,
+      "loaded": 8,
+      "heroNatural": [
+        1500,
+        1128
+      ],
+      "heroRendered": [
+        1230,
+        1230
+      ],
+      "heroObjectFit": "cover",
+      "heroSizes": null,
+      "heroSrc": "https://www.universal-transmissions.com/artworks/tetra/main.jpg"
+    },
+    "images": [
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/main.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/main.jpg",
+        "path": "/artworks/tetra/main.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 466431,
+        "decoded": 466431,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-01.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-01.jpg",
+        "path": "/artworks/tetra/details/Universal-Tranmissions-III---Tetra-01.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 232446,
+        "decoded": 232446,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-05.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-05.jpg",
+        "path": "/artworks/tetra/details/Universal-Tranmissions-III---Tetra-05.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 135197,
+        "decoded": 135197,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-06.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-06.jpg",
+        "path": "/artworks/tetra/details/Universal-Tranmissions-III---Tetra-06.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 198565,
+        "decoded": 198565,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-02.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-02.jpg",
+        "path": "/artworks/tetra/details/Universal-Tranmissions-III---Tetra-02.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 205311,
+        "decoded": 205311,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-04.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-04.jpg",
+        "path": "/artworks/tetra/details/Universal-Tranmissions-III---Tetra-04.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 243571,
+        "decoded": 243571,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-03.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-03.jpg",
+        "path": "/artworks/tetra/details/Universal-Tranmissions-III---Tetra-03.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 138738,
+        "decoded": 138738,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-07.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/tetra/details/Universal-Tranmissions-III---Tetra-07.jpg",
+        "path": "/artworks/tetra/details/Universal-Tranmissions-III---Tetra-07.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 158667,
+        "decoded": 158667,
+        "optimized": false
+      }
+    ]
+  }
+}

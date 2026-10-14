@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks, getArtwork } from "@/data/artworks";
-import Lightbox, { ImageThumb } from "@/components/gallery/Lightbox";
+import ArtworkHero from "@/components/gallery/ArtworkHero";
 import ProgressiveDetailExplorer from "@/components/gallery/ProgressiveDetailExplorer";
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import PageBackground from "@/components/scenes/PageBackground";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
+import { ARTWORK_CONNECTION_GAPS, connectionsForArtwork } from "@/lib/artwork-connections";
 import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_URL, seoDescription, seoTitle } from "@/lib/seo";
 export const revalidate = 300;
 
@@ -70,6 +70,12 @@ export default function ArtworkDetailPage({ params }: Props) {
   const artwork = getArtwork(params.slug);
   if (!artwork) notFound();
 
+  /* Batch 18: the records that already belong to this work. Derived from Journal records
+     that name it and from research rooms that already list it, so nothing is asserted
+     here that is not asserted somewhere the archive can be checked against. */
+  const connections = connectionsForArtwork(artwork.slug);
+  const gaps = ARTWORK_CONNECTION_GAPS[artwork.slug] ?? [];
+
   return (
     <>
 <PageBackground variant="gallery" />
@@ -92,10 +98,10 @@ export default function ArtworkDetailPage({ params }: Props) {
         {/* ── MAIN ARTWORK ─────────────────────────────── */}
         <div className="container-ut">
           <SectionReveal>
-            <Lightbox
-              images={artwork.images}
-              title={artwork.title}
-            />
+            {/* Batch 18: the artwork leads. A resized derivative arrives first and the
+                full-resolution master is requested only on inspection — the approach the
+                Vitruvian Spirit pilot proved for detail tiles, extended to the main work. */}
+            <ArtworkHero src={artwork.images[0]} title={artwork.title} slug={artwork.slug} />
           </SectionReveal>
         </div>
 
@@ -103,49 +109,25 @@ export default function ArtworkDetailPage({ params }: Props) {
         {artwork.detailImages.length > 0 && (
           <div className="container-ut mt-6">
             <SectionReveal>
-              {artwork.slug === PROGRESSIVE_PILOT_SLUG ? (
-                /* Batch 3 pilot: unrevealed details are never mounted, so they
-                   cannot start an image request. */
-                <ProgressiveDetailExplorer
-                  title={artwork.title}
-                  details={artwork.detailImages.map((src, i) => ({
-                    src,
-                    registryIndex: i + 1,
-                  }))}
-                  initialRegistryIndices={PILOT_INITIAL_DETAIL_INDICES}
-                />
-              ) : (
-                /* Unchanged existing behaviour for every other artwork. */
-                <div>
-                  <div
-                    className="flex items-center gap-3 mb-4 font-mono text-[10px] tracking-[0.25em] uppercase"
-                    style={{ color: "var(--ut-white-faint)" }}
-                  >
-                    <span>Detail Views</span>
-                    <span style={{ color: "var(--ut-magenta)", opacity: 0.5 }}>—</span>
-                    <span>Scroll →</span>
-                  </div>
-                  <div
-                    className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory gallery-carousel"
-                  >
-                    {artwork.detailImages.map((img, i) => (
-                      <div
-                        key={i}
-                        className="flex-shrink-0 w-28 h-28 md:w-36 md:h-36 relative overflow-hidden border chromatic-hover snap-start"
-                        style={{
-                          borderColor: "rgba(217,70,239,0.12)",
-                          borderRadius: "2px",
-                        }}
-                      >
-                        <ImageThumb
-                          src={img}
-                          alt={`${artwork.title} detail ${i + 1}`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Batch 18: the pilot's approach now runs for every work, not one.
+                  Previously only Vitruvian Spirit was progressive; every other artwork
+                  mounted its whole detail strip at once, so a 37-detail work pulled all
+                  37 thumbnails on first paint. Unrevealed details are never mounted, so
+                  they cannot start a request. The pilot keeps its curated seed; the rest
+                  seed from the registry head, which is the honest default when no
+                  curation exists for a work. */}
+              <ProgressiveDetailExplorer
+                title={artwork.title}
+                details={artwork.detailImages.map((src, i) => ({
+                  src,
+                  registryIndex: i + 1,
+                }))}
+                initialRegistryIndices={
+                  artwork.slug === PROGRESSIVE_PILOT_SLUG
+                    ? PILOT_INITIAL_DETAIL_INDICES
+                    : artwork.detailImages.slice(0, 6).map((_, i) => i + 1)
+                }
+              />
             </SectionReveal>
           </div>
         )}
@@ -322,6 +304,89 @@ export default function ArtworkDetailPage({ params }: Props) {
           </div>
         )}
 
+        {/* ── ARCHIVE CONNECTIONS ───────────────────────── */}
+        {/* Batch 18. Every entry is a record that already exists and is pointed at here;
+            nothing is inferred from subject matter. The `basis` tells the visitor whether
+            a link is documented in a record, a shared subject, or a UT interpretation,
+            so the artwork's own recorded description is never blended with a reading. */}
+        {(connections.length > 0 || gaps.length > 0) && (
+          <div className="container-ut mt-12">
+            <SectionReveal>
+              <div className="border-t pt-8" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
+                  <h2
+                    className="font-mono text-[9px] tracking-[0.15em] uppercase"
+                    style={{ color: "rgba(212,168,71,0.4)" }}
+                    data-artwork-connections="true"
+                  >
+                    IN THIS ARCHIVE
+                  </h2>
+                  <span className="font-mono text-[9px]" style={{ color: "var(--ut-white-faint)" }}>
+                    {connections.length} related {connections.length === 1 ? "record" : "records"}
+                  </span>
+                </div>
+                <p className="font-body text-sm mb-6" style={{ color: "rgba(237,233,246,0.4)" }}>
+                  Records elsewhere in the archive that belong to this work. Each states why it
+                  belongs and on what basis, so the work&apos;s recorded description stays
+                  separate from an interpretation placed on it.
+                </p>
+
+                <ul className="flex flex-col gap-4">
+                  {connections.map((c) => (
+                    <li
+                      key={c.anchorSlug}
+                      className="ut-card p-5 border"
+                      style={{ borderColor: "rgba(217,70,239,0.1)" }}
+                      data-artwork-connection={c.anchorSlug}
+                    >
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                        <span
+                          className="font-mono text-[9px] tracking-[0.2em] uppercase px-2 py-0.5 border"
+                          style={{ borderColor: "rgba(212,168,71,0.25)", color: "var(--ut-gold)" }}
+                          data-connection-kind={c.kind.toLowerCase()}
+                        >
+                          {c.kind}
+                        </span>
+                        <span
+                          className="font-mono text-[9px] tracking-[0.15em] uppercase"
+                          style={{ color: "var(--ut-white-faint)" }}
+                          data-connection-basis={c.basis}
+                        >
+                          {c.basisLabel}
+                        </span>
+                      </div>
+                      <p className="font-body text-sm mb-2" style={{ color: "var(--ut-white)" }}>
+                        {c.title}
+                      </p>
+                      <p className="font-body text-xs mb-3" style={{ color: "var(--ut-white-dim)" }}>
+                        {c.rationale}
+                      </p>
+                      <Link
+                        href={c.href}
+                        className="font-mono text-[9px] tracking-[0.2em] uppercase oracle-link"
+                      >
+                        Open this record →
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Honest absences: a missing record is stated, never filled with a near miss. */}
+                {gaps.map((g) => (
+                  <p
+                    key={g}
+                    className="font-mono text-[9px] mt-4 leading-relaxed"
+                    style={{ color: "var(--ut-white-faint)" }}
+                    data-connection-gap="true"
+                  >
+                    {g}
+                  </p>
+                ))}
+              </div>
+            </SectionReveal>
+          </div>
+        )}
+
         {/* ── ASK THE ORACLE ─────────────────────────── */}
         <div className="container-ut mt-12">
           <SectionReveal>
@@ -338,6 +403,7 @@ export default function ArtworkDetailPage({ params }: Props) {
               <a
                 href={`/oracle?view=desktop&artworkId=${encodeURIComponent(artwork.id)}&from=${encodeURIComponent(`/gallery/${artwork.slug}`)}&q=${encodeURIComponent(`Tell me about ${artwork.title}`)}`}
                 className="font-heading text-[10px] tracking-[0.2em] uppercase oracle-link"
+                data-artwork-oracle="true"
               >
                 ASK THE ORACLE ABOUT THIS PIECE →
               </a>

@@ -1,0 +1,108 @@
+{
+  "vitruvian-spirit": {
+    "base": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app",
+    "image_requests": 8,
+    "image_transferred_bytes": 206750,
+    "main_artwork_fetched_as_master": false,
+    "main_artwork_fetched_as_derivative": true,
+    "main_artwork_master_bytes": null,
+    "main_artwork_derivative_bytes": 102412,
+    "dom": {
+      "imgs": 8,
+      "loaded": 8,
+      "heroNatural": [
+        1008,
+        652
+      ],
+      "heroRendered": [
+        1230,
+        795
+      ],
+      "heroObjectFit": "contain",
+      "heroSizes": "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 70vw",
+      "heroSrc": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fmain.jpg&w=1080&q=72"
+    },
+    "images": [
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fmain.jpg&w=1080&q=72",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/vitruvian-spirit/main.jpg&w=1080&q=72",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 102412,
+        "decoded": 102412,
+        "optimized": true
+      },
+      {
+        "url": "https://img.youtube.com/vi/JWDHHdX6Wpw/hqdefault.jpg",
+        "decoded_url": "https://img.youtube.com/vi/JWDHHdX6Wpw/hqdefault.jpg",
+        "path": "https://img.youtube.com/vi/JWDHHdX6Wpw/hqdefault.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 64807,
+        "decoded": 64807,
+        "optimized": false
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs41.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/vitruvian-spirit/details/vs41.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6545,
+        "decoded": 6545,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs10.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/vitruvian-spirit/details/vs10.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6632,
+        "decoded": 6632,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs4.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/vitruvian-spirit/details/vs4.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6882,
+        "decoded": 6882,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs1.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/vitruvian-spirit/details/vs1.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 7233,
+        "decoded": 7233,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs%2520MEME.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/vitruvian-spirit/details/vs%20MEME.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6977,
+        "decoded": 6977,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs5.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/vitruvian-spirit/details/vs5.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 5262,
+        "decoded": 5262,
+        "optimized": true
+      }
+    ]
+  }
+}

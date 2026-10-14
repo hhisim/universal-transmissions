@@ -1,0 +1,108 @@
+{
+  "vitruvian-spirit": {
+    "base": "https://www.universal-transmissions.com",
+    "image_requests": 8,
+    "image_transferred_bytes": 1357422,
+    "main_artwork_fetched_as_master": true,
+    "main_artwork_fetched_as_derivative": false,
+    "main_artwork_master_bytes": 1253084,
+    "main_artwork_derivative_bytes": null,
+    "dom": {
+      "imgs": 8,
+      "loaded": 8,
+      "heroNatural": [
+        2783,
+        1800
+      ],
+      "heroRendered": [
+        1230,
+        1230
+      ],
+      "heroObjectFit": "cover",
+      "heroSizes": null,
+      "heroSrc": "https://www.universal-transmissions.com/artworks/vitruvian-spirit/main.jpg"
+    },
+    "images": [
+      {
+        "url": "https://img.youtube.com/vi/JWDHHdX6Wpw/hqdefault.jpg",
+        "decoded_url": "https://img.youtube.com/vi/JWDHHdX6Wpw/hqdefault.jpg",
+        "path": "https://img.youtube.com/vi/JWDHHdX6Wpw/hqdefault.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 64807,
+        "decoded": 64807,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/vitruvian-spirit/main.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/vitruvian-spirit/main.jpg",
+        "path": "/artworks/vitruvian-spirit/main.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 1253084,
+        "decoded": 1253084,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs5.jpg&w=256&q=62",
+        "decoded_url": "https://www.universal-transmissions.com/_next/image?url=/artworks/vitruvian-spirit/details/vs5.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 5262,
+        "decoded": 5262,
+        "optimized": true
+      },
+      {
+        "url": "https://www.universal-transmissions.com/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs41.jpg&w=256&q=62",
+        "decoded_url": "https://www.universal-transmissions.com/_next/image?url=/artworks/vitruvian-spirit/details/vs41.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6545,
+        "decoded": 6545,
+        "optimized": true
+      },
+      {
+        "url": "https://www.universal-transmissions.com/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs10.jpg&w=256&q=62",
+        "decoded_url": "https://www.universal-transmissions.com/_next/image?url=/artworks/vitruvian-spirit/details/vs10.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6632,
+        "decoded": 6632,
+        "optimized": true
+      },
+      {
+        "url": "https://www.universal-transmissions.com/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs1.jpg&w=256&q=62",
+        "decoded_url": "https://www.universal-transmissions.com/_next/image?url=/artworks/vitruvian-spirit/details/vs1.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 7233,
+        "decoded": 7233,
+        "optimized": true
+      },
+      {
+        "url": "https://www.universal-transmissions.com/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs4.jpg&w=256&q=62",
+        "decoded_url": "https://www.universal-transmissions.com/_next/image?url=/artworks/vitruvian-spirit/details/vs4.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6882,
+        "decoded": 6882,
+        "optimized": true
+      },
+      {
+        "url": "https://www.universal-transmissions.com/_next/image?url=%2Fartworks%2Fvitruvian-spirit%2Fdetails%2Fvs%2520MEME.jpg&w=256&q=62",
+        "decoded_url": "https://www.universal-transmissions.com/_next/image?url=/artworks/vitruvian-spirit/details/vs%20MEME.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6977,
+        "decoded": 6977,
+        "optimized": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "cosmic-egg": {
+    "base": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app",
+    "image_requests": 8,
+    "image_transferred_bytes": 201886,
+    "main_artwork_fetched_as_master": false,
+    "main_artwork_fetched_as_derivative": true,
+    "main_artwork_master_bytes": null,
+    "main_artwork_derivative_bytes": 137526,
+    "dom": {
+      "imgs": 8,
+      "loaded": 8,
+      "heroNatural": [
+        933,
+        1241
+      ],
+      "heroRendered": [
+        1230,
+        1637
+      ],
+      "heroObjectFit": "contain",
+      "heroSizes": "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 70vw",
+      "heroSrc": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fmain.jpg&w=1080&q=72"
+    },
+    "images": [
+      {
+        "url": "https://img.youtube.com/vi/OZ3JSRTgsgI/hqdefault.jpg",
+        "decoded_url": "https://img.youtube.com/vi/OZ3JSRTgsgI/hqdefault.jpg",
+        "path": "https://img.youtube.com/vi/OZ3JSRTgsgI/hqdefault.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 25334,
+        "decoded": 25334,
+        "optimized": false
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fmain.jpg&w=1080&q=72",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/cosmic-egg/main.jpg&w=1080&q=72",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 137526,
+        "decoded": 137526,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fdetails%2FUniversal-Transmissions-IX---The-Cosmic-Egg---Detail-03.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-03.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 7063,
+        "decoded": 7063,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fdetails%2FUniversal-Transmissions-IX---The-Cosmic-Egg---Detail-05.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-05.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 5766,
+        "decoded": 5766,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fdetails%2FUniversal-Transmissions-IX---The-Cosmic-Egg---Detail-01.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-01.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 7131,
+        "decoded": 7131,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fdetails%2FUniversal-Transmissions-IX---The-Cosmic-Egg---Detail-06.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-06.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 5090,
+        "decoded": 5090,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fdetails%2FUniversal-Transmissions-IX---The-Cosmic-Egg---Detail-04.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-04.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 4376,
+        "decoded": 4376,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fcosmic-egg%2Fdetails%2FUniversal-Transmissions-IX---The-Cosmic-Egg---Detail-02.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-02.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 9600,
+        "decoded": 9600,
+        "optimized": true
+      }
+    ]
+  }
+}

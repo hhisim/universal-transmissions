@@ -1,0 +1,88 @@
+{
+  "merkaba": {
+    "base": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app",
+    "image_requests": 6,
+    "image_transferred_bytes": 125344,
+    "main_artwork_fetched_as_master": false,
+    "main_artwork_fetched_as_derivative": true,
+    "main_artwork_master_bytes": null,
+    "main_artwork_derivative_bytes": 95300,
+    "dom": {
+      "imgs": 6,
+      "loaded": 6,
+      "heroNatural": [
+        1008,
+        757
+      ],
+      "heroRendered": [
+        1230,
+        924
+      ],
+      "heroObjectFit": "contain",
+      "heroSizes": "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 70vw",
+      "heroSrc": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fmerkaba%2Fmain.jpg&w=1080&q=72"
+    },
+    "images": [
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fmerkaba%2Fmain.jpg&w=1080&q=72",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/merkaba/main.jpg&w=1080&q=72",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 95300,
+        "decoded": 95300,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fmerkaba%2Fdetails%2FUniversal-Tranmissions-IV---Merkaba-05.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/merkaba/details/Universal-Tranmissions-IV---Merkaba-05.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6594,
+        "decoded": 6594,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fmerkaba%2Fdetails%2FUniversal-Tranmissions-IV---Merkaba-03.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/merkaba/details/Universal-Tranmissions-IV---Merkaba-03.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6564,
+        "decoded": 6564,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fmerkaba%2Fdetails%2FUniversal-Tranmissions-IV---Merkaba-02.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/merkaba/details/Universal-Tranmissions-IV---Merkaba-02.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6096,
+        "decoded": 6096,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fmerkaba%2Fdetails%2FUniversal-Tranmissions-IV---Merkaba-04.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/merkaba/details/Universal-Tranmissions-IV---Merkaba-04.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 6023,
+        "decoded": 6023,
+        "optimized": true
+      },
+      {
+        "url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=%2Fartworks%2Fmerkaba%2Fdetails%2FUniversal-Tranmissions-IV---Merkaba-01.jpg&w=256&q=62",
+        "decoded_url": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app/_next/image?url=/artworks/merkaba/details/Universal-Tranmissions-IV---Merkaba-01.jpg&w=256&q=62",
+        "path": "/_next/image",
+        "status": 200,
+        "content_type": "image/avif",
+        "transferred": 4767,
+        "decoded": 4767,
+        "optimized": true
+      }
+    ]
+  }
+}

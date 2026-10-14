@@ -1,0 +1,228 @@
+{
+  "cosmic-egg": {
+    "base": "https://www.universal-transmissions.com",
+    "image_requests": 20,
+    "image_transferred_bytes": 4999389,
+    "main_artwork_fetched_as_master": true,
+    "main_artwork_fetched_as_derivative": false,
+    "main_artwork_master_bytes": 425368,
+    "main_artwork_derivative_bytes": null,
+    "dom": {
+      "imgs": 37,
+      "loaded": 20,
+      "heroNatural": [
+        1000,
+        1330
+      ],
+      "heroRendered": [
+        1230,
+        1230
+      ],
+      "heroObjectFit": "cover",
+      "heroSizes": null,
+      "heroSrc": "https://www.universal-transmissions.com/artworks/cosmic-egg/main.jpg"
+    },
+    "images": [
+      {
+        "url": "https://img.youtube.com/vi/OZ3JSRTgsgI/hqdefault.jpg",
+        "decoded_url": "https://img.youtube.com/vi/OZ3JSRTgsgI/hqdefault.jpg",
+        "path": "https://img.youtube.com/vi/OZ3JSRTgsgI/hqdefault.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 25334,
+        "decoded": 25334,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/main.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/main.jpg",
+        "path": "/artworks/cosmic-egg/main.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 425368,
+        "decoded": 425368,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-16.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-16.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-16.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 250286,
+        "decoded": 250286,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-17.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-17.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-17.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 266848,
+        "decoded": 266848,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-09.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-09.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-09.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 182841,
+        "decoded": 182841,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-14.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-14.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-14.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 241176,
+        "decoded": 241176,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-05.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-05.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-05.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 254945,
+        "decoded": 254945,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-11.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-11.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-11.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 276439,
+        "decoded": 276439,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-08.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-08.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-08.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 261427,
+        "decoded": 261427,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-12.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-12.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-12.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 255734,
+        "decoded": 255734,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-01.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-01.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-01.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 248606,
+        "decoded": 248606,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-15.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-15.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-15.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 238891,
+        "decoded": 238891,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-13.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-13.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-13.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 243895,
+        "decoded": 243895,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-06.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-06.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-06.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 271315,
+        "decoded": 271315,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-04.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-04.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-04.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 245344,
+        "decoded": 245344,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-18.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-18.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-18.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 253165,
+        "decoded": 253165,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-10.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-10.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-10.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 279292,
+        "decoded": 279292,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-02.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-02.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-02.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 241256,
+        "decoded": 241256,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-03.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-03.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-03.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 265374,
+        "decoded": 265374,
+        "optimized": false
+      },
+      {
+        "url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-07.jpg",
+        "decoded_url": "https://www.universal-transmissions.com/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-07.jpg",
+        "path": "/artworks/cosmic-egg/details/Universal-Transmissions-IX---The-Cosmic-Egg---Detail-07.jpg",
+        "status": 200,
+        "content_type": "image/jpeg",
+        "transferred": 271853,
+        "decoded": 271853,
+        "optimized": false
+      }
+    ]
+  }
+}

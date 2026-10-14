@@ -1,0 +1,103 @@
+{
+  "base": "https://universal-transmissions-879x7uic2-hhisim-7214s-projects.vercel.app",
+  "checks": [
+    {
+      "check": "390: real 390 CSS px viewport",
+      "ok": false,
+      "detail": "406"
+    },
+    {
+      "check": "390: no horizontal overflow",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "390: the hero fits",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "390: artwork still dominates the first screen",
+      "ok": false,
+      "detail": "0.2516353811149033"
+    },
+    {
+      "check": "390: inspection control is tappable",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "slow network: the preview becomes visible",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "slow network: the master is still not requested",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "failure: a blocked preview says so, no broken image",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "failure: the rest of the page still renders",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "390: real 390 CSS px viewport",
+      "ok": false,
+      "detail": "406"
+    },
+    {
+      "check": "390: no horizontal overflow",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "390: the hero fits",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "390: artwork still dominates the first screen",
+      "ok": false,
+      "detail": "0.292573236632537"
+    },
+    {
+      "check": "390: inspection control is tappable",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "slow network: the preview becomes visible",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "slow network: the master is still not requested",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "failure: a blocked preview says so, no broken image",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "check": "failure: the rest of the page still renders",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "passed": 14,
+  "total": 18,
+  "failed": [
+    "390: real 390 CSS px viewport",
+    "390: artwork still dominates the first screen",
+    "390: real 390 CSS px viewport",
+    "390: artwork still dominates the first screen"
+  ]
+}
