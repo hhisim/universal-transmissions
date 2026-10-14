@@ -98,9 +98,12 @@ export default function ArtworkHero({ src, title, slug }: ArtworkHeroProps) {
           style={{ color: "var(--ut-white-faint)" }}
           data-hero-caption="true"
         >
+          {/* These dimensions are the ORIGINAL's, so the caption says so. The stored file is
+              this size; what is served here is a smaller resized variant, and the full-size
+              file is fetched only on inspection. */}
           {meta
-            ? `Preview ${meta.width}×${meta.height} shown at screen size · full-resolution master loads only on inspection`
-            : "Preview shown at screen size · full-resolution master loads only on inspection"}
+            ? `Original ${meta.width}×${meta.height} · a resized preview is served here · full-size file loads on inspection`
+            : "A resized preview is served here · full-size file loads on inspection"}
         </p>
       </div>
 

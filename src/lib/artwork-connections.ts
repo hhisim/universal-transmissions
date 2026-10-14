@@ -13,10 +13,11 @@
  *     slug has to be checked against the artwork it names — some installments have no
  *     post at all, and a missing post is recorded as an absence rather than filled in.
  *
- *  2. A research room whose own documented connections already name this artwork. This is
+ *  2. A research room whose own connection list already names this artwork. This is
  *     DERIVED by reading `CONNECTIONS_BY_TOPIC` rather than restated, so the artwork page
  *     cannot drift from the research room: if the research side stops naming the work,
- *     the artwork side stops claiming it too.
+ *     the artwork side stops claiming it too. The basis travels with it — reading a
+ *     thematic or interpretive entry from the artwork's end does not make it documented.
  *
  * The distinction the archive holds elsewhere is preserved here: an entry's `basis` says
  * whether a link is documented in a record, a thematic shared subject, or a UT
@@ -87,18 +88,21 @@ const JOURNAL_BY_ARTWORK: Record<
 /** Honest absences: an installment with no dedicated Journal record, stated rather than filled. */
 export const ARTWORK_CONNECTION_GAPS: Record<string, string[]> = {
   merkaba: [
-    "No Journal record names this installment, so no Journal connection is claimed. Its only documented archive link is the research room below.",
+    "No Journal record names this installment, so no Journal connection is claimed. The Geometry room below is the only archive relationship recorded for it, and that entry states its own basis.",
   ],
   tetra: [
-    "No Journal record is named for this installment. Other posts discuss tetrahedral geometry as a subject, but a shared subject is not a record about this work, so none is claimed as a connection.",
+    "No Journal record is named for this installment, so no Journal connection is claimed. Other posts discuss tetrahedral geometry as a subject, but a shared subject is not a record about this work.",
   ],
 };
 
 /**
- * Research rooms that already name this artwork in their own documented connections.
+ * Research rooms that already name this artwork in their own connection list.
  *
  * Derived, not restated: this walks the same data the research page renders, so the two
- * surfaces cannot disagree about whether the relationship exists.
+ * surfaces cannot disagree about whether the relationship exists - or about what KIND of
+ * claim it is. The basis is carried across unchanged rather than upgraded: a room that
+ * lists this artwork as a UT interpretation or a thematic parallel does not become a
+ * documented link by being read from the other end.
  */
 export function researchRoomsForArtwork(artworkSlug: string): ArtworkConnection[] {
   const target = `/gallery/${artworkSlug}`;
@@ -107,6 +111,7 @@ export function researchRoomsForArtwork(artworkSlug: string): ArtworkConnection[
     const match = connections.find((c) => c.href === target);
     if (!match) continue;
     const domain = RESEARCH_DOMAINS.find((d) => d.slug === topicId);
+    const room = domain ? domain.title : topicId;
     out.push({
       anchorSlug: `artwork-${artworkSlug}--from-${topicId}`,
       href: `/research/${topicId}`,
@@ -114,7 +119,7 @@ export function researchRoomsForArtwork(artworkSlug: string): ArtworkConnection[
       title: domain ? `${domain.title} — research room` : topicId,
       /* The research room's own rationale is reused verbatim: the claim is the same one,
          and paraphrasing it here would let the two surfaces drift apart. */
-      rationale: `${match.rationale} (Reused from the ${domain?.title ?? topicId} room, where this artwork is already a documented connection.)`,
+      rationale: `${match.rationale} (Carried from the ${room} room, which lists this artwork on the same basis — ${match.basisLabel}.)`,
       basis: match.basis,
       basisLabel: match.basisLabel,
       suggestedQuestion: match.suggestedQuestion,

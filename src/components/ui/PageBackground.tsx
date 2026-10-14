@@ -50,8 +50,18 @@ export default function PageBackground() {
     function resize() {
       if (!canvas || !ctx) return;
       const r = devicePixelRatio || 1;
-      W = window.innerWidth;
-      H = window.innerHeight;
+      /* Size the decoration from the layout viewport's CLIENT box, never from
+         window.innerWidth/innerHeight.
+         innerWidth already INCLUDES any overflow the document has, so a fixed layer sized
+         from it can widen the document and then measure that wider value again - the
+         decoration ends up setting the page's width instead of following it. At a
+         requested 390 CSS px viewport this measured 406px and was itself the 16px overflow
+         (documentElement.clientWidth 390, scrollWidth 406). The client box is the
+         configured viewport and cannot be inflated by anything the page renders, so the
+         layer now follows the viewport rather than defining it. This constrains the
+         decoration's own box; it does not hide anything. */
+      W = document.documentElement.clientWidth;
+      H = document.documentElement.clientHeight;
       canvas.width = W * r;
       canvas.height = H * r;
       canvas.style.width = W + "px";
@@ -156,6 +166,12 @@ export default function PageBackground() {
         inset: 0,
         width: "100%",
         height: "100%",
+        /* A hard bound on the decoration's own box. It is fixed, so 100% resolves to the
+           viewport; this guarantees the layer cannot exceed the viewport even if a future
+           change puts a larger pixel width on it again. Nothing is hidden - the element is
+           the decoration itself, and it is being kept to the screen it decorates. */
+        maxWidth: "100%",
+        maxHeight: "100%",
         pointerEvents: "none",
         zIndex: -1,
       }}
