@@ -1,0 +1,130 @@
+{
+  "vitruvian-spirit": {
+    "configured_viewport": [
+      390,
+      844
+    ],
+    "innerWidth": 406,
+    "innerHeight": 879,
+    "de_clientWidth": 390,
+    "de_scrollWidth": 406,
+    "body_clientWidth": 390,
+    "body_scrollWidth": 406,
+    "vv_width": 390,
+    "vv_scale": 1,
+    "overflows_configured_viewport": true,
+    "canvases": [
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "BODY"
+      },
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "MAIN"
+      }
+    ],
+    "widest": [
+      406,
+      "HEADER"
+    ],
+    "inspect_tappable": true
+  },
+  "tetra": {
+    "configured_viewport": [
+      390,
+      844
+    ],
+    "innerWidth": 406,
+    "innerHeight": 879,
+    "de_clientWidth": 390,
+    "de_scrollWidth": 406,
+    "body_clientWidth": 390,
+    "body_scrollWidth": 406,
+    "vv_width": 390,
+    "vv_scale": 1,
+    "overflows_configured_viewport": true,
+    "canvases": [
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "BODY"
+      },
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "MAIN"
+      }
+    ],
+    "widest": [
+      406,
+      "HEADER"
+    ],
+    "inspect_tappable": true
+  },
+  "merkaba": {
+    "configured_viewport": [
+      390,
+      844
+    ],
+    "innerWidth": 406,
+    "innerHeight": 879,
+    "de_clientWidth": 390,
+    "de_scrollWidth": 406,
+    "body_clientWidth": 390,
+    "body_scrollWidth": 406,
+    "vv_width": 390,
+    "vv_scale": 1,
+    "overflows_configured_viewport": true,
+    "canvases": [
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "BODY"
+      },
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "MAIN"
+      }
+    ],
+    "widest": [
+      406,
+      "HEADER"
+    ],
+    "inspect_tappable": true
+  },
+  "cosmic-egg": {
+    "configured_viewport": [
+      390,
+      844
+    ],
+    "innerWidth": 406,
+    "innerHeight": 879,
+    "de_clientWidth": 390,
+    "de_scrollWidth": 406,
+    "body_clientWidth": 390,
+    "body_scrollWidth": 406,
+    "vv_width": 390,
+    "vv_scale": 1,
+    "overflows_configured_viewport": true,
+    "canvases": [
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "BODY"
+      },
+      {
+        "inline": "390px",
+        "rectRight": 390,
+        "parent": "MAIN"
+      }
+    ],
+    "widest": [
+      406,
+      "HEADER"
+    ],
+    "inspect_tappable": true
+  }
+}

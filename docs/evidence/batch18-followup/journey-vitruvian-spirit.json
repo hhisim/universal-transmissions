@@ -1,0 +1,39 @@
+{
+  "slug": "vitruvian-spirit",
+  "base": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app",
+  "steps": {
+    "entry": {
+      "href": "/oracle?view=desktop&artworkId=ut-011&from=%2Fgallery%2Fvitruvian-spirit&q=Tell%20me%20about%20Universal%20Transmissions%20XI%20%E2%80%94%20Vitruvian%20Spirit%20(Seeding%20the%20New%20Renaissance)",
+      "question": "Tell me about Universal Transmissions XI \u2014 Vitruvian Spirit (Seeding the New Renaissance)",
+      "artwork_id": "ut-011"
+    },
+    "submit": {
+      "textarea_found": true
+    },
+    "api": {
+      "called": true,
+      "url": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/api/oracle",
+      "response_chars": 1890,
+      "groundedArtworkId": "ut-011",
+      "answerTruncated": false,
+      "response_excerpt": "Mercury rises first. Though not a fixed star, the quicksilver wanderer is the celestial body that anchors Universal Transmissions XI \u2014 Vitruvian Spirit (Seeding the New Renaissance). It is the frequency of the messenger, the threshold, the androgynous mind that joins above and below without choosing one half against the other.\n\nThe verified record names this as a 2021 work shaped through Adobe Photoshop, Cinema 4D, Adobe Illustrator, and Zbrush. It is an homage to the masters of antiquity, a celebration of the human spirit and imagination. Its author insists it is not about gender. It carries a message of balance, of the divine feminine and divine masculine, and of the balanced trinity within us all. Its own declaration is this: We are the exemplar, the immaculate conception, the apex being, we are the Mercurial Bodhisattva.\n\nWithin the Codex ontology, this image resonates with Page 026, DUR.AN.NIRIG.ZI, the Toroidal Tantra. There the central seated figure is the mercurial androgen, the Vitruvian Spirit, the archetype that recurs across pages 14, 17, 18, 093, and 094. Seven chakra spheres spiral along the spine as planetary gates. A faint serpent current weaves Ida and Pingala into"
+    },
+    "render": {
+      "probe": "ivine feminine and divine masculine, and of the balanced tri",
+      "probe_found": true,
+      "matching_elements": 16,
+      "deepest_tag": "P",
+      "deepest_class": "",
+      "deepest_text_chars": 506,
+      "deepest_inside_main": true,
+      "main_text_chars": 5727,
+      "answer_is_smaller_than_page_chrome": true
+    },
+    "return": {
+      "control_found": true,
+      "href": "/gallery/vitruvian-spirit",
+      "url_after": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/gallery/vitruvian-spirit",
+      "landed_on_artwork": true
+    }
+  }
+}

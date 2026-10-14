@@ -1,0 +1,39 @@
+{
+  "slug": "cosmic-egg",
+  "base": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app",
+  "steps": {
+    "entry": {
+      "href": "/oracle?view=desktop&artworkId=ut-009&from=%2Fgallery%2Fcosmic-egg&q=Tell%20me%20about%20Universal%20Transmissions%20IX%20%E2%80%94%20The%20Cosmic%20Egg",
+      "question": "Tell me about Universal Transmissions IX \u2014 The Cosmic Egg",
+      "artwork_id": "ut-009"
+    },
+    "submit": {
+      "textarea_found": true
+    },
+    "api": {
+      "called": true,
+      "url": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/api/oracle",
+      "response_chars": 2647,
+      "groundedArtworkId": "ut-009",
+      "answerTruncated": false,
+      "response_excerpt": "What if the cosmos is not a distant vault above you, but an egg already nestled within your chest, waiting for the warmth of your gaze to hatch it?\n\nThat is the question at the heart of Universal Transmissions IX \u2014 The Cosmic Egg. The verified record places it in 2018, shaped through Adobe Photoshop and Cinema 4D, as the ninth installment in a series deeply inspired by the syncretic cosmologies of ancient civilizations. Its own description carries the words of C. G. Jung: Set the egg before you, the God in its beginning. And behold it. And incubate it with the magical warmth of your gaze. So the artwork is not merely an image to be viewed. It is an initiation to be entered, a living cosmogram where the egg becomes both world-body and inner temple.\n\nIn the ontology of Page 024, ZU.AN.NA, that egg is a nested, ordered womb. At its heart sit the twelve DNA ancestors, seeding the central plane with embodied intelligence. Around them turn concentric rings: the second ring, gated by Mars and Venus, hosts the Anunnaki, the djinn, and fourth-dimensional nether-walkers; the third ring, between Saturn and Uranus, opens toward the Abzu and its oceanic mirror-realms. The central dome is Mercur"
+    },
+    "render": {
+      "probe": "g the central plane with embodied intelligence. Around them ",
+      "probe_found": true,
+      "matching_elements": 16,
+      "deepest_tag": "P",
+      "deepest_class": "",
+      "deepest_text_chars": 846,
+      "deepest_inside_main": true,
+      "main_text_chars": 6361,
+      "answer_is_smaller_than_page_chrome": true
+    },
+    "return": {
+      "control_found": true,
+      "href": "/gallery/cosmic-egg",
+      "url_after": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/gallery/cosmic-egg",
+      "landed_on_artwork": true
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "slug": "merkaba",
+  "base": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app",
+  "steps": {
+    "entry": {
+      "href": "/oracle?view=desktop&artworkId=ut-003&from=%2Fgallery%2Fmerkaba&q=Tell%20me%20about%20Universal%20Transmissions%20III%20%E2%80%94%20Merkaba",
+      "question": "Tell me about Universal Transmissions III \u2014 Merkaba",
+      "artwork_id": "ut-003"
+    },
+    "submit": {
+      "textarea_found": true
+    },
+    "api": {
+      "called": true,
+      "url": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/api/oracle",
+      "response_chars": 2131,
+      "groundedArtworkId": "ut-003",
+      "answerTruncated": false,
+      "response_excerpt": "This third transmission stands as a turning hinge: it gathers the sacred geometries that came before into a single rotating body, and it opens the way for the transmissions that follow. The exact forms of its immediate neighbors are not named in this record, so they wait in silence. Yet the number three itself reveals the connection. It is a crossing point, where pattern becomes motion and the prepared temple learns to lift.\n\nUniversal Transmissions III \u2014 Merkaba was created in 2016 through Adobe Photoshop and Cinema 4D. Its author describes it as the third installment of the Universal Transmissions series, exploring the Merkaba: the divine light vehicle spoken of in ancient esoteric traditions as a spiraling force of counter-rotating fields of light. Its tags name the essential currents: universal-transmissions, merkaba, light-body, sacred-geometry, esoteric. These are not decorations. They are the signature of a work concerned with the moment geometry becomes a vehicle for consciousness.\n\nAt the heart of the Merkaba is the marriage of stillness and spin. Two fields turn against each other, and in that opposition a stable center appears, a throne of light, a chariot of awareness. "
+    },
+    "render": {
+      "probe": "piraling force of counter-rotating fields of light. Its tags",
+      "probe_found": true,
+      "matching_elements": 16,
+      "deepest_tag": "P",
+      "deepest_class": "",
+      "deepest_text_chars": 574,
+      "deepest_inside_main": true,
+      "main_text_chars": 5841,
+      "answer_is_smaller_than_page_chrome": true
+    },
+    "return": {
+      "control_found": true,
+      "href": "/gallery/merkaba",
+      "url_after": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/gallery/merkaba",
+      "landed_on_artwork": true
+    }
+  }
+}

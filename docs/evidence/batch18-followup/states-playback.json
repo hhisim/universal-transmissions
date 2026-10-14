@@ -1,0 +1,22 @@
+{
+  "states": {
+    "merkaba": {
+      "slow_network": {
+        "preview_became_visible": true,
+        "master_requested_at_load": false
+      },
+      "failure": {
+        "panel_shown": true,
+        "page_still_renders": true
+      },
+      "recovery": {
+        "recovered": true,
+        "served": [
+          895,
+          673
+        ]
+      }
+    }
+  },
+  "playback": {}
+}

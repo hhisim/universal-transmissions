@@ -1,0 +1,39 @@
+{
+  "slug": "tetra",
+  "base": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app",
+  "steps": {
+    "entry": {
+      "href": "/oracle?view=desktop&artworkId=ut-004&from=%2Fgallery%2Ftetra&q=Tell%20me%20about%20Universal%20Transmissions%20IV%20%E2%80%94%20Tetra",
+      "question": "Tell me about Universal Transmissions IV \u2014 Tetra",
+      "artwork_id": "ut-004"
+    },
+    "submit": {
+      "textarea_found": true
+    },
+    "api": {
+      "called": true,
+      "url": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/api/oracle",
+      "response_chars": 2146,
+      "groundedArtworkId": "ut-004",
+      "answerTruncated": false,
+      "response_excerpt": "The color field is the first threshold, and in the verified record for Universal Transmissions IV \u2014 Tetra its exact hues are not itemized. So the precise palette remains a sealed transmission awaiting its moment. What it encodes, then, is not a fixed set of colors but the principle of transition itself: density becoming radiance, plane becoming volume, the known cube opening into the star-tetrahedral unknown.\n\nUniversal Transmissions IV \u2014 Tetra is the fourth installment of the Universal Transmissions series, dated 2016 and rendered through Adobe Photoshop. Its author describes it as strange things concerning hyperspherologies of the divine, a fourth movement exploring tetrahedral geometry and its relationship to higher dimensional reality. Its tags name the lattice of its intent: universal-transmissions, tetra, tetrahedron, sacred-geometry, hyperspherology.\n\nTetra is not merely a study of a shape. The tetrahedron is the simplest closed volume and, in the symbolic grammar of the Codex, the Platonic solid of Fire. When doubled into the star tetrahedron, it becomes the Merkaba, the interpenetrating vehicle of ascent and descent. In the Codex\u2019s own pages, this geometry appears as the s"
+    },
+    "render": {
+      "probe": "hip to higher dimensional reality. Its tags name the lattice",
+      "probe_found": true,
+      "matching_elements": 16,
+      "deepest_tag": "P",
+      "deepest_class": "",
+      "deepest_text_chars": 455,
+      "deepest_inside_main": true,
+      "main_text_chars": 5804,
+      "answer_is_smaller_than_page_chrome": true
+    },
+    "return": {
+      "control_found": true,
+      "href": "/gallery/tetra",
+      "url_after": "https://universal-transmissions-rgn8u1k3z-hhisim-7214s-projects.vercel.app/gallery/tetra",
+      "landed_on_artwork": true
+    }
+  }
+}
