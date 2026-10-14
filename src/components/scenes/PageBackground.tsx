@@ -2032,9 +2032,15 @@ export default function PageBackground({ variant, className = "", opacity = 1 }:
 
     function resize() {
       const r = devicePixelRatio || 1;
-      const p = cv!.parentElement;
-      if (!p) return;
-      W = p.clientWidth; H = p.clientHeight;
+      /* The canvas below is position:fixed with inset:0, so it is fixed to the VIEWPORT,
+         not to its parent. Measuring the parent sized it to the entire document instead:
+         on a research room at 390 CSS px the parent is ~34,000 px tall, so the canvas
+         became 34,000 px tall, and the scene - drawn for viewport dimensions - painted a
+         blank light slice over the page. Text sat on it and became unreadable. Measure the
+         client box of the element the canvas is actually fixed to. */
+      const de = document.documentElement;
+      W = de.clientWidth; H = de.clientHeight;
+      if (!W || !H) { const p = cv!.parentElement; if (!p) return; W = p.clientWidth; H = p.clientHeight; }
       cv!.width = W * r; cv!.height = H * r;
       cv!.style.width = W + "px"; cv!.style.height = H + "px";
       cx!.setTransform(r, 0, 0, r, 0, 0);
