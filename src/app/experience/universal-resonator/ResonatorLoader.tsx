@@ -131,7 +131,11 @@ export default function ResonatorLoader() {
             transition: 'opacity 0.4s',
           }}
           allow="microphone; autoplay; fullscreen"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock"
+          /* allow-downloads is REQUIRED: the instrument's Snapshot and Record both save
+             their file by synthesising an <a download> click. Without it a sandboxed
+             frame silently produces the file and then throws it away — the instrument
+             toasts "Snapshot saved." and the visitor gets nothing at all. */
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-downloads"
           onLoad={() => setReady(true)}
         />
       </div>

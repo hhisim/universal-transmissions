@@ -76,6 +76,13 @@ console.log("\n== B. nothing heavy runs before launch ==");
       !/getUserMedia|mediaDevices/.test(loader));
   chk("the frame is sandboxed and only asks for the microphone it may need",
       /sandbox="/.test(loader) && /allow="microphone; autoplay; fullscreen"/.test(loader));
+  /* Snapshot and Record both save through a synthesised <a download> click. A sandbox
+     without allow-downloads lets the instrument toast "Snapshot saved." and deliver
+     nothing at all - found by exercising capture, not by reading the code. */
+  chk("the sandbox permits the instrument's Snapshot and Record downloads",
+      /sandbox="[^"]*allow-downloads/.test(loader));
+  chk("the sandbox still withholds the capabilities the instrument does not need",
+      !/allow-modals|allow-top-navigation|allow-presentation/.test(loader));
   chk("leaving the instrument unmounts the frame", /data-resonator-stop=/.test(loader)
       && /setLaunched\(false\)/.test(loader));
 
