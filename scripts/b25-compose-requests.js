@@ -4,8 +4,9 @@ const path = require("path");
 const fs = require("fs");
 const ROOT = path.resolve(__dirname, "..");
 require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs")).registerTsModules({ root: ROOT });
-const MIN = "---\ntitle: s\ndate: 2026-01-01\n---\n\nx\n";
-for (const e of [".md", ".mdx"]) require.extensions[e] = (m) => { m.exports = MIN; };
+/* The resolver now reaches the Journal and Artwork records, so their markdown sources are
+   read as themselves: a stub would compose a message that no longer contains the record. */
+for (const e of [".md", ".mdx"]) require.extensions[e] = (m) => { m.exports = fs.readFileSync(m.filename, "utf8"); };
 for (const e of [".css", ".scss", ".svg", ".png", ".jpg", ".webp"]) require.extensions[e] = (m) => { m.exports = ""; };
 
 let capped = [];
@@ -34,10 +35,17 @@ const CASES = {
     route: "./src/app/api/oracle/route.ts",
     body: { message: "What does it mean?", history: H(["Follow Aleph through its element, colour and frequency.", "Aleph carries Air, Blue White Grey, 741 Hz.", "Tell me about Zorblax.", "I have no record of Zorblax."]) },
   },
-  /* A multi-word Journal title: the subject must be the COMPLETE title, not its first word. */
+  /* A multi-word Journal title: from Batch 26 this names a RECORD (its own text travels),
+     so the subject-section fixture below is a real archive page no registry carries. */
   "4-journal-title-pronoun-followup": {
     route: "./src/app/api/oracle/route.ts",
     body: { message: "What does it mean?", history: H(["Tell me about The Star and the Uncarved Block.", "That one carries no correspondence record here."]) },
+  },
+  /* A multi-word name the resolver does NOT carry: still the visitor's subject, carried
+     complete. This is where the Batch 25 subject-section assertions now apply. */
+  "5-unheld-multiword-subject": {
+    route: "./src/app/api/oracle/route.ts",
+    body: { message: "What does it mean?", history: H(["Tell me about Prismatic Transmissions.", "That is a gallery collection, not a record here."]) },
   },
 };
 

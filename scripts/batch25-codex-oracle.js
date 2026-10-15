@@ -40,7 +40,12 @@ const ARCHIVE_ABSENCE = [
 ];
 const ABSENCE_PROHIBITION =
   /never tell the visitor that .{0,80}is absent from the archive, its books, its artworks or its Journal/i;
-const NON_REGISTRY_TITLE = "The Star and the Uncarved Block"; // real UT Journal entry, not a correspondence record
+/* A REAL archive page the visitor can name by hand, which no record registry carries: the
+   gallery collection page /gallery/prismatic ("Prismatic Transmissions"). Batch 26 made
+   Journal and artwork titles resolvable, so the previous fixture — a real Journal entry —
+   is now a record and can no longer stand for an unheld subject. The guard below fails
+   loudly if a future change registers this one too. */
+const NON_REGISTRY_TITLE = "Prismatic Transmissions";
 /* The subject the visitor is CURRENTLY on, read from the subject section itself — never from
    the transcript, where the same title also appears as the visitor's earlier words. */
 const subjectQuote = (msg) => {
@@ -158,6 +163,11 @@ const CODEX = "./src/app/api/codex-oracle/route.ts";
       "8 a title outside the registry is the visitor's subject, not a record and not an absence");
     ok(named.subject.text === NON_REGISTRY_TITLE,
       "8 ...and the resolver carries the COMPLETE title, not its first word");
+    const { archiveRecordsByTitle } = require(path.join(ROOT, "src/lib/record-evidence.ts"));
+    ok(archiveRecordsByTitle(NON_REGISTRY_TITLE).length === 0,
+      "8 the fixture is a real page that no record registry carries");
+    ok(require("fs").existsSync(path.join(ROOT, "src/app/gallery/prismatic/page.tsx")),
+      "8 ...and the real page it names exists");
 
     const carried = resolveNamedRecords("What does it mean?", [
       { role: "user", content: `Tell me about ${NON_REGISTRY_TITLE}.` },

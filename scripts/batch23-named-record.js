@@ -18,6 +18,13 @@ const ROOT = path.resolve(__dirname, "..");
 const { registerTsModules } = require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs"));
 registerTsModules({ root: ROOT });
 
+/* The named-record resolver now reaches the Journal and Artwork title registries, which
+   import their own markdown sources. A harness that loads the resolver must supply the
+   same stubs the bundler does — the Batch 25 suites already do exactly this. */
+const MIN = "---\ntitle: s\ndate: 2026-01-01\n---\n\nx\n";
+for (const e of [".md", ".mdx"]) require.extensions[e] = (m) => { m.exports = MIN; };
+for (const e of [".css", ".scss", ".svg", ".png", ".jpg", ".webp"]) require.extensions[e] = (m) => { m.exports = ""; };
+
 const { resolveNamedRecords } = require(path.join(ROOT, "src/lib/named-record-resolver.ts"));
 const { resolveOracleEntity } = require(path.join(ROOT, "src/lib/oracle-entry-resolver.ts"));
 const { codex } = require(path.join(ROOT, "src/lib/codex-data.ts"));
