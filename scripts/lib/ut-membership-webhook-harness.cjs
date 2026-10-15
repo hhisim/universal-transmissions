@@ -318,6 +318,13 @@ function createHarness(ROOT) {
     state.lineItemError = null;
     state.lineItemsCalls = 0;
     state.telegrams = [];
+    // Additive injection points (all inert when unset) so a suite that needs to
+    // express a provider or read failure drives the SAME client the lifecycle writer
+    // actually uses, instead of a second, weaker mock sitting beside it.
+    state.failSelect = {};          // table -> message: SELECT returns an error
+    state.stripeFail = false;       // Stripe unreachable
+    state.stripeEmpty = false;      // Stripe reports NO subscriptions
+    state.stripeStatus = undefined; // blanket status applied to every subscription
   }
 
   function dbClient() {
@@ -390,6 +397,9 @@ function createHarness(ROOT) {
             if (ctx.badColumn) {
               return Promise.resolve({ data: null, error: err("42703", `column ${table}.${ctx.badColumn} does not exist`) });
             }
+            if (state.failSelect[table]) {
+              return Promise.resolve({ data: null, error: err("XX000", state.failSelect[table]) });
+            }
             return Promise.resolve({ data: match().slice(0, n).map((r) => ({ ...r })), error: null });
           },
           update(p) { ctx.op = "update"; ctx.payload = p; return api; },
@@ -427,6 +437,10 @@ function createHarness(ROOT) {
                 resolve({ data: null, error: err("42703", `column ${table}.${ctx.badColumn} does not exist`) });
                 return;
               }
+              if (state.failSelect[table]) {
+                resolve({ data: null, error: err("XX000", state.failSelect[table]) });
+                return;
+              }
               const m = match();
               resolve({ data: m.slice(0, 1)[0] ? { ...m[0] } : null, error: m.length ? null : err("PGRST116", "no row") });
               return;
@@ -460,9 +474,10 @@ function createHarness(ROOT) {
       },
       subscriptions: {
         retrieve: async (id) => {
+          if (state.stripeFail) throw new Error("stripe unreachable");
           const o = (state.stripe || {})[id];
           if (!o) { const e = new Error("no such subscription"); e.statusCode = 404; throw e; }
-          const result = { id, status: o.status, customer: o.customer };
+          const result = { id, status: state.stripeStatus ?? o.status, customer: o.customer };
           // Fires AFTER the provider has answered and BEFORE the caller acts on
           // it: the deterministic window for "another writer installs B while we
           // are still holding the reconciliation we just read".
@@ -470,8 +485,11 @@ function createHarness(ROOT) {
           return result;
         },
         list: async () => {
+          if (state.stripeFail) throw new Error("stripe unreachable");
           const result = {
-            data: Object.entries(state.stripe || {}).map(([id, o]) => ({ id, status: o.status, customer: o.customer })),
+            data: state.stripeEmpty ? [] : Object.entries(state.stripe || {}).map(
+              ([id, o]) => ({ id, status: state.stripeStatus ?? o.status, customer: o.customer })
+            ),
             has_more: false,
           };
           if (state.afterStripe) state.afterStripe();

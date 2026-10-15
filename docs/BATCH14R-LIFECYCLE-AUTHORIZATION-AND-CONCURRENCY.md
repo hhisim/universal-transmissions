@@ -453,3 +453,124 @@ not have provided it.
    or DML applied; nothing released.
 5. **The unlinked-row authority decision** (§5) — a policy choice for the owner,
    with a committed failing regression and a bounded proposal waiting on it.
+
+
+---
+
+# CLOSEOUT — lifecycle authorization and concurrency
+
+Recorded after re-opening this batch. No production SQL, no release.
+
+## Items 1–3: verified present and passing
+
+| item | state | evidence |
+|---|---|---|
+| 1 — E5 contradictory linkage fails closed | **present, 21/0** | `batch14r-lifecycle-authorization.js`. E5a puts the contradiction in the SECOND table and asserts: refused (500), the table named, **no write attempted at all** — the writable first table is *not* written before the second is validated — the mistaken customer is **not** silently repaired through a subscription-only match, no entitlement gained, the clean first table unchanged, no row created, no insert attempted. E5b the same in the first table. E5c/E5d are the controls (customer NULL with a subscription match is allowed; matching linkage is allowed). |
+| 2 — E4 and the stale-reconciliation races | **present, 41/0 + 27/0** | `batch14r-concurrency-interleavings.js` runs customer reassignment (S1), replacement subscription (S2), grant racing a cancellation (S3) and a status-only change (S4) in **both completion orders** (A: our snapshot, concurrent writer lands, our write loses and we re-resolve. B: the writer lands first). Each asserts final linkage, entitlement, response and affected rows, and that both orders converge on the same conserved outcome. `batch14t-snapshot-timing.js` asserts the authorization snapshot **is** the update snapshot, with `state.afterStripe` firing after the provider answers and before the caller acts. |
+| 3 — E2b promoted, bounded proposal | **present, 10/0** | `batch14s-unlinked-row-authority.js`, committed as the pinned regression in Batch 14r and **left byte-identical**. It is no longer RED because the proposed rule **landed** in Batch 14ag (`src/lib/membership-plan.ts`, the `unaddressable` field). Verified not weakened: U1 (cancellation) and U2 (reactivation) both still assert the TARGET outcome and both still assert the unlinked row is **not rewritten by address**. §5 of this document is the bounded proposal and covers **both** directions; it rejects R1 (update by address) and R2 (`profiles.status` as authority without lifecycle ownership). |
+
+Writes are conditioned on the snapshot's own `plan`, `subscription_status`,
+`stripe_customer_id` and `stripe_subscription_id` (`entries[].original` in the RPC
+payload), so the four scenarios above are compare-and-set misses, not timing.
+
+## Q1/Q2 restored — the named requirement
+
+**This is a regression that was already present at the batch's starting HEAD, and it
+is now repaired.**
+
+`batch14q-profiles-only-lifecycle.js` was **10 passed / 10 failed**: every Q1, Q2 and
+Q3 delivery failed with `client.rpc is not a function`, from
+`app.synthesis`-style `lifecycle_update_failed` on both tables.
+
+Cause: the suite rolled its **own in-memory Supabase mock** implementing only
+`from()`. When the lifecycle write moved onto the atomic RPC path
+(`membership-lifecycle-atomic.ts` → `client.rpc`), that mock could no longer drive
+the code the suite exists to guard. It was never updated.
+
+Repair: the suite now drives the **shared harness**, which executes the atomic
+lifecycle write as real SQL against a private PostgreSQL, so the affected-row counts
+it asserts are Postgres' own rather than a simulation's. **Q1 and Q2 pass unchanged
+in substance.**
+
+**Q3 was re-specified, and this is a correction to this document.** Its original
+assertions encoded the contract "an UPDATE affecting no row is refused with 500 and
+retried by the caller". Batches 14r/14t **supersede** that: on a compare-and-set miss
+the handler recognises the lost race, re-resolves from fresh linkage and fresh Stripe
+state, and converges — a 500 would now be the defect. Q3 is therefore:
+
+- **Q3a** — a lost race is re-resolved, not acknowledged from the stale snapshot:
+  200, no failure reported, **a second attempt is made**, the fresh resolution writes,
+  and the revocation completes.
+- **Q3b — the decisive one.** Stripe first reports `canceled` (the value our first
+  snapshot holds). While the race is lost, Stripe's answer changes to `active`. A
+  handler that reused its old authority result would revoke the member; the repair
+  reconciles afresh and does not. Asserted: the member is **not** revoked and the
+  stored plan follows the fresh answer.
+
+`batch14q-profiles-only-lifecycle.js` — **24 passed / 0 failed**.
+
+## Harness fidelity — shared injection points
+
+`scripts/lib/ut-membership-webhook-harness.cjs` gained four **additive, inert**
+injection points so a suite that must express a provider or read failure drives the
+same client the lifecycle writer uses, instead of a second, weaker mock beside it:
+
+| point | meaning |
+|---|---|
+| `state.failSelect[table]` | SELECT returns an error |
+| `state.stripeFail` | Stripe unreachable |
+| `state.stripeEmpty` | Stripe reports NO subscriptions |
+| `state.stripeStatus` | blanket status applied to every subscription |
+
+All four default to unset/false. The six suites that already used the harness —
+`batch14r-lifecycle-authorization` 21/0, `batch14r-concurrency-interleavings` 41/0,
+`batch14t-snapshot-timing` 27/0, `batch14s-unlinked-row-authority` 10/0,
+`batch14p-webhook-coverage` 49/0, and the repaired `batch14q` 24/0 — were re-run after
+the change and are unaffected.
+
+## Known-red, NOT repaired in this session
+
+Four suites are **red at the batch's starting HEAD for the same cause**, and are left
+red deliberately rather than rushed:
+
+| suite | result | cause |
+|---|---|---|
+| `batch14d-webhook-failure-reactivation.js` | 12 / 14 | `client.rpc is not a function` (×20) |
+| `batch14e-reconciliation.js` | 13 / 9 | `client.rpc is not a function` (×17) |
+| `batch14g-authority-contract.js` | 10 / 2 | `client.rpc is not a function` (×8) |
+| `batch14l-linkage-sequence.js` | 7 / 6 | `client.rpc is not a function` (×2) |
+
+All four roll their own pre-RPC mock, exactly as `batch14q` did. Porting them is
+**not** mechanical find-and-replace: their local Stripe mocks are *permissive* (they
+synthesise a subscription for any id) where the shared harness is **id-keyed and
+404-strict**, so each needs its Stripe seeding reconciled scenario by scenario before
+its assertions can be trusted. `batch14q` is the worked template for that port.
+
+**They are not evidence about production behaviour and must not be read as such.**
+They are stale harnesses. The lifecycle questions they cover are covered, against real
+PostgreSQL, by the green suites above.
+
+## Evidence separation
+
+- **Mocked**: the Stripe provider only. Every suite drives the real handler, the real
+  authority helper, the real writer and the real reader, with `getStripe()` replaced.
+- **Real PostgreSQL**: every affected-row count, every compare-and-set outcome and
+  every half-write observation. The shared harness starts a private cluster
+  (`startPrivatePostgres`) and executes the atomic lifecycle write as SQL through
+  `makePgClient`. Nothing in the repairs above rests on an in-memory simulation of a
+  database.
+
+## Suite totals for this batch
+
+16 green / 5 red. Green includes 14q 24/0 (repaired), 14r 21/0, 14r-concurrency 41/0,
+14s 10/0, 14t 27/0, 14ag 30/0, 14ah 24/0, 14ai 48/0 (the authenticated writer
+checks), 14p 49/0, 14b 41/0, 14c 38/0, 14f 11/0, 14-membership-write-contract 51/0,
+14m 7/0, 14n 15/0, and one non-suite helper.
+
+## Unchanged and still outstanding
+
+Migration hardening, SELECT-only verification and separately authorized SQL
+application remain **release prerequisites** and were **not** performed. No
+transaction/versioning primitive was applied: §6 of this document remains the proposal,
+and the unique-email index is still **not** claimed to solve lifecycle lost updates —
+the protection is the conditional UPDATE's row lock and post-lock re-evaluation.
