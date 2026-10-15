@@ -82,9 +82,12 @@ console.log("== A. the contradiction is gone, and the artist's account is in its
   chk("the room no longer says the scripts were not 'recovered' as a denial",
       !/not recovered, decoded/.test(block));
 
-  /* THE POSITIVE. The artist's account, in the artist's own terms. */
-  chk("the room carries the artist's experiential account",
-      /EXPERIENTIAL ACCOUNT/.test(block));
+  /* THE POSITIVE. The artist's account, in the artist's own terms, carried as the
+     founding account of the work rather than as a defended exception to it. */
+  chk("the room carries the artist's account as the founding account of the work",
+      /founding account of this work/.test(block));
+  chk("the account is no longer framed as a defended exception",
+      !/EXPERIENTIAL ACCOUNT/.test(block));
   chk("it says the alphabets were remembered from dreams",
       /remembered from dreams/i.test(block));
   chk("it says they were re-membered in ecstatic states of trance",
@@ -92,20 +95,30 @@ console.log("== A. the contradiction is gone, and the artist's account is in its
   chk("it states that the project describes its work as transmission",
       /describes its work as transmission/i.test(block));
 
-  /* THE RECONCILIATION - the part that stops either half being dissolved into the other. */
-  chk("it separates origin from authorship rather than choosing one",
-      /where the material came from is not who made the finished work/i.test(block));
+  /* THE RECONCILIATION - origin and authorship held together, not one dissolved. */
+  chk("it holds origin and authorship together rather than choosing one",
+      /where the material came from,[\s\S]{0,20}other about who made the finished work/i.test(block));
   chk("it forbids asserting a denial in the artist's name",
-      /never assert on the artist's behalf that no transmission claim is made/i.test(block));
-  chk("it states that lack of verification is not a denial",
-      /lack of independent verification as a denial/i.test(block));
+      /Never assert on the artist's behalf that no transmission claim is\s+made/i.test(block));
+  /* RE-SCOPED: the room no longer hedges the account with a verification caveat. What is
+     guarded is the opposite - that the account is stated affirmatively and that no
+     disclaimer has been reintroduced beside it. */
+  chk("the account is stated affirmatively, with no verification caveat attached",
+      !/lack of independent verification/i.test(block) && !/not independently verified/i.test(block));
 
   /* The loaded term is gone from the DENIAL but the word 'historical' is still used where
      it is accurate - the fix must not have been a blunt word-deletion. */
   chk("the scripts are still described as this project's own constructions",
       /this project's own\s+constructions/.test(block));
-  chk("a historical language is still refused as a characterisation",
-      /not a historical language recovered or decoded/.test(block));
+  chk("the scripts are named as the project's own constructions",
+      /this project's own constructions/.test(block));
+  /* The owner's direction, asserted so it cannot silently regress. */
+  chk("the room tells the Oracle to answer from inside the material",
+      /HOW TO SPEAK ABOUT THIS ROOM/.test(block));
+  chk("the room tells the Oracle not to fence the alphabet off from older traditions",
+      /Do not fence the archive's own alphabet off/.test(block));
+  chk("the room no longer debunks the letter traditions",
+      !/not as evidence they are correct/i.test(block));
 }
 
 console.log("\n== B. the standalone gap text is corrected the same way ==");
@@ -119,28 +132,42 @@ console.log("\n== B. the standalone gap text is corrected the same way ==");
       /does not\s+deny it/i.test(gaps) && /does not independently verify/i.test(gaps));
 }
 
-console.log("\n== C. every room states whose claim it is ==");
+console.log("\n== C. every room speaks from inside the work, and keeps attribution exact ==");
 {
   const slugs = topics.researchTopicSlugs();
   for (const slug of slugs) {
-    const block = topics.researchPromptBlock(topics.resolveResearchTopic(topics.researchTopicId(slug)));
-    chk(`${slug}: carries the whose-claim-it-is rules`, /WHOSE CLAIM IT IS/.test(block));
-    chk(`${slug}: says an experiential account is reported as the holder's`,
-        /reported AS the account of whoever holds it/i.test(block));
-    chk(`${slug}: says lack of verification is not evidence against it`,
-        /independent verification is not\s+evidence against it/i.test(block));
+    const block = topics.researchPromptBlock(tools_ = topics.resolveResearchTopic(topics.researchTopicId(slug)));
+    /* RE-SCOPED to the owner's explicit change of direction. The old guards required four
+       disclaimers in every room. What is guarded now is the new instruction set AND the
+       accuracy rules that are not disclaimers: attribution stays exact, absence is still
+       not a claim about the world, and a summary is still not the work. */
+    chk(`${slug}: carries the how-to-answer instruction`,
+        /HOW TO ANSWER FROM THIS ROOM/.test(block));
+    chk(`${slug}: tells the Oracle to engage deeply rather than correct`,
+        /Engage deeply with the selected work/.test(block));
+    chk(`${slug}: tells the Oracle not to debunk or qualify`,
+        /Do not debunk it, do not qualify it/.test(block));
+    chk(`${slug}: tells the Oracle not to sort the material by evidence`,
+        /sort the material into scientific and artistic piles/.test(block));
+    chk(`${slug}: forbids bolting a disclaimer onto the archive's own naming`,
+        /do not bolt a disclaimer onto the archive's own/.test(block));
+    chk(`${slug}: forbids attributing anything not listed`,
+        /Attribute no other author, title, work or page number/.test(block));
+    chk(`${slug}: forbids inventing a statement on the artist's behalf`,
+        /Never invent a statement, an intention or\s+a belief on the artist's behalf/.test(block));
+    chk(`${slug}: grounds the references as works the archive holds`,
+        /works this archive holds and reads/.test(block));
     chk(`${slug}: says an absence from context is not a claim about the world`,
         /Absence from THIS CONTEXT is not a claim about the world/i.test(block));
     chk(`${slug}: says a summary is not the work`,
-        /catalogue description is not the work/i.test(block));
+        /summary or catalogue description is not the work itself/i.test(block));
     chk(`${slug}: says a supplied extract is an extract`,
-        /supplied extract is an EXTRACT/i.test(block));
-    chk(`${slug}: keeps the reference scope guarantee`,
-        /SCOPE, NOT CONTENTS/.test(block) && /has not read these works/i.test(block));
-    chk(`${slug}: forbids attributing anything not listed`,
-        /Attribute no other author, title, work or page number/.test(block));
-    chk(`${slug}: keeps the four registers apart`,
-        /keep the four apart/i.test(block));
+        /Where an extract is supplied, it is an extract/i.test(block));
+    /* The negative half: none of the retired framing may come back. */
+    chk(`${slug}: carries no register-sorting doctrine`,
+        !/Source discipline/.test(block) && !/keep the four apart/i.test(block));
+    chk(`${slug}: carries no scope-not-contents disclaimer`,
+        !/SCOPE, NOT CONTENTS/.test(block) && !/has not read these works/i.test(block));
   }
 }
 
@@ -187,8 +214,10 @@ console.log("\n== E. supplied evidence is bounded and honestly labelled ==");
   const ART = ANCHORS.find((a) => a.c.kind === "Artwork");
   chk("an artwork anchor carries the record's own description",
       /Its own description, quoted:/.test(ART.block));
-  chk("it marks that description as an account, not as evidence about the world",
-      /not evidence about the world it depicts|not evidence about the world/i.test(ART.block));
+  chk("it carries the record's own account as what the record says about itself",
+      /what the record says about itself/i.test(ART.block));
+  chk("the artwork grounding no longer disclaims the work's own account",
+      !/not evidence about the world/i.test(ART.block));
 
   const CODEX = ANCHORS.find((a) => a.c.href.startsWith("/codex/archive"));
   chk("a Codex anchor carries the system's real records",

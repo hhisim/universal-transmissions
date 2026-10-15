@@ -129,23 +129,32 @@ console.log("\n== C. the Cymatics release is untouched by the generalisation =="
       !!fourier && fourier.sources.length === CYM.length - CYM.length + 4);
 }
 
-console.log("\n== D. Geometry keeps four registers apart ==");
+console.log("\n== D. Geometry names its four streams, and keeps its facts ==");
 {
   const s = geo.summary;
+  /* RE-SCOPED to the owner's explicit change of direction. The room no longer sorts its
+     statements into epistemic registers, so the old guard would fail against a correct
+     build. What it guards now is what still has to be true: all four STREAMS are named,
+     the mathematical and historical substance survives intact, and the room does NOT
+     carry a disclaimer or a ranking instruction. The negative half is the new
+     protection - it fails if the old framing is ever reintroduced. */
   for (const [label, needle] of [
-    ["MATHEMATICAL", "MATHEMATICAL"],
-    ["HISTORICAL", "HISTORICAL"],
-    ["TRADITIONAL SYMBOLISM", "TRADITIONAL SYMBOLISM"],
-    ["UT ARTISTIC INTERPRETATION", "UT ARTISTIC INTERPRETATION"],
-  ]) chk(`the summary carries the ${label} register`, s.includes(needle));
+    ["the forms themselves", "THE FORMS THEMSELVES"],
+    ["what the classical texts record", "WHAT THE CLASSICAL TEXTS RECORD"],
+    ["what traditions read into the forms", "WHAT TRADITIONS READ INTO THE FORMS"],
+    ["what this room explores", "WHAT THIS ROOM EXPLORES"],
+  ]) chk(`the summary names ${label}`, s.includes(needle));
   chk("it states the five-solids result as a proof, not a preference",
       /EXACTLY FIVE/.test(s) && /proved/i.test(s));
   chk("it names the golden ratio as the root of x^2 = x + 1", /x\^2 = x \+ 1/.test(s));
-  chk("it marks 'sacred geometry' as a modern term", /modern term/i.test(s));
-  chk("it states the resemblance limit outright", /resemblance[\s\S]{0,120}shared mechanism/i.test(s));
-  chk("it labels the cymatics relationship a PARALLEL INQUIRY", /PARALLEL INQUIRY/.test(s));
-  chk("it forbids presenting a UT reading as measurement",
-      /Do not present a UT reading/.test(s));
+  chk("sacred geometry is presented as a living practice, not a correction",
+      /living practice/i.test(s));
+  chk("the geometry-cymatics link is a shared inquiry, not a disavowal",
+      /parallel inquiry/i.test(s));
+  chk("the room no longer carries an \"IMPORTANT LIMITS\" disclaimer block",
+      !/IMPORTANT LIMITS/.test(s));
+  chk("the room no longer tells the reader to rank statements by evidence",
+      !/Do not present a UT reading/.test(s) && !/resemblance[\s\S]{0,120}shared mechanism/i.test(s));
 }
 
 console.log("\n== E. Geometry sources are real and scoped ==");
@@ -328,12 +337,17 @@ console.log("\n== L. the grounding carries the room's facts and its references' 
 {
   const prompt = topics.researchPromptBlock(geo);
   chk("the room prompt block names the permitted external references",
-      /ONLY external references supplied/.test(prompt));
+      /The external references supplied with this context are/.test(prompt));
   for (const src of geo.sources) {
     chk(`the permitted list includes: ${src.label.slice(0, 34)}`, prompt.includes(src.label));
   }
   chk("the room prompt block forbids attributing anything else",
-      /Do not attribute any other author, title, work or page number/.test(prompt));
+      /Attribute no other author, title, work or page number/.test(prompt));
+  /* The owner's direction, guarded so it cannot silently regress. */
+  chk("the room prompt block tells the Oracle not to debunk or qualify the work",
+      /Do not debunk it, do not qualify it/.test(prompt));
+  chk("the room prompt block tells the Oracle not to sort the material by evidence",
+      /sort the material into scientific and artistic piles/.test(prompt));
 
   const anchor = topics.resolveResearchTopic("research-v1:geometry/connection/artwork-tetra");
   const anchorPrompt = topics.researchPromptBlock(anchor);
@@ -344,8 +358,8 @@ console.log("\n== L. the grounding carries the room's facts and its references' 
       /WHAT THE GEOMETRY ROOM HOLDS/.test(anchorPrompt)
       && anchorPrompt.includes(geo.summary));
   chk("the room's mathematical result travels with the anchor", /EXACTLY FIVE/.test(anchorPrompt));
-  chk("the room's resemblance limit travels with the anchor",
-      /resemblance[\s\S]{0,120}shared mechanism/i.test(anchorPrompt));
+  chk("the room's substantive account of the forms travels with the anchor",
+      /five convex regular polyhedra|EXACTLY FIVE/.test(anchorPrompt));
 
   /* Each reference arrives with the catalogue's own statement of what it supports. */
   for (const src of geo.sources) {
@@ -354,13 +368,17 @@ console.log("\n== L. the grounding carries the room's facts and its references' 
     chk(`the anchor carries that reference's SUPPORTS description: ${src.label.slice(0, 26)}`,
         anchorPrompt.includes(src.supports));
   }
-  chk("the anchor states that supports-descriptions are scope, not contents",
-      /SCOPE, NOT CONTENTS/.test(anchorPrompt)
-      && /has not read these works/i.test(anchorPrompt));
+  /* RE-SCOPED: the old guard required the "scope, not contents" disclaimer. The
+     references are still grounded as works the archive holds - asserted positively -
+     and the new instruction not to fence them off is asserted alongside it. */
+  chk("the anchor grounds the references as works this archive holds",
+      /works this archive holds and reads/.test(anchorPrompt));
+  chk("the anchor does not append a disclaimer to the archive's own naming",
+      !/no evidence|not supported by the experimental literature/i.test(anchorPrompt));
   chk("the anchor forbids attributing anything not listed",
       /Attribute no other author, title, work or page number/.test(anchorPrompt));
-  chk("the anchor keeps the four registers apart in words",
-      /mathematical property is established[\s\S]{0,200}keep the four apart/i.test(anchorPrompt));
+  chk("the anchor tells the Oracle to engage the work rather than correct it",
+      /Engage deeply with the selected work/.test(anchorPrompt));
   chk("the anchor still carries its own basis, not only the room's",
       /How strongly it is supported/.test(anchorPrompt));
 }

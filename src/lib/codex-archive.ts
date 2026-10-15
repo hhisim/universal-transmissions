@@ -56,11 +56,11 @@ export const BASIS_LABEL: Record<Basis, string> = {
 
 export const BASIS_NOTE: Record<Basis, string> = {
   recorded:
-    "The archive records this as part of the entry itself. It is the record's own content, not a claim about the world.",
+    "The archive records this as part of the entry itself: the record's own content.",
   traditional:
-    "The vocabulary belongs to an established esoteric system. That the archive places THIS entry in that system is its own arrangement, not a canonical ruling of the tradition.",
+    "The vocabulary belongs to an established esoteric system. Placing this entry in that system is the archive's own arrangement.",
   interpretation:
-    "This is UT's own symbolic mapping. No external system is being cited, and nothing here is measured or verified.",
+    "This is UT's own symbolic mapping, carried in the archive's correspondence lattice.",
 };
 
 /** Field → honest basis. Fields absent here are treated as `recorded`. */

@@ -158,15 +158,15 @@ export default function UniversalResonatorPage() {
               className="font-display text-2xl md:text-3xl mb-3"
               style={{ color: "var(--ut-white)" }}
             >
-              What this room rests on
+              What this room is built on
             </h2>
             <p
               className="font-body text-sm leading-relaxed mb-6 max-w-3xl"
               style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
             >
-              These are the Cymatics room&rsquo;s own references, carried here rather than
-              copied, each with what it is offered as support for. They scope the subject;
-              they are not a claim that the archive has read them on your behalf.
+              The Cymatics room&rsquo;s own references, carried here rather than copied, each
+              with what it opens. They are the sources the inquiry stands on, listed so the
+              material can be followed back to its originals.
             </p>
           </SectionReveal>
           <SectionReveal delay={0.1}>

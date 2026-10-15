@@ -131,8 +131,8 @@ function artworkEvidence(href: string, budget: number): RecordEvidence | null {
     art.medium ? `Medium as recorded: ${art.medium}` : "",
   ].filter(Boolean);
   const note =
-    "This is the artist's or the archive's own statement about the work, and it is the record's " +
-    "account of what the work is doing - not evidence about the world it depicts.";
+    "This is the artist's or the archive's own account of the work, and it is carried here as " +
+    "what the record says about itself - the statement the piece is made from.";
   const room = budget - head.join("\n").length - note.length - 10;
   if (room < MIN_EVIDENCE_CHARS) return null;
   const desc = bounded(String(art.description ?? ""), room);

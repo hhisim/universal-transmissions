@@ -735,7 +735,7 @@ export default function ResearchSymbolismPage() {
           topicTitle="Symbolism"
           eyebrow="[ Connections in the Archive ]"
           heading="Where Symbolism Already Runs"
-          intro="Symbolism is not a topic that lives on one page either. It runs through the artwork records, the Journal, the Codex's own MAJOR_ARCANA lattice and the archive's correspondence engine. Each link below states why it belongs and which register its claim occupies — established knowledge about how symbols work, a historical account of a symbolic tradition, a tradition-specific assignment, or UT's own reading. A catalogue of symbols records what symbols have been taken to mean; it is not evidence that a reading is correct, and the entries say so. Open a destination to read it, or take a single connection into the Oracle as its own context."
+          intro="Symbolism is not a topic that lives on one page either. It runs through the artwork records, the Journal, the Codex's own MAJOR_ARCANA lattice and the archive's correspondence engine. Each link below says how it is made — a record naming the relationship, the archive's own reading, or a shared subject held as context. Open a destination to read it, or take one connection into the Oracle as its own context."
           accent="var(--ut-purple)"
           tint="rgba(139, 92, 246, 0.02)"
           border="rgba(139, 92, 246, 0.08)"

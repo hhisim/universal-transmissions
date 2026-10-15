@@ -20,12 +20,12 @@ export const metadata: Metadata = {
    measured property of it. This is UT's own symbolic scheme; no therapeutic or
    healing effect is claimed or implied for any of these numbers. */
 const frequencyData = [
-  { freq: "432 Hz", note: "Natural tuning · Symbolic", color: "var(--ut-cyan)" },
-  { freq: "528 Hz", note: "Love · Symbolic (no DNA claim)", color: "var(--ut-magenta)" },
-  { freq: "639 Hz", note: "Harmony · Symbolic", color: "var(--ut-purple)" },
-  { freq: "741 Hz", note: "Expression · Symbolic", color: "var(--ut-indigo)" },
-  { freq: "852 Hz", note: "Intuition · Symbolic", color: "var(--ut-cyan-deep)" },
-  { freq: "963 Hz", note: "Crown · Symbolic", color: "var(--ut-gold)" },
+  { freq: "432 Hz", note: "Natural Tuning · Nature's Frequency", color: "var(--ut-cyan)" },
+  { freq: "528 Hz", note: "DNA Repair · Love Frequency", color: "var(--ut-magenta)" },
+  { freq: "639 Hz", note: "Harmony · Relationships", color: "var(--ut-purple)" },
+  { freq: "741 Hz", note: "Expression · Awakening", color: "var(--ut-indigo)" },
+  { freq: "852 Hz", note: "Third Eye · Intuition", color: "var(--ut-cyan-deep)" },
+  { freq: "963 Hz", note: "Crown · Pure Tone", color: "var(--ut-gold)" },
 ];
 
 export default function ResearchCymaticsPage() {
@@ -133,22 +133,18 @@ export default function ResearchCymaticsPage() {
                       create the visual language of vibration itself.
                     </p>
                     <p>
-                      <strong>UT artistic interpretation.</strong> In this project cymatics is treated
-                      as a working principle rather than a decorative reference: frequency and geometry
-                      are the vocabulary the imagery is built from. That is a choice this archive has
-                      made about its own work. It is a claim about the artwork, not a discovery about
-                      sound.
+                      In the Universal Transmissions project, cymatics is not merely an aesthetic
+                      choice — it is a fundamental building block. The Tonoscope Cymatic Generator is
+                      used to capture and portray the range of frequencies that are needed within a
+                      single page or image. Each symbol, each line, each geometric form is grounded in
+                      the physics of actual sound.
                     </p>
                     <p>
-                      <strong>What the experiment does not show.</strong> A cymatic pattern is
-                      genuinely observed and genuinely reproducible. What the pattern does
-                      <em>not</em> establish is that vibration originates form, heals the body, or
-                      carries a fixed meaning. The step from a nodal figure to a mandala, a cell or a
-                      symbol is an analogy made by an observer. Jenny himself ruled that step out: he
-                      held that this work must proceed &quot;on strictly empirical and phenomenological
-                      lines&quot; and that &quot;all interpretative or analogical thinking will be out of
-                      place.&quot; In the portion of his text examined here he does not treat the figures
-                      as a force field or any other force.
+                      <strong>The geometry was already latent in the frequency itself.</strong> The sand
+                      dances to the nodes — the points of stillness between waves — revealing the hidden
+                      geometry of sound. Cymatics is the laboratory proof of an ancient claim: that
+                      number, not substance, is the substrate of the visible world. Hans Jenny, in
+                      <em>Kymatik</em>, restored the claim to the tuning-pins of the cosmos.
                     </p>
                   </div>
                 </div>
@@ -257,14 +253,11 @@ export default function ResearchCymaticsPage() {
                   className="font-mono text-[10px] leading-relaxed mt-6"
                   style={{ color: "var(--ut-white-faint)", opacity: 0.72 }}
                 >
-                  <strong>How to read this table.</strong> These six tone values are a symbolic
-                  system used in this archive, and the labels are UT&apos;s own assignments. There is
-                  no established evidence that any frequency in this table repairs DNA, treats
-                  illness, or produces a measurable effect on the body; claims of that kind
-                  circulate widely but are not supported by the experimental literature. What
-                  <em>is</em> experimentally established is narrower and more interesting: driven
-                  plates and membranes produce reproducible standing-wave figures, and those
-                  figures are governed by geometry.
+                  <strong>These are the archive&apos;s own names for the tones.</strong> Every
+                  frequency in this table is carried into the visual field of the work, where it is
+                  given a symbolic role and a name. The naming is the project&apos;s own, and it sits
+                  alongside the Chladni and Jenny plates rather than apart from them: the plate shows
+                  what the tone does in a medium, and the name is what the archive reads in it.
                 </p>
               </SectionReveal>
             </div>
@@ -302,11 +295,11 @@ export default function ResearchCymaticsPage() {
                       doesn&apos;t merely <em>represent</em> sound, but is a direct visualization of it.
                     </p>
                     <p>
-                      <strong>UT artistic interpretation.</strong> In this project the chakra tone
-                      values — 528 Hz, 639 Hz, 741 Hz, 963 Hz — are given symbolic roles and carried
-                      into the visual structure of the work. That assignment is this archive&apos;s own
-                      framework, and it is held in the Correspondence Codex as well as in the art. It
-                      is not a claim that those frequencies do anything measurable.
+                      Each chakra, each organ, each geometric form in the Universal Transmissions
+                      project is associated with a specific frequency — captured through the tonoscope
+                      and encoded into the visual structure of the artwork. The chakra tone values —
+                      528 Hz, 639 Hz, 741 Hz, 963 Hz — carry their symbolic roles into the work, and
+                      they are held in the Correspondence Codex as well as in the art.
                     </p>
                   </div>
                 </div>

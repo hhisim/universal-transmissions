@@ -99,7 +99,7 @@ const chakraResonances = [
 
 export default function ResearchGeometryPage() {
   // Resolved server-side from the registry, so the page and the Oracle grounding
-  // read the SAME record: the registers below and the references cited with them
+  // read the SAME record: the streams below and the references cited with them
   // cannot drift apart from what a selected Geometry anchor is given.
   const topic = resolveResearchTopic(researchTopicId("geometry"));
 
@@ -904,7 +904,7 @@ export default function ResearchGeometryPage() {
           ]}
         />
 
-        {/* ── THE FOUR REGISTERS — kept apart on purpose ── */}
+        {/* ── THE FOUR STREAMS — each named where it enters ── */}
         <section
           className="py-20"
           style={{ borderTop: "1px solid rgba(212, 168, 71, 0.06)" }}
@@ -917,22 +917,22 @@ export default function ResearchGeometryPage() {
                   className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
                   style={{ color: "var(--ut-gold)", opacity: 0.5 }}
                 >
-                  [ The Registers ]
+                  [ Four Streams ]
                 </p>
                 <h2
                   className="font-display text-2xl md:text-3xl glow-gold mb-4"
                   style={{ color: "var(--ut-gold)" }}
                 >
-                  <ZalgoText text="Four Kinds of Statement, Kept Apart" intensity="subtle" />
+                  <ZalgoText text="Four Streams Into One Work" intensity="subtle" />
                 </h2>
                 <p
                   className="font-body text-sm leading-relaxed mb-8"
                   style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
                 >
-                  Geometry is the subject where a proved property, a documented source, a
-                  traditional meaning and an artist&apos;s reading are most often spoken in one
-                  voice. This room keeps them in four registers, and says which one a statement
-                  belongs to. A claim is only ever as strong as its register allows.
+                  Geometry is where a proved property, a classical text, a traditional meaning and
+                  an artist&apos;s reading meet most often in one voice. This room follows all four
+                  and names which one a statement comes from — not to rank them, but so each can be
+                  traced back to its own root, and taken up from there.
                 </p>
               </SectionReveal>
 
@@ -942,28 +942,28 @@ export default function ResearchGeometryPage() {
                     {
                       key: "mathematical",
                       label: "Mathematical",
-                      standing: "True of the form itself. Established by proof, not by citation.",
+                      standing: "True of the form itself, established by proof — the five regular solids, the golden ratio, the constructible polygons.",
                       example:
                         "There are exactly five convex regular polyhedra. The golden ratio is the positive root of x² = x + 1, and is irrational.",
                     },
                     {
                       key: "historical",
-                      label: "Historical",
-                      standing: "Recorded by a named document that can be pointed at.",
+                      label: "The classical texts",
+                      standing: "Recorded by a named document that can be pointed at, and read in its own right.",
                       example:
                         "Euclid's Book XIII constructs the five regular solids; the Timaeus associates four of them with four bodies.",
                     },
                     {
                       key: "traditional",
                       label: "Traditional symbolism",
-                      standing: "A meaning a tradition assigns to a form. An assignment, not a property.",
+                      standing: "Meanings traditions have carried for centuries — living symbolism, worked with rather than catalogued.",
                       example:
                         "The hexagram read as the union of opposites; interlocking tetrahedra read as a Merkaba.",
                     },
                     {
                       key: "ut",
-                      label: "UT interpretation",
-                      standing: "What this archive reads into the material. Not a claim about the world.",
+                      label: "UT's own reading",
+                      standing: "What this archive reads into the material, and what its imagery is built from.",
                       example:
                         "UT builds its imagery on proportion as intentional, and assigns symbolic correspondences in the Codex GEOMETRY lattice.",
                     },
@@ -1086,7 +1086,7 @@ export default function ResearchGeometryPage() {
           topicTitle="Geometry"
           eyebrow="[ Connections in the Archive ]"
           heading="Where Geometry Already Runs"
-          intro="Geometry is not a topic that lives on one page either. It runs through the artwork records, the Journal, the Codex's own GEOMETRY lattice and the parallel cymatics room. Each link below states why it belongs and on which basis — and the one that rests on resemblance says so, rather than implying a shared mechanism. Open a destination to read it, or take a single connection into the Oracle as its own context."
+          intro="Geometry is not a topic that lives on one page either. It runs through the artwork records, the Journal, the Codex's own GEOMETRY lattice and the correspondence engine. Each link below says how it is made — a record naming the relationship, the archive's own reading, or a shared subject held as context. Open a destination to read it, or take one connection into the Oracle as its own context."
           accent="var(--ut-gold)"
           tint="rgba(212, 168, 71, 0.02)"
           border="rgba(212, 168, 71, 0.08)"

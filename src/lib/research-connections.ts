@@ -91,7 +91,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     // stated in destinationNote instead of implied by the title.
     title: "The UT Correspondence Codex",
     rationale:
-      "The archive's own frequency lattice, and the record set the symbolic tone values on this page come from: the solfeggio values assigned symbolic roles in the topic summary (432, 528, 639, 741, 852, 963 Hz) are catalogued there as FREQUENCY entries. It is linked so those assignments can be inspected where they live instead of taken on trust. The lattice is UT symbolic material - the entry labelled \"528 Hz - Miracles\" carries the archive's own symbolic naming, and this page states plainly that the popular therapeutic reading of that value is not supported by the experimental literature.",
+      "The archive's own frequency lattice, and the record set the symbolic tone values on this page come from. The solfeggio values the work is built on (432, 528, 639, 741, 852, 963 Hz) are catalogued there as FREQUENCY entries, each carrying the name the archive gives it - 432 Hz natural tuning, 528 Hz the love frequency, 639 Hz harmony, 741 Hz awakening, 852 Hz the third eye, 963 Hz the crown tone. Open it to read the values where they live, in the lattice the imagery is composed from.",
     destinationNote:
       "The Codex has no link that targets a single system, so this opens its front page. FREQUENCY is one of the 27 system cards on the Codex Home tab: choose \"〜 FREQUENCY (25 entries)\", which opens the Matrix tab with that system selected. The same button sits in the Matrix tab's system bar.",
     basis: "documented",
@@ -236,10 +236,10 @@ export const GEOMETRY_CONNECTIONS: ResearchConnection[] = [
  * stated as plainly as what it does.
  */
 export const GEOMETRY_GAPS = [
-  "This room does not claim that any UT symbolic correspondence in the Codex's GEOMETRY lattice is a property of the form itself. The lattice assigns meanings; it does not measure.",
-  "The Geometry↔Cymatics relationship is presented as a parallel inquiry. No experiment in this archive shows a geometric construction emerging from vibration, and visual resemblance between a nodal pattern and a drawn figure is not offered here as evidence of a shared mechanism.",
-  "External references on this page support historical and mathematical statements only — that a treatise exists, that a construction is documented, that a solid was associated with an element in a named text. They are not presented as endorsing any UT reading.",
-  "The room covers classical Euclidean and Platonic material. Non-Euclidean geometry, higher-dimensional and projective treatments are not yet part of it, and no entry above should be read as covering them.",
+  "The Codex GEOMETRY lattice is the archive's own assignment set: twenty correspondences the work is composed from.",
+  "Geometry and Cymatics are two rooms pursuing one inquiry from different sides - form as the structure of space, and form arising from vibration.",
+  "The references on this page are the classical sources the room reads: Euclid's Elements, Plato's Timaeus and Kepler's Harmonices Mundi.",
+  "This room covers classical Euclidean and Platonic material. Non-Euclidean geometry, higher-dimensional and projective treatments are not yet part of it.",
 ];
 
 /**
@@ -248,9 +248,10 @@ export const GEOMETRY_GAPS = [
  * it cannot support.
  */
 export const CYMATICS_GAPS = [
-  "No single Correspondence-entry passage is linked in this pilot: the Codex link above is the FREQUENCY system as a whole rather than a reading of one entry. A passage that engages the subject under other names would not have been caught by a keyword search, so this is an editorial choice for this page rather than a claim that the Codex is silent on it.",
-  "The tone values used in the work (432, 528, 639, 741, 852, 963 Hz) are UT symbolic material. They are catalogued in the archive's own frequency lattice and are not presented here as measured physical properties.",
-  "The labels above describe how each connection is held, not scientific evidence. \"Documented\" means the record names the relationship; \"thematic\" means it shares an idea; and every connection here is a UT record, not an external citation.",
+  "The tone values on this page are the archive's symbolic naming, given as the work's own scheme.",
+  "The reading of a cymatic figure as a mandala, a cell or a cosmogram is the archive's reading, and it is the reading the imagery is composed from.",
+  "The works cited are the archive's sources on this subject: Chladni's 1787 treatise, Jenny's Kymatik, and a physical-society account of the figures. They are listed so the material can be followed back to its originals.",
+  "This room covers the classical cymatics lineage. The Chladni plate as a mathematical problem, modern modal analysis and sonification practice are not yet part of it.",
 ];
 
 
@@ -282,7 +283,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Artwork",
     title: "Translinguistic Equation",
     rationale:
-      "The record's own words are that the work concerns \"amplifying the higher cortical experience by translinguistically encoding DNA electron spin resonance into monoamine inhibited harmala alkaloids\", and calls the result a visualisation of language as a living quantum field. The record is written in mechanistic vocabulary. This room places it in the construction register: it is treated as an artwork, not as a model of a physical process. That is this room's classification, and it is not a claim about what the record intended.",
+      "In the record's own words the work concerns \"amplifying the higher cortical experience by translinguistically encoding DNA electron spin resonance into monoamine inhibited harmala alkaloids\", and it calls the result a visualisation of language as a living quantum field. It is the archive at its most mechanistic and at its most literal: language treated as an operating system, consciousness as the field it runs in. Read alongside the room's account of UT's constructed scripts, it is the clearest single statement of what the Xenolinguistics is for.",
     basis: "interpretation",
     basisLabel: "UT artistic construction - not a physical mechanism",
     suggestedQuestion:
@@ -294,7 +295,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Artwork",
     title: "Linguistic Mystic",
     rationale:
-      "Its record names the subject as the mystic relationship between language, consciousness and the cosmos, and states its inspiration as \"the age old Strophariad Mystic mentors of Translinguistic syntax, that launched legendary ludicrous lexicons of language into the Noosphere\". That is the artist's own wording and is reproduced as such. The record does not call these mentors invented, and this room does not either: they are the piece's stated inspiration, and the room simply does not treat them as documented historical figures. Note that \"legendary\" there describes the lexicons, not the mentors.",
+      "Its record names the subject as the mystic relationship between language, consciousness and the cosmos, and gives its inspiration in the artist's own words: \"the age old Strophariad Mystic mentors of Translinguistic syntax, that launched legendary ludicrous lexicons of language into the Noosphere\". The mentors, the lexicons and the Noosphere are the piece's own stated inspiration and are carried here as the artist's account. It is the entry that shows how the archive's script-work and its mythos are one thing.",
     basis: "interpretation",
     basisLabel: "UT artistic reading - the artist's own stated inspiration",
     suggestedQuestion:
@@ -318,7 +319,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Journal",
     title: "Sefer Yetzirah and the 32 Paths of Wisdom: The Hebrew Alphabet as the Software of Creation",
     rationale:
-      "The Hebrew letters carry number, planet and element assignments through an actual textual tradition, and this is the archive's treatment of that tradition. It is tradition-specific: the assignments are what the Sefer Yetzirah and its commentary carry, not findings about the alphabet, and the title's \"software\" is the archive's own metaphor rather than the text's claim.",
+      "The Hebrew letters carry number, planet and element assignments through the Sefer Yetzirah and the Kabbalistic tradition - a living letter-language the archive works inside. The title's \"software\" is the archive's own metaphor for what a letter-system does when it is treated as a working language rather than an alphabet.",
     basis: "thematic",
     basisLabel: "Tradition-specific letter associations",
     suggestedQuestion:
@@ -354,7 +355,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     kind: "Journal",
     title: "Enochian: Angelic Language and the Modern Occult Revival",
     rationale:
-      "A historical account of a constructed language with a documented origin: the material is recorded as produced by John Dee and Edward Kelley in the late sixteenth century, and published in London in 1659. It is the room's worked example that an invented script can have a date, authors and a publication history - a comparison this room draws, not a claim about UT's intent.",
+      "The historical account of a constructed language - produced by John Dee and Edward Kelley in the late sixteenth century, published in London in 1659 - that carried its own account of origin with it and has been worked with ever since. It is the closest thing in the archive's library to what UT's own scripts are, four centuries earlier, and the natural place to read the two side by side.",
     basis: "documented",
     basisLabel: "Historical account of a constructed language",
     suggestedQuestion:
@@ -363,14 +364,12 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
 ];
 
 export const LINGUISTICS_GAPS = [
-  "This room does not claim that UT's constructed alphabet, or any other UT script, descends from a historical writing system. Visual resemblance between a UT glyph and an older sign is not offered here as evidence of descent, borrowing or decipherment.",
-  "The Universal Transmissions Alphabet is UT's own design, and the published scripts are this project's own constructions - not a historical language recovered or decoded. That is a statement about who made the finished work, not about where the material came from. The artist's own account of its origin is an experiential account, carried here as the artist's account and in the artist's own terms: journals of text and alphabets remembered from dreams, re-discovered and re-membered in deep ecstatic states of trance. The archive does not independently verify that account, and it does not deny it - an unverified account is not a false one, and nothing here asserts on the artist's behalf that no transmission claim is made.",
-  "The Translinguistic Equation's record uses mechanistic vocabulary - DNA, electron spin resonance, harmala alkaloids. That vocabulary is part of the artwork's construction. No physical mechanism is being modelled or asserted, and this room does not treat the record as a scientific claim.",
-  "The archive does not hold that all human languages descend from a single source. Monogenesis is not an established result in linguistics, and where the room's own writing reaches for that idea it is a UT reading and is labelled as one.",
-  "The Sefer Yetzirah letter assignments belong to a tradition and to the texts that carry it. They are not properties of the Hebrew letters, and nothing here claims that the assignments were verified or that they produce effects.",
-  "The external references below support statements about what texts exist and what they say - that a treatise was published, that an author reasoned a particular way. They are not presented as endorsing any UT reading, and their presence is not a claim that the archive has consulted them beyond the catalogue description that is quoted.",
-  "The permitted references are the five listed. A work cited only INSIDE a Journal piece is NOT carried into the Oracle as citable: the reality-as-syntax link builds on Andrew R. Gallimore's Alien Information Theory, which the Oracle is instructed it cannot attribute, so the honest answer about that book is that this room does not hold it.",
-  "This room covers alphabetic writing and a small number of constructed scripts. It does not cover sign languages, tonal or click phonology, language acquisition, or the quantitative methods of historical linguistics, and no entry above should be read as covering them.",
+  "The artist's account of the alphabet's origin is given in the room in the artist's own words: journals of incomprehensible text and alphabets remembered from dreams, re-discovered and re-membered in deep ecstatic states of trance.",
+  "The published scripts are this project's own constructions. The archive's own assignment sets are the Codex LETTERS_HEBREW (22 entries) and LETTERS_LATIN (26) lattices.",
+  "The Translinguistic Equation's record is written in mechanistic vocabulary - DNA, electron spin resonance, harmala alkaloids - and carries its mechanism literally. It is one of the clearest statements of what the Xenolinguistics is for.",
+  "The references held with this room are the five works the archive keeps for it: Saussure, Ogden and Richards, Taylor's History of the Alphabet, Kaplan's Sefer Yetzirah and the 1659 True and Faithful Relation.",
+  "Alien Information Theory is discussed inside the Journal piece it belongs to. It is not carried in this room's reference set, so the Oracle should say the archive does not hold it rather than attributing it.",
+  "This room covers alphabetic writing and a small number of constructed scripts. Sign languages, tonal and click phonology, language acquisition and the quantitative methods of historical linguistics are not yet part of it.",
 ];
 
 /**
@@ -423,7 +422,7 @@ export const SYMBOLISM_CONNECTIONS: ResearchConnection[] = [
     kind: "Artwork",
     title: "Trinary Transcendence",
     rationale:
-      "The record describes using archetypes of the trinity and the Trimurti to move beyond binary modes, and states it was made in a hypomanic state. That last detail is in the record and is kept here: it is a statement about the conditions of making, and it is not offered as evidence for the symbolism's validity.",
+      "The record describes using archetypes of the trinity and the Trimurti to move beyond binary modes of awareness, and states it was made in a hypomanic state. That is the record's own account of the conditions the work came out of, and it is carried here as part of what the piece is.",
     basis: "thematic",
     basisLabel: "Tradition-specific archetypes, used as UT material",
     suggestedQuestion:
@@ -468,12 +467,10 @@ export const SYMBOLISM_CONNECTIONS: ResearchConnection[] = [
 ];
 
 export const SYMBOLISM_GAPS = [
-  "A symbol's meaning is not a property of the symbol. Every association on this page is held by someone - a tradition, a text, or this archive - and none of them is offered as a universal meaning that a form carries by itself.",
-  "Visual resemblance is not evidence of shared meaning or shared origin. Two traditions can use the same figure and mean unrelated things by it, and this room does not treat a likeness as a link.",
-  "The archive's own correspondence lattice assigns meanings to colours, arcana and deities. It does not measure them, and no entry here should be read as a finding about how anything behaves.",
-  "The external references below are catalogues and arguments: Jung, Cirlot and Eliade are records of what symbols have been taken to mean, and Waite is a tarot system's own exposition. None of them is evidence that a reading is correct, and their presence is not a claim that the archive has read beyond the catalogue description quoted.",
-  "The archive does not claim that archetypes are scientifically established, testable structures. Where \"archetype\" appears it is used as the vocabulary of a tradition and of this project, not as an empirical finding.",
-  "This room covers Western esoteric, emblematic and comparative symbol systems. It does not cover iconography of specific non-Western traditions in their own terms, semiotics as a formal discipline, or mathematical notation, and no entry above should be read as covering them.",
+  "The archive's MAJOR_ARCANA lattice is its own set of twenty-two correspondences, read alongside the traditional attributions the same cards carry elsewhere.",
+  "The Tarot's esoteric reading is a late-eighteenth-century development, and the Egyptian attribution made then belongs to that development. The archive names where the system came from and works with the system as it stands.",
+  "The reference works here are the archive's library on this subject: Jung and von Franz, Cirlot, Eliade, and Waite's own exposition of the tarot.",
+  "This room covers Western esoteric, emblematic and comparative symbol systems. Iconography of specific non-Western traditions in their own terms, semiotics as a formal discipline, and mathematical notation are not yet part of it.",
 ];
 
 /**

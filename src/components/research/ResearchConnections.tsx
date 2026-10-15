@@ -85,14 +85,14 @@ export default function ResearchConnections({
             {intro}
           </p>
 
-          {/* Basis legend: makes the epistemic scale readable before the list, and
-              is operable by keyboard rather than revealed on hover. */}
+          {/* Basis legend: shows how each link is made, before the list, and is
+              operable by keyboard rather than revealed on hover. */}
           <div className="ut-card p-5 mb-8" style={{ background: tint }}>
             <p
               className="font-mono text-[9px] tracking-[0.25em] uppercase mb-3"
               style={{ color: "var(--ut-white-faint)" }}
             >
-              How these links are labelled
+              How these links are made
             </p>
             <ul className="space-y-2">
               {(Object.keys(BASIS_STYLE) as ResearchConnection["basis"][]).map((b) => (
@@ -219,7 +219,7 @@ export default function ResearchConnections({
               className="font-mono text-[9px] tracking-[0.25em] uppercase mb-3"
               style={{ color: "var(--ut-white-faint)" }}
             >
-              What this section does not claim
+              Notes on the material
             </p>
             <ul className="space-y-2">
               {gaps.map((gap) => (
@@ -240,8 +240,8 @@ export default function ResearchConnections({
             data-connections-room={topicSlug}
           >
             Every connection above belongs to the registered {topicTitle} room and is resolved
-            server-side from the same registry this page renders. Taking one into the Oracle
-            selects it as its own context — the record, not a paraphrase of it.
+            server-side from the same registry this page renders. Take one into the Oracle and it
+            opens as its own context — the record itself, not a paraphrase of it.
           </p>
         </div>
       </div>

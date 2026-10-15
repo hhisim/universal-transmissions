@@ -15,9 +15,9 @@
  * publish.
  *
  * Transitions are CURATED READINGS. They are marked as such wherever they appear, because
- * the order of a path is an editorial act: it can suggest a descent, a lineage or a
- * mechanism that the records themselves do not claim. Where a transition does imply a
- * relation between two stops, it is written as this path's reading, not as a finding.
+ * the order of a path is an editorial act: it chooses a descent, a lineage or a resonance
+ * the archive makes, and that reading belongs to the path. Each stop's own record carries
+ * its own account; the transition is how this path walks between them.
  */
 
 import {
@@ -60,12 +60,12 @@ export const GUIDED_PATHS: GuidedPath[] = [
     title: "Sound into Form",
     theme: "Vibration, and the moment it becomes something you can look at.",
     summary:
-      "Six stops between a vibrating surface and a measured figure. Every stop is an existing record: two rooms, two Journal pieces, an artwork and the Resonator. The path does not claim that sound produces geometry in the sense the artwork's name suggests - it follows how the archive has examined that idea, in the order the archive itself separates the evidence.",
+      "Six stops between a vibrating surface and a measured figure. Every stop is an existing record: two rooms, two Journal pieces, an artwork and the Resonator. The path follows how the archive has taken up the old claim that sound carries form - from the plate that shows it, through the diagrams that argue it, to the instrument built to make it visible.",
     stops: [
       {
         topic: "cymatics",
         encounter:
-          "The inquiry opens in the room that asks the first question honestly: what a vibrating surface actually shows, and where interpretation begins.",
+          "The inquiry opens in the room where sound becomes visible: what a vibrating surface shows, and the figures it leaves behind.",
         transition:
           "Before the pattern is read, look at what the archive says produced it. The next stop is the archive's own account of vibration becoming legible.",
       },
@@ -125,13 +125,13 @@ export const GUIDED_PATHS: GuidedPath[] = [
         encounter:
           "The archive's own short note on its constructed alphabet - a process entry, not a treatise.",
         transition:
-          "The alphabet is a design. The next stop is an artwork that states a mechanism in its own vocabulary, which is where the register has to be held most carefully.",
+          "The alphabet is a design. The next stop is an artwork that states its mechanism in its own vocabulary - the archive at its most literal about what language is for.",
       },
       {
         topic: "linguistics",
         anchor: "artwork-translinguistic-equation",
         encounter:
-          "An artwork written in mechanistic terms - spin resonance, alkaloids. It is placed in the construction register, and that placement is the room's, not a claim about the artist's intent.",
+          "An artwork written in mechanistic terms - spin resonance, alkaloids. It is the clearest statement in the archive of language treated as an operating system rather than a description of one.",
         transition:
           "From a mechanism stated as text to a figure stated as image, and to the artist's own account of where the piece came from.",
       },
@@ -169,7 +169,7 @@ export const GUIDED_PATHS: GuidedPath[] = [
       {
         topic: "symbolism",
         encounter:
-          "The room opens on symbols that carry relations rather than isolated meanings, and on the rule that resemblance is not evidence.",
+          "The room opens on symbols that carry relations rather than isolated meanings, and on a figure whose sense changes with the system it is read in.",
         transition:
           "The first worked example is a set with an internal grammar and a documented history - including an origin story that was made rather than found.",
       },
