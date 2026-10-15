@@ -27,6 +27,17 @@ const call = async (mod, body) => {
 };
 const H = (t) => { const o = []; for (let i = 0; i < t.length; i++) o.push({ role: i % 2 ? "assistant" : "user", content: t[i] }); return o; };
 const MARK = "Current subject of this conversation:";
+/* A correspondence lookup cannot establish absence from the whole archive. A miss in the
+   correspondence registry must never be reported as the subject's absence from UT's books,
+   artworks or Journal. */
+const ARCHIVE_ABSENCE = [
+  /no archive record carries/i,
+  /the archive (?:holds|carries|contains) no/i,
+  /not (?:held|carried|present|recorded) in the archive/i,
+  /(?:does not|doesn't) exist in the archive/i,
+  /absent from the archive/i,
+];
+const NON_REGISTRY_TITLE = "The Star and the Uncarved Block"; // real UT Journal entry, not a correspondence record
 const ZORB = H(["Tell me about Zorblax.", "I have no record of Zorblax."]);
 const ORACLE = "./src/app/api/oracle/route.ts";
 const CODEX = "./src/app/api/codex-oracle/route.ts";
@@ -105,6 +116,33 @@ const CODEX = "./src/app/api/codex-oracle/route.ts";
     ok(a.msg.includes(MARK) && b.msg.includes(MARK), "7 both routes transmit a subject section");
     ok(/"Zorblax"/.test(a.msg) && /"Zorblax"/.test(b.msg), "7 ...naming the same referent");
     ok(!/corr-v1:/.test(a.msg) && !/corr-v1:/.test(b.msg), "7 ...and neither invents a record for it");
+  }
+
+  console.log("  --- 8. a real archive title outside the correspondence registry ---");
+  {
+    /* "The Star and the Uncarved Block" is a real UT Journal entry (src/data/blog-posts.ts) and
+       is NOT in the correspondence registry (src/data/codex-raw.json). This route takes no
+       selection input, so a name is the only way a subject can reach it — and a correspondence
+       miss here must not become an archive-wide absence claim. */
+    const r = await call(CODEX, {
+      message: "What does it mean?",
+      history: H([`Tell me about ${NON_REGISTRY_TITLE}.`, "That one carries no correspondence record."]),
+    });
+    ok(r.http === 200, "8 returns 200");
+    ok(r.msg.includes(MARK), "8 the correspondence miss is still carried as the subject");
+    ok(r.msg.includes(NON_REGISTRY_TITLE), "8 the visitor's real archive title still reaches the model");
+    ok(!/no archive record carries/i.test(r.msg), "8 the archive-wide absence claim is gone");
+    ok(!ARCHIVE_ABSENCE.some((re) => re.test(r.msg)),
+      "8 ...and no other archive-wide absence claim stands in for it");
+    ok(/correspondence registry carries no record/i.test(r.msg),
+      "8 the miss is scoped to the correspondence registry");
+    ok(!/corr-v1:/.test(r.msg), "8 no record identity is invented for it");
+    ok(r.json && r.json.namedRecords === null, "8 namedRecords reports no invented records");
+
+    const { resolveNamedRecords } = require(path.join(ROOT, "src/lib/named-record-resolver.ts"));
+    const named = resolveNamedRecords(`Tell me about ${NON_REGISTRY_TITLE}.`, []);
+    ok(named.resolved.length === 0 && named.subject.kind === "subject" && !named.subject.id,
+      "8 a title outside the registry is the visitor's subject, not a record and not an absence");
   }
 
   console.log("\n  assertions passed: " + pass);
