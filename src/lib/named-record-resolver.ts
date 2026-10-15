@@ -150,6 +150,13 @@ const SYSTEM_WORDS: Record<string, string[]> = {
   ARCHETYPES: ["archetype", "archetypes"],
   I_CHING: ["iching", "i ching", "hexagram", "hexagrams"],
   KABBALAH: ["kabbalah", "sephirah", "sephiroth"],
+  /* The archive's own record kinds. A title can be carried by a Journal piece AND an artwork
+     ("Trivium Method", "Toroidal Tantra"), and the visitor settles it exactly as they settle
+     Copper — by naming the kind. `clarify` filters candidates by `sys`, so the kind has to be
+     a system word here rather than a second mechanism beside this one. Kept tight: only the
+     kind's own names, so ordinary prose does not read as a kind. */
+  JOURNAL: ["journal", "journals"],
+  ARTWORK: ["artwork", "artworks", "gallery"],
 };
 
 /**
@@ -416,10 +423,11 @@ export function resolveNamedRecords(
   const seen = new Set<string>();
   const q = String(question ?? "");
 
-  /* Records are collected WITH the position at which the visitor named them and ordered at
-     the end, so `resolved` is in mention order and its first entry is genuinely the first
-     record named — not whichever pass happened to run first. */
-  const admitted: Array<{ at: number; record: NamedRecord }> = [];
+  /* Every eligible record is collected WITH the position at which the visitor named it. The
+     limit is applied AFTER this list is ordered, because the passes below are not the order of
+     the visitor's words: a title pass that runs first would otherwise consume the whole
+     allowance before an earlier correspondence mention in the same question was ever seen. */
+  const eligible: Array<{ at: number; record: NamedRecord }> = [];
 
   /** Record one candidate set, either as a resolution or as a preserved ambiguity. */
   const admit = (spelling: string, candidates: NamedRecord[], at: number): void => {
@@ -430,7 +438,7 @@ export function resolveNamedRecords(
       ambiguous.push({ name: spelling, matches: candidates });
       return;
     }
-    if (admitted.length < MAX_NAMED_RECORDS) admitted.push({ at, record: candidates[0] });
+    eligible.push({ at, record: candidates[0] });
   };
 
   // ── Words carry their positions: a title that CONTAINS a correspondence word has to be
@@ -453,7 +461,6 @@ export function resolveNamedRecords(
      not the word inside it. That is precedence, and it is positional, not a preference. */
   const titleSpans: Array<[number, number]> = [];
   for (const title of ARCHIVE_TITLES) {
-    if (admitted.length >= MAX_NAMED_RECORDS) break;
     const span = phraseSpan(q, title);
     if (!span) continue;
     titleSpans.push(span);
@@ -495,7 +502,6 @@ export function resolveNamedRecords(
   // ── Multiword correspondence names, matched as WHOLE PHRASES. A single token of a
   //    multiword name is never substituted for it.
   for (const name of MULTIWORD_NAMES) {
-    if (admitted.length >= MAX_NAMED_RECORDS) break;
     if (!phraseInQuestion(q, name)) continue;
     const span = phraseSpan(q, name);
     if (span && insideNamedTitle(span[0], span[1])) continue; // inside a title the visitor named
@@ -503,7 +509,12 @@ export function resolveNamedRecords(
     if (matches && matches.length) admit(name, matches.map(toNamedRecord), span ? span[0] : q.length);
   }
 
-  const resolved: NamedRecord[] = admitted.sort((a, b) => a.at - b.at).map((a) => a.record);
+  /* MENTION ORDER, THEN THE LIMIT. The visitor's own order decides which records survive the
+     allowance — not the order of the passes that found them. */
+  const resolved: NamedRecord[] = eligible
+    .sort((a, b) => a.at - b.at)
+    .slice(0, MAX_NAMED_RECORDS)
+    .map((a) => a.record);
 
   /* Provenance is recorded HERE, before the walk runs: only the word/phrase passes and
      the same-question clarification below can establish that the CURRENT QUESTION named
