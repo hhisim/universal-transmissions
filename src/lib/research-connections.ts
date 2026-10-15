@@ -55,7 +55,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "UT writing on this subject",
     suggestedQuestion:
-      "This piece sets out the interpretive register at length - where does it separate what the plate does from what the archive reads into it?",
+      "The piece reads the figures at length - how does the archive move from the plate to the meaning it draws from it?",
   },
   {
     anchorSlug: "artwork-throat-chakra",
@@ -67,7 +67,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "Named in the artwork's own record",
     suggestedQuestion:
-      "The record names cymatics among its bases - what in the finished work actually carries that, and what is the chakra correspondence doing?",
+      "The record names cymatics among its bases - where do you see that in the finished work, and how does the chakra correspondence live there?",
   },
   {
     anchorSlug: "artwork-recursive-pantheism",
@@ -79,7 +79,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "Named in the artwork's own record",
     suggestedQuestion:
-      "How is a cymatic pattern being used as a structural argument here, rather than as ornament?",
+      "How does the cymatic pattern hold this piece together - what does it structure?",
   },
   {
     anchorSlug: "codex-frequency-lattice",
@@ -97,7 +97,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "Catalogued in the archive's own FREQUENCY lattice",
     suggestedQuestion:
-      "The codex catalogs these frequency values as UT symbolic assignments - which parts of that are measured, and which parts are symbols?",
+      "Walk me through the frequency lattice - what does each tone carry in the archive's own naming?",
   },
   {
     anchorSlug: "artwork-hyperdimensional-harmonics",
@@ -109,7 +109,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     basis: "thematic",
     basisLabel: "Shared idea - resonance as method",
     suggestedQuestion:
-      "Resonance as a compositional method is a shared idea here rather than a citation - what does the connection actually rest on?",
+      "Resonance runs through both the room and this artwork - how does the piece compose with it?",
   },
   {
     anchorSlug: "journal-kybalion-seven-principles",
@@ -121,7 +121,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     basis: "thematic",
     basisLabel: "Lineage context",
     suggestedQuestion:
-      "Vibration as a Hermetic principle is lineage context rather than a scientific source - how should that be held alongside the experiment?",
+      "How does the Hermetic principle of vibration sit alongside the cymatics work - where do the two meet?",
   },
   /* ── The instrument room (batch 17) ─────────────────────────────────────────
      Appended last so the six connections above keep the anchors and the order they
@@ -140,7 +140,7 @@ export const CYMATICS_CONNECTIONS: ResearchConnection[] = [
     destinationNote:
       "The room opens as a reading page. The instrument itself does not load until you launch it, and leaving stops its audio and graphics.",
     suggestedQuestion:
-      "The instrument solves a model rather than measuring a real plate - what exactly is it solving, and where does that model stop being able to tell you about a physical plate?",
+      "Take me inside the Resonator - what is it solving, and what do you see when you watch it move?",
   },
 ];
 
@@ -215,7 +215,7 @@ export const GEOMETRY_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "UT writing on this subject",
     suggestedQuestion:
-      "Russell reasoned in diagrams rather than equations - what can a diagram establish on its own, and where does that practice need a measurement underneath it?",
+      "Russell thought in diagrams - what does his way of reasoning open up for this archive's own work?",
   },
   {
     anchorSlug: "artwork-merkaba",
@@ -275,7 +275,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     basis: "interpretation",
     basisLabel: "UT's own script construction",
     suggestedQuestion:
-      "This alphabet is UT's own construction - what in it is a design decision, and is any part of it claimed to derive from a historical writing system?",
+      "Take me through UT's own alphabet - how was it built, and how does it stand beside the older scripts in this room?",
   },
   {
     anchorSlug: "artwork-translinguistic-equation",
@@ -287,7 +287,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     basis: "interpretation",
     basisLabel: "UT's own construction - language as a working system",
     suggestedQuestion:
-      "The record describes this in mechanistic terms - electron spin resonance, alkaloids. What is actually being claimed, and what is the artwork doing instead?",
+      "The record describes this in mechanistic terms - electron spin resonance, alkaloids. What is the artwork doing with that language?",
   },
   {
     anchorSlug: "artwork-linguistic-mystic",
@@ -311,7 +311,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     basis: "interpretation",
     basisLabel: "UT position - the archive's own argument",
     suggestedQuestion:
-      "This piece argues language becomes the architecture of perception - how much of that is a claim about how minds work, and how much is a frame UT is choosing to work inside?",
+      "This piece argues that language becomes the architecture of perception - how does that idea run through the archive?",
   },
   {
     anchorSlug: "journal-sefer-yetzirah-32-paths",
@@ -335,7 +335,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "Catalogued in the archive's own LETTERS_HEBREW lattice",
     suggestedQuestion:
-      "These letter records carry number, planet and element assignments - which register does each of those belong to, and does the archive claim any of them are properties of the letters?",
+      "Follow Aleph through its element, colour and frequency. How do these correspondences unfold together?",
   },
   {
     anchorSlug: "codex-archive-latin-letters",
@@ -347,7 +347,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "Catalogued in the archive's own LETTERS_LATIN lattice",
     suggestedQuestion:
-      "With both letter lattices visible - is any relationship being claimed between the Latin letters and UT's own alphabet, or are these two separate assignment sets?",
+      "Read the Latin lattice beside UT's own alphabet - what does each carry, and how do they speak to one another?",
   },
   {
     anchorSlug: "journal-enochian-angelic-language",
@@ -462,7 +462,7 @@ export const SYMBOLISM_CONNECTIONS: ResearchConnection[] = [
     basis: "documented",
     basisLabel: "UT writing, with the text's own dating stated",
     suggestedQuestion:
-      "The Kybalion is a modern text - what does that do to the claim that these principles are ancient Hermetic teaching?",
+      "Draw out the Hermetic lineage the Kybalion belongs to - how do its principles live in this archive?",
   },
 ];
 
