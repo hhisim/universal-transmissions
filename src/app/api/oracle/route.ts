@@ -196,15 +196,17 @@ export async function POST(req: Request) {
       const named = resolveNamedRecords(question, conversation);
       const subject = named.subject;
       /* The visitor's CURRENT SUBJECT, carried separately from the literal question, from any
-      record grounding and from the transcript. A subject the archive does not hold is still
-      their subject — it is never dressed up as an invented record. */
+      record grounding and from the transcript. A subject the correspondence registry does not
+      carry is still their subject — it is never dressed up as an invented record, and the
+      registry's silence is never reported as the absence of the subject from the archive. */
       if (subject && subject.kind === "subject" && subject.carried && subject.text) {
       groundingParts.push(
       `${SUBJECT_MARKER} "${subject.text}"\n` +
-      `No archive record carries this subject, and none must be invented for it. Continue ` +
-      `about ${subject.text} using the conversation above and any material below. Do not ` +
-      `substitute an unrelated archive page, and do not treat a pronoun in the question as ` +
-      `a word to decode.`
+      `Keep ${subject.text} as the subject of this conversation. The correspondence registry ` +
+      `carries no record for it — do not invent one, and do not present it as a correspondence ` +
+      `entry. Continue about ${subject.text} using the conversation above and any material ` +
+      `below. Do not substitute an unrelated archive page, and do not treat a pronoun in the ` +
+      `question as a word to decode.`
       );
       }
       if (named.blocks.length) {

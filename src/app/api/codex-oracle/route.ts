@@ -56,15 +56,18 @@ export async function POST(req: NextRequest) {
        no selection input at all, so a name is the only way a specific record can
        reach the answer here. Nothing is invented: an unknown name attaches no record. */
     const named = resolveNamedRecords(question, conversation);
-    // Same referent seam as /api/oracle: an unregistered subject is still the subject.
+    // Same referent seam as /api/oracle: a subject with no correspondence record is still the
+    // subject. The registry's silence is scoped to the registry — never reported as the
+    // subject's absence from the archive.
     const _s = named.subject;
     const subjectBlock =
       _s && _s.kind === "subject" && _s.carried && _s.text
         ? `${SUBJECT_MARKER} "${_s.text}"\n` +
-          `No archive record carries this subject, and none must be invented for it. Continue ` +
-          `about ${_s.text} using the conversation above and any material below. Do not ` +
-          `substitute an unrelated archive page, and do not treat a pronoun in the question ` +
-          `as a word to decode.`
+          `Keep ${_s.text} as the subject of this conversation. The correspondence registry ` +
+          `carries no record for it — do not invent one, and do not present it as a correspondence ` +
+          `entry. Continue about ${_s.text} using the conversation above and any material ` +
+          `below. Do not substitute an unrelated archive page, and do not treat a pronoun in the ` +
+          `question as a word to decode.`
         : "";
 
     const composed = composeGroundedMessage({

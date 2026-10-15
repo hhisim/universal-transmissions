@@ -69,8 +69,9 @@ export interface NamedRecordAmbiguity {
 }
 
 export interface CurrentSubject {
-  /** "record" when an archive record carries it, "subject" when the visitor named
-   *  something the archive does not hold, "ambiguous" when clarification is pending. */
+  /** "record" when a correspondence record carries it, "subject" when the visitor named
+   *  something the correspondence registry does not carry, "ambiguous" when clarification
+   *  is pending. A registry miss is never a claim that the archive does not hold it. */
   kind: "record" | "subject" | "ambiguous" | "none";
   /** The referent as text — present for kind "subject" (and mirrored for a record). */
   text: string | null;
