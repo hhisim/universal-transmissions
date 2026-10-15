@@ -48,6 +48,10 @@ import type { ResearchConnection } from "@/lib/research-connections";
 export const MAX_EXTRACT_CHARS = 900;
 /** Below this there is no honest extract to give, so none is given. */
 export const MIN_EVIDENCE_CHARS = 260;
+/** Shortest real passage worth supplying. An empty or stub record yields NO evidence
+ *  rather than a labelled frame around nothing: a heading with no text under it would
+ *  tell the model a record's own words were supplied when none were. */
+export const MIN_EXTRACT_CHARS = 120;
 
 export interface RecordEvidence {
   /** Which dataset the record was located in. */
@@ -115,6 +119,10 @@ function journalEvidence(href: string, budget: number): RecordEvidence | null {
   const room = budget - head.join("\n").length - note.length - 8;
   if (room < MIN_EVIDENCE_CHARS) return null;
   const body = bounded(full, Math.min(MAX_EXTRACT_CHARS, room));
+  /* A record with no usable text gets NO evidence. Without this the module emitted the
+     labels and an empty quote, and a caller checking for the label would report the
+     record's own words as supplied when nothing had been read. */
+  if (full.length < MIN_EXTRACT_CHARS || body.text.length < MIN_EXTRACT_CHARS) return null;
   const lines = [...head, "", "Its opening text, quoted:", `"${body.text}"`, note];
   return { source: "journal", title: post.title, lines, chars: lines.join("\n").length };
 }
@@ -136,6 +144,7 @@ function artworkEvidence(href: string, budget: number): RecordEvidence | null {
   const room = budget - head.join("\n").length - note.length - 10;
   if (room < MIN_EVIDENCE_CHARS) return null;
   const desc = bounded(String(art.description ?? ""), room);
+  if (desc.text.length < MIN_EXTRACT_CHARS) return null;
   const lines = [...head, "", "Its own description, quoted:", `"${desc.text}"`, note];
   return { source: "artwork", title: art.title, lines, chars: lines.join("\n").length };
 }
@@ -165,8 +174,8 @@ function codexEvidence(href: string, budget: number, sample: number): RecordEvid
     "Shown here with the archive's own field assignments:",
   ];
   const tail =
-    `These are the ARCHIVE'S OWN assignments - symbolic correspondences this project holds, not ` +
-    `findings of analysis and not properties of the things assigned. The other ` +
+    `These are the ARCHIVE'S OWN assignments: symbolic correspondences this project holds and ` +
+    `works from, carried in the same lattice the imagery is composed from. The other ` +
     `${Math.max(0, entries.length - resolved.length)} records in this system are NOT supplied here; ` +
     `that is a limit of this context, not a statement that they assign nothing.`;
 

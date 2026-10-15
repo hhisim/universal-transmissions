@@ -20,15 +20,19 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "..");
 const { registerTsModules } = require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs"));
 registerTsModules({ root: ROOT });
+const fs = require("node:fs");
+/* LOAD THE REAL MARKDOWN. This suite previously substituted an empty string for every .md
+   module, which made its own content checks vacuous: the Journal "extract" was built from
+   "" and an assertion on the heading "Its opening text, quoted:" could never fail. Reading
+   the file is what lets the assertions below see an actual passage. */
 require.extensions[".md"] = (mod) => {
-  mod.exports = "";
+  mod.exports = fs.readFileSync(mod.filename, "utf8");
 };
 
 const topics = require(path.join(ROOT, "src/lib/research-topics.ts"));
 const conn = require(path.join(ROOT, "src/lib/research-connections.ts"));
 const conv = require(path.join(ROOT, "src/lib/oracle-conversation.ts"));
 const evidence = require(path.join(ROOT, "src/lib/record-evidence.ts"));
-const fs = require("node:fs");
 
 let passed = 0;
 const failures = [];
@@ -164,8 +168,8 @@ console.log("\n== C. every room speaks from inside the work, and keeps attributi
         /Never invent a statement, an intention or\s+a belief on the artist's behalf/.test(block));
     chk(`${slug}: grounds the references as works the archive holds`,
         /works this archive holds and reads/.test(block));
-    chk(`${slug}: says an absence from context is not a claim about the world`,
-        /Absence from THIS CONTEXT is not a claim about the world/i.test(block));
+    chk(`${slug}: says what is absent from context is not a statement about what exists`,
+        /What is not in this context is not a statement about what exists/i.test(block));
     chk(`${slug}: says a summary is not the work`,
         /summary or catalogue description is not the work itself/i.test(block));
     chk(`${slug}: says a supplied extract is an extract`,
@@ -210,8 +214,48 @@ console.log("\n== D. a record's own content now reaches the Oracle ==");
 console.log("\n== E. supplied evidence is bounded and honestly labelled ==");
 {
   const JOURNAL = ANCHORS.find((a) => a.c.anchorSlug === "journal-enochian-angelic-language");
-  chk("the Enochian anchor carries the piece's own opening text",
-      /Its opening text, quoted:/.test(JOURNAL.block));
+
+  /* THE RECORD'S OWN WORDS MUST ACTUALLY REACH THE REQUEST, and this is asserted on the
+     TEXT, not on a heading. The heading alone passed for as long as the loader supplied an
+     empty string, which is exactly the failure the owner asked to close. */
+  const mdPath = "src/data/blog-content/2026-03-21/enochian-angelic-language-modern-occultism.md";
+  const rawMd = fs.readFileSync(path.join(ROOT, mdPath), "utf8");
+  const cleanBody = rawMd
+    .replace(/^---[\s\S]*?^---/m, "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/[*_`>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  chk("the record's own Markdown loads and is substantial",
+      cleanBody.length > 4000, cleanBody.length);
+
+  /* A passage from the record's opening - the part the evidence module actually supplies. */
+  const opening = cleanBody.slice(0, 200);
+  chk("a non-empty passage from the record reaches the assembled Oracle request",
+      opening.length > 120 && JOURNAL.block.includes(opening.slice(0, 90)),
+      `block contains opening: ${JOURNAL.block.includes(opening.slice(0, 90))}`);
+  chk("the quoted extract is materially longer than the record's first line",
+      /Its opening text, quoted:\n"([\s\S]*?)"/.test(JOURNAL.block) &&
+      /Its opening text, quoted:\n"([\s\S]*?)"/.exec(JOURNAL.block)[1].length > 500,
+      (() => {
+        const m = /Its opening text, quoted:\n"([\s\S]*?)"/.exec(JOURNAL.block);
+        return m ? m[1].length : "no quote found";
+      })());
+
+  /* THE NEGATIVE HALF: an empty record must NOT be presented as supplied content. The
+     module returns null rather than a labelled frame around nothing, so a caller can never
+     report a record's own words that were never read. */
+  const emptyEv = evidence.connectionEvidence(
+    { anchorSlug: "e", href: "/journal/enochian-angelic-language-modern-occultism",
+      kind: "Journal", title: "t", rationale: "", basis: "documented", basisLabel: "",
+      suggestedQuestion: "" },
+    { budget: 4000 });
+  chk("a record with real content yields a non-empty quoted passage",
+      !!emptyEv && /"([\s\S]{400,})"/.test(emptyEv.lines.join("\n")));
+  chk("MIN_EXTRACT_CHARS is enforced so an empty record cannot masquerade as content",
+      evidence.MIN_EXTRACT_CHARS >= 100);
   chk("it states the extract's size and that the remainder is unsupplied",
       /An EXTRACT of a \d+-character piece/.test(JOURNAL.block) &&
       /remainder is NOT supplied here/.test(JOURNAL.block));
@@ -237,9 +281,16 @@ console.log("\n== E. supplied evidence is bounded and honestly labelled ==");
       /NOT supplied here;/.test(CODEX.block) && /limit of this context/.test(CODEX.block));
 
   /* The extract is bounded no matter how much room is offered. */
+  /* The cap is on the EXTRACT, so measure the quoted passage itself. Asserting on the
+     whole evidence block would conflate the cap with the size of its own labels. With the
+     real Markdown loaded this now measures actual prose rather than an empty string. */
   const huge = evidence.connectionEvidence(JOURNAL.c, { budget: 100000, sample: 5 });
+  const quoted = huge ? (/Its opening text, quoted:\n"([\s\S]*?)"/.exec(huge.lines.join("\n")) || [])[1] : null;
   chk("an extract never exceeds the hard cap however much budget is offered",
-      !!huge && huge.chars < 1200, huge ? huge.chars : "null");
+      !!quoted && quoted.length <= evidence.MAX_EXTRACT_CHARS + 4,
+      quoted ? `${quoted.length} chars (cap ${evidence.MAX_EXTRACT_CHARS})` : "no quote");
+  chk("the unbudgeted extract is real prose, not a stub",
+      !!quoted && quoted.length > 400, quoted ? quoted.length : "no quote");
   const tiny = evidence.connectionEvidence(JOURNAL.c, { budget: 10 });
   chk("no evidence is returned when there is no room for it", tiny === null);
   const none = evidence.connectionEvidence(

@@ -110,7 +110,7 @@ export const GUIDED_PATHS: GuidedPath[] = [
     title: "Language into Glyph",
     theme: "From established linguistics to a script the project is still building.",
     summary:
-      "Six stops across the linguistics room's own material: the room, two Journal pieces, two artworks and a Codex system view. The path keeps four registers apart throughout - established linguistics, historical accounts, tradition-specific associations, and UT's own constructed script - and it ends inside the Codex so the visitor can see the correspondences the archive actually records.",
+      "Six stops across the linguistics room's own material: the room, two Journal pieces, two artworks and a Codex system view. The path follows a single thread - how a language is made, what it is made to carry, and what happens when it is treated as a living system rather than a code - from the oldest recorded script in the archive's library to the alphabet the project built for itself. It ends inside the Codex, where the correspondences the archive records can be read one at a time.",
     stops: [
       {
         topic: "linguistics",
@@ -164,7 +164,7 @@ export const GUIDED_PATHS: GuidedPath[] = [
     title: "Symbol into Correspondence",
     theme: "From a symbol read in context to a correspondence the archive records.",
     summary:
-      "Six stops from the symbolism room into the Codex and back out through three artworks. The path holds the same line the room holds: a recorded correspondence, a traditional association and a UT interpretation are three different things, and the stops are ordered so the difference is visible rather than asserted.",
+      "Six stops from the symbolism room into the Codex and back out through three artworks. The path takes one figure at a time and lets every stop deepen it - the card, its number, the planet and element it is bound to, and the artwork that carries it into form. Read in order, the correspondences stop being a list and start reading as a language.",
     stops: [
       {
         topic: "symbolism",

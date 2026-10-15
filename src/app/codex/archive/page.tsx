@@ -138,8 +138,10 @@ export default function ArchivePage({
           </p>
           <p className="cx-honest">
             These are <strong>symbolic correspondences</strong> recorded in the UT Codex.
-            Fields like Frequency or Physiology are assignments, not measurements, and nothing
-            here is an empirical claim about the world.
+            A field like Frequency or Physiology carries an assignment this archive makes — a
+            tone, a number, an organ, a stone — held beside the letter, card or form it belongs
+            to. Take any one of them and follow it as far as it goes: that is what the lattice
+            is for.
           </p>
         </header>
 
@@ -396,7 +398,7 @@ export default function ArchivePage({
                     {f.value}
                     {MEASURED_LOOKING.has(f.key) && (
                       <span className="cx-flag">
-                        recorded as a symbolic correspondence in this corpus — not a measurement
+                        a symbolic correspondence of the UT Codex
                       </span>
                     )}
                   </dd>

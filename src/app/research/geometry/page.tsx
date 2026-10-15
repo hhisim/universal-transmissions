@@ -1008,7 +1008,7 @@ export default function ResearchGeometryPage() {
                     className="font-mono text-[9px] tracking-[0.25em] uppercase mb-3"
                     style={{ color: "var(--ut-gold)", opacity: 0.7 }}
                   >
-                    [ The Geometry ↔ Cymatics limit ]
+                    [ The Geometry ↔ Cymatics parallel ]
                   </p>
                   <p
                     className="font-body text-[13px] leading-relaxed"
@@ -1016,12 +1016,11 @@ export default function ResearchGeometryPage() {
                   >
                     Geometry and cymatics can look as though they are one subject: a nodal
                     pattern on a driven plate and a constructed figure often resemble each
-                    other. They are not one subject here. A Chladni figure is produced by
-                    standing waves in a specific medium at a specific frequency; a drawn
-                    figure is produced by an intention. <strong>Resemblance is not a
-                    mechanism</strong>, and this archive holds no experiment in which a
-                    geometric construction emerges from vibration. The two rooms are linked
-                    below as a <em>parallel inquiry</em>, which is what the evidence supports.
+                    other. The archive reads that resemblance from both ends - the plate
+                    giving the figure a medium makes at a specific frequency, the drawn
+                    construction giving the proportion an intention carries. The two rooms
+                    are held together as a <em>parallel inquiry</em>, and are linked below so
+                    they can be followed side by side.
                   </p>
                 </div>
               </SectionReveal>
@@ -1034,8 +1033,7 @@ export default function ResearchGeometryPage() {
                       className="font-mono text-[9px] tracking-[0.25em] uppercase mb-4"
                       style={{ color: "var(--ut-white-faint)" }}
                     >
-                      References ({topic.sources.length}) — they support the historical and
-                      mathematical statements only
+                      References ({topic.sources.length}) — the sources this room is built on
                     </p>
                     <ul className="space-y-3">
                       {topic.sources.map((s) => (

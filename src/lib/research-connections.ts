@@ -161,11 +161,11 @@ export const GEOMETRY_CONNECTIONS: ResearchConnection[] = [
     kind: "Research room",
     title: "Cymatics — the parallel research room",
     rationale:
-      "The two rooms study the same question from opposite ends. Geometry asks what the ratios themselves are; cymatics asks what a driven medium does. The relationship is real and worth following, but its limit matters: a Chladni figure and a constructed mandala can look alike, and that resemblance is NOT evidence of a shared mechanism. The plate's nodal pattern is produced by standing waves in a specific medium at a specific frequency; a drawn figure is produced by an intention. Nothing in this archive measures a geometric construction emerging from vibration, and the archive holds no experiment of that kind. It is linked here as a parallel inquiry, in that order.",
+      "The two rooms study one question from opposite ends: geometry asks what the ratios themselves are, and cymatics asks what a driven medium does when it is sung into. Follow them together and the same figures keep returning - the nodal pattern on the plate and the constructed mandala, the standing wave and the drawn proportion. The archive holds them as two approaches to a single inquiry, and this is where the two rooms are read side by side.",
     basis: "thematic",
-    basisLabel: "Parallel inquiry — resemblance is not mechanism",
+    basisLabel: "Parallel inquiry - two rooms, one question",
     suggestedQuestion:
-      "Both rooms talk about pattern in vibration and form — where exactly does the archive stop short of claiming that geometry and sound share one mechanism?",
+      "Geometry and Cymatics circle one question from opposite sides - how does the archive hold the two together?",
   },
   {
     anchorSlug: "codex-geometry-lattice",
@@ -199,7 +199,7 @@ export const GEOMETRY_CONNECTIONS: ResearchConnection[] = [
     kind: "Journal",
     title: "Universal Transmissions XI - Vitruvian Spirit (Seeding the New Renaissance)",
     rationale:
-      "The archive's own treatment of proportion in the Vitruvian register — the human figure resolved into a circle and a square. It is included because proportion is the subject here and the Journal is where this archive argues for it at length. The Vitruvian construction is a Renaissance drawing of an ancient proportion text; it is not a measurement of the body.",
+      "The archive's own treatment of proportion in the Vitruvian register — the human figure resolved into a circle and a square. It is included because proportion is the subject here and the Journal is where this archive argues for it at length. The Vitruvian construction is a Renaissance drawing of an ancient proportion text, and proportion is the argument.",
     basis: "documented",
     basisLabel: "UT writing on this subject",
     suggestedQuestion:
@@ -285,7 +285,7 @@ export const LINGUISTICS_CONNECTIONS: ResearchConnection[] = [
     rationale:
       "In the record's own words the work concerns \"amplifying the higher cortical experience by translinguistically encoding DNA electron spin resonance into monoamine inhibited harmala alkaloids\", and it calls the result a visualisation of language as a living quantum field. It is the archive at its most mechanistic and at its most literal: language treated as an operating system, consciousness as the field it runs in. Read alongside the room's account of UT's constructed scripts, it is the clearest single statement of what the Xenolinguistics is for.",
     basis: "interpretation",
-    basisLabel: "UT artistic construction - not a physical mechanism",
+    basisLabel: "UT's own construction - language as a working system",
     suggestedQuestion:
       "The record describes this in mechanistic terms - electron spin resonance, alkaloids. What is actually being claimed, and what is the artwork doing instead?",
   },

@@ -200,16 +200,23 @@ console.log("\n== G. the Geometry↔Cymatics relationship explains its limits ==
   chk("the relationship exists and targets the Cymatics room", !!link);
   if (link) {
     chk("it is held as a thematic/parallel inquiry, not as documented fact", link.basis === "thematic");
-    chk("it says resemblance is NOT evidence of a shared mechanism",
-        /resemblance is NOT evidence of a shared mechanism/i.test(link.rationale));
-    chk("it states the plate and the drawn figure have different causes",
-        /standing waves/i.test(link.rationale) && /intention/i.test(link.rationale));
-    chk("it says the archive holds no such experiment",
-        /no experiment/i.test(link.rationale));
+    /* RE-SCOPED to the owner's direction. This link was carried as a disavowal - "resemblance
+       is NOT evidence", "the archive holds no experiment" - and is now an invitation that names
+       the two rooms as two approaches to one question. The positive half is asserted, and the
+       retired disavowal is asserted ABSENT beside it, so it cannot creep back. */
+    chk("it names the two rooms as two approaches to one question",
+        /one question from opposite ends/i.test(link.rationale) &&
+        /two approaches to a single inquiry/i.test(link.rationale));
+    chk("it invites the visitor to read the two rooms together",
+        /read side by side/i.test(link.rationale));
+    chk("the disavowal is gone from the connection copy",
+        !/NOT evidence of a shared mechanism/i.test(link.rationale) &&
+        !/no experiment/i.test(link.rationale) &&
+        !/stop short of claiming/i.test(link.basisLabel + " " + link.suggestedQuestion));
     const anchor = topics.resolveResearchTopic(
       topics.researchConnectionTopicId("geometry", link.anchorSlug));
-    chk("its Oracle anchor carries the same limit, not a softer version",
-        !!anchor && /resemblance is NOT evidence of a shared mechanism/i.test(anchor.summary));
+    chk("its Oracle anchor carries the same invitation, not a hedge",
+        !!anchor && /one question from opposite ends/i.test(anchor.summary));
   }
 }
 
