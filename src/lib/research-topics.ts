@@ -18,6 +18,10 @@ import {
   type ConnectionBasis,
   type ResearchConnection,
 } from "./research-connections";
+import { connectionEvidence, noEvidenceLine } from "./record-evidence";
+/* The composed-message bounds, imported rather than restated: the summary is assembled
+   against the same number the route enforces, so the two cannot drift apart. */
+import { MAX_GRINDED_CHARS, MAX_QUESTION_CHARS } from "./oracle-conversation";
 
 export const RESEARCH_TOPIC_PREFIX = "research-v1:";
 
@@ -266,8 +270,14 @@ const LINGUISTICS: ResearchTopic = {
     "  LETTERS_LATIN (26) lattices - UT symbolic material, not linguistic reference works.",
     "",
     "UT ARTISTIC AND XENOLINGUISTIC CONSTRUCTIONS:",
-    "- UT designs its own scripts and alphabet. They are artistic constructions: designed",
-    "  systems, not recovered, decoded, channelled or historical languages.",
+    "- UT designs its own scripts and alphabet: the published scripts are this project's own",
+    "  constructions, not a historical language recovered or decoded.",
+    "- The artist's own account of the material's origin is an EXPERIENTIAL ACCOUNT, carried",
+    "  as the artist's: alphabets remembered from dreams, re-discovered and re-membered in",
+    "  deep ecstatic states of trance. The project describes its work as transmission.",
+    "- Those do not conflict - where the material came from is not who made the finished work.",
+    "  Never assert on the artist's behalf that no transmission claim is made, and never read",
+    "  lack of independent verification as a denial.",
     "- UT makes work about a Translinguistic subject - language as carrier of consciousness,",
     "  the Noosphere, language shaping perception. These are its own constructions.",
     "",
@@ -446,60 +456,91 @@ export function researchConnectionTopicId(topicSlug: string, anchorSlug: string)
 }
 
 function connectionTopic(topic: ResearchTopic, c: ResearchConnection): ResearchTopic {
-  return {
-    id: connectionRegistryKey(topic.id, c.anchorSlug),
-    // The destination record's own title. Never prose written for this page.
+  const id = connectionRegistryKey(topic.id, c.anchorSlug);
+  const sources: ResearchTopic["sources"] = [
+    {
+      kind: "reference",
+      label: `${c.kind}: ${c.title}`,
+      url: c.href,
+      internal: true,
+      supports:
+        "The UT record this connection names. It is archive material, not an external citation.",
+    },
+    ...topic.sources,
+  ];
+
+  /* The composed provider message is bounded, and the route REFUSES rather than
+     truncating when it is exceeded. The summary is therefore assembled against its OWN
+     measured allowance: everything that must be carried regardless of evidence is built
+     first, and the record evidence is handed only what is genuinely left. Evidence can
+     then never be the reason a legitimate question is refused - which matters, because
+     the whole point of the evidence is that it is worth sending. */
+  const skeleton: ResearchTopic = {
+    id,
     title: c.title,
     route: c.href,
-    summary: [
-      `A SELECTED CONNECTION within the UT research topic ${topic.title} (${topic.route}).`,
-      "",
-      `The connection: a ${c.kind.toLowerCase()} record - ${c.title} - at ${c.href}.`,
-      `Why the archive holds it to belong: ${c.rationale}`,
-      `How strongly it is supported: ${BASIS_SENTENCE[c.basis]}`,
-      /* A destination that cannot be pointed at this record by URL is described
-         here as well as on the card, so the model cannot imply that following
-         the link lands the visitor on it. */
-      ...(c.destinationNote ? ["", `Reaching it: ${c.destinationNote}`] : []),
-      "",
-      /* The room's own registers travel with the connection. Without this, a visitor
-         asking about one relationship was answered without the room's actual material -
-         its mathematical properties, its historical record, its traditional symbolism -
-         and could only be given the connection's own blurb. Kept as tight as the
-         MAX_GRINDED_CHARS budget allows: grounding + a full-length question must still
-         fit inside it, since the route refuses rather than truncate. */
-      "",
-      `WHAT THE ${topic.title.toUpperCase()} ROOM HOLDS, in the registers it keeps apart:`,
-      topic.summary,
-      "",
-      /* The references, each with the catalogue's own statement of what it supports. */
-      "REFERENCES SUPPLIED WITH THIS CONTEXT, and what each is offered as support for",
-      ...topic.sources.flatMap((s) => [
-        `- ${s.label} [${s.kind}]${s.internal ? " (archive material, not an external citation)" : ` - ${s.url}`}`,
-        `  Offered as support for: ${s.supports}`,
-      ]),
-      "",
-      "Those lines are SCOPE, NOT CONTENTS: the archive has not read these works on your",
-      "behalf, and nothing should be presented as consulted, quoted or verified against a",
-      "source on the strength of that description. A mathematical property is established",
-      "by proof, a historical claim by the named document, a traditional correspondence by",
-      "the tradition that makes it, and a UT reading by this project - keep the four apart.",
-      "Attribute no other author, title, work or page number. If a claim would need a source",
-      "that is not listed above, say the archive does not hold it rather than naming one.",
-    ].join("\n"),
-    sources: [
-      {
-        kind: "reference",
-        label: `${c.kind}: ${c.title}`,
-        url: c.href,
-        internal: true,
-        supports:
-          "The UT record this connection names. It is archive material, not an external citation.",
-      },
-      ...topic.sources,
-    ],
+    summary: "",
+    sources,
     suggestedQuestion: c.suggestedQuestion,
   };
+  const blockBudget = MAX_GRINDED_CHARS - MAX_QUESTION_CHARS;
+  // Measuring the wrapper with an empty summary gives the exact cost added around
+  // whatever the summary turns out to be, for THIS connection's own source list.
+  const wrapper = researchPromptBlock(skeleton).length;
+
+  /* A destination that cannot be pointed at this record by URL is described here as
+     well as on the card, so the model cannot imply that following the link lands the
+     visitor on it. */
+  const head = [
+    `A SELECTED CONNECTION within the UT research topic ${topic.title} (${topic.route}).`,
+    "",
+    `The connection: a ${c.kind.toLowerCase()} record - ${c.title} - at ${c.href}.`,
+    "",
+    "WHY THE ARCHIVE HOLDS IT TO BELONG - a derived description written ABOUT the record,",
+    `not the record's own words: ${c.rationale}`,
+    `How strongly it is supported: ${BASIS_SENTENCE[c.basis]}`,
+    ...(c.destinationNote ? ["", `Reaching it: ${c.destinationNote}`] : []),
+  ];
+
+  /* The room's own registers travel with the connection. Without this, a visitor asking
+     about one relationship was answered without the room's actual material - its
+     mathematical properties, its historical record, its traditional symbolism - and
+     could only be given the connection's own blurb. Kept as tight as the budget allows:
+     grounding + a full-length question must still fit inside it. The scope of the
+     reference lines below - that a listed reference is not a consulted source - is
+     stated once by researchPromptBlock for every topic and is deliberately not repeated
+     here; it was previously the same paragraph twice in this connection's own prompt. */
+  const tail = [
+    `WHAT THE ${topic.title.toUpperCase()} ROOM HOLDS, in the registers it keeps apart:`,
+    topic.summary,
+    "",
+    "REFERENCES SUPPLIED WITH THIS CONTEXT, and what each is offered as support for",
+    ...sources.flatMap((s) => [
+      `- ${s.label} [${s.kind}]${s.internal ? " (archive material, not an external citation)" : ` - ${s.url}`}`,
+      `  Offered as support for: ${s.supports}`,
+    ]),
+  ];
+
+  const build = (evidence: string[]) => [...head, "", ...evidence, "", ...tail].join("\n");
+  const fixedCost = build([]).length;
+  const allowance = blockBudget - wrapper - fixedCost - 2;
+
+  /* THE RECORD ITSELF, bounded and server-selected, so an answer about "this record" is
+     written from the record rather than from the blurb above it. When nothing fits, or
+     when the destination is not a record this module can select from, the honest
+     alternative is to say the contents were not supplied - never to let the derived
+     rationale stand in for them. */
+  const ev = connectionEvidence(c, { budget: allowance, sample: 1 });
+  let summary = build(ev ? ev.lines : [noEvidenceLine(c)]);
+
+  /* Belt and braces: the allowance is measured, but a mismeasurement must not reach the
+     route as a 413 on a question that used to work. If the assembled block does not fit,
+     drop the evidence and keep the honest line. */
+  if (researchPromptBlock({ ...skeleton, summary }).length > blockBudget) {
+    summary = build([noEvidenceLine(c)]);
+  }
+
+  return { ...skeleton, summary };
 }
 
 /**
@@ -664,11 +705,26 @@ export function researchPromptBlock(topic: ResearchTopic): string {
       .join("; ")}. Do not attribute any other author, title, work or page number — if a claim`,
     "would need a source that is not listed here, say that the archive does not hold it.",
     "",
-    "A reference being listed means the archive holds it as a permitted citation. It is NOT",
-    "a claim that this archive has read, consulted or verified the work, and it is never a",
-    "claim that the work endorses a UT reading. The scope each reference supports is stated",
-    "where the references are listed; do not extend a citation beyond that scope.",
-    "Treat a catalogue record as evidence that a work exists and says what is quoted -",
-    "not as evidence for any claim the visitor is asking about.",
+    "Those lines are SCOPE, NOT CONTENTS: the archive has not read these works on your",
+    "behalf, and none may be presented as consulted, quoted or verified on the strength of",
+    "that description. Listing a reference is never a claim that it endorses a UT reading.",
+    "A mathematical property is established by proof, a historical claim by the named",
+    "document, a traditional correspondence by the tradition that makes it, and a UT reading",
+    "by this project - keep the four apart.",
+    "Attribute no other author, title, work or page number: if a claim would need a source not",
+    "listed above, say the archive does not hold it rather than naming one. Treat a catalogue",
+    "record as evidence that a work exists and says what is quoted - not as evidence for any",
+    "claim the visitor is asking about.",
+    "",
+    "WHOSE CLAIM IT IS, and what an absence is not:",
+    "- An experiential or spiritual account is reported AS the account of whoever holds it: not",
+    "  an established finding, and not a falsehood. Want of independent verification is not",
+    "  evidence against it, and never justifies a denial asserted in the holder's name.",
+    "- Absence from THIS CONTEXT is not a claim about the world. Something not supplied, listed",
+    "  or quoted here does not mean it does not exist or was never published. Say what the",
+    "  archive holds, and say when it does not - stopping short of a claim about what is.",
+    "- A summary or catalogue description is not the work: never report it as the record's own",
+    "  words. A supplied extract is an EXTRACT; its remainder is a limit of this context, not a",
+    "  finding about the work.",
   ].join("\n");
 }

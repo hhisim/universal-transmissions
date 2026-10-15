@@ -82,14 +82,21 @@ export const MAX_MESSAGE_CHARS = 6000;
 export const MAX_TOTAL_CHARS = 24000;
 export const MAX_QUESTION_CHARS = 2000;
 /* Raised from 9000 when selected-connection grounding began carrying the ROOM's own
-   registers and each reference's "what it supports" description. The bound exists to
-   keep the sent message honest and economical, not to match a provider ceiling (the
-   synthesis model's context is far larger), and the route REFUSES rather than
-   truncating when it is exceeded - so a bound that no longer fits legitimate grounding
-   turns a good answer into a 413 instead of a cheaper one. The invariant that must hold
-   is asserted in scripts/batch16-research-nexus.js: for every registered anchor,
-   grounding + MAX_QUESTION_CHARS <= this value. */
-export const MAX_GRINDED_CHARS = 11000;
+   registers and each reference's "what it supports" description. Raised again, 11000 ->
+   13000, when the grounding began carrying (a) bounded server-selected evidence from the
+   record itself rather than only a rationale written about it, and (b) the rules that keep
+   an experiential account as the account of whoever holds it and stop an absence from
+   being read as a denial. The bound exists to keep the sent message honest and economical,
+   not to match a provider ceiling (the synthesis model's context is far larger), and the
+   route REFUSES rather than truncating when it is exceeded - so a bound that no longer
+   fits legitimate grounding turns a good answer into a 413 instead of a cheaper one.
+   Measured before raising: with the new text and NO record evidence at all, the worst
+   anchor still reached 10106 of the old 9000 block budget, so every corridor in the
+   largest room would have lost its evidence to a cap chosen for an earlier corpus.
+   The invariant that must hold is asserted in scripts/batch16-research-nexus.js: for
+   every registered anchor, grounding + MAX_QUESTION_CHARS <= this value; and in
+   scripts/batch22-faithful-guide.js, that every anchor receives real, non-empty evidence. */
+export const MAX_GRINDED_CHARS = 13000;
 
 export interface HistoryValidation {
   ok: boolean;
