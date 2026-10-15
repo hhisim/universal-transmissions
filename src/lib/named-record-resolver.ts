@@ -39,9 +39,16 @@
 import { codex, type CodexEntry } from "@/lib/codex-data";
 import {
   CORRESPONDENCE_ENTRY_PREFIX,
+  MAX_GROUNDING_CHARS,
   correspondenceEntryId,
   resolveOracleEntity,
 } from "@/lib/oracle-entry-resolver";
+import {
+  ARCHIVE_TITLES,
+  archiveRecordsByTitle,
+  recordEvidenceForHref,
+  type ArchiveTitleRecord,
+} from "@/lib/record-evidence";
 
 /** A name shorter than this must be explicitly framed as a record to be eligible. */
 export const MIN_BARE_NAME_CHARS = 4;
@@ -55,10 +62,19 @@ const FRAMING_WORDS = new Set([
   "system", "archive", "path", "card", "crystal", "stone", "planet",
 ]);
 
+/** Which registry carries a record the visitor named. */
+export type NamedRecordKind = "correspondence" | "journal" | "artwork";
+
 export interface NamedRecord {
+  /** System identity: the correspondence system, or JOURNAL / ARTWORK. */
   sys: string;
+  /** The record's own name or title, exactly as its page renders it. */
   e: string;
+  /** Stable identity: `corr-v1:<sys>::<e>`, `journal:<slug>` or `gallery:<slug>`. */
   id: string;
+  kind: NamedRecordKind;
+  /** The record's canonical route. Present for journal and artwork records. */
+  href?: string;
 }
 
 export interface NamedRecordAmbiguity {
@@ -173,7 +189,35 @@ function looksLikeFollowUp(question: string): boolean {
 }
 
 function toNamedRecord(entry: CodexEntry): NamedRecord {
-  return { sys: entry.sys, e: entry.e, id: correspondenceEntryId(entry) };
+  return { sys: entry.sys, e: entry.e, id: correspondenceEntryId(entry), kind: "correspondence" };
+}
+
+/** A Journal or Artwork record, identified by its own canonical route. */
+function toArchiveNamedRecord(record: ArchiveTitleRecord): NamedRecord {
+  return {
+    sys: record.kind.toUpperCase(),
+    e: record.title,
+    id: `${record.source}:${record.slug}`,
+    kind: record.source,
+    href: record.href,
+  };
+}
+
+/** How a record is written into an ambiguity notice, by the identity it actually has. */
+function describeForNotice(record: NamedRecord): string {
+  return record.href ? `${record.e} (${record.href})` : `${record.sys}::${record.e}`;
+}
+
+/** The first word-bounded occurrence of a registered phrase, as a character span. */
+function phraseSpan(question: string, name: string): [number, number] | null {
+  const re = new RegExp(
+    `(^|[^A-Za-z0-9_\\u00C0-\\u024F])${escapeRegExp(name)}(?=[^A-Za-z0-9_\\u00C0-\\u024F]|$)`,
+    "i"
+  );
+  const hit = re.exec(question);
+  if (!hit) return null;
+  const start = hit.index + hit[1].length;
+  return [start, start + name.length];
 }
 
 /**
@@ -368,13 +412,17 @@ export function resolveNamedRecords(
   question: string,
   history?: ReadonlyArray<{ role?: string; text?: string; content?: string }>
 ): NamedRecordResolution {
-  const resolved: NamedRecord[] = [];
   const ambiguous: NamedRecordAmbiguity[] = [];
   const seen = new Set<string>();
   const q = String(question ?? "");
 
+  /* Records are collected WITH the position at which the visitor named them and ordered at
+     the end, so `resolved` is in mention order and its first entry is genuinely the first
+     record named — not whichever pass happened to run first. */
+  const admitted: Array<{ at: number; record: NamedRecord }> = [];
+
   /** Record one candidate set, either as a resolution or as a preserved ambiguity. */
-  const admit = (spelling: string, candidates: NamedRecord[]): void => {
+  const admit = (spelling: string, candidates: NamedRecord[], at: number): void => {
     const identity = candidates.map((c) => c.id).sort().join("|");
     if (seen.has(identity)) return;
     seen.add(identity);
@@ -382,35 +430,80 @@ export function resolveNamedRecords(
       ambiguous.push({ name: spelling, matches: candidates });
       return;
     }
-    if (resolved.length < MAX_NAMED_RECORDS) resolved.push(candidates[0]);
+    if (admitted.length < MAX_NAMED_RECORDS) admitted.push({ at, record: candidates[0] });
   };
 
-  // ── Single words, keeping the visitor's own spelling for the ambiguity notice.
-  //    ES5-safe: no `u` flag and no \p{...} escapes.
-  const words = q.match(/[A-Za-z0-9_\u00C0-\u024F'’-]+/g) ?? [];
+  // ── Words carry their positions: a title that CONTAINS a correspondence word has to be
+  //    able to say which occurrence of that word it covers.
+  const words: string[] = [];
+  const wordAt: number[] = [];
+  {
+    const scanner = /[A-Za-z0-9_\u00C0-\u024F'’-]+/g;
+    let hit: RegExpExecArray | null;
+    while ((hit = scanner.exec(q)) !== null) {
+      words.push(hit[0]);
+      wordAt.push(hit.index);
+    }
+  }
 
+  /* ── ARCHIVE TITLES FIRST (Journal, Artwork), matched as WHOLE TITLES ────────────────
+     A record the visitor can open by name is not only a correspondence entry. The span a
+     matched title occupies is remembered, because a title that CONTAINS a correspondence
+     word ("The Star and the Uncarved Block") is ONE record: the visitor named the title,
+     not the word inside it. That is precedence, and it is positional, not a preference. */
+  const titleSpans: Array<[number, number]> = [];
+  for (const title of ARCHIVE_TITLES) {
+    if (admitted.length >= MAX_NAMED_RECORDS) break;
+    const span = phraseSpan(q, title);
+    if (!span) continue;
+    titleSpans.push(span);
+    if (!title.includes(" ")) continue; // one-word titles are settled with the words below
+    admit(title, archiveRecordsByTitle(title).map(toArchiveNamedRecord), span[0]);
+  }
+
+  /** Is this span strictly INSIDE a title the visitor named? */
+  const insideNamedTitle = (start: number, end: number): boolean =>
+    titleSpans.some(([s, e]) => start >= s && end <= e && !(start === s && end === e));
+
+  // ── Single words, keeping the visitor's own spelling for the ambiguity notice.
   for (let i = 0; i < words.length; i += 1) {
     const word = words[i];
     const key = word.toLowerCase();
     if (key.includes(" ")) continue; // phrases are matched whole, below
+    const start = wordAt[i];
+    if (insideNamedTitle(start, start + word.length)) continue; // the title was named, not this word
+
     const matches = BY_NAME.get(key);
-    if (!matches || !matches.length) continue;
+    const titled = archiveRecordsByTitle(key);
 
     // Precision guard: a short bare name must be framed as a record reference.
     const framed = i > 0 && FRAMING_WORDS.has(words[i - 1].toLowerCase());
     if (key.length < MIN_BARE_NAME_CHARS && !framed) continue;
 
-    admit(word, matches.map(toNamedRecord));
+    if (titled.length) {
+      /* The same name carried by a title AND by a correspondence record is a real
+         collision. Both are admitted together so it is REPORTED, never resolved
+         silently in favour of whichever registry this module happens to check first. */
+      admit(word, [...titled.map(toArchiveNamedRecord), ...(matches ?? []).map(toNamedRecord)], start);
+      continue;
+    }
+    if (!matches || !matches.length) continue;
+
+    admit(word, matches.map(toNamedRecord), start);
   }
 
-  // ── Multiword registered names, matched as WHOLE PHRASES. A single token of a
+  // ── Multiword correspondence names, matched as WHOLE PHRASES. A single token of a
   //    multiword name is never substituted for it.
   for (const name of MULTIWORD_NAMES) {
-    if (resolved.length >= MAX_NAMED_RECORDS) break;
+    if (admitted.length >= MAX_NAMED_RECORDS) break;
     if (!phraseInQuestion(q, name)) continue;
+    const span = phraseSpan(q, name);
+    if (span && insideNamedTitle(span[0], span[1])) continue; // inside a title the visitor named
     const matches = BY_NAME.get(name);
-    if (matches && matches.length) admit(name, matches.map(toNamedRecord));
+    if (matches && matches.length) admit(name, matches.map(toNamedRecord), span ? span[0] : q.length);
   }
+
+  const resolved: NamedRecord[] = admitted.sort((a, b) => a.at - b.at).map((a) => a.record);
 
   /* Provenance is recorded HERE, before the walk runs: only the word/phrase passes and
      the same-question clarification below can establish that the CURRENT QUESTION named
@@ -454,6 +547,35 @@ export function resolveNamedRecords(
   const ids: string[] = [];
 
   for (const record of resolved) {
+    /* ── A JOURNAL OR ARTWORK RECORD ─────────────────────────────────────────────────
+       Its own text is selected from the record by the SAME bounded-evidence helper a
+       research connection uses, at the same grounding cap the correspondence path is held
+       to, and it is supplied as SOURCE TEXT. A record whose text does not fit says so,
+       rather than being replaced by a summary written here. */
+    if (record.kind === "journal" || record.kind === "artwork") {
+      const what = record.kind === "journal" ? "Journal" : "Artwork";
+      const evidence = record.href ? recordEvidenceForHref(record.href, MAX_GROUNDING_CHARS) : null;
+      if (evidence) {
+        blocks.push(
+          [
+            `The visitor named this ${what} record in the question (it was resolved by its own title, not selected from a page):`,
+            `It is the record ${record.id} at ${record.href}.`,
+            "",
+            ...evidence.lines,
+            "",
+            `Answer from this record. The quoted text above is the record's own words: do not replace it with a summary of your own, and do not ask the visitor to open the record's page first. Broader retrieval may deepen the answer but must not substitute a different record for this one.`,
+          ].join("\n")
+        );
+        ids.push(record.id);
+      } else {
+        blocks.push(
+          `The visitor named a ${what} record, "${record.e}" (${record.href}), whose own text could not be fitted into this context. ` +
+            `Say plainly that its contents were not supplied. Do not describe what it contains, do not summarise it, and do not put another record in its place.`
+        );
+      }
+      continue;
+    }
+
     // Reuse the selected-record resolver verbatim, so a NAMED record and a SELECTED
     // record produce byte-identical grounding.
     const resolution = resolveOracleEntity("correspondence_entry", record.id);
@@ -477,7 +599,7 @@ export function resolveNamedRecords(
   }
 
   for (const item of ambiguous) {
-    const list = item.matches.map((m) => `${m.sys}::${m.e}`).join("; ");
+    const list = item.matches.map(describeForNotice).join("; ");
     blocks.push(
       `The visitor named "${item.name}", which is carried by more than one archive record: ${list}. ` +
         `Do not choose one of them silently — say which records share the name and ask which one is meant.`

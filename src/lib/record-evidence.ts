@@ -210,6 +210,83 @@ function codexEvidence(href: string, budget: number, sample: number): RecordEvid
   return { source: "codex", title: `The Archive — ${sys} system`, lines, chars: lines.join("\n").length };
 }
 
+/** The registries a visitor can open by naming a record's own title. */
+export type ArchiveRecordSource = "journal" | "artwork";
+
+export interface ArchiveTitleRecord {
+  source: ArchiveRecordSource;
+  /** The record's own title, exactly as its page renders it. */
+  title: string;
+  slug: string;
+  /** The record's canonical route — the same href the evidence is selected by. */
+  href: string;
+  /** The record's kind as the archive labels it. */
+  kind: "Journal" | "Artwork";
+}
+
+/**
+ * Every Journal and Artwork title, keyed by its own lowercased title. Built from the same
+ * two datasets the pages render, so a title that resolves here is a record that exists.
+ *
+ * A title may be carried by MORE than one record (the archive holds a Journal piece and an
+ * artwork called "Trivium Method"); the bucket keeps both, so a caller can report the
+ * collision instead of choosing between them.
+ */
+const BY_TITLE: Map<string, ArchiveTitleRecord[]> = (() => {
+  const index = new Map<string, ArchiveTitleRecord[]>();
+  const add = (record: ArchiveTitleRecord) => {
+    const key = record.title.trim().toLowerCase();
+    if (!key) return;
+    const bucket = index.get(key);
+    if (bucket) bucket.push(record);
+    else index.set(key, [record]);
+  };
+  for (const post of blogPosts) {
+    add({
+      source: "journal",
+      title: String(post.title ?? ""),
+      slug: post.slug,
+      href: `/journal/${post.slug}`,
+      kind: "Journal",
+    });
+  }
+  for (const art of artworks) {
+    add({
+      source: "artwork",
+      title: String(art.title ?? ""),
+      slug: art.slug,
+      href: `/gallery/${art.slug}`,
+      kind: "Artwork",
+    });
+  }
+  return index;
+})();
+
+/** Every title the archive holds, lowercased. Longest first, so a phrase is never
+ *  matched as a fragment of a longer one. */
+export const ARCHIVE_TITLES: readonly string[] = Array.from(BY_TITLE.keys()).sort(
+  (a, b) => b.length - a.length
+);
+
+/** Every record carrying this exact title. Empty when the archive holds none. */
+export function archiveRecordsByTitle(title: string): readonly ArchiveTitleRecord[] {
+  return BY_TITLE.get(String(title ?? "").trim().toLowerCase()) ?? [];
+}
+
+/**
+ * The bounded evidence for a record named by its CANONICAL ROUTE. Same selection and same
+ * budget discipline as a research connection's evidence, reached without inventing a
+ * connection: the route is what the record's own page is reached by.
+ */
+export function recordEvidenceForHref(href: string, budget: number): RecordEvidence | null {
+  const room = Math.max(0, Math.floor(budget));
+  if (room < MIN_EVIDENCE_CHARS) return null;
+  if (href.startsWith("/journal/")) return journalEvidence(href, room);
+  if (href.startsWith("/gallery/")) return artworkEvidence(href, room);
+  if (href.startsWith("/codex/archive")) return codexEvidence(href, room, 1);
+  return null;
+}
+
 /**
  * The bounded evidence for one connection, or null when there is nothing that fits -
  * in which case the caller must say the contents were not supplied rather than let a
@@ -222,10 +299,8 @@ export function connectionEvidence(
   const budget = Math.max(0, Math.floor(opts.budget));
   if (budget < MIN_EVIDENCE_CHARS) return null;
   const sample = opts.sample ?? 1;
-  if (c.href.startsWith("/journal/")) return journalEvidence(c.href, budget);
-  if (c.href.startsWith("/gallery/")) return artworkEvidence(c.href, budget);
   if (c.href.startsWith("/codex/archive")) return codexEvidence(c.href, budget, sample);
-  return null;
+  return recordEvidenceForHref(c.href, budget);
 }
 
 /** The honest line for a destination whose contents are not supplied. */
