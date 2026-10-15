@@ -104,7 +104,7 @@ function toNamedRecord(entry: CodexEntry): NamedRecord {
  */
 export function resolveNamedRecords(
   question: string,
-  history?: ReadonlyArray<{ role?: string; content?: string }>
+  history?: ReadonlyArray<{ role?: string; text?: string; content?: string }>
 ): NamedRecordResolution {
   const resolved: NamedRecord[] = [];
   const ambiguous: NamedRecordAmbiguity[] = [];
@@ -150,8 +150,15 @@ export function resolveNamedRecords(
   if (!resolved.length && !ambiguous.length && Array.isArray(history)) {
     for (let i = history.length - 1; i >= 0 && resolved.length === 0; i -= 1) {
       const turn = history[i];
-      if (!turn || turn.role !== "user" || typeof turn.content !== "string") continue;
-      const prior = resolveNamedRecords(turn.content);  // question only: no history re-entry
+      if (!turn || turn.role !== "user") continue;
+      // `HistoryMessage` carries the visitor's words in `text`; `content` is tolerated
+      // for callers that shape their own turns. Reading only `content` kept this
+      // inheritance silently inert against the real conversation type.
+      const said = typeof turn.text === "string"
+        ? turn.text
+        : (typeof turn.content === "string" ? turn.content : "");
+      if (!said) continue;
+      const prior = resolveNamedRecords(said);  // question only: no history re-entry
       if (prior.resolved.length) resolved.push(...prior.resolved.slice(0, MAX_NAMED_RECORDS));
     }
   }

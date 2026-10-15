@@ -124,8 +124,8 @@ ok(composed.message.indexOf("Air") < composed.message.indexOf("Question:"),
 console.log("  --- 9 a follow-up retains the subject ---");
 const followUp = composeGroundedMessage({
   history: [
-    { role: "user", content: ALEPH_Q },
-    { role: "assistant", content: "Aleph carries Air, the colours Blue, White and Grey, and 741 Hz — Awakening." },
+    { role: "user", text: ALEPH_Q },
+    { role: "assistant", text: "Aleph carries Air, the colours Blue, White and Grey, and 741 Hz — Awakening." },
   ],
   grounding: allBlocks(aleph),
   question: "And how does that relate to the colour?",
@@ -138,9 +138,12 @@ ok(followUp.message.trimEnd().endsWith("And how does that relate to the colour?"
 /* ── 9b. CONTINUITY: a follow-up that does not repeat the name ─────────────── */
 const routeSrc = fs.readFileSync(path.join(ROOT, "src/app/api/oracle/route.ts"), "utf8");
 console.log("  --- 9b follow-up continuity through history (not a source guard) ---");
+// The REAL HistoryMessage shape is { role, text }. An earlier version of this
+// fixture used `content`, which is why it did not catch that the resolver read the
+// wrong field and the inheritance was inert against the live conversation.
 const HIST = [
-  { role: "user", content: ALEPH_Q },
-  { role: "assistant", content: "Aleph carries Air, the colours Blue, White and Grey, and 741 Hz — Awakening." },
+  { role: "user", text: ALEPH_Q },
+  { role: "assistant", text: "Aleph carries Air, the colours Blue, White and Grey, and 741 Hz — Awakening." },
 ];
 const carried = resolveNamedRecords("And how does that relate to the colour?", HIST);
 ok(carried.resolved.length === 1 && carried.resolved[0].id === "corr-v1:LETTERS_HEBREW::Aleph",
