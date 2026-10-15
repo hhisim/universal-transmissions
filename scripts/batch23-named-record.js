@@ -284,6 +284,52 @@ const stillOpen = resolveNamedRecords("And what is its colour?", COPPER_TURN);
 ok(!/METALS|COLORS/.test(stillOpen.ids.join()),
   "16.5 an unresolved ambiguity is not resolved by a property question (got " + JSON.stringify(stillOpen.ids) + ")");
 
+/* ── 17. CurrentSubject: provenance, not a non-empty array ────────────────── */
+console.log("  --- 17 the carried referent and its provenance ---");
+const S = (q, h) => resolveNamedRecords(q, h).subject;
+
+const DIRECT = S("Tell me about copper.");
+ok(DIRECT.kind === "ambiguous" && DIRECT.carried === false,
+  "17 naming Copper directly is the question's own mention, not a carried subject (got " + JSON.stringify(DIRECT) + ")");
+
+const AMB2 = [{ role: "user", text: "Tell me about copper in the archive." },
+              { role: "assistant", text: "Which copper do you mean?" }];
+const CLAR = S("The metal one.", AMB2);
+ok(CLAR.kind === "record" && CLAR.carried === true && CLAR.id === "corr-v1:METALS::Copper",
+  "17 'the metal one' CARRIES METALS::Copper from the chronological walk (got " + JSON.stringify(CLAR) + ")");
+
+const AFTER = AMB2.concat([{ role: "user", text: "The metal one." },
+                           { role: "assistant", text: "Copper, the metal." }]);
+const PROP = S("What is its colour?", AFTER);
+ok(PROP.kind === "record" && PROP.id === "corr-v1:METALS::Copper",
+  "17 the property follow-up keeps METALS::Copper (got " + JSON.stringify(PROP) + ")");
+// The regression this batch exists for: a non-empty `resolved` array did NOT mean the
+// current question named the record, and it wrongly reported carried:false.
+ok(PROP.carried === true,
+  "17 ...and reports carried:true — a non-empty resolved array alone does NOT establish provenance");
+
+const ZST = [{ role: "user", text: "Follow Aleph through its element." },
+             { role: "assistant", text: "Aleph carries Air." },
+             { role: "user", text: "Tell me about Zorblax." },
+             { role: "assistant", text: "I have no record of Zorblax." }];
+const PRON = S("What does it mean?", ZST);
+ok(PRON.kind === "subject" && PRON.text === "Zorblax" && PRON.carried === true,
+  "17 a pronoun after an unregistered subject carries THAT subject (got " + JSON.stringify(PRON) + ")");
+ok(!/Aleph/i.test(JSON.stringify(PRON)), "17 ...and does not revive Aleph");
+ok(resolveNamedRecords("What does it mean?", ZST).resolved.length === 0,
+  "17 ...with no record attached — null namedRecords must not mean 'no subject'");
+
+const NEW = S("Tell me about Gimel.", ZST);
+ok(NEW.kind === "record" && NEW.id === "corr-v1:LETTERS_HEBREW::Gimel" && NEW.carried === false,
+  "17 a new named subject REPLACES the previous one (got " + JSON.stringify(NEW) + ")");
+// The broad question need not ERASE the prior subject — what matters is that it does not
+// CARRY it, so the route does not bind the answer to Zorblax.
+const BROAD = S("What is consciousness?", ZST);
+ok(BROAD.carried === false,
+  "17 a broad question does not CARRY the previous subject (got " + JSON.stringify(BROAD) + ")");
+ok(resolveNamedRecords("What is consciousness?", ZST).blocks.length === 0,
+  "17 ...and no grounding is forced onto it, so it stays answerable on its own");
+
 /* ── 15. BOTH routes carry continuity (real wiring, not a source pattern) ── */
 console.log("  --- 15 both route endpoints pass the conversation ---");
 for (const rel of ["src/app/api/oracle/route.ts", "src/app/api/codex-oracle/route.ts"]) {

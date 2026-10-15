@@ -7,6 +7,9 @@ import {
 } from "@/lib/oracle-conversation";
 import { resolveNamedRecords } from "@/lib/named-record-resolver";
 
+/** Marker the backend seam recognises, so the referent is never mistaken for grounding. */
+const SUBJECT_MARKER = "Current subject of this conversation:";
+
 const ORACLE_BACKEND = "http://204.168.154.237:8001/chat";
 
 /**
@@ -53,10 +56,20 @@ export async function POST(req: NextRequest) {
        no selection input at all, so a name is the only way a specific record can
        reach the answer here. Nothing is invented: an unknown name attaches no record. */
     const named = resolveNamedRecords(question, conversation);
+    // Same referent seam as /api/oracle: an unregistered subject is still the subject.
+    const _s = named.subject;
+    const subjectBlock =
+      _s && _s.kind === "subject" && _s.carried && _s.text
+        ? `${SUBJECT_MARKER} "${_s.text}"\n` +
+          `No archive record carries this subject, and none must be invented for it. Continue ` +
+          `about ${_s.text} using the conversation above and any material below. Do not ` +
+          `substitute an unrelated archive page, and do not treat a pronoun in the question ` +
+          `as a word to decode.`
+        : "";
 
     const composed = composeGroundedMessage({
       history: conversation,
-      grounding: named.blocks.join("\n\n"),
+      grounding: [named.blocks.join("\n\n"), subjectBlock].filter(Boolean).join("\n\n"),
       question,
     });
     // Refuse before calling the provider when even the question alone will not

@@ -68,6 +68,17 @@ export interface NamedRecordAmbiguity {
   matches: NamedRecord[];
 }
 
+export interface CurrentSubject {
+  /** "record" when an archive record carries it, "subject" when the visitor named
+   *  something the archive does not hold, "ambiguous" when clarification is pending. */
+  kind: "record" | "subject" | "ambiguous" | "none";
+  /** The referent as text — present for kind "subject" (and mirrored for a record). */
+  text: string | null;
+  /** True when the CURRENT question continues an existing subject rather than naming one. */
+  carried: boolean;
+  id?: string;
+}
+
 export interface NamedRecordResolution {
   /** Unambiguous records the visitor clearly named, in mention order. */
   resolved: NamedRecord[];
@@ -77,6 +88,8 @@ export interface NamedRecordResolution {
   blocks: string[];
   /** Identifiers attached, for logging and evidence. */
   ids: string[];
+  /** The current referent, carried separately from the literal question. */
+  subject: CurrentSubject;
 }
 
 /** name (lowercased) -> every record carrying it. Built once, from the dataset. */
@@ -183,7 +196,33 @@ function toNamedRecord(entry: CodexEntry): NamedRecord {
 export type SubjectState =
   | { kind: "none" }
   | { kind: "resolved"; record: NamedRecord }
-  | { kind: "ambiguous"; ambiguity: NamedRecordAmbiguity };
+  | { kind: "ambiguous"; ambiguity: NamedRecordAmbiguity }
+  /* A subject the visitor named that has NO archive record. It is still the visitor's
+     subject: "Tell me about Zorblax" then "What does it mean?" is a conversation about
+     Zorblax, and an absent record must not make the question unanswerable. */
+  | { kind: "subject"; text: string };
+
+/**
+ * A capitalised, non-function word the visitor used as a subject. Deliberately narrow:
+ * only a word the visitor capitalised (or an ALL-CAPS token) counts, so ordinary
+ * lowercase questions do not manufacture a subject.
+ */
+const SUBJECT_STOPWORDS = new Set([
+  "the", "a", "an", "this", "that", "these", "those", "it", "its", "they", "them", "their",
+  "what", "which", "who", "how", "why", "when", "where", "is", "are", "was", "were", "be",
+  "do", "does", "did", "can", "could", "will", "would", "should", "may", "might", "must",
+  "tell", "me", "about", "of", "and", "or", "but", "in", "on", "at", "to", "for", "with",
+  "please", "explain", "describe", "follow", "show", "give", "more", "again", "also",
+]);
+
+function bareSubjectIn(question: string): string | null {
+  const tokens = String(question ?? "").match(/[A-Za-z0-9_\u00C0-\u024F'’-]+/g) ?? [];
+  const allCaps = tokens.find((t) => t.length >= 3 && t === t.toUpperCase() && /[A-Z]/.test(t));
+  if (allCaps) return allCaps;
+  const capitalised = tokens.find((t, i) =>
+    i > 0 && /^[A-Z]/.test(t) && t.length >= 4 && !SUBJECT_STOPWORDS.has(t.toLowerCase()));
+  return capitalised ?? null;
+}
 
 export function reconstructSubject(
   history: ReadonlyArray<{ role?: string; text?: string; content?: string }>
@@ -215,7 +254,12 @@ export function reconstructSubject(
       state = { kind: "resolved", record: clarified };
       continue;
     }
-    if (!looksLikeFollowUp(said)) state = { kind: "none" };
+    if (!looksLikeFollowUp(said)) {
+      // A new subject that is not an archive record is STILL the subject. Remember it
+      // rather than dropping to "none", so a later pronoun continues it.
+      const bare = bareSubjectIn(said);
+      state = bare ? { kind: "subject", text: bare } : { kind: "none" };
+    }
   }
 
   return state;
@@ -291,6 +335,11 @@ export function resolveNamedRecords(
     if (matches && matches.length) admit(name, matches.map(toNamedRecord));
   }
 
+  /* Provenance is recorded HERE, before the walk runs: only the word/phrase passes and
+     the same-question clarification below can establish that the CURRENT QUESTION named
+     its subject. After the walk, a non-empty `resolved` may merely be carried. */
+  const namedByCurrentQuestion = resolved.length > 0 || ambiguous.length > 0;
+
   if (resolved.length || ambiguous.length) {
     /* The question names records itself. If it is ambiguous AND names exactly one of
        the carrying systems, that is the visitor choosing ("the metal copper"). */
@@ -356,5 +405,25 @@ export function resolveNamedRecords(
       `The visitor named "${item.name}", which is carried by more than one archive record: ${list}. ` +
         `Do not choose one of them silently — say which records share the name and ask which one is meant.`
     );
-  }  return { resolved, ambiguous, blocks, ids };
+  }  /* ── THE CURRENT REFERENT ───────────────────────────────────────────────────
+     Carried separately from the literal question, from record grounding and from the
+     transcript. Reused from the Batch 23 chronological walk — no second resolver. */
+  let subject: CurrentSubject = { kind: "none", text: null, carried: false };
+  if (resolved.length) {
+    subject = { kind: "record", text: resolved[0].e, carried: !namedByCurrentQuestion, id: resolved[0].id };
+  } else if (ambiguous.length) {
+    subject = { kind: "ambiguous", text: ambiguous[0].name, carried: !namedByCurrentQuestion };
+  } else if (Array.isArray(history)) {
+    const state = reconstructSubject(history);
+    const followUp = looksLikeFollowUp(q);
+    if (state.kind === "resolved") subject = { kind: "record", text: state.record.e, carried: followUp, id: state.record.id };
+    else if (state.kind === "ambiguous") subject = { kind: "ambiguous", text: state.ambiguity.name, carried: followUp };
+    else if (state.kind === "subject") subject = { kind: "subject", text: state.text, carried: followUp };
+  }
+  if (subject.kind === "none") {
+    const bare = bareSubjectIn(q);
+    if (bare) subject = { kind: "subject", text: bare, carried: false };
+  }
+
+  return { resolved, ambiguous, blocks, ids, subject };
 }

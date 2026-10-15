@@ -12,6 +12,9 @@ import {
 } from '@/lib/oracle-conversation';
 import { resolveOracleEntity, type ResolvedEntry } from '@/lib/oracle-entry-resolver';
 import { resolveNamedRecords, type NamedRecordResolution } from '@/lib/named-record-resolver';
+
+/** Marker the backend seam recognises, so the referent is never mistaken for grounding. */
+const SUBJECT_MARKER = "Current subject of this conversation:";
 import { resolveResearchTopic, researchPromptBlock } from '@/lib/research-topics';
 
 const BACKEND_URL = process.env.ORACLE_BACKEND_URL || 'http://204.168.154.237:8001';
@@ -191,6 +194,19 @@ export async function POST(req: Request) {
     let namedRecords: NamedRecordResolution | null = null;
     if (!entry && !explicitSelectionSupplied && !researchRequested) {
       const named = resolveNamedRecords(question, conversation);
+      const subject = named.subject;
+      /* The visitor's CURRENT SUBJECT, carried separately from the literal question, from any
+      record grounding and from the transcript. A subject the archive does not hold is still
+      their subject — it is never dressed up as an invented record. */
+      if (subject && subject.kind === "subject" && subject.carried && subject.text) {
+      groundingParts.push(
+      `${SUBJECT_MARKER} "${subject.text}"\n` +
+      `No archive record carries this subject, and none must be invented for it. Continue ` +
+      `about ${subject.text} using the conversation above and any material below. Do not ` +
+      `substitute an unrelated archive page, and do not treat a pronoun in the question as ` +
+      `a word to decode.`
+      );
+      }
       if (named.blocks.length) {
         namedRecords = named;
         groundingParts.push(...named.blocks);
