@@ -122,15 +122,23 @@ const SYSTEM_WORDS: Record<string, string[]> = {
   KABBALAH: ["kabbalah", "sephirah", "sephiroth"],
 };
 
-/** The system a question names outright, if any. */
-export function systemNamedInQuestion(question: string): string | null {
+/**
+ * EVERY system the question names outright. Returning all of them matters: a question
+ * naming both ("the metal and colour copper") must not silently take whichever key
+ * happens to come first in the map.
+ */
+export function systemsNamedInQuestion(question: string): string[] {
   const q = String(question ?? "").toLowerCase();
+  const found: string[] = [];
   for (const sys of Object.keys(SYSTEM_WORDS)) {
     for (const word of SYSTEM_WORDS[sys]) {
-      if (new RegExp(`(^|[^a-z])${escapeRegExp(word)}([^a-z]|$)`).test(q)) return sys;
+      if (new RegExp(`(^|[^a-z])${escapeRegExp(word)}([^a-z]|$)`).test(q)) {
+        found.push(sys);
+        break;
+      }
     }
   }
-  return null;
+  return found;
 }
 
 /** Words that make a question a FOLLOW-UP rather than a new subject. */
@@ -160,22 +168,79 @@ function toNamedRecord(entry: CodexEntry): NamedRecord {
  * Pure and deterministic: the same question always produces the same result, and it
  * reads only the existing dataset.
  */
-/** The ambiguity the conversation is currently sitting on, if its last named turn left one. */
-function currentAmbiguity(
+/**
+ * Reconstruct the conversational subject CHRONOLOGICALLY, walking the transcript
+ * forward and carrying one piece of state. Resolving each old turn independently and
+ * then searching backwards for a convenient match cannot represent this: it forgets
+ * that a later turn may have suspended, clarified or abandoned the subject.
+ *
+ *  - a turn naming one record        -> that record becomes the subject
+ *  - a turn naming several records   -> the subject is AMBIGUOUS (suspended)
+ *  - a clarifying turn               -> the chosen candidate becomes the subject
+ *  - a turn naming no record at all, that is not a follow-up -> a NEW subject, so the
+ *    older record is abandoned rather than left available for a later pronoun.
+ */
+export type SubjectState =
+  | { kind: "none" }
+  | { kind: "resolved"; record: NamedRecord }
+  | { kind: "ambiguous"; ambiguity: NamedRecordAmbiguity };
+
+export function reconstructSubject(
   history: ReadonlyArray<{ role?: string; text?: string; content?: string }>
-): NamedRecordAmbiguity | null {
-  for (let i = history.length - 1; i >= 0; i -= 1) {
-    const turn = history[i];
+): SubjectState {
+  let state: SubjectState = { kind: "none" };
+
+  for (const turn of history) {
     if (!turn || turn.role !== "user") continue;
     const said = typeof turn.text === "string"
       ? turn.text
       : (typeof turn.content === "string" ? turn.content : "");
     if (!said) continue;
-    const prior = resolveNamedRecords(said, []);
-    if (prior.ambiguous.length) return prior.ambiguous[0];
-    if (prior.resolved.length) return null;
+
+    const mentions = resolveNamedRecords(said, []); // question only, no re-entry
+
+    if (mentions.ambiguous.length) {
+      state = { kind: "ambiguous", ambiguity: mentions.ambiguous[0] };
+      continue;
+    }
+    if (mentions.resolved.length) {
+      state = { kind: "resolved", record: mentions.resolved[0] };
+      continue;
+    }
+    // Named nothing. A clarification settles the pending ambiguity; a genuine
+    // follow-up leaves the subject alone; anything else is a NEW subject and the
+    // older record is abandoned.
+    const clarified = clarify(said, state);
+    if (clarified) {
+      state = { kind: "resolved", record: clarified };
+      continue;
+    }
+    if (!looksLikeFollowUp(said)) state = { kind: "none" };
   }
-  return null;
+
+  return state;
+}
+
+/**
+ * Settle a suspended ambiguity using the ONE system the turn names. Exactly one system
+ * and exactly one matching candidate, or nothing is chosen.
+ */
+function clarify(question: string, state: SubjectState): NamedRecord | null {
+  if (state.kind !== "ambiguous") return null;
+  const systems = systemsNamedInQuestion(question);
+  if (systems.length !== 1) return null;
+  // Naming a system is not enough on its own: "what is its colour?" names the colour
+  // system but asks about a property, it does not pick the colour Copper. A clarifying
+  // turn REFERS TO the record — by repeating its name, or with a selection "one".
+  const q = String(question ?? "").toLowerCase();
+  const refers =
+    new RegExp(`(^|[^a-z])${escapeRegExp(state.ambiguity.name.toLowerCase())}([^a-z]|$)`).test(q) ||
+    /(^|[^a-z])one([^a-z]|$)/.test(q) ||
+    /(^|[^a-z])that([^a-z]|$)/.test(q) ||
+    /(^|[^a-z])this([^a-z]|$)/.test(q);
+  if (!refers) return null;
+  const hit = state.ambiguity.matches.filter((m) => m.sys === systems[0]);
+  return hit.length === 1 ? hit[0] : null;
 }
 
 export function resolveNamedRecords(
@@ -226,48 +291,36 @@ export function resolveNamedRecords(
     if (matches && matches.length) admit(name, matches.map(toNamedRecord));
   }
 
-  /* ── CLARIFICATION ──────────────────────────────────────────────────────────
-     The conversation is currently ambiguous and the visitor has answered with the
-     SYSTEM instead of repeating the name ("the metal one", "the metal copper"). The
-     intended candidate is the ambiguous one whose system identity is named — the
-     SAME registry, no second namespace. */
-  const sysWord = systemNamedInQuestion(q);
-  if (!resolved.length && sysWord) {
-    // Prefer the ambiguity raised by THIS question (the visitor repeated the name and
-    // added the system: "the metal copper"), then the one the conversation is on
-    // ("the metal one").
-    const candidates = ambiguous.length
-      ? ambiguous[0].matches
-      : (Array.isArray(history) ? (currentAmbiguity(history) || { matches: [] }).matches : []);
-    const hit = candidates.filter((m) => m.sys === sysWord);
-    if (hit.length === 1) {
-      if (ambiguous.length) ambiguous.pop();  // clarified: no longer ambiguous
-      resolved.push(hit[0]);
-    }
-  }
-
-  /* ── CONTINUITY ─────────────────────────────────────────────────────────────
-     Only a GENUINE follow-up inherits, and only from the most recent subject. A
-     question that names nothing is not automatically a continuation: "Tell me about
-     Zorblax" is a new subject and must not receive the previous record's grounding.
-     An unresolved ambiguity in the transcript IS the current conversational state,
-     so the walk stops there rather than reviving an older resolved record. */
-  if (!resolved.length && !ambiguous.length && looksLikeFollowUp(q) && Array.isArray(history)) {
-    for (let i = history.length - 1; i >= 0; i -= 1) {
-      const turn = history[i];
-      if (!turn || turn.role !== "user") continue;
-      // HistoryMessage carries the visitor's words in `text`; `content` is tolerated
-      // for callers that shape their own turns.
-      const said = typeof turn.text === "string"
-        ? turn.text
-        : (typeof turn.content === "string" ? turn.content : "");
-      if (!said) continue;
-      const prior = resolveNamedRecords(said); // question only: no history re-entry
-      if (prior.ambiguous.length) break;       // the ambiguity is the current state
-      if (prior.resolved.length) {
-        resolved.push(...prior.resolved.slice(0, MAX_NAMED_RECORDS));
-        break;
+  if (resolved.length || ambiguous.length) {
+    /* The question names records itself. If it is ambiguous AND names exactly one of
+       the carrying systems, that is the visitor choosing ("the metal copper"). */
+    if (ambiguous.length && !resolved.length) {
+      const systems = systemsNamedInQuestion(q);
+      if (systems.length === 1) {
+        const hit = ambiguous[0].matches.filter((m) => m.sys === systems[0]);
+        if (hit.length === 1) {
+          ambiguous.pop();
+          resolved.push(hit[0]);
+        }
       }
+    }
+  } else {
+    /* ── The question names nothing, so it continues the reconstructed subject. ──
+       The subject is rebuilt chronologically, which is what makes a clarification
+       stick, keeps a suspended ambiguity suspended, and lets a new unknown subject
+       abandon the older record so a later pronoun cannot revive it. */
+    const state = Array.isArray(history) ? reconstructSubject(history) : { kind: "none" as const };
+    if (state.kind === "ambiguous") {
+      const settled = clarify(q, state);
+      if (settled) resolved.push(settled);
+      else if (systemsNamedInQuestion(q).length > 0) {
+        // Still unresolved: keep it visibly pending rather than answering as though
+        // the visitor had chosen.
+        const systemConflicts = systemsNamedInQuestion(q).length > 1;
+        if (systemConflicts) ambiguous.push(state.ambiguity);
+      }
+    } else if (state.kind === "resolved" && looksLikeFollowUp(q)) {
+      resolved.push(state.record);
     }
   }
 

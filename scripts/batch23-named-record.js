@@ -231,6 +231,59 @@ for (const partial of ["Tell me about a career in exploration.", "The exploratio
     "14 a token of a multiword name is NOT substituted: " + JSON.stringify(partial.slice(0, 34)));
 }
 
+/* ── 16. the subject is reconstructed CHRONOLOGICALLY ────────────────────── */
+console.log("  --- 16 chronological conversational state ---");
+const COPPER_TURN = [
+  { role: "user", text: "Tell me about copper in the archive." },
+  { role: "assistant", text: "Which copper do you mean?" },
+];
+const CLARIFIED = COPPER_TURN.concat([
+  { role: "user", text: "The metal one." },
+  { role: "assistant", text: "Copper, the metal." },
+]);
+
+// 1. ambiguity -> clarification -> property follow-up
+ok(resolveNamedRecords("Tell me about copper in the archive.").ambiguous.length === 1,
+  "16.1 the bare name is still ambiguous");
+ok(resolveNamedRecords("The metal one.", COPPER_TURN).ids.join() === "corr-v1:METALS::Copper",
+  "16.1 clarification establishes METALS::Copper");
+const prop = resolveNamedRecords("What is its colour?", CLARIFIED);
+ok(prop.ids.join() === "corr-v1:METALS::Copper",
+  "16.1 a property follow-up KEEPS METALS::Copper (got " + JSON.stringify(prop.ids) + ")");
+ok(!/COLORS/.test(prop.ids.join()),
+  "16.1 the property word 'colour' is not a request to select the colour system");
+
+// 2. Aleph -> Zorblax -> pronoun follow-up
+const ZORB = [
+  { role: "user", text: ALEPH_Q },
+  { role: "assistant", text: "Aleph carries Air." },
+  { role: "user", text: "Tell me about Zorblax." },
+  { role: "assistant", text: "I have no record of Zorblax." },
+];
+const afterZorb = resolveNamedRecords("What does it mean?", ZORB);
+ok(afterZorb.resolved.length === 0 && afterZorb.blocks.length === 0,
+  "16.2 a pronoun follow-up after an unknown subject does NOT revive Aleph (got " + JSON.stringify(afterZorb.ids) + ")");
+ok(!/ALEPH/i.test(afterZorb.ids.join()), "16.2 specifically not Aleph");
+
+// 3. explicit system change metal -> colour
+const changed = resolveNamedRecords("Actually, tell me about the colour copper.", CLARIFIED);
+ok(changed.ids.join() === "corr-v1:COLORS::Copper",
+  "16.3 naming the other system changes the subject (got " + JSON.stringify(changed.ids) + ")");
+
+// 4. both systems named: do not silently choose
+const both = resolveNamedRecords("The metal and colour copper.", COPPER_TURN);
+ok(both.resolved.length === 0 && both.ambiguous.length === 1,
+  "16.4 naming BOTH systems chooses neither (resolved=" + JSON.stringify(both.ids) + ")");
+ok(both.ambiguous.length === 1 && both.ambiguous[0].matches.length === 2,
+  "16.4 ...and both candidates remain on the table");
+const bothBare = resolveNamedRecords("Metal and colour.");
+ok(bothBare.resolved.length === 0, "16.4 a bare multi-system question selects nothing");
+
+// 5. an unresolved ambiguity stays unresolved
+const stillOpen = resolveNamedRecords("And what is its colour?", COPPER_TURN);
+ok(!/METALS|COLORS/.test(stillOpen.ids.join()),
+  "16.5 an unresolved ambiguity is not resolved by a property question (got " + JSON.stringify(stillOpen.ids) + ")");
+
 /* ── 15. BOTH routes carry continuity (real wiring, not a source pattern) ── */
 console.log("  --- 15 both route endpoints pass the conversation ---");
 for (const rel of ["src/app/api/oracle/route.ts", "src/app/api/codex-oracle/route.ts"]) {

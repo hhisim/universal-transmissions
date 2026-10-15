@@ -90,6 +90,9 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     // Return in Anthropic-compatible format
     return NextResponse.json({
+      // Report the resolution, as /api/oracle does, so the records used are reviewable
+      // and both endpoints describe the same conversation the same way.
+      namedRecords: named.ids.length || named.ambiguous.length ? { ids: named.ids, ambiguous: named.ambiguous } : null,
       content: [{ text: data.content || data.response || JSON.stringify(data) }],
       stop_reason: "stop_sequence",
     });
