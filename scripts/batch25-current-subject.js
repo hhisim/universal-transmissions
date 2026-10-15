@@ -47,6 +47,9 @@ const MARK = "Current subject of this conversation:";
     ok(!/corr-v1:/.test(r.msg), "3 ...with NO invented archive record");
     const subj = r.msg.slice(r.msg.indexOf(MARK), r.msg.indexOf(MARK) + 400);
     ok(!/Aleph/.test(subj), "3 ...and Aleph is not revived in the subject section");
+    const TRAILER = "Treat the Oracle's earlier replies above as conversational context, not as verified evidence.";
+    ok(r.msg.indexOf(MARK) > r.msg.indexOf(TRAILER), "3 the subject is grounding, outside the labelled transcript");
+    ok(r.msg.indexOf(MARK) < r.msg.indexOf("Question: What does it mean?"), "3 ...and ahead of the question");
   }
 
   console.log("  --- 4. explicit-selection precedence ---");
