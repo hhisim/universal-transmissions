@@ -187,12 +187,14 @@ const ARTICLE_LINE = "Thelema, Taoism, and the two ways of losing yourself";
   const trivPost = blogPosts.find((p) => p.slug === "trivium-method");
   ok(trivPost && String(trivPost.content).includes(TRIV_MARKER),
     "12 the asserted Journal text is verbatim in that record's source");
+  /* A guard that throws when the behaviour it guards is broken cannot report it. */
+  const ridOf = (q, hist, i = 0) => ((resolveNamedRecords(q, hist || []).resolved[i] || {}).id || "(none)");
 
   let n = resolveNamedRecords("Tell me about Trivium Method.", []);
   ok(n.resolved.length === 0 && n.ambiguous.length === 1, "12 the bare title is reported as two records, not resolved");
-  ok(resolveNamedRecords("The Journal one.", H(["Tell me about Trivium Method.", "Two records share that title."])).resolved[0].id === TRIVIUM_JOURNAL,
+  ok(ridOf("The Journal one.", H(["Tell me about Trivium Method.", "Two records share that title."])) === TRIVIUM_JOURNAL,
     "12 \"The Journal one.\" resolves the Journal record");
-  ok(resolveNamedRecords("The artwork one.", H(["Tell me about Trivium Method.", "Two records share that title."])).resolved[0].id === TRIVIUM_ARTWORK,
+  ok(ridOf("The artwork one.", H(["Tell me about Trivium Method.", "Two records share that title."])) === TRIVIUM_ARTWORK,
     "12 \"The artwork one.\" resolves the artwork record");
   for (const [route, label] of [["oracle", "/api/oracle"], ["codex", "/api/codex-oracle"]]) {
     const j = await call({ message: "The Journal one.", pack: "codex", mode: "oracle",
@@ -216,9 +218,9 @@ const ARTICLE_LINE = "Thelema, Taoism, and the two ways of losing yourself";
     "12 ...and the artwork choice is carried the same way");
 
   /* A QUALIFIED title in the naming question resolves outright. */
-  ok(resolveNamedRecords("Tell me about the Trivium Method artwork.", []).resolved[0].id === TRIVIUM_ARTWORK,
+  ok(ridOf("Tell me about the Trivium Method artwork.") === TRIVIUM_ARTWORK,
     "12 a title qualified by its kind in the naming question resolves directly (artwork)");
-  ok(resolveNamedRecords("Tell me about the Journal Trivium Method.", []).resolved[0].id === TRIVIUM_JOURNAL,
+  ok(ridOf("Tell me about the Journal Trivium Method.") === TRIVIUM_JOURNAL,
     "12 ...and by kind for the Journal");
   /* BOTH kinds named: neither is chosen. */
   const both = resolveNamedRecords("Compare the Journal Trivium Method with the artwork Trivium Method.", []);
@@ -230,19 +232,20 @@ const ARTICLE_LINE = "Thelema, Taoism, and the two ways of losing yourself";
       `12 [${label}] neither record is composed when both kinds are named`);
   }
   /* Copper clarification is not weakened by any of this. */
-  ok(resolveNamedRecords("The metal one.", H(["Tell me about copper in the archive.", "Which copper?"])).resolved[0].id === "corr-v1:METALS::Copper",
+  ok(ridOf("The metal one.", H(["Tell me about copper in the archive.", "Which copper?"])) === "corr-v1:METALS::Copper",
     "12 Copper still clarifies to the METAL record");
-  ok(resolveNamedRecords("The colour one.", H(["Tell me about copper in the archive.", "Which copper?"])).resolved[0].id === "corr-v1:COLORS::Copper",
+  ok(ridOf("The colour one.", H(["Tell me about copper in the archive.", "Which copper?"])) === "corr-v1:COLORS::Copper",
     "12 ...and to the COLOUR record");
 
   console.log("\n  --- 13. the record limit applies AFTER mention order ---");
   const MIXED = "Compare Aleph with Translinguistic Equation and The Star and the Uncarved Block.";
   const mixed = resolveNamedRecords(MIXED, []);
+  const mixedIds = mixed.resolved.map((r) => r.id);
   ok(mixed.resolved.length === 2, "13 exactly the allowance of records is attached");
-  ok(mixed.resolved[0].id === "corr-v1:LETTERS_HEBREW::Aleph",
-    `13 the FIRST resolved identity is the earliest mention (got ${mixed.resolved[0].id})`);
-  ok(mixed.resolved[1].id === "artwork:translinguistic-equation",
-    `13 the SECOND resolved identity is the next mention (got ${mixed.resolved[1].id})`);
+  ok(mixedIds[0] === "corr-v1:LETTERS_HEBREW::Aleph",
+    `13 the FIRST resolved identity is the earliest mention (got ${mixedIds[0] || "(none)"})`);
+  ok(mixedIds[1] === "artwork:translinguistic-equation",
+    `13 the SECOND resolved identity is the next mention (got ${mixedIds[1] || "(none)"})`);
   ok(!mixed.resolved.some((r) => r.id.startsWith("journal:")),
     "13 the later Journal title does not displace an earlier mention");
   const spanOf = (msg, s) => msg.indexOf(s);
