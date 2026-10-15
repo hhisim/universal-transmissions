@@ -34,6 +34,11 @@ const CASES = {
     route: "./src/app/api/oracle/route.ts",
     body: { message: "What does it mean?", history: H(["Follow Aleph through its element, colour and frequency.", "Aleph carries Air, Blue White Grey, 741 Hz.", "Tell me about Zorblax.", "I have no record of Zorblax."]) },
   },
+  /* A multi-word Journal title: the subject must be the COMPLETE title, not its first word. */
+  "4-journal-title-pronoun-followup": {
+    route: "./src/app/api/oracle/route.ts",
+    body: { message: "What does it mean?", history: H(["Tell me about The Star and the Uncarved Block.", "That one carries no correspondence record here."]) },
+  },
 };
 
 (async () => {
@@ -48,8 +53,10 @@ const CASES = {
     };
     console.log(label, "-> http ok, composed", (sent.message || "").length, "chars, markers:",
       ["current subject", "Selected Correspondence record", "Earlier turns"].filter((m) => (sent.message || "").toLowerCase().includes(m.toLowerCase())).join(" | "));
+    const q = (sent.message || "").match(/Current subject of this conversation:\s*"([^"]*)"/);
+    if (q) console.log("      subject carried:", JSON.stringify(q[1]));
   }
-  const dest = path.join(ROOT, "..", "b27", "pkg", "website-composed-requests-b25.json");
+  const dest = process.env.ORACLE_REQUESTS_OUT || path.join(ROOT, "..", "b27", "pkg", "website-composed-requests-b25.json");
   fs.writeFileSync(dest, JSON.stringify(out, null, 2));
   console.log("saved", dest);
 })();

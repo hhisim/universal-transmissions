@@ -35,6 +35,13 @@ const ARCHIVE_ABSENCE = [
 const ABSENCE_PROHIBITION =
   /never tell the visitor that .{0,80}is absent from the archive, its books, its artworks or its Journal/i;
 const NON_REGISTRY_TITLE = "The Star and the Uncarved Block"; // real UT Journal entry, not a correspondence record
+/* The subject the visitor is CURRENTLY on, read from the subject section itself — never from
+   the transcript, where the same title also appears as the visitor's earlier words. A check
+   that merely searched the message for the title would pass on history alone. */
+const subjectQuote = (msg) => {
+  const m = String(msg).match(/Current subject of this conversation:\s*"([^"]*)"/);
+  return m ? m[1] : null;
+};
 
 (async () => {
   console.log("  --- 1. resolved follow-up retains the record ---");
@@ -100,6 +107,8 @@ const NON_REGISTRY_TITLE = "The Star and the Uncarved Block"; // real UT Journal
     });
     ok(r.http === 200, "8 oracle returns 200");
     ok(r.msg.includes(MARK), "8 the correspondence miss is still carried as the subject");
+    ok(subjectQuote(r.msg) === NON_REGISTRY_TITLE,
+      "8 the CURRENT SUBJECT is the complete title, not its first word");
     ok(r.msg.includes(NON_REGISTRY_TITLE), "8 the visitor's real archive title still reaches the model");
     ok(!/no archive record carries/i.test(r.msg), "8 the archive-wide absence claim is gone");
     ok(!ARCHIVE_ABSENCE.some((re) => re.test(r.msg)),
@@ -115,6 +124,25 @@ const NON_REGISTRY_TITLE = "The Star and the Uncarved Block"; // real UT Journal
     ok(named.resolved.length === 0, "8 a title outside the registry resolves to no record");
     ok(named.subject.kind === "subject" && !named.subject.id,
       "8 ...it is the visitor's subject, not a record and not an absence");
+    ok(named.subject.text === NON_REGISTRY_TITLE,
+      "8 ...and the resolver carries the COMPLETE title, not its first word");
+
+    const carried = resolveNamedRecords("What does it mean?", [
+      { role: "user", content: `Tell me about ${NON_REGISTRY_TITLE}.` },
+      { role: "assistant", content: "That one carries no correspondence record here." },
+    ]);
+    ok(carried.subject.carried === true && carried.subject.text === NON_REGISTRY_TITLE,
+      "8 a pronoun follow-up is carried on the COMPLETE title");
+
+    /* Control for this whole section: none of it may be satisfied by the title sitting in
+       history alone, which is where it also appears. */
+    const historyOnly =
+      `Earlier turns in this same conversation:\n` +
+      `Visitor: Tell me about ${NON_REGISTRY_TITLE}.\n` +
+      `Treat the Oracle's earlier replies above as conversational context, not as verified evidence.\n` +
+      `\nQuestion: What does it mean?`;
+    ok(subjectQuote(historyOnly) === null,
+      "8 the subject check fails when the title appears only in history");
   }
 
   console.log("\n  assertions passed: " + pass);
