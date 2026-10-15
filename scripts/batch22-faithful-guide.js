@@ -388,6 +388,41 @@ console.log("\n== I. every anchor still fits AND still carries evidence ==");
       small.map((a) => `${a.slug}/${a.c.anchorSlug}`).join(", "));
 }
 
+console.log("\n== J. the retired framing is absent from the visitor-facing pages ==");
+{
+  /* A guard over the SERVED COPY, not the registries. The restoration removed the framing
+     from the grounding first and from the pages later, and page copy is where a leftover is
+     easiest to miss: it renders in the HTML, is read by no Oracle assertion, and is exactly
+     what a `grep` over the registry modules cannot see. Text is normalised so a phrase split
+     across a JSX line break is still caught. */
+  const PAGES = [
+    "src/app/research/cymatics/page.tsx",
+    "src/app/research/geometry/page.tsx",
+    "src/app/research/linguistics/page.tsx",
+    "src/app/research/symbolism/page.tsx",
+    "src/app/research/page.tsx",
+    "src/app/codex/archive/page.tsx",
+    "src/app/experience/universal-resonator/page.tsx",
+    "src/components/research/ResearchConnections.tsx",
+    "src/components/research/basis-style.ts",
+  ];
+  const RETIRED = [
+    /not a measurement/i, /not an empirical claim/i, /not findings of analysis/i,
+    /not properties of the things/i, /not a physical mechanism/i, /merely symbolic/i,
+    /only an interpretation/i, /claim about the world/i, /keep the four apart/i,
+    /resemblance is not a mechanism/i, /holds no experiment/i, /four kinds of statement/i,
+    /what the experiment does not show/i, /not an established finding/i,
+    /IMPORTANT LIMITS/i, /IMPORTANT UNCERTAINTY/i, /Source discipline/i,
+    /not supported by the experimental literature/i, /data-register-label/i,
+  ];
+  for (const rel of PAGES) {
+    const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
+    const flat = src.replace(/\s+/g, " ");
+    const hits = RETIRED.filter((r) => r.test(flat)).map((r) => r.test(flat) && r.source);
+    chk(`${rel}: carries no retired framing`, hits.length === 0, hits.join(" | "));
+  }
+}
+
 console.log("");
 console.log(`assertions passed: ${passed}`);
 console.log(`assertions failed: ${failures.length}`);

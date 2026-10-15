@@ -133,16 +133,16 @@ export default function UniversalResonatorPage() {
                   className="font-mono text-[9px] tracking-[0.25em] uppercase mb-2"
                   style={{ color: "var(--ut-gold)" }}
                 >
-                  Where the model stops
+                  The model, and what it shows
                 </p>
                 <p className="font-body text-sm leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.8 }}>
-                  It is an idealised model. The plate is homogeneous and perfectly
-                  constrained, so the pattern it produces is not a prediction for any
-                  particular sheet of metal, glass or drum skin you could hold — real plates
-                  have thickness, damping, mounting and material of their own. What the
-                  instrument shows is the structure of the model&rsquo;s own mathematics made
-                  visible, and that is a genuinely useful thing to see. It is not a
-                  measurement, and the archive does not present it as one.
+                  It is an idealised model, and the ideal is the point: the plate is
+                  homogeneous and perfectly constrained, so what the instrument shows is the
+                  structure of its own mathematics made visible — clean, exact, and repeating
+                  as no sheet of metal, glass or drum skin ever quite will. Hold that beside a
+                  real plate and you can see the difference the material makes: thickness,
+                  damping, mounting and grain all bend the figure. The instrument is where the
+                  figure itself can be watched in motion.
                 </p>
               </div>
             </div>
