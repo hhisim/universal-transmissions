@@ -200,7 +200,7 @@ export default function ArchivePage({
   const oracleHref =
     `/oracle?entryId=${encodeURIComponent(entry.id)}` +
     `&q=${encodeURIComponent(
-      `Explain the recorded correspondences of “${entry.e}” (the ${sysName} entry) and say which of them are symbolic assignments rather than measured.`
+      `Open the correspondences of “${entry.e}” (the ${sysName} entry) and follow them into the other systems they reach.`
     )}` +
     `&from=${encodeURIComponent(selfHref)}`;
 
@@ -229,7 +229,7 @@ export default function ArchivePage({
           {entry.fields.length} recorded correspondences{totalTargets > 0 && (
             <> reaching <strong>{totalTargets}</strong> other {totalTargets === 1 ? "record" : "records"} across{" "}
             <strong>{groups.length}</strong> systems</>
-          )}. {entry.fields.length > 0 ? "Each is shown with what kind of claim it is." : ""}
+          )}. {entry.fields.length > 0 ? "Each is carried with the record it belongs to." : ""}
         </p>
         <p className="cx-askrow">
           <Link className="cx-ask" href={oracleHref}>
