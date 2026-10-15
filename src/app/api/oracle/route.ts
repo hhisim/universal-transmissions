@@ -204,9 +204,10 @@ export async function POST(req: Request) {
       `${SUBJECT_MARKER} "${subject.text}"\n` +
       `Keep ${subject.text} as the subject of this conversation. The correspondence registry ` +
       `carries no record for it — do not invent one, and do not present it as a correspondence ` +
-      `entry. Continue about ${subject.text} using the conversation above and any material ` +
-      `below. Do not substitute an unrelated archive page, and do not treat a pronoun in the ` +
-      `question as a word to decode.`
+      `entry. That silence is the registry's own: never tell the visitor that ${subject.text} is ` +
+      `absent from the archive, its books, its artworks or its Journal. Continue about ` +
+      `${subject.text} using the conversation above and any material below. Do not substitute ` +
+      `an unrelated archive page, and do not treat a pronoun in the question as a word to decode.`
       );
       }
       if (named.blocks.length) {
