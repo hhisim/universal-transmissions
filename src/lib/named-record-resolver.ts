@@ -102,7 +102,10 @@ function toNamedRecord(entry: CodexEntry): NamedRecord {
  * Pure and deterministic: the same question always produces the same result, and it
  * reads only the existing dataset.
  */
-export function resolveNamedRecords(question: string): NamedRecordResolution {
+export function resolveNamedRecords(
+  question: string,
+  history?: ReadonlyArray<{ role?: string; content?: string }>
+): NamedRecordResolution {
   const resolved: NamedRecord[] = [];
   const ambiguous: NamedRecordAmbiguity[] = [];
   const seen = new Set<string>();
@@ -136,6 +139,21 @@ export function resolveNamedRecords(question: string): NamedRecordResolution {
 
     if (resolved.length >= MAX_NAMED_RECORDS) continue;
     resolved.push(candidates[0]);
+  }
+
+  /* ── CONTINUITY ────────────────────────────────────────────────────────────
+     A visitor who follows up without repeating the name ("And how does that relate
+     to the colour?") must keep the record the conversation is already about. The
+     current question wins; only when it names nothing do we inherit the most recent
+     record a PREVIOUS user turn named. Nothing is inherited across a question that
+     names a different record, and an inherited record is never ambiguous-based. */
+  if (!resolved.length && !ambiguous.length && Array.isArray(history)) {
+    for (let i = history.length - 1; i >= 0 && resolved.length === 0; i -= 1) {
+      const turn = history[i];
+      if (!turn || turn.role !== "user" || typeof turn.content !== "string") continue;
+      const prior = resolveNamedRecords(turn.content);  // question only: no history re-entry
+      if (prior.resolved.length) resolved.push(...prior.resolved.slice(0, MAX_NAMED_RECORDS));
+    }
   }
 
   const blocks: string[] = [];

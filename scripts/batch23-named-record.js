@@ -135,12 +135,39 @@ ok(/741 Hz/.test(followUp.message), "9 the prior turn's subject is retained in t
 ok(followUp.message.trimEnd().endsWith("And how does that relate to the colour?"),
   "9 the follow-up question is last");
 
+/* ── 9b. CONTINUITY: a follow-up that does not repeat the name ─────────────── */
+const routeSrc = fs.readFileSync(path.join(ROOT, "src/app/api/oracle/route.ts"), "utf8");
+console.log("  --- 9b follow-up continuity through history (not a source guard) ---");
+const HIST = [
+  { role: "user", content: ALEPH_Q },
+  { role: "assistant", content: "Aleph carries Air, the colours Blue, White and Grey, and 741 Hz — Awakening." },
+];
+const carried = resolveNamedRecords("And how does that relate to the colour?", HIST);
+ok(carried.resolved.length === 1 && carried.resolved[0].id === "corr-v1:LETTERS_HEBREW::Aleph",
+  "9b a follow-up without the name INHERITS the record (got " + JSON.stringify(carried.ids) + ")");
+ok(/Air/.test(allBlocks(carried)) && /741 Hz/.test(allBlocks(carried)),
+  "9b the inherited record's fields are grounded again");
+ok(resolveNamedRecords("And how does that relate to the colour?").resolved.length === 0,
+  "9b WITHOUT history the same follow-up resolves nothing (so 9b is not vacuous)");
+const switched = resolveNamedRecords("Now follow Gimel instead.", HIST);
+ok(switched.resolved.length === 1 && switched.resolved[0].id === "corr-v1:LETTERS_HEBREW::Gimel",
+  "9b a question naming a DIFFERENT record wins over the inherited one (got " + JSON.stringify(switched.ids) + ")");
+ok(!/741 Hz/.test(allBlocks(switched)), "9b the inherited Aleph grounding is not carried alongside Gimel");
+
+/* ── 9c. a FAILED explicit selection must not become an inferred record ─────── */
+console.log("  --- 9c a failed explicit selection is not replaced by an inferred one ---");
+ok(/explicitSelectionSupplied/.test(routeSrc),
+  "9c the route distinguishes a SUPPLIED identifier from a resolved entry");
+ok(/if \(!entry && !explicitSelectionSupplied && !researchRequested\)/.test(routeSrc),
+  "9c name resolution is skipped when the visitor supplied an identifier, resolved or not");
+ok(!/if \(!entry && !researchRequested\) \{\s*const named = resolveNamedRecords/.test(routeSrc),
+  "9c the guard does not fall back to `entry` alone");
+
 /* ── 10. an explicit selection stays authoritative (route wiring) ─────────── */
 console.log("  --- 10 an explicit selected-record anchor remains authoritative ---");
-const routeSrc = fs.readFileSync(path.join(ROOT, "src/app/api/oracle/route.ts"), "utf8");
-ok(/if \(!entry && !researchRequested\)/.test(routeSrc),
-  "10 name resolution is guarded on there being NO selected entry and NO research topic");
-ok(routeSrc.indexOf("if (entry && !entryDisplaced)") < routeSrc.indexOf("resolveNamedRecords(question)"),
+ok(/if \(!entry && !explicitSelectionSupplied && !researchRequested\)/.test(routeSrc),
+  "10 name resolution is guarded on no selected entry, no supplied identifier and no research topic");
+ok(routeSrc.indexOf("if (entry && !entryDisplaced)") < routeSrc.indexOf("resolveNamedRecords(question, conversation)"),
   "10 the explicit entry is grounded before any name resolution is considered");
 ok(/resolveNamedRecords/.test(routeSrc), "10 the route actually calls the resolver");
 // Negative half: the guard must not be removable while the suite stays green.

@@ -183,9 +183,14 @@ export async function POST(req: Request) {
        It applies only when the visitor selected NOTHING (`!entry` and no research
        topic), so an explicit anchor stays authoritative and can never be
        overridden by a name that merely appears in the question. */
+    // `entityId` presence, NOT `entry`: an identifier the visitor SUPPLIED but that
+    // failed to resolve must stay a failed selection. Inferring a record from the
+    // question here would silently substitute a different record for the one chosen.
+    const explicitSelectionSupplied =
+      typeof entityId === "string" && entityId.trim().length > 0;
     let namedRecords: NamedRecordResolution | null = null;
-    if (!entry && !researchRequested) {
-      const named = resolveNamedRecords(question);
+    if (!entry && !explicitSelectionSupplied && !researchRequested) {
+      const named = resolveNamedRecords(question, conversation);
       if (named.blocks.length) {
         namedRecords = named;
         groundingParts.push(...named.blocks);
