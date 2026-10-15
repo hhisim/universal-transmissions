@@ -23,14 +23,17 @@ const H = (t) => { const o = []; for (let i = 0; i < t.length; i++) o.push({ rol
 const MARK = "Current subject of this conversation:";
 /* A correspondence lookup cannot establish absence from the whole archive. A miss in the
    correspondence registry must never be reported as the subject's absence from UT's books,
-   artworks or Journal. */
+   artworks or Journal. These are DECLARATIVE-claim patterns only: the instruction's own
+   prohibition ("never tell the visitor that ... is absent from the archive") must not trip them. */
 const ARCHIVE_ABSENCE = [
   /no archive record carries/i,
   /the archive (?:holds|carries|contains) no/i,
+  /nothing in the archive/i,
   /not (?:held|carried|present|recorded) in the archive/i,
   /(?:does not|doesn't) exist in the archive/i,
-  /absent from the archive/i,
 ];
+const ABSENCE_PROHIBITION =
+  /never tell the visitor that .{0,80}is absent from the archive, its books, its artworks or its Journal/i;
 const NON_REGISTRY_TITLE = "The Star and the Uncarved Block"; // real UT Journal entry, not a correspondence record
 
 (async () => {
@@ -103,6 +106,8 @@ const NON_REGISTRY_TITLE = "The Star and the Uncarved Block"; // real UT Journal
       "8 ...and no other archive-wide absence claim stands in for it");
     ok(/correspondence registry carries no record/i.test(r.msg),
       "8 the miss is scoped to the correspondence registry");
+    ok(ABSENCE_PROHIBITION.test(r.msg),
+      "8 ...and the instruction forbids the archive-wide absence reading outright");
     ok(!/corr-v1:/.test(r.msg), "8 no record identity is invented for it");
 
     const { resolveNamedRecords } = require(path.join(ROOT, "src/lib/named-record-resolver.ts"));
