@@ -323,6 +323,65 @@ export function resolvePath(path: GuidedPath): {
 }
 
 /**
+ * What the URL asked for, in AUTHORED stop numbers.
+ *
+ * Authored numbers are identity, not array positions. `resolvePath` drops stops that fail
+ * to resolve, so `stops[3]` is not stop 3 once anything before it is missing - with stop 2
+ * unavailable the surviving numbers are 1,3,4,5,6 and the array index 2 holds stop 4.
+ * Selection therefore goes through the authored number, never through the position.
+ */
+export type StopSelection =
+  | { state: "available"; number: number; total: number; stop: ResolvedStop }
+  | { state: "unavailable"; number: number; total: number }
+  | { state: "out-of-range"; total: number };
+
+/** The authored number the URL asked for. Anything unparseable is stop 1. */
+export function requestedStopNumber(raw: string | undefined, total: number): number {
+  const n = Number.parseInt(raw ?? "1", 10);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(n, total);
+}
+
+/**
+ * Select a stop by its AUTHORED number.
+ *
+ * An unavailable stop returns `unavailable` and substitutes NOTHING: falling through to a
+ * neighbouring record would present one stop's identity under another stop's number, which
+ * is exactly the mismatch this replaces. Out-of-range is separated from unavailable because
+ * they are different facts and deserve different wording.
+ */
+export function selectStop(path: GuidedPath, raw: string | undefined): StopSelection {
+  const total = path.stops.length;
+  const n = Number.parseInt(raw ?? "1", 10);
+  if (Number.isFinite(n) && (n < 1 || n > total)) return { state: "out-of-range", total };
+  const number = requestedStopNumber(raw, total);
+  const stop = resolveStop(path, number - 1);
+  return stop
+    ? { state: "available", number, total, stop }
+    : { state: "unavailable", number, total };
+}
+
+/**
+ * The nearest AVAILABLE stops either side of an authored number.
+ *
+ * Neighbours skip unavailable stops rather than pointing at them, so a previous/next link
+ * can never lead to a dead or substituted stop. Each neighbour keeps its own number, so the
+ * Oracle return URL it produces is that stop's own.
+ */
+export function stopNeighbours(
+  path: GuidedPath,
+  number: number
+): { previous: ResolvedStop | null; next: ResolvedStop | null } {
+  const { stops } = resolvePath(path);
+  const below = stops.filter((s) => s.number < number);
+  const above = stops.filter((s) => s.number > number);
+  return {
+    previous: below.length ? below[below.length - 1] : null,
+    next: above.length ? above[0] : null,
+  };
+}
+
+/**
  * The Oracle link for a stop.
  *
  * `from` carries the path AND the stop, which the Oracle already returns verbatim as its

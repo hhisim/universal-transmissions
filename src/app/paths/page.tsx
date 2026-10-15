@@ -150,8 +150,9 @@ export default function PathsPage() {
                       className="font-body text-[12px] mb-4"
                       style={{ color: "var(--ut-magenta)", opacity: 0.9 }}
                     >
-                      Stops {unresolved.join(", ")} could not be resolved against the current
-                      registries and are not shown.
+                      Stop{unresolved.length > 1 ? "s" : ""} {unresolved.join(", ")} could not be
+                      resolved against the current registries. Their numbers are retained and
+                      they open an unavailable state rather than another record.
                     </p>
                   )}
 

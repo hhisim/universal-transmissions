@@ -171,7 +171,7 @@ chk("the path experience adds no animation of its own",
     !/framer-motion/.test(pathPage) && !/animate=/.test(pathPage),
     "reduced motion is satisfied by having nothing to reduce");
 chk("the progress bar is a static width, not an animated fill",
-    /width: `\$\{\(stop\.number/.test(pathPage));
+    /width: `\$\{\(number \/ total\)/.test(pathPage));
 
 console.log("\n== I. the identifier contract was reused, not extended ==");
 chk("guided-paths introduces no new URL parameter",
@@ -181,6 +181,75 @@ chk("guided-paths reuses the room resolvers rather than its own table",
     /researchTopicId/.test(libSrc));
 chk("guided-paths keeps the connection registry as the source of each stop's href",
     /CONNECTIONS_BY_TOPIC/.test(libSrc));
+
+console.log("\n== J. REGRESSION: an unavailable middle stop must not shift the others ==");
+{
+  /* The fault: resolvePath() drops unresolvable stops, but the page used to index that
+     COMPACTED array with the URL's stop number. With authored stop 2 unavailable the
+     surviving numbers are 1,3,4,5,6, so array index 2 holds stop 4 and ?stop=3 opened
+     stop 4. This block reproduces exactly that shape and pins the corrected behaviour. */
+  const original = paths.findGuidedPath("sound-into-form");
+  const broken = {
+    ...original,
+    stops: original.stops.map((s, i) =>
+      i === 1 ? { ...s, anchor: "__unavailable-for-regression__", topic: original.stops[1].topic } : s
+    ),
+  };
+  const rp = paths.resolvePath(broken);
+  chk("the regression path really has an unavailable stop", rp.unresolved.length === 1,
+      JSON.stringify(rp.unresolved));
+  chkeq("the unavailable stop is authored 2", rp.unresolved[0], 2);
+  chkeq("surviving numbers keep their authored identity", JSON.stringify(rp.stops.map((s) => s.number)),
+      JSON.stringify([1, 3, 4, 5, 6]));
+  chkeq("the compacted array position 2 holds stop 4 - the exact mismatch that was fixed",
+      rp.stops[2].number, 4);
+
+  // what stop 3 SHOULD be, taken from the unmodified path
+  const truth3 = paths.resolveStop(original, 2);
+  const truth4 = paths.resolveStop(original, 3);
+
+  const sel3 = paths.selectStop(broken, "3");
+  chkeq("?stop=3 selects state available", sel3.state, "available");
+  chkeq("?stop=3 selects authored number 3", sel3.state === "available" ? sel3.number : null, 3);
+  chkeq("?stop=3 opens stop 3, not stop 4",
+      sel3.state === "available" ? sel3.stop.title : null, truth3.title);
+  chk("?stop=3 does NOT open stop 4",
+      sel3.state === "available" && sel3.stop.title !== truth4.title);
+  chkeq("?stop=3 reports the authored total, not the surviving count",
+      sel3.state === "available" ? sel3.total : null, 6);
+
+  const sel2 = paths.selectStop(broken, "2");
+  chkeq("?stop=2 (the unavailable one) reports unavailable", sel2.state, "unavailable");
+  chkeq("?stop=2 keeps its authored number", sel2.state === "unavailable" ? sel2.number : null, 2);
+  chk("?stop=2 substitutes NOTHING", sel2.state === "unavailable" && !("stop" in sel2));
+
+  chkeq("?stop=99 is out-of-range, not a silent substitute",
+      paths.selectStop(broken, "99").state, "out-of-range");
+  chkeq("?stop=0 is out-of-range, not a silent substitute",
+      paths.selectStop(broken, "0").state, "out-of-range");
+  chkeq("a non-numeric stop falls back to stop 1, which exists",
+      paths.selectStop(broken, "banana").state === "available"
+        ? paths.selectStop(broken, "banana").number : null, 1);
+
+  const nb3 = paths.stopNeighbours(broken, 3);
+  chkeq("neighbour before stop 3 skips the unavailable stop 2", nb3.previous.number, 1);
+  chkeq("neighbour after stop 3 is stop 4", nb3.next.number, 4);
+  const nb2 = paths.stopNeighbours(broken, 2);
+  chkeq("neighbours of the unavailable stop resolve to available stops either side",
+      `${nb2.previous.number}->${nb2.next.number}`, "1->3");
+
+  // every neighbouring stop's Oracle return URL must carry that stop's OWN number
+  for (const s of [nb3.previous, sel3.stop, nb3.next]) {
+    const href = paths.stopOracleHref(s, broken.slug);
+    const q = new URLSearchParams(href.split("?")[1]);
+    chkeq(`stop ${s.number}: oracle return URL names its own stop`, q.get("from"),
+        `/paths/${broken.slug}?stop=${s.number}`);
+    chkeq(`stop ${s.number}: oracle identifier is its own record`, q.get("researchTopicId"), s.oracleId);
+  }
+  chk("no neighbouring Oracle URL points at the unavailable stop's number",
+      [nb3.previous, sel3.stop, nb3.next].every(
+        (s) => !paths.stopOracleHref(s, broken.slug).includes("?stop=2")));
+}
 
 console.log("");
 console.log(`assertions passed: ${passed}`);

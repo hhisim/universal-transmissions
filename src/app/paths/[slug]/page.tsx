@@ -9,6 +9,8 @@ import {
   findGuidedPath,
   guidedPathSlugs,
   resolvePath,
+  selectStop,
+  stopNeighbours,
   stopOracleHref,
 } from "@/lib/guided-paths";
 
@@ -33,14 +35,6 @@ export function generateMetadata({ params }: Props): Metadata {
   };
 }
 
-/** The requested stop, clamped into range. Anything unparseable falls back to the first. */
-function requestedIndex(raw: string | undefined, total: number): number {
-  const n = Number.parseInt(raw ?? "1", 10);
-  if (!Number.isFinite(n) || n < 1) return 0;
-  if (n > total) return total - 1;
-  return n - 1;
-}
-
 export default function GuidedPathPage({ params, searchParams }: Props) {
   const path = findGuidedPath(params.slug);
   if (!path) notFound();
@@ -48,15 +42,20 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
   const { stops, unresolved } = resolvePath(path);
   if (stops.length === 0) notFound();
 
-  /* The stop is chosen by the URL, and the URL is what the Oracle returns the visitor to.
-     Reading it here - rather than holding it in component state - is what makes the round
-     trip land back on the same stop: there is no client state to lose. */
-  const index = requestedIndex(searchParams.stop, stops.length);
-  const stop = stops[index];
+  /* SELECTION IS BY AUTHORED NUMBER, NOT BY ARRAY POSITION.
+     `stops` holds the AVAILABLE stops, so it is compacted whenever a stop fails to resolve.
+     Indexing it with the URL's stop number would silently open a different record: with stop
+     2 unavailable the surviving numbers are 1,3,4,5,6 and index 2 is stop 4, so ?stop=3
+     would have shown stop 4. selectStop() resolves the authored number instead, and reports
+     an unavailable stop as unavailable rather than falling through to a neighbour. */
+  const selection = selectStop(path, searchParams.stop);
+  const total = path.stops.length;
+  const number = selection.state === "out-of-range" ? 1 : selection.number;
+  const stop = selection.state === "available" ? selection.stop : null;
+  const { previous, next } = stopNeighbours(path, number);
 
-  const previous = index > 0 ? stops[index - 1] : null;
-  const next = index < stops.length - 1 ? stops[index + 1] : null;
-  const basis = stop.basis ? BASIS_STYLE[stop.basis as keyof typeof BASIS_STYLE] : null;
+  const basis =
+    stop && stop.basis ? BASIS_STYLE[stop.basis as keyof typeof BASIS_STYLE] : null;
 
   const stopHref = (n: number) => `/paths/${path.slug}?stop=${n}`;
 
@@ -97,14 +96,15 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
             {path.theme}
           </p>
 
-          {/* progress: a track, a count, and the stop list as the real control */}
+          {/* Progress counts AUTHORED stops, so the total stays coherent when a stop is
+              unavailable: the path still has six stops, one of which cannot be opened. */}
           <div data-path-progress className="mb-3">
             <div
               className="flex items-baseline justify-between gap-4 mb-2"
               style={{ color: "var(--ut-gold)" }}
             >
               <span className="font-mono text-[9px] tracking-[0.3em] uppercase">
-                Stop {stop.number} of {stops.length}
+                Stop {number} of {total}
               </span>
               <span className="font-mono text-[9px] tracking-[0.3em] uppercase" style={{ opacity: 0.6 }}>
                 {path.title}
@@ -115,12 +115,12 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
               className="h-[2px] w-full"
               style={{ background: "rgba(255,255,255,0.08)" }}
               role="img"
-              aria-label={`Stop ${stop.number} of ${stops.length}`}
+              aria-label={`Stop ${number} of ${total}`}
             >
               <div
                 className="h-[2px]"
                 style={{
-                  width: `${(stop.number / stops.length) * 100}%`,
+                  width: `${(number / total) * 100}%`,
                   background: "var(--ut-gold)",
                   opacity: 0.75,
                 }}
@@ -129,14 +129,16 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
           </div>
           {unresolved.length > 0 && (
             <p className="font-body text-[12px] mt-3" style={{ color: "var(--ut-magenta)" }}>
-              Stops {unresolved.join(", ")} could not be resolved against the current registries
-              and are not shown. The path continues without them.
+              Stop{unresolved.length > 1 ? "s" : ""} {unresolved.join(", ")} of this path could
+              not be resolved against the current registries and cannot be opened. The numbers of
+              the other stops are unchanged, and the path continues around them.
             </p>
           )}
         </section>
 
         {/* ── THE STOP ─────────────────────────────────────────────────── */}
         <section className="container-ut pb-8">
+          {stop && (
           <SectionReveal key={stop.number}>
             <article
               data-path-stop={stop.number}
@@ -256,6 +258,68 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
               </div>
             </article>
           </SectionReveal>
+          )}
+
+          {selection.state === "unavailable" && (
+            <article
+              data-path-unavailable={selection.number}
+              className="p-6 md:p-8"
+              style={{ border: "1px dashed rgba(230,80,200,0.35)", background: "rgba(230,80,200,0.02)" }}
+            >
+              <p
+                className="font-mono text-[9px] tracking-[0.25em] uppercase mb-4"
+                style={{ color: "var(--ut-magenta)", opacity: 0.9 }}
+              >
+                {selection.number}. Stop unavailable
+              </p>
+              <h2
+                className="font-display text-2xl md:text-3xl tracking-[0.03em] mb-4"
+                style={{ color: "var(--ut-white)" }}
+              >
+                This stop cannot be opened
+              </h2>
+              <p
+                className="font-body text-sm md:text-base leading-relaxed mb-4"
+                style={{ color: "var(--ut-white-dim)" }}
+              >
+                Stop {selection.number} of this path could not be resolved against the current
+                registries, so the record it names is not being shown. Nothing has been
+                substituted in its place: that number still belongs to that stop, and this page
+                will not present a neighbouring record under it.
+              </p>
+              <p className="font-body text-[13px]" style={{ color: "var(--ut-white-faint)" }}>
+                The other stops keep their own numbers and remain open.
+              </p>
+            </article>
+          )}
+
+          {selection.state === "out-of-range" && (
+            <article
+              data-path-out-of-range
+              className="p-6 md:p-8"
+              style={{ border: "1px dashed var(--ut-border)", background: "rgba(255,255,255,0.015)" }}
+            >
+              <p
+                className="font-mono text-[9px] tracking-[0.25em] uppercase mb-4"
+                style={{ color: "var(--ut-white-faint)", opacity: 0.8 }}
+              >
+                No such stop
+              </p>
+              <h2
+                className="font-display text-2xl md:text-3xl tracking-[0.03em] mb-4"
+                style={{ color: "var(--ut-white)" }}
+              >
+                This path has {total} stops
+              </h2>
+              <p
+                className="font-body text-sm md:text-base leading-relaxed mb-4"
+                style={{ color: "var(--ut-white-dim)" }}
+              >
+                The stop requested is outside 1&ndash;{total}. Showing the beginning of the path
+                instead, with its numbering unchanged.
+              </p>
+            </article>
+          )}
         </section>
 
         {/* ── MOVEMENT ─────────────────────────────────────────────────── */}
@@ -311,7 +375,7 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
           </p>
           <ol className="grid gap-2" data-path-stops>
             {stops.map((s) => {
-              const current = s.number === stop.number;
+              const current = s.number === number;
               return (
                 <li key={`${s.topic}-${s.anchor ?? "room"}`}>
                   <Link
@@ -351,6 +415,27 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
                 </li>
               );
             })}
+            {/* An unavailable stop keeps its row and its number, marked as unavailable, so the
+                list still reads 1..N and no number silently disappears. */}
+            {unresolved.map((n) => (
+              <li key={`unavailable-${n}`}>
+                <span
+                  data-path-stop-unavailable={n}
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2 px-3"
+                  style={{ border: "1px dashed rgba(230,80,200,0.3)" }}
+                >
+                  <span
+                    className="font-mono text-[10px] w-5 text-right shrink-0"
+                    style={{ color: "var(--ut-magenta)", opacity: 0.9 }}
+                  >
+                    {n}
+                  </span>
+                  <span className="font-body text-[13px]" style={{ color: "var(--ut-white-faint)" }}>
+                    Unavailable — this stop&apos;s record could not be resolved
+                  </span>
+                </span>
+              </li>
+            ))}
           </ol>
         </section>
 
