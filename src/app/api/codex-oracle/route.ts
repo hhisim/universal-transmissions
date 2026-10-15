@@ -5,6 +5,7 @@ import {
   validateHistory,
   type HistoryMessage,
 } from "@/lib/oracle-conversation";
+import { resolveNamedRecords } from "@/lib/named-record-resolver";
 
 const ORACLE_BACKEND = "http://204.168.154.237:8001/chat";
 
@@ -45,7 +46,19 @@ export async function POST(req: NextRequest) {
     }
     const conversation: HistoryMessage[] = validation.messages;
 
-    const composed = composeGroundedMessage({ history: conversation, question });
+    /* ── Named-record resolution ──────────────────────────────────────────────
+       The visitor can name a record instead of selecting one. That reference is
+       resolved BEFORE the backend's broad semantic retrieval, from the same dataset
+       and through the same resolver the selected-record path uses. This route takes
+       no selection input at all, so a name is the only way a specific record can
+       reach the answer here. Nothing is invented: an unknown name attaches no record. */
+    const named = resolveNamedRecords(question);
+
+    const composed = composeGroundedMessage({
+      history: conversation,
+      grounding: named.blocks.join("\n\n"),
+      question,
+    });
     // Refuse before calling the provider when even the question alone will not
     // fit, rather than truncating the visitor's own words.
     if (!composed.ok) {

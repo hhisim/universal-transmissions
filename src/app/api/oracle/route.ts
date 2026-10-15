@@ -11,6 +11,7 @@ import {
   type HistoryMessage,
 } from '@/lib/oracle-conversation';
 import { resolveOracleEntity, type ResolvedEntry } from '@/lib/oracle-entry-resolver';
+import { resolveNamedRecords, type NamedRecordResolution } from '@/lib/named-record-resolver';
 import { resolveResearchTopic, researchPromptBlock } from '@/lib/research-topics';
 
 const BACKEND_URL = process.env.ORACLE_BACKEND_URL || 'http://204.168.154.237:8001';
@@ -170,6 +171,27 @@ export async function POST(req: Request) {
       groundingParts.push(entry.promptBlock);
     }
 
+    /* ── Named-record resolution (a FALLBACK, never an override) ───────────────
+       A record can also be reached by NAME. Until now only a SELECTED record was
+       grounded, so a visitor who typed "Follow Aleph through its element, colour
+       and frequency" reached the provider with no record at all — and the backend
+       cannot compensate, because the record lives in this dataset, not in its
+       corpus. Resolving here happens BEFORE the backend's broad semantic retrieval,
+       reusing the same identifier scheme and the same server-side resolver as a
+       selected record, so named and selected produce identical grounding.
+
+       It applies only when the visitor selected NOTHING (`!entry` and no research
+       topic), so an explicit anchor stays authoritative and can never be
+       overridden by a name that merely appears in the question. */
+    let namedRecords: NamedRecordResolution | null = null;
+    if (!entry && !researchRequested) {
+      const named = resolveNamedRecords(question);
+      if (named.blocks.length) {
+        namedRecords = named;
+        groundingParts.push(...named.blocks);
+      }
+    }
+
     /* ── Codex page questions ──────────────────────────────────────────────────
        Page-anchored retrieval only covers pages 1-200. When the visitor names a
        page we state that bound honestly instead of letting another page or a
@@ -300,6 +322,18 @@ export async function POST(req: Request) {
             entityType: entry.entityType,
             title: entry.title,
             system: entry.system,
+          }
+        : null,
+      // Records reached by NAME in this question. Reported so the client, the tests
+      // and a reviewer can see exactly which record grounded the answer, and that an
+      // ambiguous name was REPORTED rather than silently resolved to one record.
+      namedRecords: namedRecords
+        ? {
+            ids: namedRecords.ids,
+            ambiguous: namedRecords.ambiguous.map((item) => ({
+              name: item.name,
+              matches: item.matches.map((m) => m.id),
+            })),
           }
         : null,
       // Non-sensitive counters so the client can show honest memory state.
