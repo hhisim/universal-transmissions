@@ -128,8 +128,15 @@ console.log("\n== B. the standalone gap text is corrected the same way ==");
   chk("the gap no longer claims nobody outside the project has used the alphabet as proof of no transmission",
       !/no claim is made that it has been used or understood/.test(gaps));
   chk("the gap carries the artist's account", /ecstatic states of trance/.test(gaps));
-  chk("the gap says the archive does not verify and does not deny",
-      /does not\s+deny it/i.test(gaps) && /does not independently verify/i.test(gaps));
+  /* RE-SCOPED to the owner's direction: the gap no longer hedges the account with a
+     verification caveat. It carries the artist's account affirmatively, and the retired
+     framing must be absent - asserted both ways so it cannot creep back. */
+  chk("the gap gives the artist's account as the room's own account",
+      /given in the room in the artist's own words/i.test(gaps));
+  chk("the gap carries no verification caveat",
+      !/does not independently verify/i.test(gaps) && !/does not\s+deny it/i.test(gaps));
+  chk("the gap carries no disclaimer about the signals being a scientific claim",
+      !/no physical mechanism/i.test(gaps) && !/scientific claim/i.test(gaps));
 }
 
 console.log("\n== C. every room speaks from inside the work, and keeps attribution exact ==");
