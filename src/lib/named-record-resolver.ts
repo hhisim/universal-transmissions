@@ -92,6 +92,64 @@ const BY_NAME: Map<string, CodexEntry[]> = (() => {
   return index;
 })();
 
+/** A name with a space is matched as a PHRASE, so "The Explorer" is a name, not a token. */
+const MULTIWORD_NAMES: string[] = Array.from(BY_NAME.keys()).filter((n) => n.includes(" "));
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** The whole registered phrase appears, word-bounded — never one of its tokens alone. */
+function phraseInQuestion(question: string, name: string): boolean {
+  return new RegExp(`(^|[^A-Za-z0-9_\\u00C0-\\u024F])${escapeRegExp(name)}([^A-Za-z0-9_\\u00C0-\\u024F]|$)`, "i").test(question);
+}
+
+/** System identity -> the ordinary words a visitor uses to name it. */
+const SYSTEM_WORDS: Record<string, string[]> = {
+  METALS: ["metal", "metals", "metallic"],
+  COLORS: ["color", "colors", "colour", "colours"],
+  CRYSTALS: ["crystal", "crystals", "stone", "stones", "mineral", "minerals"],
+  PLANETS: ["planet", "planets"],
+  DEITIES: ["deity", "deities", "god", "goddess", "angel", "angels"],
+  ZODIAC: ["zodiac", "sign", "signs"],
+  TAROT: ["tarot", "card", "cards", "arcana"],
+  LETTERS_HEBREW: ["hebrew", "hebrew letter", "hebrew letters"],
+  LETTERS_LATIN: ["latin", "latin letter", "latin letters"],
+  ALCHEMY: ["alchemy", "alchemical", "process", "processes"],
+  GEOMANCY: ["geomancy", "geomantic", "figure", "figures"],
+  ARCHETYPES: ["archetype", "archetypes"],
+  I_CHING: ["iching", "i ching", "hexagram", "hexagrams"],
+  KABBALAH: ["kabbalah", "sephirah", "sephiroth"],
+};
+
+/** The system a question names outright, if any. */
+export function systemNamedInQuestion(question: string): string | null {
+  const q = String(question ?? "").toLowerCase();
+  for (const sys of Object.keys(SYSTEM_WORDS)) {
+    for (const word of SYSTEM_WORDS[sys]) {
+      if (new RegExp(`(^|[^a-z])${escapeRegExp(word)}([^a-z]|$)`).test(q)) return sys;
+    }
+  }
+  return null;
+}
+
+/** Words that make a question a FOLLOW-UP rather than a new subject. */
+const ANAPHORA = new Set([
+  "that", "this", "these", "those", "it", "its", "they", "them", "their",
+  "same", "another",
+]);
+
+/**
+ * Is this question a genuine follow-up? A question that names nothing is NOT
+ * automatically one: "Tell me about Zorblax" is a new subject, not a continuation,
+ * and must not inherit the previous record. A follow-up leans on a word that points
+ * back at what was already said.
+ */
+function looksLikeFollowUp(question: string): boolean {
+  const words = String(question ?? "").toLowerCase().match(/[a-z0-9']+/g) ?? [];
+  return words.some((w) => ANAPHORA.has(w));
+}
+
 function toNamedRecord(entry: CodexEntry): NamedRecord {
   return { sys: entry.sys, e: entry.e, id: correspondenceEntryId(entry) };
 }
@@ -102,6 +160,24 @@ function toNamedRecord(entry: CodexEntry): NamedRecord {
  * Pure and deterministic: the same question always produces the same result, and it
  * reads only the existing dataset.
  */
+/** The ambiguity the conversation is currently sitting on, if its last named turn left one. */
+function currentAmbiguity(
+  history: ReadonlyArray<{ role?: string; text?: string; content?: string }>
+): NamedRecordAmbiguity | null {
+  for (let i = history.length - 1; i >= 0; i -= 1) {
+    const turn = history[i];
+    if (!turn || turn.role !== "user") continue;
+    const said = typeof turn.text === "string"
+      ? turn.text
+      : (typeof turn.content === "string" ? turn.content : "");
+    if (!said) continue;
+    const prior = resolveNamedRecords(said, []);
+    if (prior.ambiguous.length) return prior.ambiguous[0];
+    if (prior.resolved.length) return null;
+  }
+  return null;
+}
+
 export function resolveNamedRecords(
   question: string,
   history?: ReadonlyArray<{ role?: string; text?: string; content?: string }>
@@ -109,15 +185,28 @@ export function resolveNamedRecords(
   const resolved: NamedRecord[] = [];
   const ambiguous: NamedRecordAmbiguity[] = [];
   const seen = new Set<string>();
+  const q = String(question ?? "");
 
-  // Whole words, keeping the visitor's own spelling for the ambiguity notice.
-  // ES5-safe on purpose: the project targets es5, so no `u` flag and no `\p{...}`
-  // property escapes — an explicit Latin-1 + Latin Extended-A range instead.
-  const words = String(question ?? "").match(/[A-Za-z0-9_\u00C0-\u024F'’-]+/g) ?? [];
+  /** Record one candidate set, either as a resolution or as a preserved ambiguity. */
+  const admit = (spelling: string, candidates: NamedRecord[]): void => {
+    const identity = candidates.map((c) => c.id).sort().join("|");
+    if (seen.has(identity)) return;
+    seen.add(identity);
+    if (candidates.length > 1) {
+      ambiguous.push({ name: spelling, matches: candidates });
+      return;
+    }
+    if (resolved.length < MAX_NAMED_RECORDS) resolved.push(candidates[0]);
+  };
+
+  // ── Single words, keeping the visitor's own spelling for the ambiguity notice.
+  //    ES5-safe: no `u` flag and no \p{...} escapes.
+  const words = q.match(/[A-Za-z0-9_\u00C0-\u024F'’-]+/g) ?? [];
 
   for (let i = 0; i < words.length; i += 1) {
     const word = words[i];
     const key = word.toLowerCase();
+    if (key.includes(" ")) continue; // phrases are matched whole, below
     const matches = BY_NAME.get(key);
     if (!matches || !matches.length) continue;
 
@@ -125,41 +214,60 @@ export function resolveNamedRecords(
     const framed = i > 0 && FRAMING_WORDS.has(words[i - 1].toLowerCase());
     if (key.length < MIN_BARE_NAME_CHARS && !framed) continue;
 
-    const candidates = matches.map(toNamedRecord);
-    const identity = candidates.map((c) => c.id).sort().join("|");
-    if (seen.has(identity)) continue;
-    seen.add(identity);
-
-    if (candidates.length > 1) {
-      // The name is carried by more than one record. Preserve that ambiguity — all
-      // candidates are listed and none is chosen.
-      ambiguous.push({ name: word, matches: candidates });
-      continue;
-    }
-
-    if (resolved.length >= MAX_NAMED_RECORDS) continue;
-    resolved.push(candidates[0]);
+    admit(word, matches.map(toNamedRecord));
   }
 
-  /* ── CONTINUITY ────────────────────────────────────────────────────────────
-     A visitor who follows up without repeating the name ("And how does that relate
-     to the colour?") must keep the record the conversation is already about. The
-     current question wins; only when it names nothing do we inherit the most recent
-     record a PREVIOUS user turn named. Nothing is inherited across a question that
-     names a different record, and an inherited record is never ambiguous-based. */
-  if (!resolved.length && !ambiguous.length && Array.isArray(history)) {
-    for (let i = history.length - 1; i >= 0 && resolved.length === 0; i -= 1) {
+  // ── Multiword registered names, matched as WHOLE PHRASES. A single token of a
+  //    multiword name is never substituted for it.
+  for (const name of MULTIWORD_NAMES) {
+    if (resolved.length >= MAX_NAMED_RECORDS) break;
+    if (!phraseInQuestion(q, name)) continue;
+    const matches = BY_NAME.get(name);
+    if (matches && matches.length) admit(name, matches.map(toNamedRecord));
+  }
+
+  /* ── CLARIFICATION ──────────────────────────────────────────────────────────
+     The conversation is currently ambiguous and the visitor has answered with the
+     SYSTEM instead of repeating the name ("the metal one", "the metal copper"). The
+     intended candidate is the ambiguous one whose system identity is named — the
+     SAME registry, no second namespace. */
+  const sysWord = systemNamedInQuestion(q);
+  if (!resolved.length && sysWord) {
+    // Prefer the ambiguity raised by THIS question (the visitor repeated the name and
+    // added the system: "the metal copper"), then the one the conversation is on
+    // ("the metal one").
+    const candidates = ambiguous.length
+      ? ambiguous[0].matches
+      : (Array.isArray(history) ? (currentAmbiguity(history) || { matches: [] }).matches : []);
+    const hit = candidates.filter((m) => m.sys === sysWord);
+    if (hit.length === 1) {
+      if (ambiguous.length) ambiguous.pop();  // clarified: no longer ambiguous
+      resolved.push(hit[0]);
+    }
+  }
+
+  /* ── CONTINUITY ─────────────────────────────────────────────────────────────
+     Only a GENUINE follow-up inherits, and only from the most recent subject. A
+     question that names nothing is not automatically a continuation: "Tell me about
+     Zorblax" is a new subject and must not receive the previous record's grounding.
+     An unresolved ambiguity in the transcript IS the current conversational state,
+     so the walk stops there rather than reviving an older resolved record. */
+  if (!resolved.length && !ambiguous.length && looksLikeFollowUp(q) && Array.isArray(history)) {
+    for (let i = history.length - 1; i >= 0; i -= 1) {
       const turn = history[i];
       if (!turn || turn.role !== "user") continue;
-      // `HistoryMessage` carries the visitor's words in `text`; `content` is tolerated
-      // for callers that shape their own turns. Reading only `content` kept this
-      // inheritance silently inert against the real conversation type.
+      // HistoryMessage carries the visitor's words in `text`; `content` is tolerated
+      // for callers that shape their own turns.
       const said = typeof turn.text === "string"
         ? turn.text
         : (typeof turn.content === "string" ? turn.content : "");
       if (!said) continue;
-      const prior = resolveNamedRecords(said);  // question only: no history re-entry
-      if (prior.resolved.length) resolved.push(...prior.resolved.slice(0, MAX_NAMED_RECORDS));
+      const prior = resolveNamedRecords(said); // question only: no history re-entry
+      if (prior.ambiguous.length) break;       // the ambiguity is the current state
+      if (prior.resolved.length) {
+        resolved.push(...prior.resolved.slice(0, MAX_NAMED_RECORDS));
+        break;
+      }
     }
   }
 
@@ -195,7 +303,5 @@ export function resolveNamedRecords(
       `The visitor named "${item.name}", which is carried by more than one archive record: ${list}. ` +
         `Do not choose one of them silently — say which records share the name and ask which one is meant.`
     );
-  }
-
-  return { resolved, ambiguous, blocks, ids };
+  }  return { resolved, ambiguous, blocks, ids };
 }

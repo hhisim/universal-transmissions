@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
        and through the same resolver the selected-record path uses. This route takes
        no selection input at all, so a name is the only way a specific record can
        reach the answer here. Nothing is invented: an unknown name attaches no record. */
-    const named = resolveNamedRecords(question);
+    const named = resolveNamedRecords(question, conversation);
 
     const composed = composeGroundedMessage({
       history: conversation,

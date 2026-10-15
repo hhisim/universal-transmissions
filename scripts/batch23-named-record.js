@@ -166,6 +166,79 @@ ok(/if \(!entry && !explicitSelectionSupplied && !researchRequested\)/.test(rout
 ok(!/if \(!entry && !researchRequested\) \{\s*const named = resolveNamedRecords/.test(routeSrc),
   "9c the guard does not fall back to `entry` alone");
 
+/* ── 11. CLARIFICATION through the actual system identity ─────────────────── */
+console.log("  --- 11 an ambiguous candidate is resolved by its system ---");
+const AMB_TURN = [{ role: "user", text: "Tell me about copper in the archive." }];
+const ambState = resolveNamedRecords("Tell me about copper in the archive.");
+ok(ambState.ambiguous.length === 1 && ambState.ambiguous[0].matches.length === 2,
+  "11 copper preserves BOTH candidates (got " + JSON.stringify(ambState.ambiguous.map(a => a.matches.length)) + ")");
+for (const clarification of ["Tell me about the metal one.", "The metal copper."]) {
+  const c = resolveNamedRecords(clarification, AMB_TURN);
+  ok(c.resolved.length === 1 && c.resolved[0].sys === "METALS" && c.resolved[0].e === "Copper",
+    "11 " + JSON.stringify(clarification) + " resolves METALS::Copper (got " + JSON.stringify(c.ids) + ")");
+}
+const wrongSys = resolveNamedRecords("Tell me about the colour one.", AMB_TURN);
+ok(wrongSys.resolved.length === 1 && wrongSys.resolved[0].sys === "COLORS",
+  "11 the same clarification path picks the OTHER candidate for a colour (got " + JSON.stringify(wrongSys.ids) + ")");
+// Naming BOTH the name and its system is a legitimate selection, not a silent choice:
+// the visitor said which copper they meant. (Merely naming the bare name stays ambiguous.)
+const selfClarified = resolveNamedRecords("The metal copper.", []);
+ok(selfClarified.resolved.length === 1 && selfClarified.resolved[0].sys === "METALS",
+  "11 naming the system outright selects that candidate (got " + JSON.stringify(selfClarified.ids) + ")");
+ok(resolveNamedRecords("Tell me about copper.", []).ambiguous.length === 1,
+  "11 the bare name alone remains ambiguous");
+
+/* ── 12. inherited subject must not be substituted onto a new one ─────────── */
+console.log("  --- 12 inheritance is gated on being a genuine follow-up ---");
+const AFTER_ALEPH = [
+  { role: "user", text: ALEPH_Q },
+  { role: "assistant", text: "Aleph carries Air, the colours Blue, White and Grey, and 741 Hz — Awakening." },
+];
+ok(resolveNamedRecords("And how does that relate to the colour?", AFTER_ALEPH).ids.join() === "corr-v1:LETTERS_HEBREW::Aleph",
+  "12 a genuine follow-up still retains Aleph");
+ok(resolveNamedRecords("Tell me about Zorblax.", AFTER_ALEPH).resolved.length === 0,
+  "12 'Tell me about Zorblax' does NOT attach Aleph (got " + JSON.stringify(resolveNamedRecords("Tell me about Zorblax.", AFTER_ALEPH).ids) + ")");
+ok(resolveNamedRecords("Tell me about Zorblax.", AFTER_ALEPH).blocks.length === 0,
+  "12 ...and receives no mandatory Aleph grounding");
+for (const unrelated of ["What is the weather in Lisbon?", "Give me a summary of the archive.", "How many entries are there?"]) {
+  const r = resolveNamedRecords(unrelated, AFTER_ALEPH);
+  ok(r.resolved.length === 0 && r.blocks.length === 0,
+    "12 an unrelated question gets no inherited grounding: " + JSON.stringify(unrelated.slice(0, 30)));
+}
+
+/* ── 13. an unresolved ambiguity stays the current state ─────────────────── */
+console.log("  --- 13 an ambiguity is not scanned past ---");
+const AMB_THEN = [
+  { role: "user", text: ALEPH_Q },
+  { role: "assistant", text: "Aleph carries Air." },
+  { role: "user", text: "Tell me about copper in the archive." },
+  { role: "assistant", text: "Which copper do you mean?" },
+];
+const afterAmb = resolveNamedRecords("And what does that one look like?", AMB_THEN);
+ok(afterAmb.resolved.length === 0,
+  "13 a follow-up after an ambiguity does NOT revive the older resolved Aleph (got " + JSON.stringify(afterAmb.ids) + ")");
+ok(afterAmb.ids.join() !== "corr-v1:LETTERS_HEBREW::Aleph", "13 specifically not Aleph");
+
+/* ── 14. MULTIWORD registered names, matched whole ───────────────────────── */
+console.log("  --- 14 multiword names match as whole phrases ---");
+const explorer = resolveNamedRecords("Tell me about The Explorer.");
+ok(explorer.resolved.some((r) => r.sys === "ARCHETYPES" && r.e.toLowerCase().indexOf("explorer") !== -1),
+  "14 'The Explorer' resolves its ARCHETYPES record (resolved=" + JSON.stringify(explorer.resolved.map((r) => r.id)) + ")");
+ok(resolveNamedRecords("Tell me about the explorer archetype.").resolved.length >= 1,
+  "14 the phrase still matches when embedded in a sentence");
+for (const partial of ["Tell me about a career in exploration.", "The exploration of the archive."]) {
+  ok(resolveNamedRecords(partial).resolved.length === 0,
+    "14 a token of a multiword name is NOT substituted: " + JSON.stringify(partial.slice(0, 34)));
+}
+
+/* ── 15. BOTH routes carry continuity (real wiring, not a source pattern) ── */
+console.log("  --- 15 both route endpoints pass the conversation ---");
+for (const rel of ["src/app/api/oracle/route.ts", "src/app/api/codex-oracle/route.ts"]) {
+  const src = fs.readFileSync(path.join(ROOT, rel), "utf8");
+  ok(/resolveNamedRecords\(question, conversation\)/.test(src),
+    "15 " + rel + " resolves named records WITH the conversation");
+}
+
 /* ── 10. an explicit selection stays authoritative (route wiring) ─────────── */
 console.log("  --- 10 an explicit selected-record anchor remains authoritative ---");
 ok(/if \(!entry && !explicitSelectionSupplied && !researchRequested\)/.test(routeSrc),
