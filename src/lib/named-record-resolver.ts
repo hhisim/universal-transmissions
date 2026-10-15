@@ -216,13 +216,89 @@ const SUBJECT_STOPWORDS = new Set([
   "please", "explain", "describe", "follow", "show", "give", "more", "again", "also",
 ]);
 
+/** Words that may sit INSIDE a multi-word name without ending it. */
+const PHRASE_CONNECTORS = new Set([
+  "the", "a", "an", "and", "or", "of", "in", "on", "at", "to", "for", "with",
+  "from", "by", "as", "into", "its", "his", "her", "their", "our", "your", "my",
+]);
+
+/** A subject is one sentence long: nothing is carried across a sentence boundary. */
+const SENTENCE_BOUNDARY = /[.!?;:\n]+/;
+
+/** Articles a title may open with ("The Star and the Uncarved Block"). */
+const ARTICLE_HEADS = new Set(["the", "a", "an"]);
+
+/**
+ * The visitor's subject within ONE sentence, as a COMPLETE phrase.
+ *
+ * A name may be a phrase: "The Star and the Uncarved Block" is one Journal title, not the
+ * word "Star". The run is therefore taken whole — from the first name word (or the article
+ * that opens it) through every following name word, allowing the connector words that hold a
+ * name together — and is bounded by the sentence and by the first token that is neither a
+ * name word nor a connector leading to one, so it can never swallow the rest of a question.
+ *
+ * The START rule is unchanged from the single-token version (a capitalised non-function word
+ * of four or more characters, or an ALL-CAPS token, never the sentence's first word); only
+ * the extent of the run is new.
+ */
+function subjectPhraseIn(sentence: string): string | null {
+  const tokens = sentence.match(/[A-Za-z0-9_\u00C0-\u024F'’-]+/g) ?? [];
+  if (!tokens.length) return null;
+
+  const isAllCaps = (t: string) => t.length >= 3 && t === t.toUpperCase() && /[A-Z]/.test(t);
+  // A name word inside the run: capitalised and not a function word.
+  const isName = (t: string) => /^[A-Z]/.test(t) && !SUBJECT_STOPWORDS.has(t.toLowerCase());
+  const opensAName = (t: string) => isName(t) && t.length >= 4;
+  const isConnector = (t: string) => PHRASE_CONNECTORS.has(t.toLowerCase());
+
+  let start = tokens.findIndex(isAllCaps);
+  if (start < 0) {
+    for (let i = 0; i < tokens.length; i++) {
+      // A CAPITALISED article opens a name when a name word follows it: "The Star …".
+      // A lowercase article does not — that is prose ("what is the Codex?"), and the name
+      // word alone opens the run there, exactly as it did before.
+      if (/^[A-Z]/.test(tokens[i]) && ARTICLE_HEADS.has(tokens[i].toLowerCase()) && isName(tokens[i + 1] ?? "")) {
+        start = i;
+        break;
+      }
+      // Sentence case is not a subject: the first word of a sentence never opens one.
+      if (i === 0) continue;
+      if (opensAName(tokens[i])) {
+        start = i;
+        break;
+      }
+    }
+  }
+  if (start < 0) return null;
+
+  let end = start;
+  let j = start + 1;
+  while (j < tokens.length) {
+    if (isName(tokens[j])) {
+      end = j;
+      j += 1;
+      continue;
+    }
+    // Connectors continue the run only when a name word follows them.
+    if (isConnector(tokens[j])) {
+      let k = j;
+      while (k < tokens.length && isConnector(tokens[k])) k += 1;
+      if (k < tokens.length && isName(tokens[k])) {
+        j = k;
+        continue;
+      }
+    }
+    break;
+  }
+  return tokens.slice(start, end + 1).join(" ");
+}
+
 function bareSubjectIn(question: string): string | null {
-  const tokens = String(question ?? "").match(/[A-Za-z0-9_\u00C0-\u024F'’-]+/g) ?? [];
-  const allCaps = tokens.find((t) => t.length >= 3 && t === t.toUpperCase() && /[A-Z]/.test(t));
-  if (allCaps) return allCaps;
-  const capitalised = tokens.find((t, i) =>
-    i > 0 && /^[A-Z]/.test(t) && t.length >= 4 && !SUBJECT_STOPWORDS.has(t.toLowerCase()));
-  return capitalised ?? null;
+  for (const sentence of String(question ?? "").split(SENTENCE_BOUNDARY)) {
+    const phrase = subjectPhraseIn(sentence);
+    if (phrase) return phrase;
+  }
+  return null;
 }
 
 export function reconstructSubject(
