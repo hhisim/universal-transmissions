@@ -6,6 +6,7 @@ import Link from "next/link";
 import ResearchPathways from "@/components/research/ResearchPathways";
 import ResearchNexus from "@/components/research/ResearchNexus";
 import { RESEARCH_DOMAINS, allRegisteredConnections } from "@/lib/research-topics";
+import { GUIDED_PATHS, resolvePath } from "@/lib/guided-paths";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
@@ -108,6 +109,16 @@ export default function ResearchPage() {
       url: s.url,
       internal: s.internal ?? false,
     })),
+  }));
+
+  /* Derived from the guided-paths registry, not retyped: the count shown here is the
+     number of stops that actually RESOLVE, so the entry point cannot advertise a path
+     the path page would render short. */
+  const guidedPathEntries = GUIDED_PATHS.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    theme: p.theme,
+    count: resolvePath(p).stops.length,
   }));
 
   return (
@@ -279,6 +290,88 @@ export default function ResearchPage() {
                   </Link>
                 </SectionReveal>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── GUIDED EXPLORATIONS — curated orders over the records above ──
+            Derived from the same GUIDED_PATHS registry the paths themselves render, so a
+            path that fails to resolve is counted here rather than advertised. */}
+        <section
+          className="py-20"
+          style={{ borderTop: "1px solid rgba(240, 199, 94, 0.08)" }}
+          data-guided-paths-entry="true"
+        >
+          <div className="container-ut">
+            <div className="max-w-3xl mx-auto">
+              <SectionReveal>
+                <p
+                  className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
+                  style={{ color: "var(--ut-gold)", opacity: 0.6 }}
+                >
+                  [ Guided Explorations ]
+                </p>
+                <h2
+                  className="font-display text-2xl md:text-3xl mb-4"
+                  style={{ color: "var(--ut-gold)" }}
+                >
+                  <ZalgoText text="Follow a Path" intensity="subtle" />
+                </h2>
+                <p
+                  className="font-body text-sm leading-relaxed mb-8"
+                  style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}
+                >
+                  Three curated routes through the records on this page and the rooms below.
+                  Each stop is an existing record with its own basis and its own Oracle
+                  question; the reading that joins one stop to the next is marked as a curated
+                  reading. You can move backward, jump to any stop, leave for ordinary
+                  exploration and come back without losing your place.
+                </p>
+              </SectionReveal>
+
+              <div className="grid gap-4">
+                {guidedPathEntries.map(({ slug, title, theme, count }) => (
+                  <SectionReveal key={slug}>
+                    <Link
+                      href={`/paths/${slug}`}
+                      data-nexus-path={slug}
+                      className="block p-5 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                      style={{
+                        border: "1px solid var(--ut-border)",
+                        background: "rgba(255,255,255,0.015)",
+                      }}
+                    >
+                      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-2">
+                        <span
+                          className="font-display text-lg md:text-xl tracking-[0.03em]"
+                          style={{ color: "var(--ut-white)" }}
+                        >
+                          {title}
+                        </span>
+                        <span
+                          className="font-mono text-[9px] tracking-[0.25em] uppercase"
+                          style={{ color: "var(--ut-gold)", opacity: 0.75 }}
+                        >
+                          {count} stops
+                        </span>
+                      </div>
+                      <p className="font-body text-[13px]" style={{ color: "var(--ut-white-dim)" }}>
+                        {theme}
+                      </p>
+                    </Link>
+                  </SectionReveal>
+                ))}
+              </div>
+
+              <p className="mt-6">
+                <Link
+                  href="/paths"
+                  className="font-mono text-[10px] tracking-[0.2em] uppercase focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                  style={{ color: "var(--ut-gold)", opacity: 0.85 }}
+                >
+                  See all three paths →
+                </Link>
+              </p>
             </div>
           </div>
         </section>
