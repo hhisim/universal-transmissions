@@ -12,6 +12,7 @@ import {
 } from '@/lib/oracle-conversation';
 import { resolveOracleEntity, type ResolvedEntry } from '@/lib/oracle-entry-resolver';
 import { resolveNamedRecords, type NamedRecordResolution } from '@/lib/named-record-resolver';
+import { recordLinksFor } from '@/lib/record-links';
 
 /** Marker the backend seam recognises, so the referent is never mistaken for grounding. */
 const SUBJECT_MARKER = "Current subject of this conversation:";
@@ -360,6 +361,12 @@ export async function POST(req: Request) {
             })),
           }
         : null,
+      /* The same resolution, as the visitor can use it: every record the answer was grounded on,
+         with its own title, its kind and the page it lives on. Derived from the identities
+         above and the registries that own them — never from the model's prose, and never a
+         guessed slug. Null when the question named no record, so an unknown subject acquires
+         no card. */
+      recordLinks: recordLinksFor(namedRecords),
       // Non-sensitive counters so the client can show honest memory state.
       conversation: {
         // What the client actually sent vs what was actually forwarded upstream.

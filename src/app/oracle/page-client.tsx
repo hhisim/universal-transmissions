@@ -9,6 +9,16 @@ import { motion } from "framer-motion";
 import ZalgoText from "@/components/ui/ZalgoText";
 import SectionReveal from "@/components/ui/SectionReveal";
 import OracleCorrespondenceDock from "@/components/oracle/OracleCorrespondenceDock";
+/* Batch 27: the records an answer opened, offered as destinations. The component imports the
+   shape types only, so no registry, resolver or corpus reaches this bundle. */
+import RecordLinks from "@/components/oracle/RecordLinks";
+import type { RecordLinkSet } from "@/lib/record-link-types";
+import {
+  appendAnswer,
+  readStoredConversation,
+  writeStoredConversation,
+  clearStoredConversation,
+} from "@/lib/oracle-conversation-state";
 // buildOracleCodexContext is deliberately NOT imported: corpus context is composed
 // server-side now. codexRowCount still drives the dock's visible row counter.
 import { codexRowCount } from "@/codex/oracle-context";
@@ -606,6 +616,12 @@ interface Msg {
   ttsPending?: boolean;
   /** Server-resolved evidence for the selected entry, if one was resolved. */
   evidence?: OracleEvidence;
+  /**
+   * The records THIS answer was grounded on, with their canonical destinations. Frozen onto
+   * the message when the answer arrives, so a later subject change cannot rewrite what an
+   * earlier answer offered. Absent when the question named no record: no substitute card.
+   */
+  records?: RecordLinkSet;
 }
 
 /* ── Batch 2: compact evidence display ─────────────────────────────────────
@@ -780,6 +796,9 @@ function ChatBubble({
                   {isXeno ? displayText : isLemurian ? toLemurianText(displayText) : <DecryptText text={displayText} onComplete={completeDecode} />}
                 </span>
               )}
+              {/* The records this answer opened, from the server's own resolution: real
+                  destinations, in mention order, frozen with this message. */}
+              {msg.records ? <RecordLinks set={msg.records} /> : null}
             </>
           ) : (
             <span>{msg.text}</span>
@@ -943,6 +962,8 @@ export default function OraclePage() {
   const [voiceOn, setVoiceOn] = useState(true);
   const [voiceGender, setVoiceGender] = useState<"f" | "m">("f");
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  /** One-shot guard so the restore decision is made exactly once per mount. */
+  const restoredRef = useRef(false);
   // The entry the visitor explicitly selected in the Correspondence dock. Sent
   // as a stable identifier only; the server resolves the record itself.
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
@@ -1027,6 +1048,27 @@ export default function OraclePage() {
     [],
   );
 
+  /* ── Batch 27: the conversation's memory of itself ─────────────────────────────
+     Following a record into the archive and coming back used to return the visitor to an
+     empty room. The conversation is kept for this tab's session only and read back once, on
+     mount — never when the visitor arrived with an explicit question, which is a fresh
+     intent. Lifespan and bounds: src/lib/oracle-conversation-state.ts. */
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    if (entryQuestion) {
+      clearStoredConversation();
+      return;
+    }
+    const restored = readStoredConversation();
+    if (restored.length) setMsgs((p) => (p.length ? p : restored));
+  }, [entryQuestion]);
+
+  useEffect(() => {
+    // Nothing to keep yet: an empty conversation must not erase what is already stored.
+    if (!restoredRef.current || !msgs.length) return;
+    writeStoredConversation(msgs);
+  }, [msgs]);
   /* ── Scroll ── */
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
@@ -1206,8 +1248,14 @@ export default function OraclePage() {
           data.activeAnchor === "entry" && data.evidence
             ? (data.evidence as OracleEvidence)
             : undefined,
+        /* The records THIS question named, as destinations. Taken from this response and
+           frozen onto this message, so a later subject change cannot rewrite an earlier
+           answer's links — and a later answer never inherits them. */
+        records: (data.recordLinks as RecordLinkSet | null) || undefined,
       };
-      setMsgs((p) => [...p, bubble]);
+      /* The answer is appended THROUGH the seam that gives it its own records, so no
+         earlier answer can be rewritten and no later answer inherits them. */
+      setMsgs((p) => appendAnswer(p, bubble));
       setQuestionsUsed((q) => q + 1);
       // Honest counters only — never transcript content.
       setMemory((data.conversation as OracleMemoryState) || null);
@@ -1330,6 +1378,7 @@ export default function OraclePage() {
       for (const m of p) if (m.audioUrl) URL.revokeObjectURL(m.audioUrl);
       return [];
     });
+    clearStoredConversation();
     setMemory(null);
     setEntityNotice(null);
     setAnchorNotice(
@@ -1868,6 +1917,88 @@ export default function OraclePage() {
         }
 
         /* Readable answer text — full content, immediately, no decode gate. */
+        /* ── Batch 27: the records an answer opened ──────────────────────────────
+           An invitation, not a report: the record's own title, what kind it is, and where it
+           lives. Quiet until hovered or focused; generous tap targets at 390px. */
+        .oracle-records {
+          margin: 14px 0 2px;
+          padding: 12px 0 0;
+          border-top: 1px solid rgba(167, 139, 250, 0.14);
+          display: grid;
+          gap: 8px;
+        }
+        .oracle-records-kicker {
+          margin: 0;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: rgba(167, 139, 250, 0.6);
+        }
+        .oracle-records-list {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .oracle-records-item { min-width: 0; }
+        .oracle-record {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 34px;
+          padding: 7px 12px;
+          border: 1px solid rgba(167, 139, 250, 0.2);
+          border-radius: 999px;
+          background: rgba(167, 139, 250, 0.05);
+          text-decoration: none;
+          transition: border-color 0.18s ease, background 0.18s ease;
+        }
+        .oracle-record:hover { border-color: rgba(167, 139, 250, 0.5); background: rgba(167, 139, 250, 0.11); }
+        .oracle-record:focus-visible {
+          outline: 2px solid #a78bfa;
+          outline-offset: 2px;
+          border-color: rgba(167, 139, 250, 0.6);
+        }
+        .oracle-record-kind {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: rgba(167, 139, 250, 0.85);
+        }
+        .oracle-record-title {
+          font-family: 'Cinzel', serif;
+          font-size: 13px;
+          color: var(--ut-white, #ede9f6);
+        }
+        .oracle-record-system {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--ut-white-faint, rgba(237, 233, 246, 0.4));
+        }
+        .oracle-records-ambiguous { display: grid; gap: 8px; }
+        .oracle-records-ask {
+          margin: 0;
+          font-size: 12px;
+          line-height: 1.6;
+          color: rgba(237, 233, 246, 0.72);
+          max-width: 62ch;
+        }
+        .oracle-records-ask em { font-style: italic; color: var(--ut-white, #ede9f6); }
+        @media (max-width: 640px) {
+          .oracle-records { margin-top: 12px; }
+          .oracle-record { min-height: 44px; padding: 10px 14px; }
+          .oracle-record-title { font-size: 14px; }
+          .oracle-records-list { gap: 10px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .oracle-record { transition: none; }
+        }
         .oracle-answer-readable p { margin: 0 0 0.85em; }
         .oracle-answer-readable p:last-child { margin-bottom: 0; }
         .oracle-answer-readable ul, .oracle-answer-readable ol { margin: 0.5em 0 0.85em 1.1em; }

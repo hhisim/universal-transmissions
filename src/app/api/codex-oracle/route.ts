@@ -6,6 +6,7 @@ import {
   type HistoryMessage,
 } from "@/lib/oracle-conversation";
 import { resolveNamedRecords } from "@/lib/named-record-resolver";
+import { recordLinksFor } from "@/lib/record-links";
 
 /** Marker the backend seam recognises, so the referent is never mistaken for grounding. */
 const SUBJECT_MARKER = "Current subject of this conversation:";
@@ -110,6 +111,8 @@ export async function POST(req: NextRequest) {
       // Report the resolution, as /api/oracle does, so the records used are reviewable
       // and both endpoints describe the same conversation the same way.
       namedRecords: named.ids.length || named.ambiguous.length ? { ids: named.ids, ambiguous: named.ambiguous } : null,
+      // The same records as usable destinations, derived from the identities above.
+      recordLinks: recordLinksFor(named),
       content: [{ text: data.content || data.response || JSON.stringify(data) }],
       stop_reason: "stop_sequence",
     });
