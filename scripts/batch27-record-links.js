@@ -51,7 +51,8 @@ const {
   serializeConversation, restoreConversation, appendAnswer,
   serializeConversationState, restoreConversationState,
   seedFrom, sameSeed, isEmptySeed, decideRestore, resolveSelectedEntry, planMount,
-  CONVERSATION_STATE_VERSION,
+  readStoredConversation, writeStoredConversation, clearStoredConversation,
+  CONVERSATION_STATE_KEY, CONVERSATION_STATE_VERSION,
 } = require(path.join(ROOT, "src/lib/oracle-conversation-state.ts"));
 const RecordLinks = require(path.join(ROOT, "src/components/oracle/RecordLinks.tsx")).default;
 
@@ -200,7 +201,7 @@ const render = (set) => renderToStaticMarkup(React.createElement(RecordLinks, { 
     "8 the client takes records from THIS response");
   ok(/\{msg\.records \? <RecordLinks set=\{msg\.records\} \/> : null\}/.test(clientSrc),
     "8 ...and renders them from the message itself, never from shared state");
-  ok(/readStoredConversation\(\)/.test(clientSrc) && /writeStoredConversation\(msgs, seedFrom\(/.test(clientSrc),
+  ok(/readStoredConversation\(\)/.test(clientSrc) && /writeStoredConversation\(msgs, originSeedRef\.current, selectedEntryId\)/.test(clientSrc),
     "8 the conversation is restored and kept for the tab's session");
   ok(/setMsgs\(\(p\) => appendAnswer\(p, bubble\)\)/.test(clientSrc),
     "8 the client appends through the seam that gives each answer its own records");
@@ -299,10 +300,72 @@ const render = (set) => renderToStaticMarkup(React.createElement(RecordLinks, { 
   ok(/planMount\(readStoredConversation\(\), seed, entryAnchorId\)/.test(clientSrc), "12 the mount effect runs the plan");
   ok(/if \(plan\.clear\) clearStoredConversation\(\)/.test(clientSrc), "12 ...clearing only when the plan says so");
   ok(/if \(plan\.msgs\.length\)/.test(clientSrc), "12 ...restoring only when there is something to restore");
-  ok(/writeStoredConversation\(msgs, seedFrom\(/.test(clientSrc), "12 the handoff and selection are kept with the conversation");
+  ok(/writeStoredConversation\(msgs, originSeedRef\.current, selectedEntryId\)/.test(clientSrc),
+    "12 the ORIGINATING handoff and the selection are kept with the conversation");
+  ok(/originSeedRef\.current = plan\.seed;/.test(clientSrc),
+    "12 ...taken from the mount plan, not from the URL the visitor returned through");
   ok(/restoredConversationRef/.test(clientSrc), "12 a restored conversation is not re-seeded from the entry draft");
   ok(!/if \(entryQuestion\) \{\s*$[\s\S]{0,80}clearStoredConversation/.test(clientSrc),
     "12 no unconditional clear on a non-empty ?q= remains in the client");
+
+  console.log("\n  --- 13. the restore -> save -> remount lifecycle, through the store itself ---");
+  /* The client's persistence path IS readStoredConversation/writeStoredConversation against
+     sessionStorage. Exercise that path, with saved messages and no model call, instead of
+     planMount in isolation. */
+  const store = {};
+  globalThis.window = { sessionStorage: {
+    getItem: (k) => (Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; },
+  } };
+  const seedA2 = seedFrom({ q: `Tell me about ${STAR}.` });
+  const seedB2 = seedFrom({ q: `Tell me about ${TANTRA}.` });
+  const lastHref = (msgs) => {
+    const last = (msgs || []).filter((m) => m.records && m.records.resolved && m.records.resolved[0]).pop();
+    return last ? last.records.resolved[0].href : "(none)";
+  };
+  const storedSeed = () => {
+    const raw = store[CONVERSATION_STATE_KEY];
+    if (!raw) return null;
+    try { return JSON.parse(raw).seed; } catch (e) { return null; }
+  };
+
+  /* A: a seeded conversation exists in the store. */
+  writeStoredConversation(convo, seedA2, "corr-v1:LETTERS_HEBREW::Aleph");
+  ok(storedSeed() && storedSeed().q === seedA2.q, "13 seeded conversation A is stored with its handoff");
+  const beforeHref = lastHref(convo);
+
+  /* The visitor returns through PLAIN /oracle: the mount runs, then the persistence effect runs. */
+  const planPlain = planMount(readStoredConversation(), seedFrom({}), "");
+  ok(planPlain.clear === false && planPlain.msgs.length === convo.length,
+    "13 a plain return restores the conversation");
+  ok(sameSeed(planPlain.seed, seedA2),
+    "13 ...and the plan carries the ORIGINATING handoff, not the empty return URL");
+  ok(planPlain.selectedEntryId === "corr-v1:LETTERS_HEBREW::Aleph",
+    "13 ...and the selection");
+  writeStoredConversation(planPlain.msgs, planPlain.seed, planPlain.selectedEntryId); // the effect's own call
+  ok(sameSeed(storedSeed(), seedA2),
+    "13 the SAVED conversation still holds its originating handoff (not the empty one)");
+
+  /* The visitor remounts the ORIGINAL seeded URL. */
+  const planBack = planMount(readStoredConversation(), seedA2, "");
+  ok(planBack.clear === false && planBack.msgs.length > 0,
+    "13 remounting the original seeded URL restores, and does NOT clear it as new-intent");
+  ok(planBack.msgs.length === convo.length && lastHref(planBack.msgs) === beforeHref,
+    `13 ...with the same messages and the same cards (${lastHref(planBack.msgs)})`);
+  ok(planBack.msgs.length > 0,
+    "13 ...so the client's draft effect (which skips reseeding when messages were restored) still skips");
+  ok(sameSeed(planBack.seed, seedA2), "13 ...still under its originating handoff");
+
+  /* A genuinely different handoff B still starts fresh. */
+  const planB2 = planMount(readStoredConversation(), seedB2, "");
+  ok(planB2.clear === true && planB2.msgs.length === 0,
+    "13 a genuinely different handoff still starts fresh");
+  if (planB2.clear) clearStoredConversation(); // the effect's own call
+  ok(store[CONVERSATION_STATE_KEY] === undefined, "13 ...and the conversation it replaces is cleared");
+  ok(planMount(readStoredConversation(), seedB2, "").msgs.length === 0,
+    "13 ...with nothing left to restore afterwards");
+  ok(sameSeed(planMount(null, seedB2, "").seed, seedB2), "13 a conversation begun under B is seeded by B");
 
   console.log("\n  assertions passed: " + pass + "   assertions failed: " + fail);
   for (const m of failures) console.log("   - " + m);
