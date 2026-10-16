@@ -289,6 +289,13 @@ const render = (set) => renderToStaticMarkup(React.createElement(RecordLinks, { 
   ok((back && back.msgs.length) === convo.length, "11 the state round trip keeps every message");
 
   console.log("\n  --- 12. the client performs that decision (wiring) ---");
+  /* The Oracle client is the one module no suite imports, so a syntax error in it is invisible
+     to every behavioural check here and only surfaces in a build. Parse it with the project's
+     own TypeScript and say so plainly. */
+  const ts = require("typescript");
+  const clientSource = ts.createSourceFile("page-client.tsx", clientSrc, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const syntaxErrors = (clientSource.parseDiagnostics || []).length;
+  ok(syntaxErrors === 0, `12 the Oracle client parses cleanly (${syntaxErrors} syntax errors)`);
   ok(/planMount\(readStoredConversation\(\), seed, entryAnchorId\)/.test(clientSrc), "12 the mount effect runs the plan");
   ok(/if \(plan\.clear\) clearStoredConversation\(\)/.test(clientSrc), "12 ...clearing only when the plan says so");
   ok(/if \(plan\.msgs\.length\)/.test(clientSrc), "12 ...restoring only when there is something to restore");
