@@ -1080,6 +1080,7 @@ export default function OraclePage() {
     }
     // The selection survives the journey too — unless the URL names one, which always wins.
     if (plan.selectedEntryId) setSelectedEntryId(plan.selectedEntryId);
+  }, [entryQuestion, rawArtworkId, rawEntryId, rawResearchId, entryAnchorId]);
 
   useEffect(() => {
     // Nothing to keep yet: an empty conversation must not erase what is already stored.
