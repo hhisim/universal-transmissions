@@ -15,6 +15,8 @@ import RecordLinks from "@/components/oracle/RecordLinks";
 import type { RecordLinkSet } from "@/lib/record-link-types";
 import {
   appendAnswer,
+  planMount,
+  seedFrom,
   readStoredConversation,
   writeStoredConversation,
   clearStoredConversation,
@@ -963,6 +965,8 @@ export default function OraclePage() {
   const [voiceGender, setVoiceGender] = useState<"f" | "m">("f");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   /** One-shot guard so the restore decision is made exactly once per mount. */
+  /** True when the mount restored a conversation, so its draft is not re-seeded. */
+  const restoredConversationRef = useRef(false);
   const restoredRef = useRef(false);
   // The entry the visitor explicitly selected in the Correspondence dock. Sent
   // as a stable identifier only; the server resolves the record itself.
@@ -1056,19 +1060,32 @@ export default function OraclePage() {
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;
-    if (entryQuestion) {
-      clearStoredConversation();
-      return;
+    /* The URL's identifiers ARE the handoff. planMount compares them with the ones the stored
+       conversation was opened by: the same handoff — or no handoff at all — means the visitor
+       came back and the conversation is restored; a DIFFERENT one is a genuinely new entry
+       intent, which clears and applies its own selection and draft. */
+    const seed = seedFrom({
+      q: entryQuestion,
+      artworkId: rawArtworkId,
+      entryId: rawEntryId,
+      researchTopicId: rawResearchId,
+    });
+    const plan = planMount(readStoredConversation(), seed, entryAnchorId);
+    if (plan.clear) clearStoredConversation();
+    if (plan.msgs.length) {
+      // A restored conversation already contains the seeded question, so the draft effect
+      // below must not put that question back over it.
+      restoredConversationRef.current = true;
+      setMsgs((p) => (p.length ? p : (plan.msgs as Msg[])));
     }
-    const restored = readStoredConversation();
-    if (restored.length) setMsgs((p) => (p.length ? p : restored));
-  }, [entryQuestion]);
+    // The selection survives the journey too — unless the URL names one, which always wins.
+    if (plan.selectedEntryId) setSelectedEntryId(plan.selectedEntryId);
 
   useEffect(() => {
     // Nothing to keep yet: an empty conversation must not erase what is already stored.
     if (!restoredRef.current || !msgs.length) return;
-    writeStoredConversation(msgs);
-  }, [msgs]);
+    writeStoredConversation(msgs, seedFrom({ q: entryQuestion, artworkId: rawArtworkId, entryId: rawEntryId, researchTopicId: rawResearchId }), selectedEntryId);
+  }, [msgs, entryQuestion, rawArtworkId, rawEntryId, rawResearchId, selectedEntryId]);
   /* ── Scroll ── */
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
@@ -1081,6 +1098,11 @@ export default function OraclePage() {
     // Seeds once. `draftSeeded` flips in the same commit, so a later rerender
     // (settings change, language switch, new answer) cannot restore the entry
     // text over something the visitor has since edited or deliberately cleared.
+    // A conversation that was just restored already contains this question.
+    if (restoredConversationRef.current) {
+      setDraftSeeded(true);
+      return;
+    }
     if (draftSeeded) return;
     if (entryQuestion) {
       setInput(entryQuestion);
