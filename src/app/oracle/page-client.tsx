@@ -17,6 +17,7 @@ import {
   appendAnswer,
   planMount,
   seedFrom,
+  type ConversationSeed,
   readStoredConversation,
   writeStoredConversation,
   clearStoredConversation,
@@ -967,6 +968,8 @@ export default function OraclePage() {
   /** One-shot guard so the restore decision is made exactly once per mount. */
   /** True when the mount restored a conversation, so its draft is not re-seeded. */
   const restoredConversationRef = useRef(false);
+  /** The handoff this conversation was OPENED by: what the store keeps for it. */
+  const originSeedRef = useRef<ConversationSeed | null>(null);
   const restoredRef = useRef(false);
   // The entry the visitor explicitly selected in the Correspondence dock. Sent
   // as a stable identifier only; the server resolves the record itself.
@@ -1071,6 +1074,9 @@ export default function OraclePage() {
       researchTopicId: rawResearchId,
     });
     const plan = planMount(readStoredConversation(), seed, entryAnchorId);
+    // Kept across the conversation, NOT re-read from the URL: a plain return must not
+    // overwrite the handoff that opened it.
+    originSeedRef.current = plan.seed;
     if (plan.clear) clearStoredConversation();
     if (plan.msgs.length) {
       // A restored conversation already contains the seeded question, so the draft effect
@@ -1085,7 +1091,7 @@ export default function OraclePage() {
   useEffect(() => {
     // Nothing to keep yet: an empty conversation must not erase what is already stored.
     if (!restoredRef.current || !msgs.length) return;
-    writeStoredConversation(msgs, seedFrom({ q: entryQuestion, artworkId: rawArtworkId, entryId: rawEntryId, researchTopicId: rawResearchId }), selectedEntryId);
+    writeStoredConversation(msgs, originSeedRef.current, selectedEntryId);
   }, [msgs, entryQuestion, rawArtworkId, rawEntryId, rawResearchId, selectedEntryId]);
   /* ── Scroll ── */
   useEffect(() => { chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
@@ -1402,6 +1408,8 @@ export default function OraclePage() {
       return [];
     });
     clearStoredConversation();
+    // A new conversation belongs to whatever handoff it is begun under.
+    originSeedRef.current = seedFrom({ q: entryQuestion, artworkId: rawArtworkId, entryId: rawEntryId, researchTopicId: rawResearchId });
     setMemory(null);
     setEntityNotice(null);
     setAnchorNotice(

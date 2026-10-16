@@ -414,6 +414,18 @@ export interface MountPlan {
   selectionSource: SelectionSource;
   clear: boolean;
   reason: RestoreReason;
+  /**
+   * The conversation's ORIGINATING handoff — what the store must keep for it.
+   *
+   * On a restore this is the seed the conversation was OPENED by, never the seed of the URL the
+   * visitor happened to return through. A plain return to /oracle carries no identifiers, and
+   * writing that empty seed over the originating one would make the original entry link look like
+   * a different handoff next time — and clear the conversation it belongs to.
+   *
+   * It is replaced only when a genuinely different handoff begins, or when a new conversation
+   * starts: in both cases the plan's seed is the incoming one.
+   */
+  seed: ConversationSeed;
 }
 
 export function planMount(
@@ -430,6 +442,9 @@ export function planMount(
       selectionSource: str(urlEntryId).trim() ? "url" : "none",
       clear: decision.clear,
       reason: decision.reason,
+      // Nothing was restored, so the conversation starts under the handoff it arrived with —
+      // empty when it arrived with none.
+      seed: incomingSeed,
     };
   }
   const selection = resolveSelectedEntry(urlEntryId, stored.selectedEntryId);
@@ -439,5 +454,7 @@ export function planMount(
     selectionSource: selection.source,
     clear: false,
     reason: decision.reason,
+    // The conversation keeps the handoff it was opened by, whatever URL brought the visitor back.
+    seed: stored.seed ?? seedFrom({}),
   };
 }
