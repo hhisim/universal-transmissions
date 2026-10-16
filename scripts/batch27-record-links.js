@@ -47,7 +47,12 @@ const { archiveHref } = require(path.join(ROOT, "src/lib/codex-archive.ts"));
 const { recordLinksFor, linkForRecord, ORACLE_RETURN_PATH } = require(path.join(ROOT, "src/lib/record-links.ts"));
 const { resolveNamedRecords } = require(path.join(ROOT, "src/lib/named-record-resolver.ts"));
 const { archiveRecordsByTitle } = require(path.join(ROOT, "src/lib/record-evidence.ts"));
-const { serializeConversation, restoreConversation, appendAnswer } = require(path.join(ROOT, "src/lib/oracle-conversation-state.ts"));
+const {
+  serializeConversation, restoreConversation, appendAnswer,
+  serializeConversationState, restoreConversationState,
+  seedFrom, sameSeed, isEmptySeed, decideRestore, resolveSelectedEntry, planMount,
+  CONVERSATION_STATE_VERSION,
+} = require(path.join(ROOT, "src/lib/oracle-conversation-state.ts"));
 const RecordLinks = require(path.join(ROOT, "src/components/oracle/RecordLinks.tsx")).default;
 
 const STAR = "The Star and the Uncarved Block";
@@ -195,10 +200,102 @@ const render = (set) => renderToStaticMarkup(React.createElement(RecordLinks, { 
     "8 the client takes records from THIS response");
   ok(/\{msg\.records \? <RecordLinks set=\{msg\.records\} \/> : null\}/.test(clientSrc),
     "8 ...and renders them from the message itself, never from shared state");
-  ok(/readStoredConversation\(\)/.test(clientSrc) && /writeStoredConversation\(msgs\)/.test(clientSrc),
+  ok(/readStoredConversation\(\)/.test(clientSrc) && /writeStoredConversation\(msgs, seedFrom\(/.test(clientSrc),
     "8 the conversation is restored and kept for the tab's session");
   ok(/setMsgs\(\(p\) => appendAnswer\(p, bubble\)\)/.test(clientSrc),
     "8 the client appends through the seam that gives each answer its own records");
+
+  console.log("\n  --- 9. the mount decision: returning vs a genuinely new handoff ---");
+  const seedA = seedFrom({ q: `Tell me about ${STAR}.` });
+  const seedB = seedFrom({ q: `Tell me about ${TANTRA}.` });
+  const seedArt = seedFrom({ q: `Tell me about ${TL}.`, artworkId: "translinguistic-equation" });
+  ok(isEmptySeed(seedFrom({})), "9 a URL with no identifiers is an empty seed");
+  ok(sameSeed(seedA, seedFrom({ q: `  Tell me about ${STAR}.  ` })), "9 seeds are compared normalised");
+
+  const storedRaw = serializeConversationState({ msgs: convo, seed: seedA, selectedEntryId: "corr-v1:LETTERS_HEBREW::Aleph" });
+  const back = restoreConversationState(storedRaw);
+  ok(back && sameSeed(back.seed, seedA), "9 the handoff that opened the conversation is kept with it");
+  ok(back && back.selectedEntryId === "corr-v1:LETTERS_HEBREW::Aleph", "9 ...and the selected entry, as a stable identifier");
+
+  let dec = decideRestore(back && back.seed, seedA);
+  ok(dec.restore === true && dec.clear === false, `9 RETURNING to the same ?q= URL restores (${dec.reason})`);
+  dec = decideRestore(back && back.seed, seedFrom({}));
+  ok(dec.restore === true && dec.clear === false, "9 a plain visit to /oracle restores the conversation");
+  dec = decideRestore(back && back.seed, seedB);
+  ok(dec.restore === false && dec.clear === true, "9 a DIFFERENT handoff clears and starts fresh");
+  dec = decideRestore(back && back.seed, seedArt);
+  ok(dec.restore === false && dec.clear === true, "9 ...including a different artwork handoff");
+  dec = decideRestore(null, seedA);
+  ok(dec.restore === false && dec.clear === false, "9 with nothing stored, nothing is restored or cleared");
+  dec = decideRestore(back && back.seed, seedFrom({ q: seedA.q, artworkId: "x" }));
+  ok(dec.restore === false && dec.clear === true, "9 a seed that differs in ANY identifier is a new handoff");
+
+  const planReturn = planMount(back, seedA, "");
+  ok(planReturn.msgs.length === back.msgs.length && planReturn.clear === false,
+    "9 the plan restores the messages and clears nothing");
+  ok(planReturn.selectionSource === "stored" && planReturn.selectedEntryId === "corr-v1:LETTERS_HEBREW::Aleph",
+    "9 ...and restores the selection the conversation was left with");
+  const planUrl = planMount(back, seedA, "corr-v1:METALS::Copper");
+  ok(planUrl.selectionSource === "url" && planUrl.selectedEntryId === "corr-v1:METALS::Copper",
+    "9 ...but an identifier in the URL wins over the stored one");
+  const planNew = planMount(back, seedB, "");
+  ok(planNew.msgs.length === 0 && planNew.clear === true && planNew.selectedEntryId === null,
+    "9 a new handoff restores nothing and keeps no stale selection");
+  const planUnknown = planMount(back, seedB, "corr-v1:NOPE::Nope");
+  ok(planUnknown.selectedEntryId === "corr-v1:NOPE::Nope" && planUnknown.selectionSource === "url",
+    "9 an UNKNOWN explicit identifier stays itself; no stored selection is substituted for it");
+  const planReturnUnknown = planMount(back, seedA, "corr-v1:NOPE::Nope");
+  ok(planReturnUnknown.selectedEntryId === "corr-v1:NOPE::Nope",
+    "9 ...on a returning visit too");
+
+  console.log("\n  --- 10. the restored selection, and what the next request carries ---");
+  ok(resolveSelectedEntry("", "corr-v1:A::One").source === "stored", "10 the stored selection is used when the URL names none");
+  ok(resolveSelectedEntry("corr-v1:B::Two", "corr-v1:A::One").selected === "corr-v1:B::Two", "10 the URL's identifier wins");
+  ok(resolveSelectedEntry("corr-v1:B::Two", "corr-v1:A::One").source === "url", "10 ...and is reported as the URL's");
+  ok(resolveSelectedEntry("", "").selected === null, "10 with neither, nothing is selected");
+  ok(resolveSelectedEntry(null, null).selected === null, "10 ...and absent identifiers are handled the same way");
+
+  console.log("\n  --- 11. the selected-entry evidence panel survives the journey ---");
+  const EVIDENCE = {
+    entityId: "corr-v1:LETTERS_HEBREW::Aleph", entityType: "correspondence", title: "Aleph",
+    system: "LETTERS_HEBREW", sourceType: "correspondence",
+    fields: [{ label: "Value", value: "1" }, { label: "Letter", value: "\u05d0" }],
+    action: { label: "Inspect record", href: "/codex/archive?entry=corr-v1%3ALETTERS_HEBREW%3A%3AAleph" },
+  };
+  const withEvidence = appendAnswer([{ role: "user", text: "Aleph?" }],
+    { role: "oracle", text: "answer", evidence: EVIDENCE, audioUrl: "blob:https://ut.test/1", ttsPending: true });
+  const evRound = restoreConversation(serializeConversation(withEvidence));
+  const ev = evRound[1] && evRound[1].evidence;
+  ok(ev && ev.entityId === EVIDENCE.entityId && ev.title === "Aleph" && ev.system === "LETTERS_HEBREW",
+    "11 the evidence panel's identity comes back");
+  ok(ev && ev.fields.length === 2 && ev.fields[1].value === EVIDENCE.fields[1].value, "11 ...with its fields");
+  ok(ev && ev.action && ev.action.href === EVIDENCE.action.href, "11 ...and its in-place inspector action");
+  ok(ev && ev.sourceType === "correspondence", "11 ...and the source type the panel labels");
+  const storedJson = serializeConversation(withEvidence) || "";
+  ok(!/blob:|audioUrl|ttsPending/.test(storedJson),
+    "11 audio object URLs and pending playback state stay OUT of storage");
+  ok(evRound[1].text === "answer" && !("audioUrl" in evRound[1]), "11 ...and the restored message carries no audio field");
+
+  const hostile = JSON.stringify({ v: CONVERSATION_STATE_VERSION, at: 1, seed: null, selectedEntryId: null,
+    msgs: [{ role: "oracle", text: "x", evidence: { entityId: "e", title: "t",
+      fields: [{ label: "a", value: "b" }], action: { label: "go", href: "javascript:alert(1)" } } }] });
+  const hostileRead = restoreConversation(hostile)[0];
+  ok(hostileRead && hostileRead.evidence && hostileRead.evidence.action === null,
+    "11 a non-site action href is dropped rather than rendered");
+  ok(restoreConversation(JSON.stringify({ v: 1, at: 1, msgs: [{ role: "oracle", text: "old" }] })).length === 0,
+    "11 a previous version reads as nothing, never as a guess");
+  ok(restoreConversationState(serializeConversationState({ msgs: [], seed: seedA })) === null,
+    "11 an empty conversation keeps nothing at all");
+  ok((back && back.msgs.length) === convo.length, "11 the state round trip keeps every message");
+
+  console.log("\n  --- 12. the client performs that decision (wiring) ---");
+  ok(/planMount\(readStoredConversation\(\), seed, entryAnchorId\)/.test(clientSrc), "12 the mount effect runs the plan");
+  ok(/if \(plan\.clear\) clearStoredConversation\(\)/.test(clientSrc), "12 ...clearing only when the plan says so");
+  ok(/if \(plan\.msgs\.length\)/.test(clientSrc), "12 ...restoring only when there is something to restore");
+  ok(/writeStoredConversation\(msgs, seedFrom\(/.test(clientSrc), "12 the handoff and selection are kept with the conversation");
+  ok(/restoredConversationRef/.test(clientSrc), "12 a restored conversation is not re-seeded from the entry draft");
+  ok(!/if \(entryQuestion\) \{\s*$[\s\S]{0,80}clearStoredConversation/.test(clientSrc),
+    "12 no unconditional clear on a non-empty ?q= remains in the client");
 
   console.log("\n  assertions passed: " + pass + "   assertions failed: " + fail);
   for (const m of failures) console.log("   - " + m);
