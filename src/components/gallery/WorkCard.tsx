@@ -52,7 +52,10 @@ export default function WorkCard({ artwork, href, returned = false, records = 0,
           src={artwork.images[0]}
           alt={artwork.title}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
+          /* Measured against the grid this card sits in: three columns at desktop width make the box
+             about 30.7vw, so the hint says 30vw rather than asking for a third of the viewport and
+             fetching a variant larger than the box it fills. Two columns from 640 to 900px. */
+          sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 30vw"
           style={{ objectFit: aspect ? "cover" : "contain" }}
           data-work-image={artwork.slug}
         />
