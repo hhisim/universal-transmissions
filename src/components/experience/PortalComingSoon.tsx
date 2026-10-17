@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PageBackground from "@/components/scenes/PageBackground";
 
 type PortalComingSoonProps = {
@@ -28,6 +29,13 @@ export default function PortalComingSoon({
             <p className="font-body text-base md:text-lg leading-relaxed mb-8" style={{ color: "var(--ut-white-dim)", opacity: 0.78 }}>
               {description}
             </p>
+            <Link
+              href="/experience"
+              className="inline-flex items-center gap-2 px-5 py-2 border font-mono text-[10px] tracking-[0.25em] uppercase mb-8 hover:opacity-90"
+              style={{ borderColor: "rgba(34,211,238,0.35)", color: "rgba(34,211,238,0.9)", background: "rgba(34,211,238,0.06)", textDecoration: "none" }}
+            >
+              ← All instruments
+            </Link>
             <div className="inline-flex items-center gap-2 px-5 py-2 border font-mono text-[10px] tracking-[0.25em] uppercase"
               style={{ borderColor: "rgba(212,168,71,0.35)", color: accent, background: "rgba(212,168,71,0.06)" }}>
               Coming Soon

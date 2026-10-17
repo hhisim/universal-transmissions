@@ -41,6 +41,13 @@ export default function UniversalResonatorPage() {
         />
         <div className="container-ut relative">
           <SectionReveal>
+            <Link
+              href="/experience"
+              className="font-mono text-[10px] tracking-[0.24em] uppercase mb-4 inline-block focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+              style={{ color: "var(--ut-cyan)" }}
+            >
+              ← All instruments
+            </Link>
             <p
               className="font-mono text-[9px] tracking-[0.5em] uppercase mb-4"
               style={{ color: "var(--ut-cyan)", opacity: 0.5 }}

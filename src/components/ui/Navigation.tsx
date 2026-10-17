@@ -51,9 +51,10 @@ const NAV_ITEMS: NavItem[] = [
   },
   { href: "/paths", label: "Paths" },
   {
-    href: "/experience/universal-resonator",
+    href: "/experience",
     label: "Experiences",
     children: [
+      { href: "/experience", label: "The portal", note: "all five rooms" },
       { href: "/experience/universal-resonator", label: "Universal Resonator", note: "the instrument" },
       { href: "/experience/cymatic-3d", label: "Cymatic 3D", note: "sound made spatial" },
       { href: "/experience/cymatic-tonoscope", label: "Tonoscope", note: "the plate that shows sound" },

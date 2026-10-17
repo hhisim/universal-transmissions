@@ -1,12 +1,16 @@
 "use client";
 
-import ContinuumLoader from "./ContinuumLoader";
+import Link from "next/link";
+import InstrumentFrame from "@/components/experience/InstrumentFrame";
 
 export default function CorrespondenceContinuumPage() {
   return (
     <section style={{ minHeight: "100vh", background: "transparent", paddingTop: 68, paddingBottom: 12 }}>
       <div style={{ maxWidth: 1600, margin: "0 auto", padding: "0 12px 8px" }}>
         <div style={{ padding: "6px 4px 8px" }}>
+          <Link href="/experience" style={{ fontFamily: "Cinzel, serif", letterSpacing: "0.24em", textTransform: "uppercase", fontSize: 10, color: "rgba(34,211,238,0.85)", textDecoration: "none", display: "inline-block", marginBottom: 6 }}>
+            ← All instruments
+          </Link>
           <div style={{ fontFamily: "Cinzel, serif", letterSpacing: "0.24em", textTransform: "uppercase", fontSize: 10, color: "rgba(212,168,71,0.82)", marginBottom: 6 }}>
             Desktop symbolic workspace
           </div>
@@ -20,10 +24,28 @@ export default function CorrespondenceContinuumPage() {
       </div>
 
       <div style={{ width: "100vw", marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}>
-        <ContinuumLoader />
+        <InstrumentFrame
+          src="/experience/correspondence-continuum/index.html"
+          title="Correspondence Continuum"
+          kicker="Instrument · extended by three.js"
+          launchTitle="Open the continuum"
+          launchCopy="Nothing has been started yet — this page is still a reading page. Opening loads the workspace and its three.js engine: the twenty-seven systems arranged as a field you move through. Leaving unloads the engine again."
+          launchCta="Open the continuum →"
+          sizeNote="a large room · built for a laptop or desktop display"
+          accent="#22d3ee"
+          heightCalc="calc(100vh - 150px)"
+          minHeight={900}
+          background="#000205"
+          dataPrefix="continuum"
+        />
       </div>
 
       <div style={{ maxWidth: 1600, margin: "0 auto", padding: "10px 12px 0" }}>
+        <div style={{ marginTop: 10 }}>
+          <Link href="/experience" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(237,233,246,0.55)", textDecoration: "none" }}>
+            ← Back to the experience portal
+          </Link>
+        </div>
         <div style={{ padding: "10px 12px", border: "1px solid rgba(212,168,71,0.12)", background: "rgba(17,15,26,0.22)", color: "rgba(237,233,246,0.74)", fontSize: 12.5, letterSpacing: "0.02em" }}>
           Best experienced on laptop or desktop. On phones, use the Correspondence Codex for the lighter mobile correspondence layer. The Continuum is open in full to every visitor — browse the real surface and open as many entries as you like. Initiate adds the Codex II archive.
         </div>

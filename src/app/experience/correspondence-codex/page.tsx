@@ -1,6 +1,7 @@
 "use client";
 
-import CodexLoader from "./CodexLoader";
+import Link from "next/link";
+import InstrumentFrame from "@/components/experience/InstrumentFrame";
 
 export default function CodexPage() {
   return (
@@ -8,6 +9,9 @@ export default function CodexPage() {
       <div style={{ maxWidth: 1360, margin: "0 auto", padding: "0 20px" }}>
 
         <div style={{ marginBottom: 18, padding: "18px 20px", border: "1px solid rgba(217,70,239,0.08)", background: "rgba(17,15,26,0.55)", backdropFilter: "blur(10px)" }}>
+          <Link href="/experience" style={{ fontFamily: "Cinzel, serif", letterSpacing: "0.25em", textTransform: "uppercase", fontSize: 10, color: "rgba(34,211,238,0.85)", textDecoration: "none", display: "inline-block", marginBottom: 10 }}>
+            ← All instruments
+          </Link>
           <div style={{ fontFamily: "Cinzel, serif", letterSpacing: "0.25em", textTransform: "uppercase", fontSize: 10, color: "rgba(212,168,71,0.82)", marginBottom: 10 }}>
             Mobile correspondence layer
           </div>
@@ -19,8 +23,25 @@ export default function CodexPage() {
           </p>
         </div>
 
-        <CodexLoader />
+        <InstrumentFrame
+          src="/experience/correspondence-codex/codex.html"
+          title="Correspondence Codex"
+          kicker="Instrument · opens in place"
+          launchTitle="Open the codex surface"
+          launchCopy="Nothing has been started yet — this page is still a reading page. Opening loads the codex surface: every system and every record, searchable and open to question. Leaving unloads it again."
+          launchCta="Open the codex →"
+          sizeNote="≈ 1.4 MB · no account needed"
+          accent="#e040fb"
+          heightCalc="calc(100vh - 300px)"
+          minHeight={680}
+          dataPrefix="codex"
+        />
 
+        <div style={{ marginTop: 16 }}>
+          <Link href="/experience" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(237,233,246,0.55)", textDecoration: "none" }}>
+            ← Back to the experience portal
+          </Link>
+        </div>
         <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
           {[
             "Guest: the entire codex — all 27 systems and all 824 records — open to browse, search and question, with no account.",
