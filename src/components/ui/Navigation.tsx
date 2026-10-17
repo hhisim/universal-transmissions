@@ -82,6 +82,7 @@ function MobileNavGroup({
           className="flex-1 py-2.5"
           style={{ color: isActive(item.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.7)" }}
           aria-current={isActive(item.href) ? "page" : undefined}
+          aria-label={item.label}
         >
           <ZalgoText text={item.label} intensity="subtle" />
         </Link>
@@ -114,6 +115,7 @@ function MobileNavGroup({
                 className="block py-2 text-[13px]"
                 style={{ color: isActive(child.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.55)" }}
                 aria-current={isActive(child.href) ? "page" : undefined}
+                aria-label={child.label}
               >
                 {child.label}
                 {child.note ? (
@@ -137,6 +139,7 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
       className="nav-link group relative"
       style={{ color: active ? "var(--ut-magenta)" : undefined }}
       aria-current={active ? "page" : undefined}
+      aria-label={label}
     >
       {active ? (
         <ZalgoText text={label} intensity="subtle" />
@@ -200,6 +203,17 @@ export default function Navigation() {
       }}
     >
       <span aria-hidden="true" className="skip-to-content-target" />
+      <style>{`
+        header .nav-link:focus-visible,
+        header .nav-constellation:focus-visible,
+        header button:focus-visible,
+        header ul[role="menu"] a:focus-visible,
+        header [role="menuitem"]:focus-visible {
+          outline: 2px solid #22d3ee;
+          outline-offset: 3px;
+          border-radius: 2px;
+        }
+      `}</style>
       <nav className="container-ut flex items-center justify-between h-16" aria-label="Primary">
         <Link href="/" className="flex flex-col items-start">
           <span className="font-display text-sm tracking-widest" style={{ color: "var(--ut-magenta)" }}>
@@ -234,6 +248,7 @@ export default function Navigation() {
                   className="nav-link group flex items-center gap-1 cursor-pointer"
                   aria-expanded={open}
                   aria-haspopup="menu"
+                  aria-label={`${item.label} — ${open ? "hide" : "show"} destinations`}
                   style={{ color: isActive(item.href) ? "var(--ut-magenta)" : undefined }}
                 >
                   <span className="group-hover:hidden">
@@ -282,6 +297,7 @@ export default function Navigation() {
                             style={{ color: isActive(child.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.72)" }}
                             onClick={() => setOpenGroup(null)}
                             aria-current={isActive(child.href) ? "page" : undefined}
+                            aria-label={child.note ? `${child.label} — ${child.note}` : child.label}
                           >
                             <span className="flex items-center gap-2">
                               <span aria-hidden="true" style={{ color: "rgba(217,70,239,0.45)" }}>›</span>
@@ -493,6 +509,7 @@ export default function Navigation() {
                       className="block py-2.5"
                       style={{ color: isActive(item.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.7)" }}
                       aria-current={isActive(item.href) ? "page" : undefined}
+                      aria-label={item.label}
                     >
                       <ZalgoText text={item.label} intensity="subtle" />
                     </Link>

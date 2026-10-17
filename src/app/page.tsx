@@ -8,7 +8,7 @@ import GlitchTagline from "@/components/ui/GlitchTagline";
 import PageBackground from "@/components/scenes/PageBackground";
 import { artworks } from "@/data/artworks";
 import { GUIDED_PATHS } from "@/lib/guided-paths";
-import { RESEARCH_DOMAINS } from "@/lib/research-topics";
+import { RESEARCH_DOMAINS, allRegisteredConnections } from "@/lib/research-topics";
 import { CORPUS_SUMMARY, corpusRecordsClause } from "@/lib/corpus-summary";
 import Image from "next/image";
 
@@ -86,11 +86,41 @@ const DOORS = [
   },
 ];
 
+/**
+ * The thread is not chosen prose — it is a relationship the archive already records.
+ *
+ * `allRegisteredConnections()` is the same registry the research rooms publish from, so this
+ * picks a real anchor: an artwork that a room names, with the basis the registry states for it.
+ * If the registry ever stops naming it, the thread disappears rather than lying.
+ */
+function buildThread() {
+  const entry = allRegisteredConnections().find((e) => e.connection.kind === "Artwork");
+  if (!entry) return null;
+  const slug = entry.connection.href.replace(/^\/gallery\//, "");
+  const work = artworks.find((a) => a.slug === slug);
+  if (!work) return null;
+  const descents = GUIDED_PATHS.filter((path) =>
+    path.stops.some((stop) => stop.topic === entry.topicSlug)
+  );
+  return { entry, work, descents };
+}
+
 export default function HomePage() {
   const firstPath = GUIDED_PATHS[0];
   const openingStop = firstPath?.stops[0];
-  const threadArtwork = featuredArtworks[0];
-  const threadRoom = openingStop?.topic;
+  const thread = buildThread();
+  const threadWork = thread?.work;
+  const threadConnection = thread?.entry;
+  const threadDescents = thread?.descents ?? [];
+  const entranceWorks = featuredArtworks.slice(0, 4);
+  // The same contract the gallery's own button uses: the artwork's identifier, a suggested
+  // question about it, and a return target that comes back to this page.
+  const oracleHref = threadWork
+    ? "/oracle?view=desktop" +
+      "&artworkId=" + encodeURIComponent(threadWork.id) +
+      "&from=" + encodeURIComponent("/") +
+      "&q=" + encodeURIComponent("Tell me about " + threadWork.title)
+    : "/oracle";
 
   return (
     <>
@@ -103,19 +133,19 @@ export default function HomePage() {
         </div>
 
         {/* ── HERO — the threshold ─────────────────────── */}
-        <section className="relative flex flex-col items-center overflow-hidden" style={{ height: "60vh" }}>
-          <div className="absolute inset-0">
+        <section className="ut-hero">
+          <div className="ut-hero-emblem" aria-hidden="true">
             <LogoHero />
           </div>
-          <div className="relative z-10 text-center px-6" style={{ marginTop: "42vh" }}>
+          <div className="ut-hero-copy">
             <h1
-              className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] mb-4 ut-gradient-text"
+              className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
               style={{ color: "var(--ut-white)" }}
             >
               <ZalgoText text="Universal Transmissions" intensity="moderate" />
             </h1>
             <GlitchTagline />
-            <div className="flex items-center justify-center gap-5 flex-wrap">
+            <div className="ut-hero-actions">
               <Link href="/codex/archive" className="btn-primary">
                 ENTER THE ARCHIVE
               </Link>
@@ -123,13 +153,34 @@ export default function HomePage() {
                 TAKE A GUIDED DESCENT
               </Link>
             </div>
+            <p className="ut-hero-note">
+              {CORPUS_SUMMARY.distinctIdentities} records across {CORPUS_SUMMARY.systemCount} systems,
+              the works they read, and the instruments built from them — one archive, read at
+              different depths.
+            </p>
           </div>
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-            <div
-              className="w-[1px] h-12"
-              style={{ background: "linear-gradient(to bottom, transparent, var(--ut-magenta), transparent)" }}
-            />
-          </div>
+        </section>
+
+        {/* ── THE ENTRANCE — the work itself, before any explanation ── */}
+        <section className="ut-entrance" aria-label="Works in this archive">
+          <ul className="ut-entrance-strip">
+            {entranceWorks.map((work) => (
+              <li key={work.id}>
+                <Link href={`/gallery/${work.slug}`} className="ut-entrance-work">
+                  <span className="ut-entrance-frame">
+                    <Image
+                      src={work.images[0]}
+                      alt={work.title}
+                      fill
+                      sizes="(max-width: 640px) 44vw, (max-width: 1100px) 23vw, 250px"
+                      className="object-cover"
+                    />
+                  </span>
+                  <span className="ut-entrance-label">{work.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* ── THE MOVING IMAGE (on demand: no video bytes on the initial path) ── */}
@@ -211,8 +262,8 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* ── A THREAD — one work, the room under it, the question it opens ── */}
-        {threadArtwork && (
+        {/* ── A THREAD — a relationship the registry already records ── */}
+        {threadWork && threadConnection && (
           <section className="py-16" style={{ borderTop: "1px solid rgba(217,70,239,0.04)" }}>
             <div className="container-ut">
               <SectionReveal>
@@ -220,59 +271,63 @@ export default function HomePage() {
                   [ Follow one thread ]
                 </p>
                 <div className="ut-thread">
-                  <Link href={`/gallery/${threadArtwork.slug}`} className="ut-thread-work">
+                  <Link href={`/gallery/${threadWork.slug}`} className="ut-thread-work">
                     <span className="ut-thread-frame">
                       <Image
-                        src={threadArtwork.images[0]}
-                        alt={threadArtwork.title}
+                        src={threadWork.images[0]}
+                        alt={threadWork.title}
                         fill
-                        unoptimized={true}
+                        sizes="(max-width: 860px) 100vw, 420px"
                         className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 520px"
                       />
                     </span>
                     <span className="ut-thread-caption">
-                      <strong>{threadArtwork.title}</strong>
-                      <em>{threadArtwork.medium} · {threadArtwork.year}</em>
+                      <strong>{threadWork.title}</strong>
+                      <em>{threadWork.medium} · {threadWork.year}</em>
                     </span>
                   </Link>
 
                   <div className="ut-thread-steps">
                     <p className="ut-thread-intro">
-                      A thread is not a recommendation — it is a route the archive already holds.
-                      This one is real: an image, the room that reads it, and the question it opens.
+                      Not a suggestion — a relationship the archive already records. The room{" "}
+                      <strong>{threadConnection.topicTitle}</strong> names this work, and the registry
+                      states the basis: <em>{threadConnection.connection.basisLabel}</em>.
                     </p>
                     <ol className="ut-thread-list">
                       <li>
                         <span className="ut-thread-step">01</span>
                         <span>
                           <strong>Look</strong> — the work itself, in the gallery.
-                          <Link href={`/gallery/${threadArtwork.slug}`} className="ut-text-link"> open it →</Link>
+                          <Link href={`/gallery/${threadWork.slug}`} className="ut-text-link"> open it →</Link>
                         </span>
                       </li>
-                      {threadRoom && (
-                        <li>
-                          <span className="ut-thread-step">02</span>
-                          <span>
-                            <strong>Read the room under it</strong> — {threadRoom}, where the archive explains
-                            what the image is made of.
-                            <Link href={`/research/${threadRoom}`} className="ut-text-link"> enter the room →</Link>
-                          </span>
-                        </li>
-                      )}
+                      <li>
+                        <span className="ut-thread-step">02</span>
+                        <span>
+                          <strong>The room that names it</strong> — {threadConnection.topicTitle}.
+                          <Link href={threadConnection.topicRoute} className="ut-text-link"> enter the room →</Link>
+                        </span>
+                      </li>
                       <li>
                         <span className="ut-thread-step">03</span>
                         <span>
-                          <strong>Ask</strong> — carry it into the Oracle and see what the record answers.
-                          <Link href="/oracle" className="ut-text-link"> consult the Oracle →</Link>
+                          <strong>Ask about this work</strong> — opens the Oracle already speaking
+                          about it, with the way back here.
+                          <Link href={oracleHref} className="ut-text-link"> ask the Oracle →</Link>
                         </span>
                       </li>
-                      {firstPath && (
+                      {threadDescents.length > 0 && (
                         <li>
                           <span className="ut-thread-step">04</span>
                           <span>
-                            <strong>Keep going</strong> — the descent this thread belongs to.
-                            <Link href={`/paths/${firstPath.slug}`} className="ut-text-link"> continue →</Link>
+                            <strong>Keep going</strong> —{" "}
+                            {threadDescents.length === 1
+                              ? "one guided descent passes"
+                              : `${threadDescents.length} guided descents pass`}{" "}
+                            through this room.
+                            <Link href={`/paths/${threadDescents[0].slug}`} className="ut-text-link">
+                              {" "}{threadDescents[0].title} →
+                            </Link>
                           </span>
                         </li>
                       )}
@@ -620,6 +675,84 @@ export default function HomePage() {
           margin: 0 0 18px;
         }
         .ut-open-actions { display: flex; justify-content: center; gap: 22px; flex-wrap: wrap; }
+
+        /* ── The threshold ────────────────────────────────────────────────
+           The old hero was a fixed 60vh box with its copy pushed down by a 42vh
+           margin, so the title, tagline and actions were clipped once the
+           viewport was shorter than the sum of the two. The copy is now laid
+           out instead of offset: the section grows to fit it, and the emblem
+           takes the space above. */
+        .ut-hero {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          min-height: clamp(520px, 76vh, 840px);
+          padding-bottom: clamp(22px, 4vh, 52px);
+          overflow: hidden;
+        }
+        .ut-hero-emblem { position: absolute; left: 0; right: 0; top: 0; bottom: 34%; z-index: 0; }
+        .ut-hero-copy {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+          text-align: center;
+          padding: 0 20px;
+          background: radial-gradient(130% 100% at 50% 100%, rgba(6,5,10,0.86) 0%, rgba(6,5,10,0.45) 58%, transparent 100%);
+        }
+        .ut-hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+        .ut-hero-note {
+          margin: 0;
+          max-width: 620px;
+          font-family: var(--font-mono, monospace);
+          font-size: 10px;
+          line-height: 1.7;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(237, 233, 246, 0.62);
+        }
+        @media (max-width: 640px) {
+          .ut-hero { min-height: clamp(440px, 84vh, 700px); }
+          .ut-hero-emblem { bottom: 46%; }
+          .ut-hero-note { font-size: 9px; letter-spacing: 0.12em; }
+        }
+
+        /* ── The entrance: real work, before any explanation ───────────── */
+        .ut-entrance { padding: 8px 0 30px; }
+        .ut-entrance-strip {
+          list-style: none;
+          margin: 0 auto;
+          padding: 0 16px;
+          max-width: 1200px;
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+        }
+        @media (max-width: 900px) {
+          .ut-entrance-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        }
+        .ut-entrance-work { display: block; text-decoration: none; }
+        .ut-entrance-frame {
+          position: relative;
+          display: block;
+          aspect-ratio: 1 / 1;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .ut-entrance-work:hover .ut-entrance-frame { border-color: rgba(34, 211, 238, 0.4); }
+        .ut-entrance-work:focus-visible .ut-entrance-frame { outline: 2px solid #22d3ee; outline-offset: 2px; }
+        .ut-entrance-label {
+          display: block;
+          margin-top: 8px;
+          font-family: var(--font-heading, sans-serif);
+          font-size: 10px;
+          line-height: 1.4;
+          letter-spacing: 0.03em;
+          color: rgba(237, 233, 246, 0.6);
+        }
 
         @media (prefers-reduced-motion: reduce) {
           .ut-door, .ut-door-go, .ut-text-link { transition: none !important; }

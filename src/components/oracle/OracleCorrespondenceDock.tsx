@@ -233,24 +233,11 @@ export default function OracleCorrespondenceDock({
   /* Secondary tools start expanded on desktop. On narrow screens the effect
      below closes them once, so the conversation is what a visitor meets
      first. Desktop never runs that close. */
-  const [toolsOpen, setToolsOpen] = useState(true);
-  /* Expanded on desktop. Narrow screens start collapsed so arrival shows the
-     summary and the conversation, not 1180px of node detail. */
-  const [contextOpen, setContextOpen] = useState(true);
-  const [desktopLayout, setDesktopLayout] = useState(true);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const query = window.matchMedia("(min-width: 901px)");
-    const apply = (isDesktop: boolean) => {
-      setDesktopLayout(isDesktop);
-      setToolsOpen(isDesktop);
-      setContextOpen(isDesktop);
-    };
-    apply(query.matches);
-    const onChange = (event: MediaQueryListEvent) => apply(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  /* Closed at every width, including desktop. A visitor arriving to ask a question
+     meets the conversation, the current subject and the composer; the lattice, the
+     surface menus and the node panels are one deliberate step behind this state. */
+  const [contextOpen, setContextOpen] = useState(false);
   const [matrixOpen, setMatrixOpen] = useState(false);
 
   const systemEntries = useMemo(() => codex.filter((entry) => entry.sys === selectedSystem), [selectedSystem]);
@@ -403,9 +390,11 @@ export default function OracleCorrespondenceDock({
     >
       <div className="oracle-dock-body">
         <aside className="oracle-dock-left oracle-v12-left">
-          {/* Secondary tools. On mobile these sit below the conversation and are
-              revealed by this control, so they never stand between a visitor
-              and the composer. Desktop leaves them permanently expanded. */}
+          {/* Secondary tools. Closed by default at every width: the lattice and the
+              surface menus are the deepest part of the archive, and a visitor arriving
+              to ask a question should meet the conversation first. The toggle keeps
+              every capability and every selection — the panel is hidden, not unmounted
+              or re-seeded — and hiding it removes its controls from the tab order. */}
           <button
             type="button"
             className="oracle-dock-secondary-toggle"
@@ -414,7 +403,7 @@ export default function OracleCorrespondenceDock({
             onClick={() => setToolsOpen((v) => !v)}
           >
             <span className="oracle-dock-secondary-label">
-              {toolsOpen ? "Hide tools" : "Show tools"}
+              {toolsOpen ? "Hide tools" : "Tools"}
             </span>
             <span className="oracle-dock-secondary-hint">
               Modes, search, menus and the 27-system lattice
@@ -427,7 +416,7 @@ export default function OracleCorrespondenceDock({
             id="oracle-secondary-tools"
             className="oracle-dock-secondary"
             data-open={toolsOpen ? "true" : "false"}
-            hidden={!toolsOpen && !desktopLayout}
+            hidden={!toolsOpen}
           >
           <div className="oracle-dock-kicker">v12 Action Modes</div>
           <div className="oracle-v12-action-row">
@@ -463,9 +452,10 @@ export default function OracleCorrespondenceDock({
         {children ? <div className="oracle-dock-oracle-center">{children}</div> : <div className="oracle-dock-primary">{renderSurface()}</div>}
 
         <aside className="oracle-dock-context oracle-v12-right">
-          {/* The correspondence panel stays complete on desktop. On narrow
-              screens its whole body (focused node and collection/search tools)
-              sits behind this disclosure so the conversation comes first. */}
+          {/* The correspondence panel. Complete, but behind the same disclosure at
+              every width: the focused node, its collection and the search tools are
+              advanced exploration, and they no longer stand between the visitor and
+              the composer. Selection state survives closing it. */}
           <button
             type="button"
             className="oracle-dock-context-toggle"
@@ -474,7 +464,7 @@ export default function OracleCorrespondenceDock({
             onClick={() => setContextOpen((v) => !v)}
           >
             <span className="oracle-dock-secondary-label">
-              {contextOpen ? "Hide tools" : contextLabel}
+              {contextOpen ? "Hide nodes" : "Nodes"}
             </span>
             <span className="oracle-dock-secondary-chevron" aria-hidden="true">
               {contextOpen ? "\u2212" : "+"}
@@ -484,7 +474,7 @@ export default function OracleCorrespondenceDock({
             id="oracle-context-detail"
             className="oracle-dock-context-detail"
             data-open={contextOpen ? "true" : "false"}
-            hidden={!contextOpen && !desktopLayout}
+            hidden={!contextOpen}
           >
           {showFocusedNode && focusedNodePanel}
           {query.trim() ? (
@@ -803,7 +793,7 @@ export default function OracleCorrespondenceDock({
           margin-top: 8px;
         }
         .oracle-dock { border: 0; background: transparent; box-shadow: none; padding: 0; }
-        .oracle-dock-body { grid-template-columns: 260px minmax(0,1fr) 360px; gap: 16px; margin-top: 0; align-items: start; }
+        .oracle-dock-body { grid-template-columns: auto minmax(0,1fr) auto; gap: 14px; margin-top: 0; align-items: start; }
         .oracle-dock-left, .oracle-dock-primary, .oracle-dock-context {
           border: 1px solid rgba(255,255,255,.07);
           background: linear-gradient(180deg,rgba(9,8,16,.68),rgba(0,0,0,.34));
@@ -1004,12 +994,39 @@ export default function OracleCorrespondenceDock({
         .oracle-v12-field-row b { font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:.16em; text-transform:uppercase; color:color-mix(in srgb,var(--dock-color) 68%,rgba(237,233,246,.42)); }
         .oracle-v12-token-cloud { display:flex; flex-wrap:wrap; gap:5px; }
         .oracle-v12-token-cloud button, .oracle-v12-token-cloud em { border:1px solid color-mix(in srgb,var(--chip-color,var(--dock-color)) 36%,rgba(255,255,255,.08)); background:color-mix(in srgb,var(--chip-color,var(--dock-color)) 8%,rgba(0,0,0,.32)); color:color-mix(in srgb,var(--chip-color,var(--dock-color)) 76%,rgba(237,233,246,.78)); font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.06em; line-height:1.25; padding:4px 6px; text-align:left; }
-        /* Secondary-tools disclosure. Desktop keeps the tools permanently
-           expanded, so the control itself is not rendered there. */
-        .oracle-dock-secondary-toggle { display: none; }
-        .oracle-dock-secondary { display: block; }
-        .oracle-dock-context-toggle { display: none; }
-        .oracle-dock-context-detail { display: block; }
+        /* Secondary-tools disclosure. The tools are closed by default everywhere;
+           the toggle is rendered at every width and the panels obey data-open.
+           Because a closed panel is display:none, its controls leave the tab order
+           instead of sitting in front of the composer. */
+        .oracle-dock-secondary-toggle,
+        .oracle-dock-context-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          width: 100%;
+          padding: 8px 10px;
+          border: 1px solid rgba(255, 255, 255, .08);
+          background: rgba(255, 255, 255, .02);
+          color: rgba(237, 233, 246, .62);
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+          cursor: pointer;
+        }
+        .oracle-dock-secondary-toggle:hover,
+        .oracle-dock-context-toggle:hover { color: rgba(237, 233, 246, .92); }
+        .oracle-dock-secondary-toggle:focus-visible,
+        .oracle-dock-context-toggle:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--dock-color) 70%, transparent);
+          outline-offset: 2px;
+        }
+        .oracle-dock-secondary-hint { display: none; }
+        .oracle-dock-secondary[data-open="true"] { display: block; width: 260px; margin-top: 8px; }
+        .oracle-dock-secondary[data-open="false"] { display: none; }
+        .oracle-dock-context-detail[data-open="true"] { display: block; width: 360px; margin-top: 8px; }
+        .oracle-dock-context-detail[data-open="false"] { display: none; }
         @media (max-width: 900px) {
           .oracle-dock-body { grid-template-columns: 1fr; }
           /* Mobile arrival order: selected context, then the conversation
