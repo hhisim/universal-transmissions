@@ -1590,7 +1590,7 @@ export default function OraclePage() {
                   >{t.newConversation}</button>
                 </div>
               </div>
-              <div ref={chatRef} className="oracle-scroll" style={{ minHeight: 240, maxHeight: "min(620px, 50vh)", overflowY: "auto", padding: "22px 26px 14px" }}>
+              <div ref={chatRef} className="oracle-scroll" style={{ minHeight: 200, maxHeight: "min(480px, 40vh)", overflowY: "auto", padding: "20px 26px 12px" }}>
                 {!hasMessages && (
                   <div className="text-center py-16">
                     <div style={{ width: 56, height: 56, margin: "0 auto 16px", border: `1px solid ${currentMode.c}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: `${currentMode.c}05` }}>
@@ -1739,7 +1739,7 @@ export default function OraclePage() {
                     <span className="relative z-10">{t.transmit}</span>
                   </button>
                 </div>
-                <div className="mt-3 h-14 rounded-[6px] border border-white/5 bg-black/20 px-2 py-1 overflow-hidden">
+                <div className="oracle-waveform-shell mt-3 h-14 rounded-[6px] border border-white/5 bg-black/20 px-2 py-1 overflow-hidden">
                   <ChromaticWavelength isActive={loading || answerAnimating} color={currentMode.c} />
                 </div>
                 <div className="mt-2 text-center font-mono text-[8px] tracking-widest" style={{ color: "rgba(237,233,246,0.08)" }}>{t.enterHint}</div>
@@ -2775,6 +2775,12 @@ export default function OraclePage() {
           scrollbar-width: none;
         }
         .chip-bar::-webkit-scrollbar { display: none; }
+
+        /* On a laptop-height screen the decorative waveform yields its space to the
+           composer: the visitor needs somewhere to type more than a second animation. */
+        @media (max-height: 860px) {
+          .oracle-waveform-shell { display: none; }
+        }
 
         /* ── Secondary layer: the instrument ──────────────────────────────
            The advanced controls keep every capability and lose the contest for
