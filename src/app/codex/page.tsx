@@ -108,18 +108,23 @@ export default function CodexPage() {
            this: the centre plate covered the paragraph by 333x95px on desktop and 202x189px on a
            390px screen, so the text was being read through the artwork. */
         .codex-hero{position:relative}
-        .codex-hero-copy{position:relative;z-index:2;max-width:42rem}
+        /* Narrower than the band begins, so no plate is behind a word at any width. */
+        .codex-hero-copy{position:relative;z-index:2;max-width:min(42rem,46vw)}
         .codex-hero-copy::before{content:"";position:absolute;z-index:-1;
           inset:-2.5rem -5rem -2.5rem -100vw;
           background:linear-gradient(90deg,
             rgba(4,3,9,0.97) 0%, rgba(4,3,9,0.95) 42%, rgba(4,3,9,0.72) 68%, rgba(4,3,9,0) 100%)}
+        /* A grid, not a row of fixed widths: the tracks size the plates, so they cannot overflow
+           the band into the copy however wide the viewport is. Each plate keeps the ratio of the
+           file it came from. */
         .codex-hero-plates{position:absolute;top:0;bottom:0;left:52%;right:0;pointer-events:none;
-          display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:0 3vw 0 0;overflow:hidden}
-        .codex-hero-plate{position:relative;display:block;overflow:hidden;
+          display:grid;grid-template-columns:0.92fr 1.12fr 1fr;gap:14px;align-items:center;
+          padding:11vh 3vw 11vh 0;overflow:hidden}
+        .codex-hero-plate{position:relative;display:block;width:100%;height:auto;overflow:hidden;
           border:1px solid rgba(212,168,71,0.18);box-shadow:0 24px 60px rgba(0,0,0,0.55)}
-        .codex-hero-plate-0{width:20vw;height:30vh;opacity:0.5;transform:translateY(9%) rotate(-2.2deg)}
-        .codex-hero-plate-1{width:26vw;height:52vh;opacity:0.72}
-        .codex-hero-plate-2{width:22vw;height:26vh;opacity:0.42;transform:translateY(-11%) rotate(2.4deg)}
+        .codex-hero-plate-0{aspect-ratio:4 / 3;opacity:0.55;transform:translateY(5%) rotate(-2.2deg)}
+        .codex-hero-plate-1{aspect-ratio:900 / 830;opacity:0.8}
+        .codex-hero-plate-2{aspect-ratio:1 / 1;opacity:0.45;transform:translateY(-6%) rotate(2.4deg)}
         /* Narrow: no image sits behind the words at all. The manuscript plate becomes a band ABOVE
            the copy, in flow, so the text and the buttons have the page to themselves. */
         @media (max-width: 900px){
@@ -168,22 +173,16 @@ export default function CodexPage() {
               hosts the originals. */}
           <div className="codex-hero-plates" aria-hidden="true">
             {[
-              { src: "/codex/book/spread-06.jpg", w: "20vw", h: "30vh" },
-              { src: "/codex/book/vol1-cover.jpg", w: "26vw", h: "52vh" },
-              { src: "/codex/book/spread-146.jpg", w: "22vw", h: "26vh" },
-            ].map((plate, i) => (
-              /* The box is set inline as well as in the stylesheet: the optimizer picks a size
-                 from the element's layout, and a plate whose width is not yet known asks for the
-                 largest variant of a 640px file — which is what left the opening unpainted. */
-              <span
-                className={`codex-hero-plate codex-hero-plate-${i}`}
-                key={plate.src}
-                style={{ width: plate.w, height: plate.h }}
-              >
-                {/* Above the fold and part of the opening composition: these load with the
-                    page rather than waiting on an observer, which in a throttled tab never
-                    reports and would leave the entrance an empty frame. */}
-                <Image src={plate.src} alt="" fill sizes="360px" priority className="object-cover" />
+              "/codex/book/spread-06.jpg",
+              "/codex/book/vol1-cover.jpg",
+              "/codex/book/spread-146.jpg",
+            ].map((src, i) => (
+              <span className={`codex-hero-plate codex-hero-plate-${i}`} key={src}>
+                {/* Above the fold and part of the opening composition: these load with the page
+                    rather than waiting on an observer, which in a throttled tab never reports and
+                    would leave the entrance an empty frame. The hint is the width a plate is
+                    actually drawn at, so the optimiser does not serve a larger variant. */}
+                <Image src={src} alt="" fill sizes="360px" priority className="object-cover" />
               </span>
             ))}
           </div>
