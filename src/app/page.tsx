@@ -124,7 +124,8 @@ export default function HomePage() {
 
   return (
     <>
-      <PageBackground variant="homepage" />
+      {/* The field is atmosphere, not content: it steps back so text and controls read. */}
+      <PageBackground variant="homepage" opacity={0.5} />
       <main style={{ background: "var(--ut-black)" }}>
         <div style={{ paddingTop: 2, paddingBottom: 2, textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "var(--ut-black)", backdropFilter: "blur(10px)" }}>
           <p style={{ margin: 0, fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.28em", textTransform: "uppercase", color: "#f5e9ff", opacity: 0.82, animation: "utPortalRespectShift 8s linear infinite" }}>
@@ -505,16 +506,17 @@ export default function HomePage() {
         @media (max-width: 900px) { .ut-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         @media (max-width: 560px) { .ut-doors { grid-template-columns: 1fr; } }
 
+        .ut-doors, .ut-begin, .ut-thread, .ut-open, .ut-entrance { position: relative; z-index: 1; }
         .ut-door {
           display: flex;
           flex-direction: column;
           gap: 12px;
           height: 100%;
           padding: 22px 20px 18px;
-          border: 1px solid rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.09);
           background:
-            radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--door-tint) 10%, transparent) 0%, transparent 55%),
-            rgba(10, 9, 14, 0.55);
+            radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--door-tint) 12%, transparent) 0%, transparent 55%),
+            rgba(9, 8, 13, 0.88);
           text-decoration: none;
           transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
         }
@@ -542,7 +544,7 @@ export default function HomePage() {
           font-family: var(--font-body, system-ui);
           font-size: 13px;
           line-height: 1.55;
-          color: rgba(237,233,246,0.62);
+          color: rgba(237,233,246,0.74);
         }
         .ut-door-foot {
           display: flex;
@@ -567,7 +569,9 @@ export default function HomePage() {
           margin: 0 auto;
           padding: 30px 28px;
           border: 1px solid rgba(240,199,94,0.18);
-          background: radial-gradient(120% 140% at 50% 0%, rgba(240,199,94,0.07) 0%, transparent 60%);
+          background:
+            radial-gradient(120% 140% at 50% 0%, rgba(240,199,94,0.07) 0%, transparent 60%),
+            rgba(9, 8, 13, 0.86);
           text-align: center;
         }
         .ut-begin-encounter {
@@ -637,8 +641,11 @@ export default function HomePage() {
           font-family: var(--font-body, system-ui);
           font-size: 14px;
           line-height: 1.7;
-          color: rgba(237,233,246,0.7);
+          color: rgba(237,233,246,0.82);
           margin: 0 0 18px;
+          padding: 14px 16px;
+          border: 1px solid rgba(34, 211, 238, 0.16);
+          background: rgba(9, 8, 13, 0.86);
         }
         .ut-thread-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
         .ut-thread-list li {
@@ -648,7 +655,9 @@ export default function HomePage() {
           font-family: var(--font-body, system-ui);
           font-size: 14px;
           line-height: 1.6;
-          color: rgba(237,233,246,0.66);
+          color: rgba(237,233,246,0.8);
+          background: rgba(9, 8, 13, 0.78);
+          padding: 12px 14px;
           padding-bottom: 14px;
           border-bottom: 1px solid rgba(255,255,255,0.05);
         }
