@@ -390,9 +390,13 @@ console.log("\n  10. priorities");
     "10 the price shown comes from the registry, not typed here");
 
   /* the shop is in the main navigation, not behind an account */
-  ok(/\{ href: "\/sanctum", label: "Sanctum · Shop" \}/.test(nav),
-    "10 Sanctum · Shop is a main navigation item");
-  ok(/NAV_ITEMS\.map/.test(nav), "10 …so it renders on desktop and in the mobile menu alike");
+  ok(/\{ href: "\/sanctum", label: "Shop", ariaLabel: "Sanctum · Shop" \}/.test(nav),
+    "10 the shop is a main navigation item, named Sanctum · Shop for assistive technology");
+  ok(/aria-label=\{ariaLabel \?\? label\}/.test(nav) && /ariaLabel=\{item\.ariaLabel\}/.test(nav),
+    "10 …and the full name is what gets spoken");
+  ok(/NAV_ITEMS\.map/.test(nav), "10 it renders on desktop and in the mobile menu alike");
+  ok(/@media \(max-width: 1279px\)[\s\S]{0,80}nav-external/.test(read("src/app/globals.css")),
+    "10 …with the cross-site links stepping out of the header below 1280 so nothing is clipped");
   ok(/Correspondence Archive/.test(nav), "10 the navigation names the archive for what it is");
   ok(/label: "More"/.test(nav), "10 secondary destinations are grouped to keep the bar readable");
 }

@@ -23,13 +23,15 @@ interface NavChild {
 interface NavItem {
   href: string;
   label: string;
+  /** Spoken name, when the visible label is shortened to keep the bar readable. */
+  ariaLabel?: string;
   children?: NavChild[];
 }
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Transmission" },
   { href: "/gallery", label: "Gallery" },
-  { href: "/sanctum", label: "Sanctum · Shop" },
+  { href: "/sanctum", label: "Shop", ariaLabel: "Sanctum · Shop" },
   {
     href: "/codex",
     label: "Codex",
@@ -141,14 +143,24 @@ function MobileNavGroup({
   );
 }
 
-function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
+function NavLink({
+  href,
+  label,
+  ariaLabel,
+  active,
+}: {
+  href: string;
+  label: string;
+  ariaLabel?: string;
+  active: boolean;
+}) {
   return (
     <Link
       href={href}
       className="nav-link group relative"
       style={{ color: active ? "var(--ut-magenta)" : undefined }}
       aria-current={active ? "page" : undefined}
-      aria-label={label}
+      aria-label={ariaLabel ?? label}
     >
       {active ? (
         <ZalgoText text={label} intensity="subtle" />
@@ -239,7 +251,12 @@ export default function Navigation() {
             if (!item.children) {
               return (
                 <li key={item.href}>
-                  <NavLink href={item.href} label={item.label} active={isActive(item.href)} />
+                  <NavLink
+                    href={item.href}
+                    label={item.label}
+                    ariaLabel={item.ariaLabel}
+                    active={isActive(item.href)}
+                  />
                 </li>
               );
             }
@@ -466,7 +483,7 @@ export default function Navigation() {
           </li>
 
           {/* External links */}
-          <li className="border-l border-white/10 pl-5 flex items-center gap-3">
+          <li className="nav-external border-l border-white/10 pl-5 flex items-center gap-3">
             <a
               href="https://vaultofarcana.com"
               target="_blank"
@@ -518,7 +535,7 @@ export default function Navigation() {
                       className="block py-2.5"
                       style={{ color: isActive(item.href) ? "var(--ut-magenta)" : "rgba(237,233,246,0.7)" }}
                       aria-current={isActive(item.href) ? "page" : undefined}
-                      aria-label={item.label}
+                      aria-label={item.ariaLabel ?? item.label}
                     >
                       <ZalgoText text={item.label} intensity="subtle" />
                     </Link>

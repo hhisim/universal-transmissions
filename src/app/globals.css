@@ -1029,3 +1029,14 @@ body::-webkit-scrollbar-thumb:hover {
           .ut-work, .ut-work-frame img { transition: none; }
           .ut-work:hover .ut-work-frame img { transform: none; }
         }
+
+/* ============================================================
+   HEADER — room for this site's own destinations
+   ============================================================
+   The header row carries the primary navigation. Below 1280px the
+   cross-site links step out of it so the destinations inside this
+   site are never clipped on a laptop; they remain in the mobile menu
+   and the footer. */
+@media (max-width: 1279px) {
+  .nav-external { display: none; }
+}
