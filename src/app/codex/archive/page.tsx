@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  BASIS_LABEL, BASIS_NOTE, MEASURED_LOOKING, SYSTEMS, SYSTEMS_WITH_RESEARCH_ROUTE,
-  archiveHref, archiveRecordFor, isKnownSystem, recordFromId, recordsInSystem,
-  relationshipGroups, representativeSet, researchRouteForSystem, sharedWith, systemHref,
+  BASIS_LABEL, BASIS_NOTE, CORPUS, MEASURED_LOOKING, SYSTEMS, SYSTEMS_WITH_REGISTERED_ROUTES,
+  SYSTEMS_WITH_RESEARCH_ROUTE, arrivalContext, archiveHref, archiveRecordFor, isKnownSystem,
+  recordFromId, recordsInSystem, registeredRoutesForSystem, relationshipGroups,
+  representativeSet, researchRouteForSystem, searchArchive, sharedWith, systemHref,
 } from "@/lib/codex-archive";
 
 export const metadata: Metadata = {
@@ -19,6 +20,11 @@ function first(v: string | string[] | undefined): string {
   return typeof v === "string" ? v : Array.isArray(v) && typeof v[0] === "string" ? v[0] : "";
 }
 
+/** The address a search leaves behind, so a record opened from results returns to the results. */
+function searchHref(q: string): string {
+  return `/codex/archive?q=${encodeURIComponent(q)}`;
+}
+
 function safeReturn(v: string): string {
   return v.startsWith("/") && !v.startsWith("//") && !v.includes("\\") ? v : "";
 }
@@ -30,6 +36,32 @@ function prettySystem(sys: string): string {
     .map((w) => (w.length <= 2 ? w : w.charAt(0) + w.slice(1).toLowerCase()))
     .join(" ");
 }
+
+/**
+ * A plain GET form: the search needs no script, leaves the query in the address, and works
+ * with the keyboard and with history exactly as the rest of the archive already does.
+ */
+const SearchForm = ({ defaultValue = "" }: { defaultValue?: string }) => (
+  <form className="cx-search" action="/codex/archive" method="get" role="search">
+    <label className="cx-searchlabel" htmlFor="cx-q">
+      Search the archive
+    </label>
+    <div className="cx-searchrow">
+      <input
+        id="cx-q"
+        className="cx-searchinput"
+        type="search"
+        name="q"
+        defaultValue={defaultValue}
+        placeholder="A record name or a recorded value — Aleph, Silver, Metron…"
+        autoComplete="off"
+      />
+      <button className="cx-searchgo" type="submit">
+        Search
+      </button>
+    </div>
+  </form>
+);
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
   <main className="cx-wrap">
@@ -59,6 +91,7 @@ export default function ArchivePage({
 }) {
   const sp = searchParams || {};
   const rawEntry = first(sp.entry).trim().slice(0, 200);
+  const rawQuery = first(sp.q).trim().slice(0, 80);
   const rawSystem = first(sp.system).trim().slice(0, 80);
   const from = safeReturn(first(sp.from).slice(0, 200));
 
@@ -106,6 +139,7 @@ export default function ArchivePage({
             {records.length} {records.length === 1 ? "record" : "records"} in this system.
             Select one to see what its own fields connect it to.
           </p>
+          <SearchForm />
         </header>
         <section className="cx-section">
           <h2 className="cx-h2">Records in {prettySystem(sys)}</h2>
@@ -123,26 +157,103 @@ export default function ArchivePage({
     );
   }
 
+  /* ── a search ─────────────────────────────────────────────────────────── */
+  if (!rawEntry && !rawSystem && rawQuery) {
+    const result = searchArchive(rawQuery);
+    const from = searchHref(rawQuery);
+    return (
+      <Shell>
+        <nav className="cx-crumb" aria-label="Breadcrumb">
+          <Link className="cx-back" href="/codex/archive">← THE CORRESPONDENCE ARCHIVE</Link>
+        </nav>
+        <header className="cx-head">
+          <p className="cx-kicker">Codex search</p>
+          <h1 className="cx-title">&ldquo;{result.query}&rdquo;</h1>
+          <p className="cx-lede">
+            {result.nameTotal === 0 && result.valueTotal === 0
+              ? `Nothing in the archive matches that. The corpus holds ${CORPUS.records} records in ${CORPUS.systems} systems, and a name is only found by what it is actually called.`
+              : <>{result.nameTotal} {result.nameTotal === 1 ? "record is" : "records are"} named this, and{" "}
+                  {result.valueTotal} recorded {result.valueTotal === 1 ? "value carries" : "values carry"} it.</>}
+          </p>
+          <SearchForm defaultValue={rawQuery} />
+        </header>
+
+        {result.names.length > 0 && (
+          <section className="cx-section" aria-labelledby="cx-sr-names">
+            <h2 className="cx-h2" id="cx-sr-names">Records with this name</h2>
+            <p className="cx-sub">
+              A name can exist in more than one system, and those are different records. Each is
+              listed under the system that holds it.
+            </p>
+            <ul className="cx-grid">
+              {result.names.map((n) => (
+                <li key={n.id}>
+                  <Link className="cx-card" href={archiveHref(n.id, from)}>
+                    <span className="cx-chip">{prettySystem(n.sys)}</span>
+                    <span className="cx-card-name">{n.e}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {result.namesTruncated && (
+              <p className="cx-more">
+                Showing {result.names.length} of {result.nameTotal}. Refine the search to see the rest.
+              </p>
+            )}
+          </section>
+        )}
+
+        {result.values.length > 0 && (
+          <section className="cx-section" aria-labelledby="cx-sr-values">
+            <h2 className="cx-h2" id="cx-sr-values">Recorded values carrying it</h2>
+            <p className="cx-sub">
+              The same words appear as values inside records. Each row names the field it was
+              recorded in and the records that carry it.
+            </p>
+            <ul className="cx-shared">
+              {result.values.map((v) => (
+                <li className="cx-sharedgroup" key={`${v.field}-${v.value}`}>
+                  <p className="cx-rellabel">
+                    {v.fieldLabel}: <strong>{v.value}</strong>
+                  </p>
+                  <ul className="cx-sharedlist">
+                    {v.records.map((r) => (
+                      <li key={r.id}>
+                        <Link className="cx-rellink" href={archiveHref(r.id, from)}>
+                          {r.e} <span className="cx-relsys">{prettySystem(r.sys)}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+            {result.valuesTruncated && (
+              <p className="cx-more">
+                Showing {result.values.length} of {result.valueTotal} recorded values. Refine the search to see the rest.
+              </p>
+            )}
+          </section>
+        )}
+      </Shell>
+    );
+  }
+
   /* ── no selection: the way in ─────────────────────────────────────────── */
   if (!rawEntry) {
     const seeds = representativeSet(8);
     return (
       <Shell>
+        {/* The material comes first: one line, a search, then records. The longer note about
+            what these correspondences are now sits after the material rather than in front of it. */}
         <header className="cx-head">
           <p className="cx-kicker">Universal Transmissions — Codex</p>
           <h1 className="cx-title">The Correspondence Archive</h1>
           <p className="cx-lede">
-            The Codex as a place you can walk through. Select a record and see what its own
-            fields connect it to, why those connections exist, and where they lead. Every link
-            here comes from the corpus — nothing is inferred to fill a gap.
+            {CORPUS.records} records across {CORPUS.systems} systems. Open one and follow what its
+            own fields reach.
           </p>
-          <p className="cx-honest">
-            These are <strong>symbolic correspondences</strong> recorded in the UT Codex.
-            A field like Frequency or Physiology carries an assignment this archive makes — a
-            tone, a number, an organ, a stone — held beside the letter, card or form it belongs
-            to. Take any one of them and follow it as far as it goes: that is what the lattice
-            is for.
-          </p>
+          <SearchForm />
         </header>
 
         <section className="cx-section" aria-labelledby="cx-seeds-h">
@@ -181,6 +292,18 @@ export default function ArchivePage({
             ))}
           </ul>
         </section>
+
+        <section className="cx-section" aria-labelledby="cx-how-h">
+          <h2 className="cx-h2" id="cx-how-h">How to read this</h2>
+          <p className="cx-honest">
+            These are <strong>symbolic correspondences</strong> recorded in the UT Codex.
+            A field like Frequency or Physiology carries an assignment this archive makes — a
+            tone, a number, an organ, a stone — held beside the letter, card or form it belongs
+            to. Take any one of them and follow it as far as it goes: that is what the lattice
+            is for. Every link on a record comes from that record&rsquo;s own fields, and nothing
+            is inferred to fill a gap.
+          </p>
+        </section>
       </Shell>
     );
   }
@@ -194,6 +317,11 @@ export default function ArchivePage({
   const { groups, unresolved, ambiguous } = relationshipGroups(pair.sys, pair.e, 3);
   const shared = sharedWith(pair.sys, pair.e).slice(0, 4);
   const research = researchRouteForSystem(pair.sys);
+  /* Where the visitor came from, re-read from the source record's own fields: the value that
+     reaches this record is reported, and a source that does not actually reach it claims nothing. */
+  const arrival = arrivalContext(from, pair.sys, pair.e);
+  /* Routes other registries already draw into this system's view. Empty when none does. */
+  const registered = registeredRoutesForSystem(pair.sys);
   const selfHref = archiveHref(entry.id, "/codex/archive");
   const totalTargets = groups.reduce((n, g) => n + g.total, 0);
   const sysName = prettySystem(entry.sys);
@@ -217,6 +345,27 @@ export default function ArchivePage({
           <Link className="cx-back" href="/codex/archive">← THE CORRESPONDENCE ARCHIVE</Link>
         )}
       </nav>
+
+      {arrival && (arrival.source || arrival.systemView) && (
+        <p className="cx-arrival" data-arrival={arrival.source ? "record" : "system"}>
+          {arrival.source ? (
+            <>
+              You arrived from{" "}
+              <Link className="cx-rellink" href={archiveHref(arrival.source.id)}>
+                {arrival.source.e}
+              </Link>{" "}
+              <span className="cx-relsys">{prettySystem(arrival.source.sys)}</span>
+              {arrival.viaFieldLabel && arrival.viaValue && (
+                <>
+                  {" "}via {arrival.viaFieldLabel}: &ldquo;{arrival.viaValue}&rdquo;
+                </>
+              )}
+            </>
+          ) : (
+            <>You arrived from the {prettySystem(String(arrival.systemView))} system.</>
+          )}
+        </p>
+      )}
 
       {/* Selection stays at the top, with the Oracle action beside it. */}
       <header className="cx-head">
@@ -423,6 +572,26 @@ export default function ArchivePage({
             </Link>
           </div>
 
+          {registered.length > 0 && (
+            <div className="cx-onwarditem">
+              <h3 className="cx-h3">Already routed here</h3>
+              <p className="cx-basisnote">
+                Registries elsewhere in the archive already name this system&rsquo;s view — the
+                route runs from them to here, so it is reported rather than invented.
+              </p>
+              <ul className="cx-sharedlist">
+                {registered.map((r) => (
+                  <li key={`${r.kind}-${r.href}`}>
+                    <Link className="cx-out" href={r.href}>
+                      {r.kind === "Guided path" ? "Follow" : "Read"} {r.title} →
+                    </Link>
+                    <span className="cx-relvia">{r.kind} · {r.why.slice(0, 120)}{r.why.length > 120 ? "…" : ""}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="cx-onwarditem">
             <h3 className="cx-h3">Research</h3>
             {research ? (
@@ -439,8 +608,8 @@ export default function ArchivePage({
               </>
             ) : (
               <p className="cx-basisnote">
-                No research room documents the {sysName} lattice, so no route is offered from
-                this record. Only {SYSTEMS_WITH_RESEARCH_ROUTE.map(prettySystem).join(" and ")}{" "}
+                No research room documents the {sysName} lattice, so no research route is offered
+                from this record. Only {SYSTEMS_WITH_RESEARCH_ROUTE.map(prettySystem).join(" and ")}{" "}
                 currently have one.
               </p>
             )}
@@ -468,12 +637,28 @@ export default function ArchivePage({
 }
 
 const CSS = `
+.cx-search{margin:18px 0 0}
+.cx-searchlabel{display:block;font-family:var(--font-mono,monospace);font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:rgba(240,236,255,.55);margin-bottom:8px}
+.cx-searchrow{display:flex;gap:1px;max-width:620px}
+.cx-searchinput{flex:1 1 auto;min-width:0;padding:11px 13px;font-size:14px;color:#f0ecff;
+  background:#05040c;border:1px solid rgba(255,255,255,.16);font-family:inherit}
+.cx-searchinput::placeholder{color:rgba(240,236,255,.35)}
+.cx-searchinput:focus-visible{outline:2px solid #22d3ee;outline-offset:1px;border-color:rgba(34,211,238,.5)}
+.cx-searchgo{font-family:var(--font-mono,monospace);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;padding:11px 18px;color:#05040c;background:#22d3ee;border:1px solid #22d3ee;
+  cursor:pointer}
+.cx-searchgo:hover{background:#e040fb;border-color:#e040fb;color:#05040c}
+.cx-searchgo:focus-visible{outline:2px solid #e040fb;outline-offset:2px}
 .cx-wrap{max-width:1100px;margin:0 auto;padding:104px 24px 120px;color:var(--ut-white,#f0ecff)}
 .cx-crumb{margin-bottom:20px}
 .cx-back,.cx-out,.cx-ask{display:inline-block;font-family:var(--font-mono,monospace);font-size:11px;
   letter-spacing:.18em;text-transform:uppercase;color:#22d3ee;text-decoration:none;
   border-bottom:1px solid rgba(34,211,238,.35);padding-bottom:2px}
 .cx-back:hover,.cx-out:hover,.cx-ask:hover{color:#e040fb;border-color:rgba(224,64,251,.5)}
+.cx-arrival{font-size:13px;line-height:1.6;color:rgba(240,236,255,.7);margin:0 0 18px;
+  border-left:2px solid rgba(34,211,238,.45);padding:8px 0 8px 14px}
+.cx-arrival .cx-rellink{font-size:13px}
 .cx-head{margin-bottom:44px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:26px}
 .cx-kicker{font-family:var(--font-mono,monospace);font-size:10px;letter-spacing:.3em;
   text-transform:uppercase;color:#e040fb;opacity:.85;margin:0 0 12px}

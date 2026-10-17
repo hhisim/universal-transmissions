@@ -6,6 +6,7 @@ import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import RotatingMerkaba from "@/components/three/RotatingMerkaba";
+import CodexVideoCard from "@/components/codex/CodexVideoCard";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/codex" },
@@ -100,6 +101,24 @@ const videos = [
 export default function CodexPage() {
   return (
     <>
+      <style>{`
+        .ut-video-gate{position:absolute;inset:0;width:100%;height:100%;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;gap:10px;cursor:pointer;border:0;
+          background:
+            radial-gradient(ellipse at 50% 45%, rgba(212,168,71,0.10) 0%, transparent 60%),
+            linear-gradient(160deg, #0a0812 0%, #05040c 60%, #0b0a18 100%);
+          color:var(--ut-white);font-family:var(--font-mono,monospace)}
+        .ut-video-gate:hover{background:
+            radial-gradient(ellipse at 50% 45%, rgba(34,211,238,0.14) 0%, transparent 60%),
+            linear-gradient(160deg, #0a0812 0%, #05040c 60%, #0b0a18 100%)}
+        .ut-video-gate:focus-visible{outline:2px solid #22d3ee;outline-offset:-3px}
+        .ut-video-gate-mark{display:flex;align-items:center;justify-content:center;width:54px;height:54px;
+          border:1px solid rgba(212,168,71,0.55);border-radius:999px;font-size:16px;color:var(--ut-gold);
+          padding-left:3px}
+        .ut-video-gate-label{font-size:11px;letter-spacing:0.24em;text-transform:uppercase}
+        .ut-video-gate-note{font-size:10px;letter-spacing:0.08em;color:rgba(237,233,246,0.45)}
+        @media (prefers-reduced-motion: reduce){ .ut-video-gate{transition:none} }
+      `}</style>
 <PageBackground variant="codex" />
       <PageBackground variant="homepage" opacity={0.4} />
 <main style={{ background: "var(--ut-black)" }}>
@@ -384,7 +403,8 @@ export default function CodexPage() {
                 >
                   The Codex was not written — it was woven. These recordings document
                   the process, the timelapses, and the emergence of the transmission
-                  across years of devoted creation.
+                  across years of devoted creation. Each one loads when you press it and
+                  not before.
                 </p>
               </div>
             </SectionReveal>
@@ -393,48 +413,13 @@ export default function CodexPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {videos.map((video, i) => (
                 <SectionReveal key={video.youtubeId} delay={i * 0.1}>
-                  <div
-                    className="video-card relative overflow-hidden rounded"
-                    style={{
-                      background: "var(--ut-black)",
-                      border: "1px solid rgba(212,168,71,0.12)",
-                    }}
-                  >
-                    {/* YouTube Embed — 16:9 aspect ratio container */}
-                    <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-                      <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0`}
-                        title={video.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
-                        className="absolute inset-0 w-full h-full"
-                        style={{ border: 0 }}
-                      />
-                    </div>
-
-                    {/* Video Info */}
-                    <div className="p-5">
-                      <p
-                        className="font-mono text-[9px] tracking-[0.25em] uppercase mb-2"
-                        style={{ color: "var(--ut-gold)", opacity: 0.6 }}
-                      >
-                        {String(i + 1).padStart(2, "0")} / {String(videos.length).padStart(2, "0")}
-                      </p>
-                      <h3
-                        className="font-heading text-sm tracking-[0.1em] uppercase mb-2"
-                        style={{ color: "var(--ut-white)" }}
-                      >
-                        {video.title}
-                      </h3>
-                      <p
-                        className="font-body text-sm leading-relaxed"
-                        style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}
-                      >
-                        {video.description}
-                      </p>
-                    </div>
-                  </div>
+                  <CodexVideoCard
+                    youtubeId={video.youtubeId}
+                    title={video.title}
+                    description={video.description}
+                    index={i}
+                    total={videos.length}
+                  />
                 </SectionReveal>
               ))}
             </div>

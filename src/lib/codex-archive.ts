@@ -42,6 +42,7 @@
 
 import { codex, type CodexEntry } from "@/lib/codex-data";
 import { FORORDER } from "@/lib/correspondence-systems";
+import { GUIDED_PATHS } from "@/lib/guided-paths";
 import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
 import { CONNECTIONS_BY_TOPIC } from "@/lib/research-connections";
 import { RESEARCH_DOMAINS } from "@/lib/research-topics";
@@ -443,3 +444,223 @@ export function representativeSet(limit = 8) {
   }
   return _repCache.slice(0, limit);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BATCH 31 — ADDITIVE DERIVATIONS
+
+   Nothing here resolves anything new. Each function reads an index this module already built,
+   or a registry that already named the Codex, and reports what it finds. No correspondence is
+   inferred, no alias table is introduced, and the resolver above is untouched.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * The routes OTHER registries already draw into this system's archive view.
+ *
+ * The research registry carries connections whose href is `/codex/archive?system=…`, and the
+ * guided paths stop on those same anchors. Both are read here rather than restated, so a system
+ * whose view nothing names gets no route — which is the honest result, not an omission.
+ */
+export interface RegisteredRoute {
+  href: string;
+  kind: "Research room" | "Guided path";
+  title: string;
+  why: string;
+}
+
+const CODEX_ARCHIVE_HREF = /^\/codex\/archive\?system=([A-Z_]+)$/;
+
+/** anchorSlug → the system its connection points at, read from the research registry. */
+const ANCHOR_SYSTEM: Record<string, string> = (() => {
+  const out: Record<string, string> = {};
+  for (const connections of Object.values(CONNECTIONS_BY_TOPIC)) {
+    for (const c of connections) {
+      const m = CODEX_ARCHIVE_HREF.exec(c.href || "");
+      if (m && c.anchorSlug) out[c.anchorSlug] = m[1];
+    }
+  }
+  return out;
+})();
+
+let _inboundCache: Map<string, RegisteredRoute[]> | null = null;
+
+export function registeredRoutesForSystem(sys: string): RegisteredRoute[] {
+  if (!_inboundCache) {
+    const map = new Map<string, RegisteredRoute[]>();
+    const add = (system: string, route: RegisteredRoute) => {
+      const arr = map.get(system) || [];
+      if (!arr.some((r) => r.href === route.href && r.kind === route.kind)) arr.push(route);
+      map.set(system, arr);
+    };
+    for (const [topicId, connections] of Object.entries(CONNECTIONS_BY_TOPIC)) {
+      const domain = RESEARCH_DOMAINS.find((d) => d.slug === topicId);
+      for (const c of connections) {
+        const m = CODEX_ARCHIVE_HREF.exec(c.href || "");
+        if (!m) continue;
+        add(m[1], {
+          href: `/research/${topicId}`,
+          kind: "Research room",
+          title: domain ? domain.title : topicId,
+          why: c.rationale || "",
+        });
+      }
+    }
+    for (const path of GUIDED_PATHS) {
+      for (const stop of path.stops) {
+        if (!stop.anchor) continue;
+        const system = ANCHOR_SYSTEM[stop.anchor];
+        if (!system) continue;
+        add(system, {
+          href: `/paths/${path.slug}`,
+          kind: "Guided path",
+          title: path.title,
+          why: stop.encounter,
+        });
+      }
+    }
+    _inboundCache = map;
+  }
+  return _inboundCache.get(String(sys).toUpperCase()) || [];
+}
+
+/** Systems some other registry actually draws a route into. */
+export const SYSTEMS_WITH_REGISTERED_ROUTES: string[] = (() => {
+  const out: string[] = [];
+  for (const s of SYSTEMS) if (registeredRoutesForSystem(s.sys).length) out.push(s.sys);
+  return out.sort();
+})();
+
+/* ── where the visitor arrived from ─────────────────────────────────────────
+   The relationship links already carry `from`, and a record's own href carries the id of the
+   record it was read on. That is enough to say where a visitor came from WITHOUT adding a
+   parameter that could disagree with the corpus: the source's own fields are re-read here and
+   the value that reaches this record is the one reported. If the source does not actually
+   reach this record, no context is claimed.
+   ───────────────────────────────────────────────────────────────────────── */
+
+export interface Arrival {
+  fromHref: string;
+  source: { sys: string; e: string; id: string } | null;
+  /** Set when the visitor came from a system view rather than from one record. */
+  systemView: string | null;
+  viaFieldLabel: string | null;
+  viaValue: string | null;
+}
+
+export function arrivalContext(
+  from: string,
+  targetSys: string,
+  targetE: string
+): Arrival | null {
+  if (!from || !from.startsWith("/codex/archive")) return null;
+  const query = from.includes("?") ? from.slice(from.indexOf("?") + 1) : "";
+  let params: URLSearchParams;
+  try {
+    params = new URLSearchParams(query);
+  } catch {
+    return null;
+  }
+  const systemView = (params.get("system") || "").toUpperCase() || null;
+  const entryId = params.get("entry");
+  if (!entryId) {
+    return systemView
+      ? { fromHref: from, source: null, systemView, viaFieldLabel: null, viaValue: null }
+      : null;
+  }
+  const pair = recordFromId(entryId);
+  if (!pair) return null;
+  const source = findRecord(pair.sys, pair.e);
+  if (!source) return null;
+  const sourceId = correspondenceEntryId(source);
+  const target = findRecord(targetSys, targetE);
+  if (!target) return null;
+  const targetId = correspondenceEntryId(target);
+  if (sourceId === targetId) return null;
+
+  /* Re-read the source's own relationships; only one that lands on THIS record counts. */
+  const { groups } = relationshipGroups(pair.sys, pair.e, 200);
+  for (const g of groups) {
+    for (const ex of g.examples) {
+      if (ex.target.id === targetId) {
+        return {
+          fromHref: from,
+          source: { sys: pair.sys, e: pair.e, id: sourceId },
+          systemView: null,
+          viaFieldLabel: ex.fieldLabel,
+          viaValue: ex.value,
+        };
+      }
+    }
+  }
+  /* Arrived by a route the source's fields do not actually support: say nothing. */
+  return { fromHref: from, source: { sys: pair.sys, e: pair.e, id: sourceId }, systemView: null,
+           viaFieldLabel: null, viaValue: null };
+}
+
+/* ── search ─────────────────────────────────────────────────────────────────
+   Two honest result kinds: records whose own NAME matches, and recorded VALUES that match
+   (with the records carrying them). Totals are counted before any limit.
+   ───────────────────────────────────────────────────────────────────────── */
+
+export interface NameHit { sys: string; e: string; id: string }
+export interface ValueHit { field: string; fieldLabel: string; value: string; records: Array<{ sys: string; e: string; id: string }> }
+
+export interface SearchResult {
+  query: string;
+  names: NameHit[];
+  nameTotal: number;
+  values: ValueHit[];
+  valueTotal: number;
+  /** True when a total exceeds what is shown, so the UI can say so. */
+  namesTruncated: boolean;
+  valuesTruncated: boolean;
+}
+
+export function searchArchive(rawQuery: string, nameLimit = 60, valueLimit = 12): SearchResult {
+  const q = norm(rawQuery).slice(0, 80);
+  const empty: SearchResult = { query: rawQuery.trim(), names: [], nameTotal: 0, values: [],
+    valueTotal: 0, namesTruncated: false, valuesTruncated: false };
+  if (q.length < 2) return empty;
+
+  const names: NameHit[] = [];
+  for (const entry of codex) {
+    const sys = String(entry.sys || "");
+    const e = String(entry.e || "");
+    if (!sys || !e) continue;
+    const forms = [norm(e), stripOrdinal(e), stripQualifier(e)];
+    if (!forms.some((f) => f.includes(q))) continue;
+    names.push({ sys, e, id: correspondenceEntryId(entry) });
+  }
+  names.sort((a, b) => a.e.localeCompare(b.e) || a.sys.localeCompare(b.sys));
+
+  const values: ValueHit[] = [];
+  for (const [key, records] of Array.from(VALUE_INDEX.entries())) {
+    const at = key.indexOf("\u0000");
+    if (at <= 0) continue;
+    const field = key.slice(0, at);
+    const value = key.slice(at + 1);
+    if (!value.includes(q)) continue;
+    values.push({
+      field,
+      fieldLabel: FIELD_LABELS[field] || field.toUpperCase(),
+      value: records.length ? value : value,
+      records: records.slice(0, 6),
+    });
+  }
+  values.sort((a, b) => a.value.localeCompare(b.value));
+
+  return {
+    query: rawQuery.trim(),
+    names: names.slice(0, nameLimit),
+    nameTotal: names.length,
+    values: values.slice(0, valueLimit),
+    valueTotal: values.length,
+    namesTruncated: names.length > nameLimit,
+    valuesTruncated: values.length > valueLimit,
+  };
+}
+
+/** The record count and system count the entrance reports, from the corpus itself. */
+export const CORPUS = {
+  records: codex.length,
+  systems: SYSTEMS.length,
+} as const;
