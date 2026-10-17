@@ -305,3 +305,27 @@ export function withSavedPosition(
   table[signature] = { y: Math.max(0, Math.round(entry.y)), work: entry.work ?? null };
   return JSON.stringify(table);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   WHERE A RETURN LANDS
+
+   A card's `offsetTop` is measured from its offset parent, and the collection grid is
+   `position: relative` — so every card's offsetTop is relative to the GRID, whose own position in
+   the document is not part of it. The first card's offsetTop is 0 while the grid may begin a
+   thousand pixels down the page, and a return built from it lands at the top of the document.
+
+   Document coordinates do not have that problem: a card's document position is the scroll offset
+   plus its viewport rect top.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** Clears the fixed site navigation and leaves the card a little room beneath it. */
+export const RETURN_SCROLL_OFFSET = 120;
+
+/**
+ * The document scroll position a return should move to, from the card's document position.
+ * Clamped at zero, so a card near the top of the document scrolls to the top rather than negative.
+ */
+export function returnScrollTarget(cardDocumentTop: number, offset: number = RETURN_SCROLL_OFFSET): number {
+  if (!Number.isFinite(cardDocumentTop)) return 0;
+  return Math.max(0, Math.round(cardDocumentTop - offset));
+}

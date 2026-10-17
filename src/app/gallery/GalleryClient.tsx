@@ -53,6 +53,7 @@ import {
   orientationCounts,
   parseBrowseState,
   readSavedPosition,
+  returnScrollTarget,
   validWorkSlug,
   visibleWorks,
   withSavedPosition,
@@ -183,9 +184,22 @@ export default function GalleryClient() {
     const card = Array.from(document.querySelectorAll<HTMLElement>("[data-work]")).find(
       (el) => el.getAttribute("data-work") === returnedTo
     );
-    if (card) {
-      window.scrollTo({ top: Math.max(0, card.offsetTop - 120), behavior: "instant" as ScrollBehavior });
-    }
+    if (!card) return;
+
+    /* Document coordinates. `card.offsetTop` is measured from the card's offset parent — the
+       collection grid, which is `position: relative` — so it omits wherever the grid itself sits
+       in the page: the first card reports 0 while the grid may begin a thousand pixels down, and
+       a return built from it landed at the top of the document. */
+    const place = () => {
+      const top = window.scrollY + card.getBoundingClientRect().top;
+      window.scrollTo({ top: returnScrollTarget(top), behavior: "instant" as ScrollBehavior });
+    };
+    place();
+
+    /* One correction after the lazy artwork above the card has taken its space: without it a
+       later-row work is placed by the layout as it stood before those images arrived. */
+    const settle = window.setTimeout(place, 400);
+    return () => window.clearTimeout(settle);
   }, [returnedTo, signature, shown.length]);
 
   const clearAll = () => {

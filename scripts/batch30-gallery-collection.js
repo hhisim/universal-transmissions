@@ -281,6 +281,59 @@ console.log("\n  12. entrance and order");
   ok(/data-gallery-search/.test(gallery), "12 …while search stays in the open");
 }
 
+/* ── 13. where a return lands without a saved position ──────────────────────
+   The regression: a card's `offsetTop` is measured from its offset parent, and the collection grid
+   is `position: relative`, so the first card reports 0 however far down the page the grid begins.
+   A return built from it lands at the top of the document. The scenario below is the one that was
+   measured on the preview: the grid starts 1011px down a 844px-tall viewport, and its first card
+   has offsetTop 0. What follows asserts the RESULTING VIEWPORT POSITION, not that a scroll ran. */
+console.log("\n  13. return position without storage");
+{
+  const NAV = 64;            // fixed site navigation
+  const VIEWPORT = 844;      // the narrow 390x844 viewport
+  const GRID_DOC_TOP = 1011; // where the collection grid begins in the document
+  const OFFSET = G.RETURN_SCROLL_OFFSET;
+
+  const grid = read("src/app/globals.css").match(/\.ut-collection \{[^}]*position: relative/);
+  ok(Boolean(grid), "13 the collection grid is positioned — it is the card's offset parent");
+
+  /* the first card: offsetTop 0 relative to that grid, so its document top is the grid's top */
+  const firstCardOffsetTop = 0;
+  const firstCardDocTop = GRID_DOC_TOP + firstCardOffsetTop;
+
+  const fixedTarget = G.returnScrollTarget(firstCardDocTop);
+  const fixedViewportTop = firstCardDocTop - fixedTarget;
+  ok(fixedTarget === GRID_DOC_TOP - OFFSET, `13 the fixed return targets the card's document position (${fixedTarget})`);
+  ok(fixedViewportTop === OFFSET, `13 …and the card lands ${fixedViewportTop}px from the top of the viewport`);
+  ok(fixedViewportTop >= NAV, "13 below the fixed navigation, not under it");
+  ok(fixedViewportTop < VIEWPORT, "13 and inside the viewport rather than below it");
+
+  /* what the released line produced: max(0, offsetTop - offset) on its own */
+  const oldTarget = Math.max(0, firstCardOffsetTop - OFFSET);
+  const oldViewportTop = firstCardDocTop - oldTarget;
+  ok(oldTarget === 0, "13 the old offsetTop arithmetic (kept here as the counter-example) targets 0");
+  ok(oldViewportTop > VIEWPORT, `13 …leaving the card at ${oldViewportTop}px, below a ${VIEWPORT}px viewport`);
+
+  /* a later-row work, whose offsetTop is real but still measured from the grid */
+  const laterRowOffsetTop = 2480;
+  const laterDocTop = GRID_DOC_TOP + laterRowOffsetTop;
+  const laterViewportTop = laterDocTop - G.returnScrollTarget(laterDocTop);
+  ok(laterViewportTop === OFFSET, `13 a later-row card also lands ${laterViewportTop}px from the top`);
+  ok(laterDocTop - Math.max(0, laterRowOffsetTop - OFFSET) !== laterViewportTop,
+    "13 …which offsetTop alone would not have achieved without the grid's own position");
+
+  ok(G.returnScrollTarget(0) === 0, "13 a card at the very top scrolls to the top, never negative");
+  ok(G.returnScrollTarget(-500) === 0, "13 a negative position is clamped");
+  ok(G.returnScrollTarget(Number.NaN) === 0, "13 an unmeasurable card does not throw a scroll to NaN");
+
+  /* and the source must read the document, not the offset parent */
+  const gallery = code("src/app/gallery/GalleryClient.tsx");
+  ok(/window\.scrollY \+ card\.getBoundingClientRect\(\)\.top/.test(gallery),
+    "13 the component measures the card in document coordinates");
+  ok(!/offsetTop - 120/.test(gallery), "13 the offsetTop arithmetic is gone");
+  ok(/returnScrollTarget\(/.test(gallery), "13 …and it uses the tested helper");
+}
+
 console.log("\n  assertions passed: " + pass + "   assertions failed: " + fail);
 for (const m of failures) console.log("   - " + m);
 process.exit(fail ? 1 : 0);
