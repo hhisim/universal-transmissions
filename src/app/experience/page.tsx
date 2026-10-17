@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import PageBackground from "@/components/scenes/PageBackground";
-import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { allRegisteredConnections } from "@/lib/research-topics";
 
@@ -27,7 +27,8 @@ type Room = {
   name: string;
   sigil: string;
   accent: string;
-  kind: string;
+  doing: string;
+  preview?: string;
   status: "live" | "building";
   line: string;
   body: string;
@@ -41,12 +42,13 @@ const ROOMS: Room[] = [
     name: "Universal Resonator",
     sigil: "≋",
     accent: "#d4a847",
-    kind: "WebGL plate · Web Audio · solver worker",
+    doing: "Play a frequency · watch the field answer",
+    preview: "/experience/previews/resonator.jpg",
     status: "live",
     line: "Sound made visible, and handed back to you.",
     body:
-      "A resonant plate you play. Feed it a tone and a solver turns what it hears into standing figures; move them, hold one, or let the field keep turning on its own. The microphone is yours to switch on from inside the instrument — it is never requested from out here.",
-    notes: ["Keyboard and touch controls inside", "≈ 1 MB, launched when you choose", "Leave it and the graphics and audio stop with it"],
+      "Choose a tone and the plate draws what it hears — branching filaments, nodal lines, a figure that holds while the note holds. Change the fundamental, pick a resonant world, or let it cycle on its own.",
+    notes: ["Nine tones, 174 Hz to 963 Hz", "Worlds: Aether · Lotus · Tunnel · Temple · Prism · Pulse · Monsoon", "Opens when you choose · about 1 MB"],
     cta: "Enter the resonator",
   },
   {
@@ -54,12 +56,13 @@ const ROOMS: Room[] = [
     name: "Correspondence Codex",
     sigil: "✦",
     accent: "#e040fb",
-    kind: "Full codex surface · mobile-first",
+    doing: "Browse 27 systems · open any record",
+    preview: "/experience/previews/codex.jpg",
     status: "live",
     line: "Every record, open, on the smaller screen.",
     body:
-      "The whole correspondence codex as a working surface: all twenty-seven systems and every record in them, browsable, searchable and open to question without an account. This is the room that travels — it is built to be usable on a phone.",
-    notes: ["No account needed to read any of it", "Opens in place; leave and it unloads", "Initiate adds the Codex II process archive"],
+      "The whole correspondence codex as a working surface: choose a system, open a record, and read what it corresponds to across the other twenty-six. It travels — this is the room built to be read on a phone.",
+    notes: ["Choose a system, then open a record", "No account needed for any of it", "Opens when you choose"],
     cta: "Enter the codex",
   },
   {
@@ -67,12 +70,13 @@ const ROOMS: Room[] = [
     name: "Correspondence Continuum",
     sigil: "⌬",
     accent: "#22d3ee",
-    kind: "Three.js workspace · built for a large screen",
+    doing: "Move through 27 systems in three dimensions",
+    preview: "/experience/previews/continuum.jpg",
     status: "live",
     line: "The correspondence field, held in three dimensions.",
     body:
-      "The desktop counterpart: the same twenty-seven systems arranged as a field you move through, with whole collections opened beside the thing you are reading. It wants space — a laptop or a large display — and it rewards wandering.",
-    notes: ["Extended by three.js, so it loads its own engine", "Best on a laptop or desktop display", "On a phone, the Codex is the lighter door"],
+      "The desktop counterpart: the same systems arranged as a field you move through, whole collections opening beside the thing you are reading. Click a node and the panel answers.",
+    notes: ["Open a node and read its correspondences", "Best on a laptop or desktop display", "On a phone, the Codex is the lighter door"],
     cta: "Enter the continuum",
   },
   {
@@ -80,7 +84,7 @@ const ROOMS: Room[] = [
     name: "Cymatic 3D",
     sigil: "◈",
     accent: "#8b5cf6",
-    kind: "Volumetric cymatic engine",
+    doing: "Volumetric figures, still being built",
     status: "building",
     line: "A cymatic environment with depth.",
     body:
@@ -93,7 +97,7 @@ const ROOMS: Room[] = [
     name: "Cymatic Tonoscope",
     sigil: "◎",
     accent: "#22d3ee",
-    kind: "The plate that shows sound",
+    doing: "The oldest instrument in the collection",
     status: "building",
     line: "The oldest instrument in the collection.",
     body:
@@ -121,7 +125,7 @@ export default function ExperienceIndexPage() {
       <main style={{ background: "transparent" }}>
         <section className="pt-24 pb-10">
           <div className="container-ut">
-            <SectionReveal>
+            <div className="ut-rise">
               <div className="ut-portal-head">
                 <p className="font-mono text-[9px] tracking-[0.5em] uppercase mb-4" style={{ color: "var(--ut-gold)", opacity: 0.62 }}>
                   [ Experience portal ]
@@ -138,7 +142,7 @@ export default function ExperienceIndexPage() {
                   {live} of {rooms.length} rooms are live · nothing loads until you enter
                 </p>
               </div>
-            </SectionReveal>
+            </div>
           </div>
         </section>
 
@@ -146,13 +150,24 @@ export default function ExperienceIndexPage() {
           <div className="container-ut">
             <div className="ut-rooms">
               {rooms.map((room, i) => (
-                <SectionReveal key={room.slug} delay={i * 0.05}>
+                <div key={room.slug} className="ut-rise" style={{ animationDelay: `${i * 0.06}s` }}>
                   <article
                     className="ut-room"
                     data-experience={room.slug}
                     data-status={room.status}
                     style={{ ["--room-accent" as string]: room.accent } as React.CSSProperties}
                   >
+                    {room.preview && (
+                      <span className="ut-room-preview">
+                        <Image
+                          src={room.preview}
+                          alt={`${room.name} interface`}
+                          fill
+                          sizes="(max-width: 820px) 100vw, 560px"
+                          className="object-cover"
+                        />
+                      </span>
+                    )}
                     <span className="ut-room-sigil" aria-hidden="true">{room.sigil}</span>
                     <div className="ut-room-head">
                       <h2 className="ut-room-name">{room.name}</h2>
@@ -160,7 +175,7 @@ export default function ExperienceIndexPage() {
                         {room.status === "live" ? "Live" : "In development"}
                       </span>
                     </div>
-                    <p className="ut-room-kind">{room.kind}</p>
+                    <p className="ut-room-kind">{room.doing}</p>
                     <p className="ut-room-line">{room.line}</p>
                     <p className="ut-room-body">{room.body}</p>
                     <ul className="ut-room-notes">
@@ -185,11 +200,11 @@ export default function ExperienceIndexPage() {
                       {room.cta} <span aria-hidden="true">→</span>
                     </Link>
                   </article>
-                </SectionReveal>
+                </div>
               ))}
             </div>
 
-            <SectionReveal delay={0.2}>
+            <div className="ut-rise" style={{ animationDelay: "0.24s" }}>
               <div className="ut-portal-foot">
                 <p>
                   Every room opens onto the same archive. Leave any of them and the instrument goes with
@@ -201,7 +216,7 @@ export default function ExperienceIndexPage() {
                   <Link href="/research" className="ut-text-link">into the research rooms →</Link>
                 </div>
               </div>
-            </SectionReveal>
+            </div>
           </div>
         </section>
       </main>
@@ -233,6 +248,19 @@ export default function ExperienceIndexPage() {
           margin: 0;
         }
 
+        /* The entrance is decorative and self-finishing: it never leaves content
+           hidden. The old reveal waited on an intersection observer, so sections
+           below the fold — and the cards inside the first screen, which sat just
+           past the trigger margin — stayed at opacity 0. */
+        .ut-rise { animation: utRise 0.7s ease-out both; }
+        @keyframes utRise {
+          from { opacity: 0; transform: translateY(18px); }
+          to { opacity: 1; transform: none; }
+        }
+        @media (scripting: none), (prefers-reduced-motion: reduce) {
+          .ut-rise { animation: none; opacity: 1; transform: none; }
+        }
+
         .ut-rooms, .ut-portal-foot { position: relative; z-index: 1; }
         .ut-rooms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
         @media (max-width: 820px) { .ut-rooms { grid-template-columns: 1fr; } }
@@ -250,6 +278,18 @@ export default function ExperienceIndexPage() {
             rgba(9, 8, 13, 0.93);
         }
         .ut-room:hover { border-color: color-mix(in srgb, var(--room-accent) 42%, transparent); }
+        .ut-room-preview {
+          position: relative;
+          display: block;
+          aspect-ratio: 16 / 10;
+          margin: -26px -24px 14px;
+          overflow: hidden;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+          background: #05040a;
+        }
+        .ut-room-preview img { object-position: center top; }
+        .ut-room:hover .ut-room-preview { border-bottom-color: color-mix(in srgb, var(--room-accent) 35%, transparent); }
+
         .ut-room-sigil {
           font-size: 22px;
           line-height: 1;
