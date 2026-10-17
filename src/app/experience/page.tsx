@@ -253,9 +253,12 @@ export default function ExperienceIndexPage() {
            below the fold — and the cards inside the first screen, which sat just
            past the trigger margin — stayed at opacity 0. */
         .ut-rise { animation: utRise 0.7s ease-out both; }
+        /* Opacity is deliberately NOT animated. A fill-mode of `both` starting at zero
+           leaves content invisible whenever the animation does not run — a background
+           tab, a throttled frame, an interrupted load. The entrance is motion only. */
         @keyframes utRise {
-          from { opacity: 0; transform: translateY(18px); }
-          to { opacity: 1; transform: none; }
+          from { transform: translateY(14px); }
+          to { transform: none; }
         }
         @media (scripting: none), (prefers-reduced-motion: reduce) {
           .ut-rise { animation: none; opacity: 1; transform: none; }
