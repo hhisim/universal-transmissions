@@ -114,6 +114,17 @@ console.log("\n  3. search");
   ok(oneChar.nameTotal < 20, "3 …rather than every record containing that letter");
   ok(A.searchArchive("al").nameTotal >= oneChar.nameTotal, "3 two characters search as a substring again");
 
+  /* The same rule for recorded VALUES, or a one-letter query answers with hundreds of values that
+     merely contain the letter: "A" must not match "Mars". */
+  const oneCharValues = A.searchArchive("A").values;
+  ok(oneCharValues.every((v) => v.value.trim().toLowerCase() === "a"),
+    `3 one-character value matching is exact too (${oneCharValues.length} value rows, all exactly "a")`);
+  ok(!oneCharValues.some((v) => /^mars$/i.test(v.value.trim())), "3 …so 'A' does not match 'Mars'");
+  ok(A.searchArchive("A").valueTotal < 10, `3 …and the substring flood is gone (was 473, now ${A.searchArchive("A").valueTotal})`);
+  ok(A.searchArchive("al").values.length > 0, "3 value discovery is intact for longer queries");
+  ok(A.searchArchive("mars").nameTotal > 0 || A.searchArchive("mars").valueTotal > 0,
+    "3 …and a longer value query still finds its records");
+
   /* DUPLICATE ROWS. The dataset holds four DEITIES identities twice; search must report one hit
      and one count for each addressable record. */
   for (const q of ["christos", "hecate", "kuan yin", "ma’at"]) {
@@ -186,6 +197,10 @@ console.log("\n  4. arrival");
   ok(A.arrivalContext("/codex/archive/extra", "METALS", "Gold") === null, "4 a deeper path is refused too");
   ok(A.arrivalContext("/codex/archive?system=NOT_A_SYSTEM", "METALS", "Gold") === null,
     "4 an unknown system is not somewhere a visitor can have been browsing");
+  const outside = A.arrivalContext("/codex/archive?system=METALS", "PLANTS", "Cayenne");
+  ok(outside === null, "4 a system view that does not CONTAIN this record is no arrival");
+  ok(A.arrivalContext("/codex/archive?system=METALS", "METALS", "Gold") !== null,
+    "4 …while a system view that does contain it still is");
   const known = A.SYSTEMS[0].sys;
   ok(Boolean(A.arrivalContext(`/codex/archive?system=${known}`, known, A.recordsInSystem(known)[0].e)),
     "4 a real system view is still reported");
@@ -274,7 +289,24 @@ console.log("\n  8. context");
     "8 a record keeps the context the visitor arrived with");
   ok(/archiveHref\(entry\.id, contextHref\)/.test(page),
     "8 …and its own links carry it onward instead of resetting to the archive index");
-  ok(/archiveHref\(arrival\.source\.id, contextHref\)/.test(page), "8 the source link keeps it as well");
+  ok(/arrivalSourceHref\(from, pair\.sys, pair\.e\)/.test(page),
+    "8 the source link is the address the visitor arrived from, not one rebuilt from the source id");
+  ok(!/archiveHref\(arrival\.source\.id/.test(page),
+    "8 …which is what made the source point back at itself before reaching the search");
+
+  const searchFromB = "/codex/archive?q=silver";
+  const A_ID2 = correspondenceEntryId(codex.find((r) => r.sys === "COLORS" && r.e === "Silver"));
+  const aAddr = A.archiveHref(A_ID2, searchFromB);
+  const generated = A.arrivalSourceHref(aAddr, "CRYSTALS", "MOONSTONE");
+  ok(generated === aAddr, "8 on record B the generated source link IS record A's address, unchanged");
+  const genParams = new URLSearchParams(generated.split("?")[1]);
+  ok(genParams.get("entry") === A_ID2, "8 …it names record A");
+  ok(genParams.get("from") === searchFromB, "8 …and its return target is the original search, not record A");
+  const faulty = A.archiveHref(A_ID2, aAddr);
+  ok(faulty !== generated && faulty.includes(encodeURIComponent(aAddr)),
+    "8 the rebuilt construction is self-referential, which is why it was wrong");
+  ok(A.arrivalSourceHref("/codex/archive?q=silver", "CRYSTALS", "MOONSTONE") === null,
+    "8 a search address is not a source address");
 
   const searchFrom = "/codex/archive?q=aleph";
   const A_ID = correspondenceEntryId(codex.find((r) => r.sys === "LETTERS_HEBREW" && r.e === "Aleph"));

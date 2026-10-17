@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   BASIS_LABEL, BASIS_NOTE, CORPUS, MEASURED_LOOKING, SYSTEMS, SYSTEMS_WITH_REGISTERED_ROUTES,
   SYSTEMS_WITH_RESEARCH_ROUTE, arrivalContext, archiveHref, archiveRecordFor, isKnownSystem,
-  recordFromId, recordsInSystem, registeredRoutesForSystem, relationshipGroups,
+  arrivalSourceHref, recordFromId, recordsInSystem, registeredRoutesForSystem, relationshipGroups,
   representativeSet, researchRouteForSystem, searchArchive, sharedWith, systemHref,
 } from "@/lib/codex-archive";
 
@@ -321,6 +321,9 @@ export default function ArchivePage({
   /* Where the visitor came from, re-read from the source record's own fields: the value that
      reaches this record is reported, and a source that does not actually reach it claims nothing. */
   const arrival = arrivalContext(from, pair.sys, pair.e);
+  /* The source's own address, returned unchanged: it already carries the context the visitor set
+     out from. */
+  const sourceHref = arrivalSourceHref(from, pair.sys, pair.e);
   /* Routes other registries already draw into this system's view. Empty when none does. */
   const registered = registeredRoutesForSystem(pair.sys);
   /* The address this record is read AT, which is what its own links carry onward. Using the
@@ -357,7 +360,7 @@ export default function ArchivePage({
           {arrival.source ? (
             <>
               You arrived from{" "}
-              <Link className="cx-rellink" href={archiveHref(arrival.source.id, contextHref)}>
+              <Link className="cx-rellink" href={sourceHref ?? contextHref} data-arrival-source="true">
                 {arrival.source.e}
               </Link>{" "}
               <span className="cx-relsys">{prettySystem(arrival.source.sys)}</span>

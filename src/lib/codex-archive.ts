@@ -582,7 +582,12 @@ export function arrivalContext(
   /* A system view only counts when the corpus has that system: an unknown name is not somewhere
      the visitor can have been browsing either. */
   const rawSystem = (params.get("system") || "").trim().toUpperCase();
-  const systemView = rawSystem && isKnownSystem(rawSystem) ? rawSystem : null;
+  /* A system view is only somewhere the visitor can have been browsing TO this record if the
+     record is in that system. Otherwise the claim is false and no arrival is reported. */
+  const systemView =
+    rawSystem && isKnownSystem(rawSystem) && rawSystem === String(targetSys).trim().toUpperCase()
+      ? rawSystem
+      : null;
   const entryId = params.get("entry");
   if (!entryId) {
     return systemView
@@ -617,6 +622,22 @@ export function arrivalContext(
   /* Arrived by a route the source's fields do not actually support: say nothing. */
   return { fromHref: from, source: { sys: pair.sys, e: pair.e, id: sourceId }, systemView: null,
            viaFieldLabel: null, viaValue: null };
+}
+
+/**
+ * The address a visitor arrived from when it names a record — returned UNCHANGED, because an
+ * address that names a record already carries its own context. Rebuilding it here was the defect:
+ * the source's own `from` (the search the visitor set out from) is inside the address already, so
+ * wrapping it again made the source point back at itself before reaching the original search.
+ */
+export function arrivalSourceHref(
+  from: string,
+  targetSys: string,
+  targetE: string
+): string | null {
+  const arrival = arrivalContext(from, targetSys, targetE);
+  if (!arrival || !arrival.source) return null;
+  return arrival.fromHref;
 }
 
 /* ── search ─────────────────────────────────────────────────────────────────
@@ -672,7 +693,10 @@ export function searchArchive(rawQuery: string, nameLimit = 60, valueLimit = 12)
     if (at <= 0) continue;
     const field = key.slice(0, at);
     const value = key.slice(at + 1);
-    if (!value.includes(q)) continue;
+    /* The same rule the names follow. A one-character query is answered exactly here too, so "A"
+       finds the value that IS "A" and not the hundreds of values that merely contain the letter —
+       "Mars" is not a match for "A". */
+    if (exactOnly ? value !== q : !value.includes(q)) continue;
     values.push({
       field,
       fieldLabel: FIELD_LABELS[field] || field.toUpperCase(),

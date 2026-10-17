@@ -102,18 +102,36 @@ export default function CodexPage() {
   return (
     <>
       <style>{`
-        /* The opening composition: three of the book's own plates, held behind the title. */
-        .codex-hero-plates{position:absolute;inset:0;pointer-events:none;
-          display:flex;align-items:center;justify-content:flex-end;gap:18px;padding:0 4vw;overflow:hidden}
+        /* THE OPENING COMPOSITION.
+           The plates are the manuscript, and they stay prominent — but they are held to a band on
+           the right, and the copy sits on its own reading panel in front of them. Measured before
+           this: the centre plate covered the paragraph by 333x95px on desktop and 202x189px on a
+           390px screen, so the text was being read through the artwork. */
+        .codex-hero{position:relative}
+        .codex-hero-copy{position:relative;z-index:2;max-width:42rem}
+        .codex-hero-copy::before{content:"";position:absolute;z-index:-1;
+          inset:-2.5rem -5rem -2.5rem -100vw;
+          background:linear-gradient(90deg,
+            rgba(4,3,9,0.97) 0%, rgba(4,3,9,0.95) 42%, rgba(4,3,9,0.72) 68%, rgba(4,3,9,0) 100%)}
+        .codex-hero-plates{position:absolute;top:0;bottom:0;left:52%;right:0;pointer-events:none;
+          display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:0 3vw 0 0;overflow:hidden}
         .codex-hero-plate{position:relative;display:block;overflow:hidden;
           border:1px solid rgba(212,168,71,0.18);box-shadow:0 24px 60px rgba(0,0,0,0.55)}
         .codex-hero-plate-0{width:20vw;height:30vh;opacity:0.5;transform:translateY(9%) rotate(-2.2deg)}
         .codex-hero-plate-1{width:26vw;height:52vh;opacity:0.72}
         .codex-hero-plate-2{width:22vw;height:26vh;opacity:0.42;transform:translateY(-11%) rotate(2.4deg)}
+        /* Narrow: no image sits behind the words at all. The manuscript plate becomes a band ABOVE
+           the copy, in flow, so the text and the buttons have the page to themselves. */
         @media (max-width: 900px){
-          .codex-hero-plates{padding:0 2vw;gap:10px;opacity:0.55}
+          .codex-hero{flex-direction:column;align-items:stretch;justify-content:flex-start;
+            min-height:auto;padding-top:76px}
+          .codex-hero-plates{position:static;order:-1;width:100%;height:34vh;
+            padding:0;justify-content:center;align-items:flex-end}
           .codex-hero-plate-0,.codex-hero-plate-2{display:none !important}
-          .codex-hero-plate-1{width:56vw !important;height:38vh !important;margin-left:auto}
+          .codex-hero-plate-1{width:min(74vw,340px) !important;height:100% !important;margin:0 !important}
+          .codex-hero-copy{max-width:none}
+          .codex-hero-copy::before{display:none}
+          .codex-hero-pad{padding-top:1.5rem;padding-bottom:3rem}
         }
         .ut-video-gate{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;
           justify-content:center;cursor:pointer;border:0;padding:0;background:#05040c;overflow:hidden}
@@ -139,7 +157,7 @@ export default function CodexPage() {
 <main style={{ background: "var(--ut-black)" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}
-        <section className="relative min-h-[85vh] flex items-center overflow-hidden">
+        <section className="codex-hero relative min-h-[85vh] flex items-center overflow-hidden">
           {/* 3D Merkaba background */}
           <div className="absolute inset-0 opacity-30">
             <RotatingMerkaba />
@@ -170,8 +188,8 @@ export default function CodexPage() {
             ))}
           </div>
 
-          <div className="container-ut relative z-10 py-32">
-            <div className="max-w-3xl">
+          <div className="codex-hero-pad container-ut relative z-10 py-32">
+            <div className="codex-hero-copy max-w-3xl">
               <SectionReveal>
                 <p className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: "var(--ut-gold)" }}>
                   [ 150 Pages · Xenolinguistic Art · Sacred Geometry ]
