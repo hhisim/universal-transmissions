@@ -7,6 +7,7 @@ import { artworks, getArtwork } from "@/data/artworks";
 import ArtworkHero from "@/components/gallery/ArtworkHero";
 import ProgressiveDetailExplorer from "@/components/gallery/ProgressiveDetailExplorer";
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
+import ReturnToBrowse from "@/components/gallery/ReturnToBrowse";
 import PageBackground from "@/components/scenes/PageBackground";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 import { ARTWORK_CONNECTION_GAPS, connectionsForArtwork } from "@/lib/artwork-connections";
@@ -418,9 +419,7 @@ export default function ArtworkDetailPage({ params }: Props) {
               className="border-t flex justify-between items-center pt-8"
               style={{ borderColor: "rgba(217,70,239,0.06)" }}
             >
-              <Link href="/gallery" className="btn-secondary">
-                ← BACK TO GALLERY
-              </Link>
+              <ReturnToBrowse slug={artwork.slug} />
               <Link href="/codex" className="btn-secondary">
                 EXPLORE THE CODEX →
               </Link>

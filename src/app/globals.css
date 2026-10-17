@@ -872,23 +872,119 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* ============================================================
-   REVEAL SAFETY NET
+   REVEAL — visible by default, animation additive
    ============================================================
-   SectionReveal ships its hidden state (opacity 0, translated) in the
-   prerendered HTML and reveals on scroll. Two visitors would otherwise be
-   shown blank sections and never be helped by the script:
+   Batch 30. The released SectionReveal shipped its hidden state
+   (opacity 0, translated) as an inline style in the prerendered HTML and
+   waited for an intersection observer to clear it, so a section stayed
+   blank whenever that observer did not report — content below the fold,
+   a throttled frame, a background tab. Measured on the released gallery,
+   32 of 35 cards were still at opacity 0 with the grid on screen.
 
-     - anyone without JavaScript, since nothing can trigger the reveal;
-     - anyone who asked for reduced motion, who should not be given a
-       translate-and-fade at all.
+   The resting state is now the FINAL state: the wrapper is opaque and in
+   place, and the keyframes are an addition that plays when the section
+   enters view. If the animation never runs, nothing is hidden.
 
-   These rules win over the inline style because they are !important, so the
-   content is simply present in both cases. Everyone else keeps the animation. */
+   Anyone without JavaScript, and anyone who asked for reduced motion, is
+   given the content with no animation at all. */
 
-@media (scripting: none), (prefers-reduced-motion: reduce) {
-  [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
+[data-reveal] {
+  opacity: 1;
+}
+
+[data-reveal="shown"] {
+  animation: ut-reveal 0.8s ease-out both;
+}
+
+@keyframes ut-reveal {
+  from {
+    opacity: 0;
+    transform: translate(var(--rv-x, 0px), var(--rv-y, 0px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
+
+@media (scripting: none), (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal="shown"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ============================================================
+   THE COLLECTION (Batch 30)
+   ============================================================
+   Shared by the gallery's interactive grid and by the collection
+   that renders in the page's own HTML before the client takes over,
+   so a visitor without JavaScript still sees every work. The card
+   box takes the work's recorded aspect ratio; landscape works take
+   two columns on a wide screen, which is where the grid's rhythm
+   comes from. */
+
+        .ut-collection-head { text-align: center; margin-bottom: 2.5rem; padding-top: 0.5rem; position: relative; z-index: 1; }
+        .ut-collection-count { font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ut-cyan); }
+        .ut-collection-lede { font-size: 1.05rem; max-width: 40rem; margin: 1rem auto 0; color: var(--ut-white-dim); }
+
+        .ut-collection-controls { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1rem;
+          padding: 1.1rem 1.2rem; margin-bottom: 1.5rem; border: 1px solid rgba(0,229,255,0.14);
+          background: rgba(6,5,10,0.72); backdrop-filter: blur(6px); }
+        .ut-collection-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+        .ut-collection-label { font-family: var(--font-mono, monospace); font-size: 9px; letter-spacing: 0.24em;
+          text-transform: uppercase; color: var(--ut-white-faint); min-width: 5.5rem; }
+
+        .ut-chip { font-family: var(--font-mono, monospace); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+          padding: 0.45rem 0.7rem; border: 1px solid rgba(0,229,255,0.16); color: var(--ut-white-dim);
+          background: rgba(255,255,255,0.015); cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
+        .ut-chip:hover { border-color: rgba(0,229,255,0.5); color: var(--ut-white); }
+        .ut-chip[aria-pressed="true"] { border-color: var(--ut-cyan); color: var(--ut-cyan); background: rgba(0,229,255,0.07); }
+        .ut-chip-count { opacity: 0.55; margin-left: 0.4rem; }
+
+        .ut-search { flex: 1 1 16rem; min-width: 12rem; font-family: var(--font-body, inherit); font-size: 0.9rem;
+          padding: 0.5rem 0.7rem; color: var(--ut-white); background: rgba(0,0,0,0.45);
+          border: 1px solid rgba(0,229,255,0.18); }
+        .ut-search:focus-visible, .ut-select:focus-visible { outline: 2px solid var(--ut-cyan); outline-offset: 2px; }
+        .ut-select { font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+          padding: 0.45rem 0.6rem; color: var(--ut-white-dim); background: rgba(0,0,0,0.45); border: 1px solid rgba(0,229,255,0.18); }
+
+        .ut-collection-summary { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem;
+          font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+          color: var(--ut-white-faint); margin-bottom: 1.4rem; }
+
+        .ut-begin { position: relative; z-index: 1; border: 1px solid rgba(212,168,71,0.18); background: rgba(6,5,10,0.6); padding: 1.1rem 1.2rem; margin-bottom: 1.6rem; }
+        .ut-begin-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 0.7rem; margin-top: 0.8rem; }
+        .ut-begin-card { display: flex; gap: 0.7rem; align-items: center; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.015); }
+        .ut-begin-card:hover { border-color: rgba(212,168,71,0.4); }
+        .ut-begin-thumb { position: relative; width: 3.4rem; height: 3.4rem; flex: none; overflow: hidden; background: #070610; }
+        .ut-begin-thumb img { object-fit: cover; }
+        .ut-begin-title { font-family: var(--font-heading, inherit); font-size: 0.78rem; letter-spacing: 0.04em; color: var(--ut-white); line-height: 1.35; }
+
+        /* Artwork presentation: each work keeps its own ratio, and landscape works take the
+           width their shape asks for, which is what gives the grid its rhythm. */
+        .ut-collection { position: relative; z-index: 1; display: grid; gap: 1.5rem;
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); align-items: start; }
+        .ut-work { display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.07);
+          background: rgba(8,7,14,0.86); overflow: hidden; transition: border-color .25s, transform .25s; }
+        .ut-work:hover { border-color: rgba(217,70,239,0.42); }
+        .ut-work[data-returned="true"] { border-color: var(--ut-gold); box-shadow: 0 0 0 1px rgba(212,168,71,0.35); }
+        .ut-work-frame { position: relative; display: block; width: 100%; background: #06050a; overflow: hidden; }
+        .ut-work-frame img { transition: transform .5s ease; }
+        .ut-work:hover .ut-work-frame img { transform: scale(1.015); }
+        .ut-work-body { padding: 0.85rem 0.95rem 1rem; display: flex; flex-direction: column; gap: 0.45rem; }
+        .ut-work-title { font-family: var(--font-heading, inherit); font-size: 0.95rem; line-height: 1.35; letter-spacing: 0.02em; color: var(--ut-white); }
+        .ut-work-meta { display: flex; flex-wrap: wrap; gap: 0.45rem 0.7rem; font-family: var(--font-mono, monospace);
+          font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ut-white-faint); }
+        .ut-work-actions { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.15rem; }
+
+        @media (min-width: 900px) {
+          .ut-work[data-orientation="landscape"] { grid-column: span 2; }
+          .ut-collection { grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ut-work, .ut-work-frame img { transition: none; }
+          .ut-work:hover .ut-work-frame img { transform: none; }
+        }
