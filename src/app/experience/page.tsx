@@ -117,7 +117,7 @@ export default function ExperienceIndexPage() {
 
   return (
     <>
-      <PageBackground variant="homepage" opacity={0.5} />
+      <PageBackground variant="homepage" opacity={0.42} />
       <main style={{ background: "transparent" }}>
         <section className="pt-24 pb-10">
           <div className="container-ut">
@@ -207,12 +207,22 @@ export default function ExperienceIndexPage() {
       </main>
 
       <style>{`
-        .ut-portal-head { max-width: 780px; }
+        /* The head sits on its own surface: the particle field is atmosphere and must
+           not read through the words. */
+        .ut-portal-head {
+          position: relative;
+          z-index: 1;
+          max-width: 800px;
+          padding: 26px 28px;
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          background:
+            radial-gradient(120% 140% at 0% 0%, rgba(6, 5, 10, 0.9) 0%, rgba(6, 5, 10, 0.62) 70%, rgba(6, 5, 10, 0.5) 100%);
+        }
         .ut-portal-lede {
           font-family: var(--font-body, system-ui);
           font-size: 16px;
           line-height: 1.75;
-          color: rgba(237, 233, 246, 0.78);
+          color: rgba(237, 233, 246, 0.88);
           margin: 0 0 14px;
         }
         .ut-portal-count {
@@ -224,6 +234,7 @@ export default function ExperienceIndexPage() {
           margin: 0;
         }
 
+        .ut-rooms, .ut-portal-foot { position: relative; z-index: 1; }
         .ut-rooms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
         @media (max-width: 820px) { .ut-rooms { grid-template-columns: 1fr; } }
 
@@ -237,7 +248,7 @@ export default function ExperienceIndexPage() {
           border: 1px solid rgba(255, 255, 255, 0.08);
           background:
             radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--room-accent) 12%, transparent) 0%, transparent 58%),
-            rgba(9, 8, 13, 0.88);
+            rgba(9, 8, 13, 0.93);
         }
         .ut-room:hover { border-color: color-mix(in srgb, var(--room-accent) 42%, transparent); }
         .ut-room-sigil {
@@ -337,7 +348,7 @@ export default function ExperienceIndexPage() {
           margin-top: 30px;
           padding: 22px 24px;
           border: 1px solid rgba(255, 255, 255, 0.07);
-          background: rgba(9, 8, 13, 0.8);
+          background: rgba(9, 8, 13, 0.9);
           display: flex;
           flex-wrap: wrap;
           align-items: center;
