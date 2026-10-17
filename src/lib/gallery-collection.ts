@@ -213,3 +213,95 @@ export function visibleWorks(state: BrowseState): Artwork[] {
   list = searchWorks(list, state.q);
   return sortWorks(list, state.sort);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   COMING BACK TO THE COLLECTION
+
+   The released gallery kept one scroll offset under one global key, so any earlier visit could
+   put a visitor at an unrelated place, and the work named in a return address was ignored. A
+   position now belongs to the collection it was taken in — the browse state without the work
+   marker — and records which work the visitor left from, so an entry saved in a different
+   collection, or saved while leaving a different work, is not used for a return address that
+   names this one.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** The collection a visitor was looking at: the browse state, without the work marker. */
+export function browseSignature(state: {
+  series: string;
+  q: string;
+  sort: GallerySort;
+  orientation: Orientation | "all";
+}): string {
+  return [state.series, state.q.trim().toLowerCase(), state.sort, state.orientation].join("|");
+}
+
+/** The set of slugs the registry actually publishes — the only values a return marker may hold. */
+let slugIndex: Set<string> | null = null;
+export function publishedSlugs(): Set<string> {
+  if (!slugIndex) slugIndex = new Set(artworks.map((a) => a.slug));
+  return slugIndex;
+}
+
+/**
+ * A return marker, but only if it names a work the registry publishes. Anything else — a typo, a
+ * stale address, a value that is not a slug at all — is reported as absent rather than used to
+ * build a lookup or a selector.
+ */
+export function validWorkSlug(value: string | null | undefined): string | null {
+  if (typeof value !== "string") return null;
+  const v = value.trim();
+  if (!v || v.length > 120) return null;
+  if (!/^[a-z0-9][a-z0-9-]*$/i.test(v)) return null;
+  return publishedSlugs().has(v) ? v : null;
+}
+
+export interface SavedPosition {
+  /** The scroll offset the visitor left the collection at. */
+  y: number;
+  /** The work they left from, so a return address naming another work is not served this entry. */
+  work: string | null;
+}
+
+/**
+ * Read the saved position for a collection. Tolerates absent or unreadable storage, and refuses
+ * an entry that belongs to a different work than the one the return address names — a fresh
+ * return address must not be answered with the place from an earlier, unrelated visit.
+ */
+export function readSavedPosition(
+  raw: string | null,
+  signature: string,
+  namedWork: string | null
+): SavedPosition | null {
+  if (!raw) return null;
+  let table: Record<string, SavedPosition>;
+  try {
+    table = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!table || typeof table !== "object") return null;
+  const entry = table[signature];
+  if (!entry || typeof entry.y !== "number" || !Number.isFinite(entry.y)) return null;
+  const entryWork = typeof entry.work === "string" ? entry.work : null;
+  if (namedWork && entryWork && entryWork !== namedWork) return null;
+  return { y: Math.max(0, Math.round(entry.y)), work: entryWork };
+}
+
+/** Record a position for a collection, leaving every other collection's entry alone. */
+export function withSavedPosition(
+  raw: string | null,
+  signature: string,
+  entry: SavedPosition
+): string {
+  let table: Record<string, SavedPosition> = {};
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") table = parsed;
+    } catch {
+      table = {};
+    }
+  }
+  table[signature] = { y: Math.max(0, Math.round(entry.y)), work: entry.work ?? null };
+  return JSON.stringify(table);
+}

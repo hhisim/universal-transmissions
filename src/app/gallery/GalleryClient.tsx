@@ -16,9 +16,22 @@
  *  -  CONTENT DEPENDED ON A REVEAL. 32 of 35 cards sat at opacity 0 until an observer fired.
  *  -  A 900ms FAKE LOAD. A skeleton stood in front of a grid that was already in memory.
  *
- * This composes the collection from the registry instead. Every grouping, count, aspect and
- * order comes from `@/lib/gallery-collection`, which reads the artwork data and the recorded
- * master dimensions. The browse state lives in the URL, so it is shareable and Back restores it.
+ * This composes the collection from the registry instead. Every grouping, count, aspect and order
+ * comes from `@/lib/gallery-collection`, which reads the artwork data and the recorded master
+ * dimensions. The browse state lives in the URL, so it is shareable and Back restores it.
+ *
+ * The return journey is the part that needed the most care. Three things were wrong in the first
+ * cut of it, all of which this file now does properly:
+ *
+ *  1.  The mount-time URL writer rebuilt the address from the four narrowing values only, which
+ *      DROPPED the `work` marker the return link had just supplied — so returning from a work
+ *      restored the collection but not the work. The marker is now carried through, but only
+ *      after being checked against the registry's published slugs.
+ *  2.  The saved position was one global scroll offset. Any earlier visit could therefore put a
+ *      visitor somewhere unrelated. A position now belongs to the collection it was taken in,
+ *      and records the work it was taken from (see `browseSignature` / `readSavedPosition`).
+ *  3.  The work marker was interpolated straight into a DOM selector. It is validated first, and
+ *      the lookup scans the cards rather than building a selector from page-supplied text.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -35,17 +48,21 @@ import {
   COLLECTION_SIZE,
   SORTS,
   browseQuery,
+  browseSignature,
   gallerySeries,
   orientationCounts,
   parseBrowseState,
+  readSavedPosition,
+  validWorkSlug,
   visibleWorks,
+  withSavedPosition,
   type GallerySort,
   type Orientation,
 } from "@/lib/gallery-collection";
 import { artworks } from "@/data/artworks";
 
-/** Where the visitor's scroll position is kept so returning restores the place they were reading. */
-const SCROLL_KEY = "ut:gallery:scroll";
+/** Positions are kept per collection, so one visit cannot answer for another. */
+const POSITIONS_KEY = "ut:gallery:positions";
 
 const ORIENTATION_LABELS: { id: Orientation | "all"; label: string }[] = [
   { id: "all", label: "Any shape" },
@@ -53,6 +70,10 @@ const ORIENTATION_LABELS: { id: Orientation | "all"; label: string }[] = [
   { id: "portrait", label: "Portrait" },
   { id: "square", label: "Square" },
 ];
+
+const NUMBER_WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+/** Spoken from the list that is actually rendered, so the sentence cannot outrun the count. */
+const countWord = (n: number) => NUMBER_WORDS[n] ?? String(n);
 
 type Panel = "works" | "grid" | "stream";
 
@@ -67,11 +88,13 @@ export default function GalleryClient() {
   const [sort, setSort] = useState<GallerySort>(initial.sort);
   const [orientation, setOrientation] = useState<Orientation | "all">(initial.orientation);
   const [panel, setPanel] = useState<Panel>("works");
-  const [returnedTo, setReturnedTo] = useState<string | null>(initial.work ?? null);
+  /* Only a work the registry publishes may become a return marker — a malformed or unknown
+     value in the address leaves the collection fully usable instead of pointing at nothing. */
+  const [returnedTo, setReturnedTo] = useState<string | null>(() => validWorkSlug(initial.work));
 
   const seriesList = useMemo(() => gallerySeries(), []);
   const orientCounts = useMemo(() => orientationCounts(), []);
-  const featured = useMemo(() => artworks.filter((a) => a.featured).slice(0, 4), []);
+  const featured = useMemo(() => artworks.filter((a) => a.featured), []);
 
   const state = useMemo(
     () => ({ series, q, sort, work: null, orientation }),
@@ -80,11 +103,12 @@ export default function GalleryClient() {
   const shown = useMemo(() => visibleWorks(state), [state]);
 
   const narrowing = series !== "all" || Boolean(q) || orientation !== "all" || sort !== "registry";
+  const signature = browseSignature({ series, q, sort, orientation });
 
   /* ── the browse state lives in the URL ─────────────────────────────────────
-     Written with `replace` so a narrowing does not fill the Back button with steps the
-     visitor never took. Because the state is IN the URL, coming back from a work restores
-     it exactly, whether the visitor used our link or the browser's own Back. */
+     Written with `replace` so a narrowing does not fill the Back button with steps the visitor
+     never took. The return marker travels with it: rebuilding the address without `work` is what
+     stripped it, so a refresh after a return keeps the target. */
   const writeUrl = useCallback(
     (qs: string) => {
       const target = qs ? `${pathname}${qs}` : pathname;
@@ -98,11 +122,14 @@ export default function GalleryClient() {
     /* The search box writes on a short delay; the other controls write immediately. */
     if (urlTimer.current) clearTimeout(urlTimer.current);
     const delay = q === initial.q ? 0 : 220;
-    urlTimer.current = setTimeout(() => writeUrl(browseQuery({ series, q, sort, orientation })), delay);
+    urlTimer.current = setTimeout(
+      () => writeUrl(browseQuery({ series, q, sort, orientation, work: returnedTo })),
+      delay
+    );
     return () => {
       if (urlTimer.current) clearTimeout(urlTimer.current);
     };
-  }, [series, q, sort, orientation, initial.q, writeUrl]);
+  }, [series, q, sort, orientation, returnedTo, initial.q, writeUrl]);
 
   /* Browser Back/Forward is the one case where the URL leads and the state follows. */
   useEffect(() => {
@@ -112,36 +139,54 @@ export default function GalleryClient() {
       setQ(s.q);
       setSort(s.sort);
       setOrientation(s.orientation);
-      if (s.work) setReturnedTo(s.work);
+      setReturnedTo(validWorkSlug(s.work));
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   /* ── coming back to the collection ─────────────────────────────────────────
-     The card stores where the visitor was standing; the return link carries `work`, and the
-     gallery puts them back at that work, in that position. */
-  const rememberPlace = useCallback(() => {
-    try {
-      sessionStorage.setItem(SCROLL_KEY, String(Math.round(window.scrollY)));
-    } catch {
-      /* a browser with storage disabled still gets the URL state, just not the exact offset */
-    }
-  }, []);
+     Leaving a work records where the visitor was standing, in the collection they were standing
+     in, and which work they left from. */
+  const rememberPlace = useCallback(
+    (slug: string) => {
+      try {
+        const raw = sessionStorage.getItem(POSITIONS_KEY);
+        sessionStorage.setItem(
+          POSITIONS_KEY,
+          withSavedPosition(raw, signature, { y: Math.round(window.scrollY), work: slug })
+        );
+      } catch {
+        /* storage disabled: the URL still carries the collection, the work and the order */
+      }
+    },
+    [signature]
+  );
 
+  /* Putting them back. A saved position is used only when it belongs to this collection and was
+     not taken while leaving a different work; otherwise the named work itself is brought into
+     view. Neither path can be answered by an unrelated earlier visit. */
   useEffect(() => {
     if (!returnedTo) return;
-    const el = document.querySelector(`[data-work="${returnedTo}"]`);
-    if (!el) return;
     let saved: number | null = null;
     try {
-      const raw = sessionStorage.getItem(SCROLL_KEY);
-      saved = raw ? parseInt(raw, 10) : null;
+      const entry = readSavedPosition(sessionStorage.getItem(POSITIONS_KEY), signature, returnedTo);
+      saved = entry ? entry.y : null;
     } catch {
       saved = null;
     }
-    window.scrollTo({ top: saved ?? Math.max(0, (el as HTMLElement).offsetTop - 120), behavior: "instant" as ScrollBehavior });
-  }, [returnedTo, shown.length]);
+    if (saved !== null) {
+      window.scrollTo({ top: saved, behavior: "instant" as ScrollBehavior });
+      return;
+    }
+    /* Scanned, not selected: the marker never becomes part of a CSS selector. */
+    const card = Array.from(document.querySelectorAll<HTMLElement>("[data-work]")).find(
+      (el) => el.getAttribute("data-work") === returnedTo
+    );
+    if (card) {
+      window.scrollTo({ top: Math.max(0, card.offsetTop - 120), behavior: "instant" as ScrollBehavior });
+    }
+  }, [returnedTo, signature, shown.length]);
 
   const clearAll = () => {
     setSeries("all");
@@ -150,10 +195,52 @@ export default function GalleryClient() {
     setOrientation("all");
   };
 
+  const cardHref = (slug: string) =>
+    `/gallery/${slug}${browseQuery({ series, q, sort, orientation })}`;
+
   return (
     <>
-
       <CollectionHead />
+
+      {/* ── THE OPENING IS ARTWORK ─────────────────────────────────────────
+          The works the archive marks as its own starting points, directly under the title so the
+          first thing on the page is art rather than controls. The sentence is built from the list
+          that is rendered. */}
+      {panel === "works" && !narrowing && featured.length > 0 && (
+        <section className="ut-begin" data-gallery-begin="true" data-gallery-begin-count={featured.length}>
+          <div className="ut-begin-head">
+            <p className="ut-collection-count" style={{ color: "var(--ut-gold)" }}>
+              Begin here
+            </p>
+            <p className="ut-begin-say" data-gallery-begin-say="true">
+              {countWord(featured.length).replace(/^./, (c) => c.toUpperCase())} works the archive marks as
+              its own starting points — the complete collection follows, nothing held back.
+            </p>
+          </div>
+          <div className="ut-begin-strip">
+            {featured.map((a) => (
+              <Link
+                key={a.id}
+                href={cardHref(a.slug)}
+                className="ut-begin-tile"
+                onClick={() => rememberPlace(a.slug)}
+                data-begin-work={a.slug}
+              >
+                <span className="ut-begin-thumb">
+                  <Image
+                    src={a.images[0]}
+                    alt={a.title}
+                    fill
+                    sizes="(max-width: 640px) 40vw, 180px"
+                    style={{ objectFit: "cover" }}
+                  />
+                </span>
+                <span className="ut-begin-title">{a.title}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── CONTROLS ───────────────────────────────────────── */}
       <div className="ut-collection-controls">
@@ -226,31 +313,37 @@ export default function GalleryClient() {
           </div>
         </div>
 
-        <div className="ut-collection-row">
-          <span className="ut-collection-label" id="gallery-shape-label">
-            Shape
-          </span>
-          <div className="ut-collection-row" role="group" aria-labelledby="gallery-shape-label">
-            {ORIENTATION_LABELS.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                className="ut-chip"
-                aria-pressed={orientation === o.id}
-                onClick={() => {
-                  setOrientation(o.id);
-                  setPanel("works");
-                }}
-                data-orientation-filter={o.id}
-              >
-                {o.label}
-                {o.id !== "all" && (
-                  <span className="ut-chip-count">{orientCounts[o.id as Orientation]}</span>
-                )}
-              </button>
-            ))}
+        <details className="ut-refine" data-gallery-refine="true">
+          <summary className="ut-refine-summary">
+            Shape, rooms and more
+            {orientation !== "all" && <span className="ut-chip-count">{orientation}</span>}
+          </summary>
+          <div className="ut-collection-row">
+            <span className="ut-collection-label" id="gallery-shape-label">
+              Shape
+            </span>
+            <div className="ut-collection-row" role="group" aria-labelledby="gallery-shape-label">
+              {ORIENTATION_LABELS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className="ut-chip"
+                  aria-pressed={orientation === o.id}
+                  onClick={() => {
+                    setOrientation(o.id);
+                    setPanel("works");
+                  }}
+                  data-orientation-filter={o.id}
+                >
+                  {o.label}
+                  {o.id !== "all" && (
+                    <span className="ut-chip-count">{orientCounts[o.id as Orientation]}</span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-          <span className="ut-collection-row" style={{ marginLeft: "auto" }}>
+          <div className="ut-collection-row">
             <span className="ut-collection-label">Other rooms</span>
             <button
               type="button"
@@ -268,8 +361,8 @@ export default function GalleryClient() {
             >
               Stream
             </button>
-          </span>
-        </div>
+          </div>
+        </details>
       </div>
 
       {/* ── OTHER ROOMS (preserved) ─────────────────────────── */}
@@ -287,34 +380,6 @@ export default function GalleryClient() {
 
       {panel === "works" && (
         <>
-          {/* A way in that does not stand in front of the collection. */}
-          {!narrowing && featured.length > 0 && (
-            <section className="ut-begin" data-gallery-begin="true">
-              <p className="ut-collection-count" style={{ color: "var(--ut-gold)" }}>
-                Begin here
-              </p>
-              <p className="ut-collection-lede" style={{ margin: "0.5rem 0 0", fontSize: "0.95rem" }}>
-                Five works the archive marks as its own starting points. The complete collection
-                follows — nothing is held back.
-              </p>
-              <div className="ut-begin-row">
-                {featured.map((a) => (
-                  <Link
-                    key={a.id}
-                    href={`/gallery/${a.slug}${browseQuery({ series, q, sort, orientation })}`}
-                    className="ut-begin-card"
-                    onClick={rememberPlace}
-                  >
-                    <span className="ut-begin-thumb">
-                      <Image src={a.images[0]} alt="" fill sizes="60px" style={{ objectFit: "cover" }} />
-                    </span>
-                    <span className="ut-begin-title">{a.title}</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
           <div className="ut-collection-summary" data-gallery-summary="true">
             <span data-gallery-shown={shown.length}>
               Showing {shown.length} of {COLLECTION_SIZE}
@@ -352,10 +417,10 @@ export default function GalleryClient() {
                 <WorkCard
                   key={a.id}
                   artwork={a}
-                  href={`/gallery/${a.slug}${browseQuery({ series, q, sort, orientation })}`}
+                  href={cardHref(a.slug)}
                   returned={returnedTo === a.slug}
                   records={connectionsForArtwork(a.slug).length}
-                  onNavigate={rememberPlace}
+                  onNavigate={() => rememberPlace(a.slug)}
                 />
               ))}
             </div>

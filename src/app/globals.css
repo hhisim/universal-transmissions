@@ -896,13 +896,16 @@ body::-webkit-scrollbar-thumb:hover {
   animation: ut-reveal 0.8s ease-out both;
 }
 
+/* TRANSFORM ONLY. Opacity is deliberately not animated.
+   Batch 29 established why: an animation whose keyframes start at `opacity: 0` — with a fill
+   mode of `both` and any delay — hides its element for as long as the animation has not
+   advanced, and a throttled or background tab can hold it there indefinitely. The entrance is
+   movement, and the content is opaque from the first frame whether the animation runs or not. */
 @keyframes ut-reveal {
   from {
-    opacity: 0;
     transform: translate(var(--rv-x, 0px), var(--rv-y, 0px));
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }
@@ -955,23 +958,57 @@ body::-webkit-scrollbar-thumb:hover {
           font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
           color: var(--ut-white-faint); margin-bottom: 1.4rem; }
 
-        .ut-begin { position: relative; z-index: 1; border: 1px solid rgba(212,168,71,0.18); background: rgba(6,5,10,0.6); padding: 1.1rem 1.2rem; margin-bottom: 1.6rem; }
-        .ut-begin-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 0.7rem; margin-top: 0.8rem; }
-        .ut-begin-card { display: flex; gap: 0.7rem; align-items: center; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.015); }
-        .ut-begin-card:hover { border-color: rgba(212,168,71,0.4); }
-        .ut-begin-thumb { position: relative; width: 3.4rem; height: 3.4rem; flex: none; overflow: hidden; background: #070610; }
-        .ut-begin-thumb img { object-fit: cover; }
-        .ut-begin-title { font-family: var(--font-heading, inherit); font-size: 0.78rem; letter-spacing: 0.04em; color: var(--ut-white); line-height: 1.35; }
+        /* The opening is artwork: a single strip of real works under the title, so the first thing
+           on the page is a piece rather than a wall of controls. It scrolls sideways rather than
+           growing taller, which is what keeps it off the collection's toes on a narrow screen. */
+        .ut-begin { position: relative; z-index: 1; border: 1px solid rgba(212,168,71,0.18); background: rgba(6,5,10,0.62); padding: 1rem 1.1rem 0.9rem; margin-bottom: 1.3rem; }
+        .ut-begin-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.9rem; }
+        .ut-begin-say { margin: 0; font-size: 0.92rem; color: var(--ut-white-dim); max-width: 46rem; }
+        .ut-begin-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(8.5rem, 1fr); gap: 0.6rem;
+          margin-top: 0.8rem; overflow-x: auto; padding-bottom: 0.35rem; }
+        .ut-begin-tile { display: flex; flex-direction: column; gap: 0.35rem; }
+        .ut-begin-thumb { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; background: #070610; border: 1px solid rgba(255,255,255,0.06); }
+        .ut-begin-tile:hover .ut-begin-thumb { border-color: rgba(212,168,71,0.45); }
+        .ut-begin-title { font-family: var(--font-heading, inherit); font-size: 0.74rem; letter-spacing: 0.03em; color: var(--ut-white-dim); line-height: 1.3; }
+        @media (min-width: 900px) { .ut-begin-strip { grid-auto-columns: minmax(10rem, 1fr); } }
+
+        /* Secondary controls fold away; search and the series chips do not. */
+        .ut-refine { border-top: 1px solid rgba(0,229,255,0.1); padding-top: 0.6rem; }
+        .ut-refine-summary { cursor: pointer; font-family: var(--font-mono, monospace); font-size: 9px;
+          letter-spacing: 0.2em; text-transform: uppercase; color: var(--ut-white-faint); list-style: none; }
+        .ut-refine-summary::-webkit-details-marker { display: none; }
+        .ut-refine-summary::before { content: "\25B8  "; color: var(--ut-cyan); }
+        .ut-refine[open] .ut-refine-summary::before { content: "\25BE  "; }
+        .ut-refine[open] .ut-refine-summary { color: var(--ut-white); }
+        .ut-refine .ut-collection-row { margin-top: 0.7rem; }
+
+        /* On a narrow screen every control takes the full width it needs and no more, and the
+           opening strip shows artwork without a paragraph of titles under each tile. */
+        @media (max-width: 640px) {
+          .ut-collection-head { margin-bottom: 1.4rem; }
+          .ut-collection-lede { font-size: 0.98rem; margin-top: 0.7rem; }
+          .ut-collection-controls { padding: 0.75rem 0.8rem; gap: 0.55rem; }
+          .ut-collection-label { min-width: 100%; }
+          .ut-search { flex: 1 1 100%; }
+          .ut-select { flex: 1 1 100%; }
+          .ut-chip { padding: 0.36rem 0.5rem; font-size: 9px; }
+          .ut-begin { padding: 0.8rem 0.85rem; margin-bottom: 1rem; }
+          .ut-begin-say { font-size: 0.86rem; }
+          .ut-begin-strip { grid-auto-columns: minmax(7rem, 1fr); margin-top: 0.6rem; }
+          .ut-begin-title { display: none; }
+          .ut-collection-summary { margin-bottom: 1rem; }
+        }
 
         /* Artwork presentation: each work keeps its own ratio, and landscape works take the
            width their shape asks for, which is what gives the grid its rhythm. */
-        .ut-collection { position: relative; z-index: 1; display: grid; gap: 1.5rem;
-          grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); align-items: start;
-          /* A landscape work takes two columns; without dense packing the column it leaves
-             beside it stays empty until the next two-column work fits, which showed up as a
-             large hole in the grid's first row. Dense back-fills those with the square and
-             portrait works that follow. */
-          grid-auto-flow: row dense; }
+        /* ORDER-PRESERVING. Every card occupies one column, so the grid reads in the order the
+           visitor chose and keyboard order matches visual order. An earlier attempt let landscape
+           works span two columns; the column left beside them stayed empty until another wide work
+           fitted, and dense packing filled it by pulling a later square work ahead of an earlier
+           landscape one — the visible sequence then disagreed with the sort the visitor selected.
+           The rhythm comes from the works' own shapes instead. */
+        .ut-collection { position: relative; z-index: 1; display: grid; gap: 1.4rem;
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr)); align-items: start; }
         .ut-work { display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.07);
           background: rgba(8,7,14,0.86); overflow: hidden; transition: border-color .25s, transform .25s; }
         .ut-work:hover { border-color: rgba(217,70,239,0.42); }
@@ -986,8 +1023,7 @@ body::-webkit-scrollbar-thumb:hover {
         .ut-work-actions { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.15rem; }
 
         @media (min-width: 900px) {
-          .ut-work[data-orientation="landscape"] { grid-column: span 2; }
-          .ut-collection { grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+          .ut-collection { grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr)); }
         }
         @media (prefers-reduced-motion: reduce) {
           .ut-work, .ut-work-frame img { transition: none; }

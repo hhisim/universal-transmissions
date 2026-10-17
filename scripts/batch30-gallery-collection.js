@@ -94,10 +94,17 @@ console.log("\n  4. aspect ratio");
   }
   ok(wrong === 0, `4 all ${checked} recorded works report their master's own ratio`);
   ok(checked + unrecorded === artworks.length, "4 every work is accounted for");
-  const src = read("src/app/gallery/GalleryClient.tsx");
-  ok(!/aspect-\[4\/5\]/.test(src), "4 the forced 4:5 box is gone");
-  ok(/aspectRatio: aspect \?\? "4 \/ 3"/.test(src), "4 the card takes the work's ratio, with a neutral box only when none is recorded");
-  ok(/objectFit: aspect \? "cover" : "contain"/.test(src), "4 an unrecorded work is contained, never cropped");
+  /* The card's markup lives in the component that renders it. Checking the gallery for
+     expressions that moved into WorkCard is what made these two assertions report false against
+     the shipped source; they now read the responsible component, and assert the grid uses it. */
+  const card = code("src/components/gallery/WorkCard.tsx");
+  const gallery = code("src/app/gallery/GalleryClient.tsx");
+  ok(!/aspect-\[4\/5\]/.test(card), "4 the forced 4:5 box is gone from the card");
+  ok(!/aspect-\[4\/5\]/.test(gallery), "4 …and from the gallery that renders it");
+  ok(/aspectRatio: aspect \?\? "4 \/ 3"/.test(card), "4 the card takes the work's ratio, with a neutral box only when none is recorded");
+  ok(/objectFit: aspect \? "cover" : "contain"/.test(card), "4 an unrecorded work is contained, never cropped");
+  ok(/<WorkCard/.test(gallery), "4 the grid renders that card component");
+  ok(/<WorkCard[\s\S]{0,240}artwork=\{a\}/.test(gallery), "4 …passing the work itself, not a copy of its fields");
 }
 
 /* ── 5. search ───────────────────────────────────────────────────────────── */
@@ -185,6 +192,93 @@ console.log("\n  10. return");
   const detail = read("src/app/gallery/[slug]/page.tsx");
   ok(/ReturnToBrowse/.test(detail), "10 the artwork page offers it");
   ok(!/BACK TO GALLERY/.test(detail), "10 and no longer offers only the state-losing link");
+}
+
+/* ── 11. the return journey ─────────────────────────────────────────────── */
+console.log("\n  11. return journey");
+{
+  const gallery = code("src/app/gallery/GalleryClient.tsx");
+  const returner = read("src/components/gallery/ReturnToBrowse.tsx");
+
+  /* the marker survives the gallery's own URL writer */
+  ok(/browseQuery\(\{ series, q, sort, orientation, work: returnedTo \}\)/.test(gallery),
+    "11 the URL writer carries the return marker instead of rebuilding the address without it");
+  ok(/validWorkSlug\(/.test(gallery), "11 the marker is validated before it is trusted");
+  ok(!/querySelector\(`\[data-work="\$\{/.test(gallery), "11 the marker never becomes part of a DOM selector");
+
+  /* a position belongs to a collection, not to the browser */
+  ok(!/SCROLL_KEY/.test(gallery), "11 the single global scroll key is gone");
+  ok(/withSavedPosition\(/.test(gallery) && /readSavedPosition\(/.test(gallery),
+    "11 positions are written and read through the collection-scoped helpers");
+  ok(/rememberPlace\(a\.slug\)/.test(gallery), "11 leaving a work records which work was left");
+
+  /* the behaviour of those helpers */
+  const A = { series: "prismatic", q: "", sort: "registry", orientation: "all" };
+  const B = { series: "all", q: "", sort: "registry", orientation: "all" };
+  const sigA = G.browseSignature(A);
+  const sigB = G.browseSignature(B);
+  ok(sigA !== sigB, "11 two different collections have different signatures");
+  ok(G.browseSignature({ ...A, q: "" }) === G.browseSignature({ ...A, q: "   " }),
+    "11 …and an empty search is the same collection as no search");
+
+  let store = G.withSavedPosition(null, sigA, { y: 900, work: "prismatic-equation" });
+  store = G.withSavedPosition(store, sigB, { y: 120, work: "root-chakra" });
+  ok(G.readSavedPosition(store, sigA, "prismatic-equation").y === 900,
+    "11 a return to the right collection and work returns the saved place");
+  ok(G.readSavedPosition(store, sigB, "root-chakra").y === 120,
+    "11 …and the other collection keeps its own");
+  ok(G.readSavedPosition(store, sigB, "prismatic-equation") === null,
+    "11 an entry saved while leaving a different work is refused, not used");
+  ok(G.readSavedPosition(store, G.browseSignature({ ...A, series: "other" }), "prismatic-equation") === null,
+    "11 an unrelated collection's entry never answers for this one");
+  ok(G.readSavedPosition(null, sigA, "prismatic-equation") === null, "11 absent storage yields no position");
+  ok(G.readSavedPosition("not json", sigA, "prismatic-equation") === null, "11 unreadable storage yields no position");
+  ok(G.readSavedPosition('{"x":{"y":"900"}}', "x", null) === null, "11 a malformed entry yields no position");
+  ok(G.readSavedPosition(G.withSavedPosition(null, sigA, { y: -40, work: null }), sigA, null).y === 0,
+    "11 a negative offset is clamped");
+
+  /* markers */
+  ok(G.validWorkSlug("vitruvian-spirit") === "vitruvian-spirit", "11 a published slug is a valid marker");
+  ok(G.validWorkSlug("no-such-work") === null, "11 an unknown work is refused");
+  ok(G.validWorkSlug('"] , [data-work="x') === null, "11 a value that is not a slug is refused");
+  ok(G.validWorkSlug("") === null && G.validWorkSlug(null) === null && G.validWorkSlug(undefined) === null,
+    "11 empty and missing markers are refused");
+  let allValid = true;
+  for (const a of artworks) if (G.validWorkSlug(a.slug) !== a.slug) allValid = false;
+  ok(allValid, `11 every one of the ${artworks.length} published works is a valid marker`);
+
+  /* the return link the work page offers */
+  ok(/carried\.set\("work", slug\)/.test(returner), "11 the work page's return link names the work");
+  ok(!/from ["']@\/data\/artworks/.test(returner), "11 …without pulling the registry into that page");
+}
+
+/* ── 12. the entrance, and the order the visitor chose ───────────────────── */
+console.log("\n  12. entrance and order");
+{
+  const css = read("src/app/globals.css");
+  const reveal = css.slice(css.indexOf("@keyframes ut-reveal"), css.indexOf("@keyframes ut-reveal") + 260);
+  ok(!/opacity/.test(reveal), "12 the shared entrance animates transform only — it cannot hide content");
+  ok(/from \{\s*transform: translate/.test(reveal), "12 …and it still moves");
+  ok(/\[data-reveal\] \{\s*opacity: 1;/.test(css), "12 the resting state is fully visible");
+
+  ok(!/grid-auto-flow:\s*row dense/.test(css), "12 the grid no longer reorders itself to fill holes");
+  ok(!/grid-column:\s*span 2/.test(css), "12 no card spans two columns, so visual order matches the sort");
+  const gallery = code("src/app/gallery/GalleryClient.tsx");
+  ok(/shown\.map/.test(gallery), "12 the grid renders the collection in the order the module returned it");
+
+  /* the opening says what it shows */
+  ok(/countWord\(featured\.length\)/.test(gallery), "12 the opening's sentence is built from the list it renders");
+  ok(!/Five works/.test(gallery), "12 …and no hard-coded count remains");
+  ok(/artworks\.filter\(\(a\) => a\.featured\)/.test(gallery) && !/\.slice\(0, 4\)/.test(gallery),
+    "12 the featured list is not silently capped");
+  const featuredCount = artworks.filter((a) => a.featured).length;
+  ok(featuredCount > 0, `12 the archive marks ${featuredCount} works as starting points, and all are rendered`);
+
+  /* real artwork in the opening, on every width */
+  ok(/ut-begin-strip/.test(gallery) && /<Image/.test(gallery), "12 the opening leads with artwork");
+  ok(/@media \(max-width: 640px\)[\s\S]{0,900}ut-begin-strip/.test(css), "12 …compacted rather than stacked on a narrow screen");
+  ok(/ut-refine/.test(gallery) && /<details/.test(gallery), "12 secondary controls fold away");
+  ok(/data-gallery-search/.test(gallery), "12 …while search stays in the open");
 }
 
 console.log("\n  assertions passed: " + pass + "   assertions failed: " + fail);
