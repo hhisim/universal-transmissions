@@ -1590,7 +1590,7 @@ export default function OraclePage() {
                   >{t.newConversation}</button>
                 </div>
               </div>
-              <div ref={chatRef} className="oracle-scroll" style={{ minHeight: 420, maxHeight: "min(680px, 62vh)", overflowY: "auto", padding: "24px 26px 14px" }}>
+              <div ref={chatRef} className="oracle-scroll" style={{ minHeight: 240, maxHeight: "min(620px, 50vh)", overflowY: "auto", padding: "22px 26px 14px" }}>
                 {!hasMessages && (
                   <div className="text-center py-16">
                     <div style={{ width: 56, height: 56, margin: "0 auto 16px", border: `1px solid ${currentMode.c}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: `${currentMode.c}05` }}>
