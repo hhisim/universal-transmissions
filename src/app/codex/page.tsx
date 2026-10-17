@@ -162,7 +162,10 @@ export default function CodexPage() {
                 key={plate.src}
                 style={{ width: plate.w, height: plate.h }}
               >
-                <Image src={plate.src} alt="" fill sizes="360px" className="object-cover" />
+                {/* Above the fold and part of the opening composition: these load with the
+                    page rather than waiting on an observer, which in a throttled tab never
+                    reports and would leave the entrance an empty frame. */}
+                <Image src={plate.src} alt="" fill sizes="360px" priority className="object-cover" />
               </span>
             ))}
           </div>
