@@ -389,6 +389,27 @@ console.log("\n  10. priorities");
      /physical\.price/.test(codex),
     "10 the price shown comes from the registry, not typed here");
 
+  /* EVERY edition action, wherever it appears, reaches its product - the closing section on
+     /codex kept a bare /sanctum link for the digital edition long after the others were fixed. */
+  const bareAcquire = [];
+  for (const rel of ["src/app/page.tsx", "src/app/codex/page.tsx"]) {
+    const body = code(rel);
+    const re = /href="\/sanctum"([^>]*)>([\s\S]{0,90}?)<\/Link>/g;
+    let m;
+    while ((m = re.exec(body))) {
+      if (/acqui|edition|purchase|buy/i.test(m[2])) bareAcquire.push(`${rel}: ${m[2].replace(/\s+/g, " ").trim().slice(0, 40)}`);
+    }
+  }
+  ok(bareAcquire.length === 0, `10 no edition action stops at the shop index (${bareAcquire.join(" | ") || "none"})`);
+  const physicalActions = (codex.match(/data-acquire="codex-physical"/g) || []).length;
+  const digitalActions = (codex.match(/data-acquire="codex-digital"/g) || []).length;
+  ok(physicalActions === 3 && digitalActions === 2,
+    `10 the Codex page's ${physicalActions} physical and ${digitalActions} digital actions are all marked`);
+  ok((codex.match(/\/sanctum\/\$\{physical!\.slug\}/g) || []).length === physicalActions,
+    "10 …and every physical action uses the registered destination");
+  ok((codex.match(/\/sanctum\/\$\{digital!\.slug\}/g) || []).length === digitalActions,
+    "10 …as does every digital one");
+
   /* the shop is in the main navigation, not behind an account */
   ok(/\{ href: "\/sanctum", label: "Shop", ariaLabel: "Sanctum · Shop" \}/.test(nav),
     "10 the shop is a main navigation item, named Sanctum · Shop for assistive technology");
@@ -399,6 +420,47 @@ console.log("\n  10. priorities");
     "10 …with the cross-site links stepping out of the header below 1280 so nothing is clipped");
   ok(/Correspondence Archive/.test(nav), "10 the navigation names the archive for what it is");
   ok(/label: "More"/.test(nav), "10 secondary destinations are grouped to keep the bar readable");
+}
+
+/* ── 11. the purchase path ──────────────────────────────────────────────── */
+console.log("\n  11. the purchase path");
+{
+  const { products, getProduct } = require(path.join(ROOT, "src/data/products.ts"));
+  const paypal = code("src/app/api/paypal/create-order/route.ts");
+  const stripe = code("src/app/api/checkout/route.ts");
+  const sanctum = code("src/app/sanctum/[slug]/page.tsx");
+
+  /* both product pages send the product's `id`; both routes must resolve it */
+  ok(/productId: p\.id/.test(sanctum), "11 the product page sends the product's id");
+  ok(/products\.find\(\(p\) => p\.id === productId\)/.test(stripe),
+    "11 the Stripe route resolves by id");
+  ok(/products\.find\(\(p\) => p\.id === productId\) \?\? getProduct\(productId\)/.test(paypal),
+    "11 …and the PayPal route now does too, accepting a slug as well");
+
+  /* the defect, demonstrated against the registry itself */
+  const byId = products.find((p) => p.id === "codex-physical");
+  ok(Boolean(byId), "11 the id the page sends resolves to a product");
+  ok(getProduct("codex-physical") === undefined,
+    "11 …while the slug lookup that used to run here finds nothing — which is the 404");
+  ok(getProduct(byId.slug) === byId, "11 and the fallback still resolves a slug");
+
+  /* neither route may invent a figure */
+  ok(/product\.price\.toFixed\(2\)/.test(paypal), "11 PayPal charges the registry price");
+  ok(/Math\.round\(product\.price \* 100\)/.test(stripe), "11 Stripe charges the registry price");
+  for (const id of ["codex-physical", "codex-digital"]) {
+    const prod = products.find((p) => p.id === id);
+    ok(Boolean(prod && prod.price > 0 && prod.available), `11 ${id} is priced and available at ${prod && prod.price}`);
+  }
+
+  /* every edition action on the pages reaches a real product */
+  const all = code("src/app/page.tsx")
+    + code("src/app/codex/page.tsx");
+  const slugs = [...all.matchAll(/sanctum\/\$\{(physical|digital)!\.slug\}/g)].map((m) => m[1]);
+  ok(slugs.length >= 5, `11 ${slugs.length} edition actions are registry-derived`);
+  for (const which of ["physical", "digital"]) {
+    ok(!new RegExp(`href="/sanctum"([^>]*)>[^<]*${which === "physical" ? "Physical" : "Digital"}`).test(all),
+      `11 no ${which} edition action stops at the shop index`);
+  }
 }
 
 console.log("\n  assertions passed: " + pass + "   assertions failed: " + fail);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProduct } from "@/data/products";
+import { getProduct, products } from "@/data/products";
 
 async function getPayPalAccessToken(): Promise<string | null> {
   const clientId = process.env.PAYPAL_CLIENT_ID;
@@ -25,7 +25,11 @@ async function getPayPalAccessToken(): Promise<string | null> {
 export async function POST(req: NextRequest) {
   try {
     const { productId } = await req.json();
-    const product = getProduct(productId);
+    /* Both product pages send the product's `id` (for example "codex-physical"), which is what
+       /api/checkout resolves by. This route resolved by SLUG only, so the lookup never matched and
+       every PayPal purchase returned "Product not found" — on the live store, for every product.
+       Resolve by id first, and still accept a slug so either shape works. */
+    const product = products.find((p) => p.id === productId) ?? getProduct(productId);
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });

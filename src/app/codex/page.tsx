@@ -517,8 +517,8 @@ export default function CodexPage() {
                   <Link href={`/sanctum/${physical!.slug}`} className="btn-gold" data-acquire="codex-physical">
                     Acquire the Codex{physical?.available ? ` — $${physical.price}` : ""}
                   </Link>
-                  <Link href="/sanctum" className="btn-secondary">
-                    Digital Edition
+                  <Link href={`/sanctum/${digital!.slug}`} className="btn-secondary" data-acquire="codex-digital">
+                    Digital Edition{digital?.available ? ` — $${digital.price}` : ""}
                   </Link>
                 </div>
               </div>
