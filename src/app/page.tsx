@@ -7,6 +7,7 @@ import HomeVideo from "@/components/ui/HomeVideo";
 import GlitchTagline from "@/components/ui/GlitchTagline";
 import PageBackground from "@/components/scenes/PageBackground";
 import { artworks } from "@/data/artworks";
+import { getProduct } from "@/data/products";
 import { GUIDED_PATHS } from "@/lib/guided-paths";
 import { RESEARCH_DOMAINS, allRegisteredConnections } from "@/lib/research-topics";
 import { CORPUS_SUMMARY, corpusRecordsClause } from "@/lib/corpus-summary";
@@ -32,10 +33,25 @@ const featuredArtworks = [
 ];
 
 /**
- * The six ways into the archive. Every count here is derived from the registry that owns it,
+ * The physical and digital editions, read from the products registry so a price or an
+ * availability shown here cannot drift from the product a visitor actually buys.
+ */
+const codexPhysical = getProduct("universal-transmissions-codex-vol1-physical");
+const codexDigital = getProduct("universal-transmissions-codex-vol1-digital");
+
+/**
+ * The ways into the world. Every count here is derived from the registry that owns it,
  * so a door cannot advertise a number the world does not actually hold.
  */
 const DOORS = [
+  {
+    glyph: "❖",
+    name: "The Codex",
+    line: "The manuscript itself — 150 pages of xenolinguistic art, bound and available.",
+    count: codexPhysical ? `from $${codexPhysical.price}` : "the book",
+    href: "/codex",
+    tint: "var(--ut-gold)",
+  },
   {
     glyph: "◈",
     name: "The Gallery",
@@ -54,11 +70,11 @@ const DOORS = [
   },
   {
     glyph: "✦",
-    name: "The Codex",
-    line: "The correspondence archive — every record, open to read and to question.",
+    name: "Correspondence Archive",
+    line: "The database behind the work — every record, open to read and to question.",
     count: `${CORPUS_SUMMARY.distinctIdentities} records · ${CORPUS_SUMMARY.systemCount} systems`,
     href: "/codex/archive",
-    tint: "var(--ut-gold)",
+    tint: "#a855f7",
   },
   {
     glyph: "⟁",
@@ -147,17 +163,22 @@ export default function HomePage() {
             </h1>
             <GlitchTagline />
             <div className="ut-hero-actions">
-              <Link href="/codex/archive" className="btn-primary">
-                ENTER THE ARCHIVE
+              <Link href="/codex" className="btn-primary">
+                DISCOVER THE CODEX
               </Link>
-              <Link href="/paths" className="btn-secondary">
-                TAKE A GUIDED DESCENT
+              <Link href="/gallery" className="btn-primary">
+                ENTER THE GALLERY
               </Link>
             </div>
+            <p className="ut-hero-secondary">
+              <Link href="/codex/archive">Search the Correspondence Archive</Link>
+              <span aria-hidden="true">·</span>
+              <Link href="/paths">Take a guided descent</Link>
+            </p>
             <p className="ut-hero-note">
-              {CORPUS_SUMMARY.distinctIdentities} records across {CORPUS_SUMMARY.systemCount} systems,
-              the works they read, and the instruments built from them — one archive, read at
-              different depths.
+              The artistic project of Hakan Hisim — paintings, archival prints and a manuscript ten
+              years in the making, with {CORPUS_SUMMARY.distinctIdentities} correspondence records
+              and the instruments built from them beside it.
             </p>
           </div>
         </section>
@@ -182,6 +203,73 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* ── THE BOOK — the manuscript itself, and how to own it ── */}
+        <section className="ut-book" aria-labelledby="ut-book-h">
+          <div className="container-ut">
+            <div className="ut-book-grid">
+              <div className="ut-book-plates">
+                <span className="ut-book-plate ut-book-cover">
+                  <Image
+                    src="/codex/book/vol1-cover.jpg"
+                    alt="Universal Transmissions Codex Vol.1 — the cover"
+                    fill
+                    sizes="(max-width: 900px) 68vw, 360px"
+                    className="object-cover"
+                  />
+                </span>
+                <span className="ut-book-plate ut-book-spread">
+                  <Image
+                    src="/codex/book/spread-06.jpg"
+                    alt="A spread from inside the Codex"
+                    fill
+                    sizes="(max-width: 900px) 46vw, 240px"
+                    className="object-cover"
+                  />
+                </span>
+              </div>
+
+              <div className="ut-book-copy">
+                <p className="ut-book-kicker">[ The Book ]</p>
+                <h2 id="ut-book-h" className="font-display text-3xl md:text-5xl mb-5" style={{ color: "var(--ut-white)" }}>
+                  <ZalgoText text="The Universal Transmissions Codex" intensity="subtle" />
+                </h2>
+                <p className="ut-book-lede">
+                  150 pages of xenolinguistic art — alphabets remembered from ecstatic trance states,
+                  sacred geometry rendered at fractal resolution, and symbolic systems that defy
+                  conventional reading. PUR-bound on museum-grade semi-gloss art paper, every copy
+                  hand-inspected.
+                </p>
+
+                {/* Prices and availability come from the products registry, so what is shown here is
+                    what the product page charges. */}
+                {codexPhysical?.available && (
+                  <div className="ut-book-actions">
+                    <Link
+                      href={`/sanctum/${codexPhysical.slug}`}
+                      className="btn-gold"
+                      data-acquire="codex-physical"
+                    >
+                      Acquire the Physical Edition — ${codexPhysical.price}
+                    </Link>
+                    {codexDigital?.available && (
+                      <Link
+                        href={`/sanctum/${codexDigital.slug}`}
+                        className="btn-secondary"
+                        data-acquire="codex-digital"
+                      >
+                        Digital Edition — ${codexDigital.price}
+                      </Link>
+                    )}
+                  </div>
+                )}
+                <p className="ut-book-more">
+                  <Link href="/codex">Read about the book and its making →</Link>
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* ── THE MOVING IMAGE (on demand: no video bytes on the initial path) ── */}
@@ -712,7 +800,41 @@ export default function HomePage() {
           padding: 0 20px;
           background: radial-gradient(130% 100% at 50% 100%, rgba(6,5,10,0.86) 0%, rgba(6,5,10,0.45) 58%, transparent 100%);
         }
+        .ut-book { padding: 4rem 0 3rem; border-top: 1px solid rgba(212,168,71,0.10); }
+        .ut-book-grid { display: grid; grid-template-columns: minmax(0,0.95fr) minmax(0,1fr);
+          gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+        .ut-book-plates { position: relative; display: grid;
+          grid-template-columns: minmax(0,1.35fr) minmax(0,0.85fr); gap: 14px; align-items: center; }
+        .ut-book-plate { position: relative; display: block; overflow: hidden;
+          border: 1px solid rgba(212,168,71,0.22); box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+        .ut-book-cover { aspect-ratio: 900 / 830; }
+        .ut-book-spread { aspect-ratio: 4 / 3; transform: translateY(-8%); }
+        .ut-book-kicker { font-family: var(--font-mono, monospace); font-size: 10px;
+          letter-spacing: 0.42em; text-transform: uppercase; color: var(--ut-gold); margin: 0 0 12px; }
+        .ut-book-lede { font-size: 1.05rem; line-height: 1.75; color: var(--ut-white-dim);
+          max-width: 46ch; margin: 0 0 24px; }
+        .ut-book-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+        .ut-book-more { margin: 18px 0 0; font-family: var(--font-mono, monospace); font-size: 10px;
+          letter-spacing: 0.18em; text-transform: uppercase; }
+        .ut-book-more a { color: rgba(237,233,246,0.66); text-decoration: none;
+          border-bottom: 1px solid rgba(212,168,71,0.35); padding-bottom: 2px; }
+        .ut-book-more a:hover, .ut-book-more a:focus-visible { color: var(--ut-gold); }
+        @media (max-width: 900px) {
+          .ut-book { padding: 2.75rem 0 2rem; }
+          .ut-book-grid { grid-template-columns: minmax(0,1fr); gap: 1.75rem; }
+          .ut-book-actions { flex-direction: column; align-items: stretch; }
+          .ut-book-actions a { text-align: center; }
+        }
         .ut-hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+        .ut-hero-secondary {
+          display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: baseline;
+          margin: 0; font-family: var(--font-mono, monospace); font-size: 10px;
+          letter-spacing: 0.18em; text-transform: uppercase;
+        }
+        .ut-hero-secondary a { color: rgba(237,233,246,0.62); text-decoration: none;
+          border-bottom: 1px solid rgba(34,211,238,0.3); padding-bottom: 2px; }
+        .ut-hero-secondary a:hover, .ut-hero-secondary a:focus-visible { color: #22d3ee; }
+        .ut-hero-secondary span { color: rgba(237,233,246,0.3); }
         .ut-hero-note {
           margin: 0;
           max-width: 620px;

@@ -7,6 +7,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import RotatingMerkaba from "@/components/three/RotatingMerkaba";
 import CodexVideoCard from "@/components/codex/CodexVideoCard";
+import { getProduct } from "@/data/products";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/codex" },
@@ -99,6 +100,10 @@ const videos = [
 ];
 
 export default function CodexPage() {
+  /* The editions are read from the products registry: a price or an availability shown on this
+     page cannot drift from the product a visitor actually buys. */
+  const physical = getProduct("universal-transmissions-codex-vol1-physical");
+  const digital = getProduct("universal-transmissions-codex-vol1-digital");
   return (
     <>
       <style>{`
@@ -117,9 +122,9 @@ export default function CodexPage() {
         /* A grid, not a row of fixed widths: the tracks size the plates, so they cannot overflow
            the band into the copy however wide the viewport is. Each plate keeps the ratio of the
            file it came from. */
-        .codex-hero-plates{position:absolute;top:0;bottom:0;left:52%;right:0;pointer-events:none;
+        .codex-hero-plates{position:relative;pointer-events:none;
           display:grid;grid-template-columns:0.92fr 1.12fr 1fr;gap:14px;align-items:center;
-          padding:11vh 3vw 11vh 0;overflow:hidden}
+          padding-right:3vw}
         .codex-hero-plate{position:relative;display:block;width:100%;height:auto;overflow:hidden;
           border:1px solid rgba(212,168,71,0.18);box-shadow:0 24px 60px rgba(0,0,0,0.55)}
         .codex-hero-plate-0{aspect-ratio:4 / 3;opacity:0.55;transform:translateY(5%) rotate(-2.2deg)}
@@ -127,16 +132,17 @@ export default function CodexPage() {
         .codex-hero-plate-2{aspect-ratio:1 / 1;opacity:0.45;transform:translateY(-6%) rotate(2.4deg)}
         /* Narrow: no image sits behind the words at all. The manuscript plate becomes a band ABOVE
            the copy, in flow, so the text and the buttons have the page to themselves. */
+        /* Narrow: one column, and the book still leads - it sits above the words rather than
+           behind them. */
         @media (max-width: 900px){
-          .codex-hero{flex-direction:column;align-items:stretch;justify-content:flex-start;
-            min-height:auto;padding-top:76px}
-          .codex-hero-plates{position:static;order:-1;width:100%;height:34vh;
-            padding:0;justify-content:center;align-items:flex-end}
+          .codex-hero{grid-template-columns:minmax(0,1fr);gap:1.5rem;min-height:auto;padding-top:76px}
+          .codex-hero-plates{order:-1;width:100%;height:32vh;padding:0;
+            grid-template-columns:minmax(0,1fr);justify-items:center}
           .codex-hero-plate-0,.codex-hero-plate-2{display:none !important}
-          .codex-hero-plate-1{width:min(74vw,340px) !important;height:100% !important;margin:0 !important}
+          .codex-hero-plate-1{width:min(78vw,340px)}
           .codex-hero-copy{max-width:none}
           .codex-hero-copy::before{display:none}
-          .codex-hero-pad{padding-top:1.5rem;padding-bottom:3rem}
+          .codex-hero-pad{padding-top:1.25rem;padding-bottom:3rem}
         }
         .ut-video-gate{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;
           justify-content:center;cursor:pointer;border:0;padding:0;background:#05040c;overflow:hidden}
@@ -162,29 +168,10 @@ export default function CodexPage() {
 <main style={{ background: "var(--ut-black)" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}
-        <section className="codex-hero relative min-h-[85vh] flex items-center overflow-hidden">
+        <section className="codex-hero relative min-h-[85vh] overflow-hidden">
           {/* 3D Merkaba background */}
           <div className="absolute inset-0 opacity-30">
             <RotatingMerkaba />
-          </div>
-
-          {/* The manuscript leads. These stills are the book's own plates, saved under
-              public/codex/book and served from here rather than fetched from the CDN that
-              hosts the originals. */}
-          <div className="codex-hero-plates" aria-hidden="true">
-            {[
-              "/codex/book/spread-06.jpg",
-              "/codex/book/vol1-cover.jpg",
-              "/codex/book/spread-146.jpg",
-            ].map((src, i) => (
-              <span className={`codex-hero-plate codex-hero-plate-${i}`} key={src}>
-                {/* Above the fold and part of the opening composition: these load with the page
-                    rather than waiting on an observer, which in a throttled tab never reports and
-                    would leave the entrance an empty frame. The hint is the width a plate is
-                    actually drawn at, so the optimiser does not serve a larger variant. */}
-                <Image src={src} alt="" fill sizes="360px" priority className="object-cover" />
-              </span>
-            ))}
           </div>
 
           <div className="codex-hero-pad container-ut relative z-10 py-32">
@@ -214,8 +201,8 @@ export default function CodexPage() {
               </SectionReveal>
               <SectionReveal delay={0.7}>
                 <div className="flex flex-wrap gap-4">
-                  <Link href="/sanctum" className="btn-gold">
-                    Acquire the Codex
+                  <Link href={`/sanctum/${physical!.slug}`} className="btn-gold" data-acquire="codex-physical">
+                    Acquire the Codex{physical?.available ? ` — $${physical.price}` : ""}
                   </Link>
                   <a href="#behind-the-codex" className="btn-secondary">
                     Watch the Process
@@ -229,6 +216,26 @@ export default function CodexPage() {
               </SectionReveal>
             </div>
           </div>
+
+          {/* The manuscript leads. These stills are the book's own plates, saved under
+              public/codex/book and served from here rather than fetched from the CDN that
+              hosts the originals. */}
+          <div className="codex-hero-plates" aria-hidden="true">
+            {[
+              "/codex/book/spread-06.jpg",
+              "/codex/book/vol1-cover.jpg",
+              "/codex/book/spread-146.jpg",
+            ].map((src, i) => (
+              <span className={`codex-hero-plate codex-hero-plate-${i}`} key={src}>
+                {/* Above the fold and part of the opening composition: these load with the page
+                    rather than waiting on an observer, which in a throttled tab never reports and
+                    would leave the entrance an empty frame. The hint is the width a plate is
+                    actually drawn at, so the optimiser does not serve a larger variant. */}
+                <Image src={src} alt="" fill sizes="360px" priority className="object-cover" />
+              </span>
+            ))}
+          </div>
+
 
           {/* Background gradient */}
           <div className="absolute inset-0">
@@ -294,11 +301,11 @@ export default function CodexPage() {
                     Every page a transmission.
                   </p>
                   <div className="flex flex-wrap gap-4">
-                    <Link href="/sanctum" className="btn-gold">
-                      Acquire the Codex — $215
+                    <Link href={`/sanctum/${physical!.slug}`} className="btn-gold" data-acquire="codex-physical">
+                      Acquire the Codex{physical?.available ? ` — $${physical.price}` : ""}
                     </Link>
-                    <Link href="/sanctum" className="btn-secondary">
-                      Digital Edition — $99
+                    <Link href={`/sanctum/${digital!.slug}`} className="btn-secondary" data-acquire="codex-digital">
+                      Digital Edition{digital?.available ? ` — $${digital.price}` : ""}
                     </Link>
                   </div>
                 </div>
@@ -507,8 +514,8 @@ export default function CodexPage() {
                   Digital edition — high-resolution PDF, every page intact.
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
-                  <Link href="/sanctum" className="btn-gold">
-                    Acquire the Codex
+                  <Link href={`/sanctum/${physical!.slug}`} className="btn-gold" data-acquire="codex-physical">
+                    Acquire the Codex{physical?.available ? ` — $${physical.price}` : ""}
                   </Link>
                   <Link href="/sanctum" className="btn-secondary">
                     Digital Edition

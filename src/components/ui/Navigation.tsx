@@ -29,12 +29,13 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Transmission" },
   { href: "/gallery", label: "Gallery" },
+  { href: "/sanctum", label: "Sanctum · Shop" },
   {
     href: "/codex",
     label: "Codex",
     children: [
       { href: "/codex", label: "The Codex", note: "the film and the transmission" },
-      { href: "/codex/archive", label: "The Archive", note: "every record, open to read" },
+      { href: "/codex/archive", label: "Correspondence Archive", note: "every record, open to read" },
       { href: "/origin", label: "Origin", note: "where it came from" },
     ],
   },
@@ -63,8 +64,15 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   { href: "/oracle", label: "Oracle" },
-  { href: "/journal", label: "Journal" },
-  { href: "/connect", label: "Connect" },
+  {
+    href: "/journal",
+    label: "More",
+    children: [
+      { href: "/journal", label: "Journal", note: "the writing" },
+      { href: "/connect", label: "Connect", note: "reach the studio" },
+      { href: "/origin", label: "Origin", note: "where it came from" },
+    ],
+  },
 ];
 
 function MobileNavGroup({

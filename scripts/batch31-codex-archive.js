@@ -348,6 +348,55 @@ console.log("\n  9. imagery");
     "9 …with the registry mechanics left in the implementation, not explained on the page");
 }
 
+/* ── 10. the priorities the site leads with ─────────────────────────────── */
+console.log("\n  10. priorities");
+{
+  const home = code("src/app/page.tsx");
+  const nav = code("src/components/ui/Navigation.tsx");
+  const codex = code("src/app/codex/page.tsx");
+  const { getProduct } = require(path.join(ROOT, "src/data/products.ts"));
+  const physical = getProduct("universal-transmissions-codex-vol1-physical");
+  const digital = getProduct("universal-transmissions-codex-vol1-digital");
+
+  /* the opening offers the art and the book first */
+  ok(/href="\/codex"[\s\S]{0,80}DISCOVER THE CODEX/.test(home), "10 the opening action is DISCOVER THE CODEX");
+  ok(/href="\/gallery"[\s\S]{0,80}ENTER THE GALLERY/.test(home), "10 …and ENTER THE GALLERY");
+  ok(!/ENTER THE ARCHIVE/.test(home), "10 the archive is no longer the primary action");
+  ok(/ut-hero-secondary[\s\S]{0,400}\/codex\/archive/.test(home),
+    "10 the archive stays reachable as a secondary invitation");
+  ok(/artistic project of Hakan Hisim/.test(home), "10 the opening introduces it as Hakan's artistic project");
+
+  /* the book leads, with its real cover, and the archive is named for what it is */
+  ok(/name: "The Codex"[\s\S]{0,220}href: "\/codex"/.test(home),
+    "10 a door named The Codex opens the book");
+  ok(/name: "Correspondence Archive"[\s\S]{0,260}href: "\/codex\/archive"/.test(home),
+    "10 the archive door is named Correspondence Archive");
+  ok(!/name: "The Codex"[\s\S]{0,220}href: "\/codex\/archive"/.test(home),
+    "10 …and nothing called The Codex opens the database");
+  ok(/ut-book-grid/.test(home) && /\/codex\/book\/vol1-cover\.jpg/.test(home),
+    "10 the book has a composed section using its real cover");
+  ok(/\/codex\/book\/spread-06\.jpg/.test(home), "10 …and a spread");
+
+  /* acquisition reaches the product, with the registry's own figures */
+  ok(Boolean(physical && digital), "10 both editions exist in the products registry");
+  ok(new RegExp(`/sanctum/\\$\\{codexPhysical\\.slug\\}`).test(home),
+    "10 the homepage acquires the physical edition by its registered slug");
+  ok(new RegExp(`data-acquire="codex-physical"`).test(home), "10 …and marks it for verification");
+  ok(new RegExp(`/sanctum/\\$\\{physical!\\.slug\\}`).test(codex),
+    "10 the Codex page acquires the same product");
+  ok(!/href="\/sanctum"[^>]*>\s*Acquire/.test(codex), "10 no acquisition button stops at the shop index");
+  ok(/\$\{physical\?\.available \? ` — \$\$\{physical\.price\}` : ""\}/.test(codex) ||
+     /physical\.price/.test(codex),
+    "10 the price shown comes from the registry, not typed here");
+
+  /* the shop is in the main navigation, not behind an account */
+  ok(/\{ href: "\/sanctum", label: "Sanctum · Shop" \}/.test(nav),
+    "10 Sanctum · Shop is a main navigation item");
+  ok(/NAV_ITEMS\.map/.test(nav), "10 …so it renders on desktop and in the mobile menu alike");
+  ok(/Correspondence Archive/.test(nav), "10 the navigation names the archive for what it is");
+  ok(/label: "More"/.test(nav), "10 secondary destinations are grouped to keep the bar readable");
+}
+
 console.log("\n  assertions passed: " + pass + "   assertions failed: " + fail);
 for (const m of failures) console.log("   - " + m);
 process.exit(fail ? 1 : 0);
