@@ -111,9 +111,9 @@ export default function CodexPage() {
         .codex-hero-plate-1{width:26vw;height:52vh;opacity:0.72}
         .codex-hero-plate-2{width:22vw;height:26vh;opacity:0.42;transform:translateY(-11%) rotate(2.4deg)}
         @media (max-width: 900px){
-          .codex-hero-plates{padding:0 2vw;gap:10px;opacity:0.5}
-          .codex-hero-plate-0,.codex-hero-plate-2{display:none}
-          .codex-hero-plate-1{width:52vw;height:38vh;margin-left:auto}
+          .codex-hero-plates{padding:0 2vw;gap:10px;opacity:0.55}
+          .codex-hero-plate-0,.codex-hero-plate-2{display:none !important}
+          .codex-hero-plate-1{width:56vw !important;height:38vh !important;margin-left:auto}
         }
         .ut-video-gate{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;
           justify-content:center;cursor:pointer;border:0;padding:0;background:#05040c;overflow:hidden}
@@ -150,12 +150,19 @@ export default function CodexPage() {
               hosts the originals. */}
           <div className="codex-hero-plates" aria-hidden="true">
             {[
-              "/codex/book/spread-06.jpg",
-              "/codex/book/vol1-cover.jpg",
-              "/codex/book/spread-146.jpg",
-            ].map((src, i) => (
-              <span className={`codex-hero-plate codex-hero-plate-${i}`} key={src}>
-                <Image src={src} alt="" fill sizes="(max-width: 768px) 55vw, 26vw" className="object-cover" />
+              { src: "/codex/book/spread-06.jpg", w: "20vw", h: "30vh" },
+              { src: "/codex/book/vol1-cover.jpg", w: "26vw", h: "52vh" },
+              { src: "/codex/book/spread-146.jpg", w: "22vw", h: "26vh" },
+            ].map((plate, i) => (
+              /* The box is set inline as well as in the stylesheet: the optimizer picks a size
+                 from the element's layout, and a plate whose width is not yet known asks for the
+                 largest variant of a 640px file — which is what left the opening unpainted. */
+              <span
+                className={`codex-hero-plate codex-hero-plate-${i}`}
+                key={plate.src}
+                style={{ width: plate.w, height: plate.h }}
+              >
+                <Image src={plate.src} alt="" fill sizes="360px" className="object-cover" />
               </span>
             ))}
           </div>
