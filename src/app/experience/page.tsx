@@ -215,14 +215,13 @@ export default function ExperienceIndexPage() {
           max-width: 800px;
           padding: 26px 28px;
           border: 1px solid rgba(255, 255, 255, 0.07);
-          background:
-            radial-gradient(120% 140% at 0% 0%, rgba(6, 5, 10, 0.9) 0%, rgba(6, 5, 10, 0.62) 70%, rgba(6, 5, 10, 0.5) 100%);
+          background: rgba(6, 5, 10, 0.92);
         }
         .ut-portal-lede {
           font-family: var(--font-body, system-ui);
           font-size: 16px;
           line-height: 1.75;
-          color: rgba(237, 233, 246, 0.88);
+          color: rgba(237, 233, 246, 0.92);
           margin: 0 0 14px;
         }
         .ut-portal-count {
