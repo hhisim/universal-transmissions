@@ -2782,6 +2782,21 @@ export default function OraclePage() {
           .oracle-waveform-shell { display: none; }
         }
 
+        /* The artwork context is a single row, not a block: while a visitor is
+           speaking about a work, the composer still belongs on the first screen. */
+        .oracle-artwork-context {
+          display: flex;
+          align-items: baseline;
+          flex-wrap: wrap;
+          gap: 3px 12px;
+          margin: 10px 24px 0;
+          padding: 7px 12px;
+        }
+        .oracle-artwork-context-title { font-size: 13px; }
+        .oracle-artwork-context-label,
+        .oracle-artwork-context-meta { font-size: 7.5px; }
+        .oracle-artwork-context-return { margin-left: auto; }
+
         /* ── Secondary layer: the instrument ──────────────────────────────
            The advanced controls keep every capability and lose the contest for
            first attention. A <details> summary needs no JS state and gives the

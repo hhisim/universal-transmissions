@@ -13,7 +13,13 @@ export default function HomeVideo() {
   function start() {
     const v = videoRef.current;
     if (!v) return;
-    setStarted(true);
+    // First activation only flips the state: the element has no src until the render
+    // that follows, so calling play() here would target an empty video and be rejected.
+    if (!started) {
+      setStarted(true);
+      setPlaying(true);
+      return;
+    }
     if (v.paused) {
       v.play().catch(() => {});
       setPlaying(true);
@@ -37,13 +43,13 @@ export default function HomeVideo() {
 
   useEffect(() => {
     const v = videoRef.current;
-    if (!v) return;
+    if (!v || !started) return;
     if (playing) {
       v.play().catch(() => {});
     } else {
       v.pause();
     }
-  }, [playing]);
+  }, [started, playing]);
 
   return (
     <div className="video-wrapper">
