@@ -4,19 +4,28 @@ import { useEffect, useRef, useState } from "react";
 
 export default function HomeVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [playing, setPlaying] = useState(true);
+  // On demand: the clip is a large master, so it is not fetched or played until the visitor
+  // asks for it. The poster is the same frame, so the section looks identical until then.
+  const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
+  const [started, setStarted] = useState(false);
+
+  function start() {
+    const v = videoRef.current;
+    if (!v) return;
+    setStarted(true);
+    if (v.paused) {
+      v.play().catch(() => {});
+      setPlaying(true);
+    } else {
+      v.pause();
+      setPlaying(false);
+    }
+  }
 
   function togglePlay(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!videoRef.current) return;
-    if (videoRef.current.paused) {
-      videoRef.current.play();
-      setPlaying(true);
-    } else {
-      videoRef.current.pause();
-      setPlaying(false);
-    }
+    start();
   }
 
   function toggleMute(e: React.MouseEvent) {
@@ -40,13 +49,12 @@ export default function HomeVideo() {
     <div className="video-wrapper">
       <video
         ref={videoRef}
-        src="https://res.cloudinary.com/dvkxsh4ve/video/upload/w_640,q_auto:eco,f_mp4,vc_h264/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.mp4"
+        src={started ? "https://res.cloudinary.com/dvkxsh4ve/video/upload/w_640,q_auto:eco,f_mp4,vc_h264/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.mp4" : undefined}
         poster="https://res.cloudinary.com/dvkxsh4ve/video/upload/so_0,w_640,q_auto:eco,f_jpg/v1774508909/Page_168_an%C4%B1m_2_3_kitq9c.jpg"
-        autoPlay
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="none"
         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         onClick={togglePlay}
       />

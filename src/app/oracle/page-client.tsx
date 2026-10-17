@@ -654,9 +654,6 @@ function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
         ))}
       </dl>
       <footer className="oracle-evidence-foot">
-        <p className="oracle-evidence-note">
-          Connections express symbolic interpretation; historical and scientific claims require their own sources.
-        </p>
         <code className="oracle-evidence-id">{evidence.entityId}</code>
         {evidence.action ? (
           <span className="oracle-evidence-actions">
@@ -1551,75 +1548,6 @@ export default function OraclePage() {
             onSetMode={setMode}
           >
             <div className="oracle-oracle-column">
-              <div className="oracle-inline-controls">
-                <div className="oracle-inline-block">
-                  <div className="oracle-shell-kicker">{t.transmission}</div>
-                  <div className="oracle-inline-output-row">
-                    {OUTPUT_MODES.map(om => (
-                      <button key={om.id} onClick={() => setOutputMode(om.id)}
-                        className="oracle-output-button"
-                        data-active={outputMode === om.id ? "true" : "false"}
-                        style={{ ["--rail-color" as any]: om.c } as React.CSSProperties}>
-                        <span className="cdot" style={{ background: om.c, boxShadow: `0 0 5px ${om.c}` }} />
-                        <strong>{(t as any)[om.label] || om.label.toUpperCase()}</strong>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="oracle-inline-block">
-                  <div className="oracle-shell-kicker">{t.engine}</div>
-                  <div className="oracle-rail-toggle-row">
-                    <button onClick={() => setSpeed("fast")} data-active={speed === "fast"}>{t.fast}</button>
-                    <button onClick={() => setSpeed("deep")} data-active={speed === "deep"}>{t.deep}</button>
-                    {(["en", "tr", "ru"] as const).map(l => (
-                      <button key={l} onClick={() => setLang(l)} data-active={lang === l}>{l.toUpperCase()}</button>
-                    ))}
-                    <button onClick={() => { const next = !voiceOn; setVoiceOn(next); if (!next) cancelPendingSpeech(); if (voiceOn) window.speechSynthesis?.cancel(); }} data-active={voiceOn}>{voiceOn ? t.voiceOn : t.voiceOff}</button>
-                  </div>
-                </div>
-                <div className="oracle-inline-block oracle-inline-name">
-                  <div className="oracle-shell-kicker">{t.decodePortal}</div>
-                  <div className="oracle-inline-name-form">
-                    <input
-                      type="text"
-                      value={nameInput}
-                      onChange={e => setNameInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter") decodeName(); }}
-                      placeholder={t.decodeName}
-                      className="oracle-inline-name-input"
-                    />
-                    <button onClick={decodeName} disabled={!nameInput.trim()} className="oracle-inline-name-button">
-                      {t.decodeBtn}
-                    </button>
-                  </div>
-                  <p className="oracle-inline-name-hint">{t.decodeHint}</p>
-                </div>
-              </div>
-
-              <div className="oracle-question-seed-deck" aria-label={t.questionSeeds}>
-                <div className="oracle-question-seed-head">
-                  <span>{t.questionSeeds}</span>
-                  <em>{(currentMode.label as Record<string, string>)[lang] || (currentMode.label as Record<string, string>).en}</em>
-                </div>
-                <div className="oracle-question-seed-grid">
-                  {starters.map((q, i) => {
-                    const seedColor = SEED_CARD_COLORS[i % SEED_CARD_COLORS.length];
-                    return (
-                      <button
-                        key={q}
-                        onClick={() => send(q)}
-                        disabled={atLimit}
-                        className="oracle-seed-button oracle-seed-card"
-                        style={{ ["--seed-color" as any]: seedColor } as React.CSSProperties}
-                      >
-                        <span>{String(i + 1).padStart(2, "0")}</span>
-                        <strong>{q}</strong>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
             {/* CENTER: Chat panel — glass morphism */}
             <div className="flex-1 overflow-hidden oracle-chat-glass-card" style={{
               border: `1px solid ${currentMode.c}12`,
@@ -1662,19 +1590,6 @@ export default function OraclePage() {
                   >{t.newConversation}</button>
                 </div>
               </div>
-              <div className="oracle-spectrum-ribbon oracle-mode-ribbon">
-                <span>{t.modeLens}</span>
-                {MODES.map(mo => (
-                  <button key={mo.id} onClick={() => setMode(mo.id)}
-                    className="oracle-ribbon-mode"
-                    data-active={mode === mo.id ? "true" : "false"}
-                    style={{ ["--rail-color" as any]: mo.c } as React.CSSProperties}>
-                    <span>{mo.icon}</span>
-                    <strong>{(mo.label as Record<string, string>)[lang] || (mo.label as Record<string, string>).en}</strong>
-                  </button>
-                ))}
-              </div>
-
               <div ref={chatRef} className="oracle-scroll" style={{ minHeight: 420, maxHeight: "min(680px, 62vh)", overflowY: "auto", padding: "24px 26px 14px" }}>
                 {!hasMessages && (
                   <div className="text-center py-16">
@@ -1682,7 +1597,7 @@ export default function OraclePage() {
                       <span style={{ color: currentMode.c + "66" }}>{currentMode.icon}</span>
                     </div>
                     <p className="font-heading text-sm tracking-wider mb-5" style={{ color: "var(--ut-white-dim, #ede9f6aa)" }}>{t.begin}</p>
-                    <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto lg:hidden">
+                    <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
                       {starters.map(q => (
                         <button key={q} onClick={() => send(q)}
                           className="font-body text-sm px-4 py-2 border hover:border-[rgba(217,70,239,0.3)]"
@@ -1837,6 +1752,103 @@ export default function OraclePage() {
                 </div>
               </div>
             </div>
+
+              {/* ── Secondary layer ─────────────────────────────────────────────
+                  The lattice, the mode lens, the engine, the seed deck and the decode
+                  portal are all still here and still work. They sit behind one summary so
+                  the conversation, the current subject and the composer are what a visitor
+                  meets first. A <details> element gives this keyboard and screen-reader
+                  semantics for free, with no state to keep in sync. */}
+              <details className="oracle-instrument">
+                <summary className="oracle-instrument-summary">
+                  <span className="oracle-instrument-title">Instrument</span>
+                  <span className="oracle-instrument-hint">mode lens · transmission · engine · seeds · decode</span>
+                </summary>
+                <div className="oracle-instrument-body">
+              <div className="oracle-spectrum-ribbon oracle-mode-ribbon">
+                <span>{t.modeLens}</span>
+                {MODES.map(mo => (
+                  <button key={mo.id} onClick={() => setMode(mo.id)}
+                    className="oracle-ribbon-mode"
+                    data-active={mode === mo.id ? "true" : "false"}
+                    style={{ ["--rail-color" as any]: mo.c } as React.CSSProperties}>
+                    <span>{mo.icon}</span>
+                    <strong>{(mo.label as Record<string, string>)[lang] || (mo.label as Record<string, string>).en}</strong>
+                  </button>
+                ))}
+              </div>
+
+              <div className="oracle-inline-controls">
+                <div className="oracle-inline-block">
+                  <div className="oracle-shell-kicker">{t.transmission}</div>
+                  <div className="oracle-inline-output-row">
+                    {OUTPUT_MODES.map(om => (
+                      <button key={om.id} onClick={() => setOutputMode(om.id)}
+                        className="oracle-output-button"
+                        data-active={outputMode === om.id ? "true" : "false"}
+                        style={{ ["--rail-color" as any]: om.c } as React.CSSProperties}>
+                        <span className="cdot" style={{ background: om.c, boxShadow: `0 0 5px ${om.c}` }} />
+                        <strong>{(t as any)[om.label] || om.label.toUpperCase()}</strong>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="oracle-inline-block">
+                  <div className="oracle-shell-kicker">{t.engine}</div>
+                  <div className="oracle-rail-toggle-row">
+                    <button onClick={() => setSpeed("fast")} data-active={speed === "fast"}>{t.fast}</button>
+                    <button onClick={() => setSpeed("deep")} data-active={speed === "deep"}>{t.deep}</button>
+                    {(["en", "tr", "ru"] as const).map(l => (
+                      <button key={l} onClick={() => setLang(l)} data-active={lang === l}>{l.toUpperCase()}</button>
+                    ))}
+                    <button onClick={() => { const next = !voiceOn; setVoiceOn(next); if (!next) cancelPendingSpeech(); if (voiceOn) window.speechSynthesis?.cancel(); }} data-active={voiceOn}>{voiceOn ? t.voiceOn : t.voiceOff}</button>
+                  </div>
+                </div>
+                <div className="oracle-inline-block oracle-inline-name">
+                  <div className="oracle-shell-kicker">{t.decodePortal}</div>
+                  <div className="oracle-inline-name-form">
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={e => setNameInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") decodeName(); }}
+                      placeholder={t.decodeName}
+                      className="oracle-inline-name-input"
+                    />
+                    <button onClick={decodeName} disabled={!nameInput.trim()} className="oracle-inline-name-button">
+                      {t.decodeBtn}
+                    </button>
+                  </div>
+                  <p className="oracle-inline-name-hint">{t.decodeHint}</p>
+                </div>
+              </div>
+
+              <div className="oracle-question-seed-deck" aria-label={t.questionSeeds}>
+                <div className="oracle-question-seed-head">
+                  <span>{t.questionSeeds}</span>
+                  <em>{(currentMode.label as Record<string, string>)[lang] || (currentMode.label as Record<string, string>).en}</em>
+                </div>
+                <div className="oracle-question-seed-grid">
+                  {starters.map((q, i) => {
+                    const seedColor = SEED_CARD_COLORS[i % SEED_CARD_COLORS.length];
+                    return (
+                      <button
+                        key={q}
+                        onClick={() => send(q)}
+                        disabled={atLimit}
+                        className="oracle-seed-button oracle-seed-card"
+                        style={{ ["--seed-color" as any]: seedColor } as React.CSSProperties}
+                      >
+                        <span>{String(i + 1).padStart(2, "0")}</span>
+                        <strong>{q}</strong>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+                </div>
+              </details>
 
             </div>
           </OracleCorrespondenceDock>
@@ -2763,6 +2775,70 @@ export default function OraclePage() {
           scrollbar-width: none;
         }
         .chip-bar::-webkit-scrollbar { display: none; }
+
+        /* ── Secondary layer: the instrument ──────────────────────────────
+           The advanced controls keep every capability and lose the contest for
+           first attention. A <details> summary needs no JS state and gives the
+           open/closed affordance to keyboards and screen readers natively. */
+        .oracle-instrument {
+          margin-top: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          background: rgba(8, 7, 12, 0.42);
+        }
+        .oracle-instrument-summary {
+          display: flex;
+          align-items: baseline;
+          gap: 12px;
+          flex-wrap: wrap;
+          padding: 12px 16px;
+          cursor: pointer;
+          list-style: none;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: rgba(237, 233, 246, 0.58);
+        }
+        .oracle-instrument-summary::-webkit-details-marker { display: none; }
+        .oracle-instrument-summary::before {
+          content: "▸";
+          color: rgba(217, 70, 239, 0.65);
+          font-size: 10px;
+        }
+        .oracle-instrument[open] > .oracle-instrument-summary::before { content: "▾"; }
+        .oracle-instrument-summary:hover { color: rgba(237, 233, 246, 0.88); }
+        .oracle-instrument-summary:focus-visible {
+          outline: 2px solid var(--ut-cyan, #22d3ee);
+          outline-offset: -2px;
+        }
+        .oracle-instrument-title {
+          color: var(--ut-cyan, #22d3ee);
+          letter-spacing: 0.28em;
+        }
+        .oracle-instrument-hint {
+          color: rgba(237, 233, 246, 0.34);
+          letter-spacing: 0.16em;
+          font-size: 8.5px;
+        }
+        .oracle-instrument-body {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          padding: 6px 16px 18px;
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .oracle-instrument-body .oracle-spectrum-ribbon { margin: 0; }
+
+        /* Visible focus for everything the visitor can operate in this column.
+           The Oracle previously relied on hover states for most controls. */
+        .oracle-oracle-column button:focus-visible,
+        .oracle-oracle-column a:focus-visible,
+        .oracle-oracle-column textarea:focus-visible,
+        .oracle-oracle-column input:focus-visible,
+        .oracle-oracle-column summary:focus-visible {
+          outline: 2px solid var(--ut-cyan, #22d3ee);
+          outline-offset: 2px;
+        }
 
         .oracle-shell-wrap {
           position: relative;
