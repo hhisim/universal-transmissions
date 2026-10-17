@@ -28,6 +28,8 @@ let pass = 0, fail = 0;
 const failures = [];
 const ok = (c, m) => { if (c) { pass += 1; console.log("    ok   " + m); } else { fail += 1; failures.push(m); console.log("    FAIL " + m); } };
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
+const pageCode = fs.readFileSync(path.join(ROOT, "src/app/codex/archive/page.tsx"), "utf8")
+  .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 const code = (rel) => read(rel).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 console.log("\nBATCH 31 — the Codex archive\n");
@@ -99,14 +101,60 @@ console.log("\n  3. search");
   ok(value.values.every((v) => v.records.every((r) => r.id && r.e)), "3 …with the records that carry it");
 
   ok(A.searchArchive("zzzznothing").nameTotal === 0, "3 a term nobody uses matches nothing");
-  ok(A.searchArchive("a").nameTotal === 0, "3 a one-letter query is refused rather than matching the corpus");
   ok(A.searchArchive("").nameTotal === 0 && A.searchArchive("   ").nameTotal === 0, "3 an empty query searches for nothing");
+
+  /* SHORT EXACT NAMES. Fifty-six records have one- or two-character names; a minimum length of two
+     hides exactly those, and an unrestricted one-character substring search would answer a query
+     the visitor meant as one letter with hundreds of unrelated records. */
+  const oneChar = A.searchArchive("A");
+  ok(oneChar.nameTotal > 0, `3 a one-character query still finds the records named that (${oneChar.nameTotal})`);
+  ok(oneChar.names.every((n) => String(n.e).trim().toLowerCase() === "a"),
+    "3 …and returns only records whose own name is that character");
+  ok(oneChar.names.some((n) => n.sys === "LETTERS_LATIN" && n.e === "A"), "3 …including the Latin letter A");
+  ok(oneChar.nameTotal < 20, "3 …rather than every record containing that letter");
+  ok(A.searchArchive("al").nameTotal >= oneChar.nameTotal, "3 two characters search as a substring again");
+
+  /* DUPLICATE ROWS. The dataset holds four DEITIES identities twice; search must report one hit
+     and one count for each addressable record. */
+  for (const q of ["christos", "hecate", "kuan yin", "ma’at"]) {
+    const r = A.searchArchive(q);
+    const ids = r.names.map((n) => n.id);
+    ok(ids.length > 0, `3 "${q}" finds its record`);
+    ok(new Set(ids).size === ids.length, `3 "${q}" returns one hit per identity, not one per row`);
+    ok(r.nameTotal === ids.length, `3 …and its total counts identities`);
+  }
+  const dupRows = codex.filter((e) => String(e.e || "").toLowerCase().startsWith("christos"));
+  ok(dupRows.length === 2, `3 the source really holds ${dupRows.length} rows for that name`);
+  ok(A.searchArchive("christos").names.length === 1, "3 …which search reports once");
   const many = A.searchArchive("e");
   ok(many.nameTotal >= many.names.length, "3 a broad term reports its true total and truncates the list");
   ok(many.names.length <= 60, "3 …and the list stays bounded");
 }
 
 /* ── 4. where the visitor arrived from ────────────────────────────────────── */
+/* ── 3b. what gets counted ───────────────────────────────────────────────── */
+console.log("\n  3b. what gets counted");
+{
+  const { CORPUS_SUMMARY } = require(path.join(ROOT, "src/lib/corpus-summary.ts"));
+  ok(codex.length === 824, `3b the dataset still holds its ${codex.length} source rows`);
+  ok(A.CORPUS.sourceRecords === 824, "3b the summary still knows them as source rows");
+  ok(A.CORPUS.records === 820, `3b the entrance reports distinct identities (${A.CORPUS.records})`);
+  ok(A.CORPUS.records === CORPUS_SUMMARY.distinctIdentities,
+    "3b …taken from the existing summary rather than counted again");
+  ok(A.CORPUS.systems === 27 && A.CORPUS.systems === CORPUS_SUMMARY.systemCount,
+    "3b and the 27 systems that summary publishes");
+
+  const sum = A.SYSTEMS.reduce((n, x) => n + x.count, 0);
+  ok(sum === A.CORPUS.records, `3b the per-system counts add up to the same total (${sum})`);
+  const dei = A.SYSTEMS.find((x) => x.sys === "DEITIES");
+  ok(dei.count === 198, `3b a system's count is its addressable records (DEITIES ${dei.count})`);
+  ok(A.recordsInSystem("DEITIES").length === dei.count, "3b …and that system's list is exactly that long");
+  const deiIds = A.recordsInSystem("DEITIES").map((r) => r.id);
+  ok(new Set(deiIds).size === deiIds.length, "3b no record is listed twice in a system");
+  ok(A.recordsInSystem("DEITIES").filter((r) => /christos/i.test(r.e)).length === 1,
+    "3b the duplicated row appears once in the system list");
+}
+
 console.log("\n  4. arrival");
 {
   /* a relationship that really exists: read the source's own fields to find it */
@@ -133,6 +181,16 @@ console.log("\n  4. arrival");
     "4 arriving from a system view reports the system, not a fabricated record");
 
   ok(A.arrivalContext("https://elsewhere.example/x", "PLANTS", "Cayenne") === null, "4 an outside address is refused");
+  ok(A.arrivalContext("/codex/archive-not-real?system=METALS", "METALS", "Gold") === null,
+    "4 a path that only LOOKS like this page is refused — the pathname must match exactly");
+  ok(A.arrivalContext("/codex/archive/extra", "METALS", "Gold") === null, "4 a deeper path is refused too");
+  ok(A.arrivalContext("/codex/archive?system=NOT_A_SYSTEM", "METALS", "Gold") === null,
+    "4 an unknown system is not somewhere a visitor can have been browsing");
+  const known = A.SYSTEMS[0].sys;
+  ok(Boolean(A.arrivalContext(`/codex/archive?system=${known}`, known, A.recordsInSystem(known)[0].e)),
+    "4 a real system view is still reported");
+  ok(A.arrivalContext("/codex/archive?q=aleph", "LETTERS_HEBREW", "Aleph") === null,
+    "4 a search address names no source record, so it claims no arrival");
   ok(A.arrivalContext("/codex/archive?entry=corr-v1:BOGUS::Nope", "PLANTS", "Cayenne") === null,
     "4 a malformed entry id is refused");
   ok(A.arrivalContext("", "PLANTS", "Cayenne") === null, "4 no `from` means no claim");
@@ -206,6 +264,56 @@ console.log("\n  7. media");
     "7 the card mounts its frame only once it is asked to play");
   ok(/<button/.test(card) && /aria-label=/.test(card), "7 the gate is a real, labelled control");
   ok(!/thumbnail|i\.ytimg|img\.youtube/.test(card), "7 …and asks a third party for nothing to draw itself");
+}
+
+/* ── 8. the browsing context survives the journey ────────────────────────── */
+console.log("\n  8. context");
+{
+  const page = code("src/app/codex/archive/page.tsx");
+  ok(/const contextHref = from \|\| "\/codex\/archive"/.test(page),
+    "8 a record keeps the context the visitor arrived with");
+  ok(/archiveHref\(entry\.id, contextHref\)/.test(page),
+    "8 …and its own links carry it onward instead of resetting to the archive index");
+  ok(/archiveHref\(arrival\.source\.id, contextHref\)/.test(page), "8 the source link keeps it as well");
+
+  const searchFrom = "/codex/archive?q=aleph";
+  const A_ID = correspondenceEntryId(codex.find((r) => r.sys === "LETTERS_HEBREW" && r.e === "Aleph"));
+  const aSelf = A.archiveHref(A_ID, searchFrom);
+  ok(aSelf.includes(encodeURIComponent(searchFrom)), "8 record A's own address carries the search");
+  const bLink = A.archiveHref(A_ID, aSelf);
+  ok(bLink.includes(encodeURIComponent(aSelf)), "8 the link from A carries A's address onward");
+  const atA = A.arrivalContext(aSelf, "LETTERS_HEBREW", "Aleph");
+  ok(atA === null, "8 A never claims to have arrived from itself");
+  ok(new URLSearchParams(aSelf.split("?")[1]).get("from") === searchFrom,
+    "8 …and A's return target is still the search results");
+}
+
+/* ── 9. imagery ─────────────────────────────────────────────────────────── */
+console.log("\n  9. imagery");
+{
+  const presented = code("src/app/codex/page.tsx");
+  const card = code("src/components/codex/CodexVideoCard.tsx");
+  ok(!/images\.squarespace-cdn\.com/.test(presented), "9 the presented page fetches no imagery from an external CDN");
+  ok(!/unoptimized/.test(presented), "9 …and serves its plates through the optimiser");
+  ok(/codex-hero-plates/.test(presented), "9 the manuscript opens on its own plates");
+  ok(/\/codex\/book\//.test(presented), "9 …from files this site serves");
+  ok(/\/codex\/video\/\$\{youtubeId\}\.jpg/.test(card), "9 each video gate shows its own still, served locally");
+  ok(!/ytimg|youtube\.com\/vi/.test(card), "9 …without asking a third party for a picture");
+  ok(/data-video-still=/.test(card), "9 …and the stills are addressable for verification");
+  for (const f of ["vol1-cover.jpg", "spread-02.jpg", "spread-03.jpg", "spread-06.jpg", "spread-146.jpg"]) {
+    ok(fs.existsSync(path.join(ROOT, "public/codex/book", f)), `9 the book plate ${f} is served locally`);
+  }
+  const vids = ["ECAFuxZpyK0","vC_UYkb3l0c","gSqdxDWO278","Owi-ooswzMM","BbO1VgyZq9M","au9mPzB1dVM",
+                "N0p65Q3dz4Y","figkoXZA7i8","atXSIFfr8KY","0ipNIO02Y3Y","E1yhN3FueSs","VoDB_OWbaNs","r7nvYvklpYE"];
+  let stills = 0;
+  for (const v of vids) if (fs.existsSync(path.join(ROOT, `public/codex/video/${v}.jpg`))) stills += 1;
+  ok(stills === vids.length, `9 all ${stills} video stills are served locally`);
+  ok(!/<iframe/.test(presented), "9 and no player is mounted until one is asked for");
+  ok(/\{r\.kind === "Guided path" \? "Follow" : "Read"\} \{r\.title\}/.test(pageCode),
+    "9 onward routes are written for a visitor to act on — Read <room>, Follow <path>");
+  ok(/Read Linguistics/.test(pageCode) === false, "9 …and the wording is produced from the registry, not typed per route");
+  ok(!/reported rather than invented/.test(pageCode),
+    "9 …with the registry mechanics left in the implementation, not explained on the page");
 }
 
 console.log("\n  assertions passed: " + pass + "   assertions failed: " + fail);

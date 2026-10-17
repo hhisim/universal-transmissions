@@ -8,12 +8,14 @@
  * videos a visitor may never play. The brief asks that media remain opt-in, so the frame is not
  * mounted until the visitor asks for it.
  *
- * The gate is a button, not a picture of a player: a poster image would itself be a request to a
- * third party, which is most of what this is avoiding. It is a real control, reachable by keyboard,
- * with a visible focus ring, and it disappears the moment the frame takes its place.
+ * Each gate now carries a still from its own video, served from this site: the images were taken
+ * once and saved under `public/codex/video/`, so thirteen distinguishable frames cost the page no
+ * third-party request and no player. The gate is a real control, reachable by keyboard, with a
+ * visible focus ring, and it is replaced the moment the frame takes its place.
  */
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface CodexVideoCardProps {
   youtubeId: string;
@@ -58,11 +60,21 @@ export default function CodexVideoCard({
             aria-label={`Play video: ${title}`}
             data-video-gate={youtubeId}
           >
-            <span className="ut-video-gate-mark" aria-hidden="true">
-              ▶
+            <Image
+              src={`/codex/video/${youtubeId}.jpg`}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="ut-video-still"
+              data-video-still={youtubeId}
+            />
+            <span className="ut-video-scrim" aria-hidden="true" />
+            <span className="ut-video-gate-inner">
+              <span className="ut-video-gate-mark" aria-hidden="true">
+                ▶
+              </span>
+              <span className="ut-video-gate-label">Play</span>
             </span>
-            <span className="ut-video-gate-label">Load video</span>
-            <span className="ut-video-gate-note">Nothing is requested until you press this.</span>
           </button>
         )}
       </div>

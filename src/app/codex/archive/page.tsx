@@ -279,7 +279,8 @@ export default function ArchivePage({
         <section className="cx-section" aria-labelledby="cx-sys-h">
           <h2 className="cx-h2" id="cx-sys-h">Or browse a system</h2>
           <p className="cx-sub">
-            {SYSTEMS.length} systems, {SYSTEMS.reduce((n, s) => n + s.count, 0)} records.
+            {SYSTEMS.length} systems, {SYSTEMS.reduce((n, s) => n + s.count, 0)} records to
+            address.
           </p>
           <ul className="cx-sys">
             {SYSTEMS.map((s) => (
@@ -322,7 +323,12 @@ export default function ArchivePage({
   const arrival = arrivalContext(from, pair.sys, pair.e);
   /* Routes other registries already draw into this system's view. Empty when none does. */
   const registered = registeredRoutesForSystem(pair.sys);
-  const selfHref = archiveHref(entry.id, "/codex/archive");
+  /* The address this record is read AT, which is what its own links carry onward. Using the
+     incoming `from` when there is one means the next record's return target comes back here, and
+     this record's return target is still the search results or system view the visitor set out
+     from — instead of every record in the archive pointing at the archive index. */
+  const contextHref = from || "/codex/archive";
+  const selfHref = archiveHref(entry.id, contextHref);
   const totalTargets = groups.reduce((n, g) => n + g.total, 0);
   const sysName = prettySystem(entry.sys);
   const oracleHref =
@@ -351,7 +357,7 @@ export default function ArchivePage({
           {arrival.source ? (
             <>
               You arrived from{" "}
-              <Link className="cx-rellink" href={archiveHref(arrival.source.id)}>
+              <Link className="cx-rellink" href={archiveHref(arrival.source.id, contextHref)}>
                 {arrival.source.e}
               </Link>{" "}
               <span className="cx-relsys">{prettySystem(arrival.source.sys)}</span>
@@ -573,19 +579,17 @@ export default function ArchivePage({
           </div>
 
           {registered.length > 0 && (
-            <div className="cx-onwarditem">
-              <h3 className="cx-h3">Already routed here</h3>
+            <div className="cx-onwarditem" data-registered-routes={registered.length}>
+              <h3 className="cx-h3">Read further</h3>
               <p className="cx-basisnote">
-                Registries elsewhere in the archive already name this system&rsquo;s view — the
-                route runs from them to here, so it is reported rather than invented.
+                Where this system&rsquo;s records are read elsewhere in the archive.
               </p>
-              <ul className="cx-sharedlist">
+              <ul className="cx-reglist">
                 {registered.map((r) => (
                   <li key={`${r.kind}-${r.href}`}>
-                    <Link className="cx-out" href={r.href}>
+                    <Link className="cx-out" href={r.href} data-registered-kind={r.kind}>
                       {r.kind === "Guided path" ? "Follow" : "Read"} {r.title} →
                     </Link>
-                    <span className="cx-relvia">{r.kind} · {r.why.slice(0, 120)}{r.why.length > 120 ? "…" : ""}</span>
                   </li>
                 ))}
               </ul>
@@ -616,9 +620,8 @@ export default function ArchivePage({
           </div>
         </div>
         <p className="cx-basisnote cx-narrow">
-          There is no artwork or Journal route from a Codex record: no record in either
-          registry names a Codex entry, so none is offered. The Codex anchors that do exist run
-          the other way — from the research rooms into the Codex.
+          No artwork or Journal record names a Codex entry, so no route is offered from a Codex
+          record into either.
         </p>
       </section>
 
@@ -750,6 +753,8 @@ const CSS = `
 .cx-onward{display:grid;gap:1px;background:rgba(255,255,255,.07);margin-bottom:22px}
 .cx-onwarditem{padding:20px;background:#05040c}
 .cx-onwarditem .cx-h3{margin-top:0}
+.cx-reglist{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.cx-reglist .cx-out{font-size:12px}
 .cx-quote{font-size:12.5px;line-height:1.6;color:rgba(240,236,255,.5);font-style:italic;
   margin:0 0 14px;max-width:60ch}
 .cx-narrow{max-width:64ch}

@@ -102,22 +102,37 @@ export default function CodexPage() {
   return (
     <>
       <style>{`
-        .ut-video-gate{position:absolute;inset:0;width:100%;height:100%;display:flex;flex-direction:column;
-          align-items:center;justify-content:center;gap:10px;cursor:pointer;border:0;
-          background:
-            radial-gradient(ellipse at 50% 45%, rgba(212,168,71,0.10) 0%, transparent 60%),
-            linear-gradient(160deg, #0a0812 0%, #05040c 60%, #0b0a18 100%);
+        /* The opening composition: three of the book's own plates, held behind the title. */
+        .codex-hero-plates{position:absolute;inset:0;pointer-events:none;
+          display:flex;align-items:center;justify-content:flex-end;gap:18px;padding:0 4vw;overflow:hidden}
+        .codex-hero-plate{position:relative;display:block;overflow:hidden;
+          border:1px solid rgba(212,168,71,0.18);box-shadow:0 24px 60px rgba(0,0,0,0.55)}
+        .codex-hero-plate-0{width:20vw;height:30vh;opacity:0.5;transform:translateY(9%) rotate(-2.2deg)}
+        .codex-hero-plate-1{width:26vw;height:52vh;opacity:0.72}
+        .codex-hero-plate-2{width:22vw;height:26vh;opacity:0.42;transform:translateY(-11%) rotate(2.4deg)}
+        @media (max-width: 900px){
+          .codex-hero-plates{padding:0 2vw;gap:10px;opacity:0.5}
+          .codex-hero-plate-0,.codex-hero-plate-2{display:none}
+          .codex-hero-plate-1{width:52vw;height:38vh;margin-left:auto}
+        }
+        .ut-video-gate{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;
+          justify-content:center;cursor:pointer;border:0;padding:0;background:#05040c;overflow:hidden}
+        .ut-video-still{object-fit:cover;transition:transform .6s ease, filter .4s ease;
+          filter:saturate(0.85) brightness(0.72)}
+        .ut-video-gate:hover .ut-video-still{transform:scale(1.04);filter:saturate(1) brightness(0.9)}
+        .ut-video-scrim{position:absolute;inset:0;
+          background:linear-gradient(180deg, rgba(5,4,12,0.35) 0%, rgba(5,4,12,0.15) 45%, rgba(5,4,12,0.75) 100%)}
+        .ut-video-gate-inner{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;
           color:var(--ut-white);font-family:var(--font-mono,monospace)}
-        .ut-video-gate:hover{background:
-            radial-gradient(ellipse at 50% 45%, rgba(34,211,238,0.14) 0%, transparent 60%),
-            linear-gradient(160deg, #0a0812 0%, #05040c 60%, #0b0a18 100%)}
         .ut-video-gate:focus-visible{outline:2px solid #22d3ee;outline-offset:-3px}
         .ut-video-gate-mark{display:flex;align-items:center;justify-content:center;width:54px;height:54px;
-          border:1px solid rgba(212,168,71,0.55);border-radius:999px;font-size:16px;color:var(--ut-gold);
-          padding-left:3px}
-        .ut-video-gate-label{font-size:11px;letter-spacing:0.24em;text-transform:uppercase}
-        .ut-video-gate-note{font-size:10px;letter-spacing:0.08em;color:rgba(237,233,246,0.45)}
-        @media (prefers-reduced-motion: reduce){ .ut-video-gate{transition:none} }
+          border:1px solid rgba(212,168,71,0.7);border-radius:999px;font-size:16px;color:var(--ut-gold);
+          padding-left:3px;background:rgba(5,4,12,0.55);backdrop-filter:blur(2px)}
+        .ut-video-gate-label{font-size:11px;letter-spacing:0.24em;text-transform:uppercase;
+          text-shadow:0 1px 6px rgba(0,0,0,0.8)}
+        @media (prefers-reduced-motion: reduce){
+          .ut-video-still,.ut-video-gate:hover .ut-video-still{transition:none;transform:none}
+        }
       `}</style>
 <PageBackground variant="codex" />
       <PageBackground variant="homepage" opacity={0.4} />
@@ -128,6 +143,21 @@ export default function CodexPage() {
           {/* 3D Merkaba background */}
           <div className="absolute inset-0 opacity-30">
             <RotatingMerkaba />
+          </div>
+
+          {/* The manuscript leads. These stills are the book's own plates, saved under
+              public/codex/book and served from here rather than fetched from the CDN that
+              hosts the originals. */}
+          <div className="codex-hero-plates" aria-hidden="true">
+            {[
+              "/codex/book/spread-06.jpg",
+              "/codex/book/vol1-cover.jpg",
+              "/codex/book/spread-146.jpg",
+            ].map((src, i) => (
+              <span className={`codex-hero-plate codex-hero-plate-${i}`} key={src}>
+                <Image src={src} alt="" fill sizes="(max-width: 768px) 55vw, 26vw" className="object-cover" />
+              </span>
+            ))}
           </div>
 
           <div className="container-ut relative z-10 py-32">
@@ -253,12 +283,12 @@ export default function CodexPage() {
                   style={{ borderColor: "rgba(201,162,39,0.25)" }}
                 >
                   <Image
-                    src="https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716030627-DA8VQAVV957PCTDR65HG/07+-+web.jpg"
+                    src="/codex/book/vol1-cover.jpg"
                     alt="Universal Transmissions Codex — Volume I"
                     fill
-                    unoptimized={true}
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
+                    priority
                   />
                   <div
                     className="absolute inset-0"
@@ -289,10 +319,10 @@ export default function CodexPage() {
             <SectionReveal delay={0.2}>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716028160-GLGK345HL9EDGQT5VO2A/06+-+web.jpg",
-                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716022944-4KZHZAT7PLZ1LQB8EP1V/02+-+web.jpg",
-                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695716011205-95Z64JF0N4JOSXFYJ13T/03+-+web.jpg",
-                  "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695718380540-INT53Y12EC86JNY3N7TP/Page+146.jpg",
+                  "/codex/book/spread-06.jpg",
+                  "/codex/book/spread-02.jpg",
+                  "/codex/book/spread-03.jpg",
+                  "/codex/book/spread-146.jpg",
                 ].map((src, i) => (
                   <div
                     key={i}
@@ -303,9 +333,8 @@ export default function CodexPage() {
                       src={src}
                       alt={`Codex spread ${i + 1}`}
                       fill
-                      unoptimized={true}
                       className="object-cover"
-                      sizes="25vw"
+                      sizes="(max-width: 768px) 50vw, 25vw"
                     />
                   </div>
                 ))}

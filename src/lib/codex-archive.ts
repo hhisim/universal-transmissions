@@ -43,6 +43,7 @@
 import { codex, type CodexEntry } from "@/lib/codex-data";
 import { FORORDER } from "@/lib/correspondence-systems";
 import { GUIDED_PATHS } from "@/lib/guided-paths";
+import { CORPUS_SUMMARY } from "@/lib/corpus-summary";
 import { correspondenceEntryId } from "@/lib/oracle-entry-resolver";
 import { CONNECTIONS_BY_TOPIC } from "@/lib/research-connections";
 import { RESEARCH_DOMAINS } from "@/lib/research-topics";
@@ -390,16 +391,25 @@ export function researchRouteForSystem(sys: string) {
 
 export const SYSTEMS_WITH_RESEARCH_ROUTE = Object.keys(RESEARCH_ROUTES).sort();
 
-/** Every system present in the corpus, with its record count. */
+/**
+ * Every system present in the corpus, with the number of records a visitor can ADDRESS in it.
+ *
+ * The dataset holds four DEITIES identities twice, so counting source rows would report 824 as
+ * though it were 824 distinct records — and would report a system's size one larger than the list
+ * of it a visitor is shown. The counts here are distinct identities, which is the same measure
+ * CORPUS_SUMMARY publishes.
+ */
 export const SYSTEMS: Array<{ sys: string; count: number }> = (() => {
-  const counts = new Map<string, number>();
+  const bySys = new Map<string, Set<string>>();
   for (const entry of codex) {
     const sys = String(entry.sys || "");
     if (!sys) continue;
-    counts.set(sys, (counts.get(sys) || 0) + 1);
+    let ids = bySys.get(sys);
+    if (!ids) { ids = new Set(); bySys.set(sys, ids); }
+    ids.add(correspondenceEntryId(entry));
   }
-  return Array.from(counts.entries())
-    .map(([sys, count]) => ({ sys, count }))
+  return Array.from(bySys.entries())
+    .map(([sys, ids]) => ({ sys, count: ids.size }))
     .sort((a, b) => b.count - a.count || a.sys.localeCompare(b.sys));
 })();
 
@@ -409,9 +419,13 @@ export function isKnownSystem(sys: string): boolean {
 
 export function recordsInSystem(sys: string): Array<{ sys: string; e: string; id: string }> {
   const out: Array<{ sys: string; e: string; id: string }> = [];
+  const seen = new Set<string>();
   for (const entry of codex) {
     if (String(entry.sys || "") !== sys) continue;
-    out.push({ sys, e: String(entry.e || ""), id: correspondenceEntryId(entry) });
+    const id = correspondenceEntryId(entry);
+    if (seen.has(id)) continue;                 // one entry per addressable record
+    seen.add(id);
+    out.push({ sys, e: String(entry.e || ""), id });
   }
   return out.sort((a, b) => a.e.localeCompare(b.e));
 }
@@ -551,15 +565,24 @@ export function arrivalContext(
   targetSys: string,
   targetE: string
 ): Arrival | null {
-  if (!from || !from.startsWith("/codex/archive")) return null;
-  const query = from.includes("?") ? from.slice(from.indexOf("?") + 1) : "";
+  if (!from) return null;
+  /* The PATHNAME must be this page exactly. A prefix test accepts `/codex/archive-not-real`, which
+     is not somewhere a visitor can have been browsing, so a claimed arrival from it is refused. */
+  const cut = from.search(/[?#]/);
+  const pathOnly = cut === -1 ? from : from.slice(0, cut);
+  if (pathOnly !== "/codex/archive") return null;
+
+  const query = cut === -1 ? "" : from.slice(cut + 1);
   let params: URLSearchParams;
   try {
     params = new URLSearchParams(query);
   } catch {
     return null;
   }
-  const systemView = (params.get("system") || "").toUpperCase() || null;
+  /* A system view only counts when the corpus has that system: an unknown name is not somewhere
+     the visitor can have been browsing either. */
+  const rawSystem = (params.get("system") || "").trim().toUpperCase();
+  const systemView = rawSystem && isKnownSystem(rawSystem) ? rawSystem : null;
   const entryId = params.get("entry");
   if (!entryId) {
     return systemView
@@ -619,17 +642,28 @@ export function searchArchive(rawQuery: string, nameLimit = 60, valueLimit = 12)
   const q = norm(rawQuery).slice(0, 80);
   const empty: SearchResult = { query: rawQuery.trim(), names: [], nameTotal: 0, values: [],
     valueTotal: 0, namesTruncated: false, valuesTruncated: false };
-  if (q.length < 2) return empty;
+  if (!q) return empty;
 
-  const names: NameHit[] = [];
+  /* ONE CHARACTER means one character. Fifty-six records have names of one or two characters — the
+     Latin and Hebrew letters, the notes — and a minimum length of two hides exactly those, so the
+     "A" a visitor types to reach the letter A finds nothing. A one-character query is answered
+     EXACTLY instead: it matches a record whose own name is that character, and nothing else. What
+     it must never become is a substring search over the whole corpus on one letter. */
+  const exactOnly = q.length < 2;
+
+  const byId = new Map<string, NameHit>();
   for (const entry of codex) {
     const sys = String(entry.sys || "");
     const e = String(entry.e || "");
     if (!sys || !e) continue;
+    const id = correspondenceEntryId(entry);
+    if (byId.has(id)) continue;                 // one hit per addressable record
     const forms = [norm(e), stripOrdinal(e), stripQualifier(e)];
-    if (!forms.some((f) => f.includes(q))) continue;
-    names.push({ sys, e, id: correspondenceEntryId(entry) });
+    const matches = exactOnly ? forms.some((f) => f === q) : forms.some((f) => f.includes(q));
+    if (!matches) continue;
+    byId.set(id, { sys, e, id });
   }
+  const names: NameHit[] = Array.from(byId.values());
   names.sort((a, b) => a.e.localeCompare(b.e) || a.sys.localeCompare(b.sys));
 
   const values: ValueHit[] = [];
@@ -642,7 +676,7 @@ export function searchArchive(rawQuery: string, nameLimit = 60, valueLimit = 12)
     values.push({
       field,
       fieldLabel: FIELD_LABELS[field] || field.toUpperCase(),
-      value: records.length ? value : value,
+      value,
       records: records.slice(0, 6),
     });
   }
@@ -659,8 +693,13 @@ export function searchArchive(rawQuery: string, nameLimit = 60, valueLimit = 12)
   };
 }
 
-/** The record count and system count the entrance reports, from the corpus itself. */
+/**
+ * What the entrance reports: the DISTINCT identities a visitor can address, taken from the
+ * existing summary rather than counted again here. The dataset holds 824 source rows, four of
+ * which repeat a DEITIES identity, and 824 rows is not 824 records.
+ */
 export const CORPUS = {
-  records: codex.length,
-  systems: SYSTEMS.length,
+  records: CORPUS_SUMMARY.distinctIdentities,
+  systems: CORPUS_SUMMARY.systemCount,
+  sourceRecords: CORPUS_SUMMARY.sourceRecords,
 } as const;
