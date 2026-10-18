@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { products } from "@/data/products";
+import { requiresShipping, flatShippingCents, shippingLabel, deliveryWindow } from "@/data/shipping";
 import { supabaseAdmin } from "@/lib/supabase";
 
 const DIGITAL_PRODUCTS = ["codex-digital", "chakra-4k", "chakra-8k"];
-const PHYSICAL_PRODUCTS = ["codex-physical", "hexahedron-cube"];
 
 export async function POST(req: NextRequest) {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -30,18 +30,21 @@ export async function POST(req: NextRequest) {
       cancel_url: `${baseUrl}/sanctum/${product.slug}?canceled=true`,
     });
 
-    // Physical products: add flat-rate shipping
-    if (PHYSICAL_PRODUCTS.includes(productId)) {
-      const shipAmt = productId === "codex-physical" ? 3000 : 2000;
-      const shipName = productId === "codex-physical" ? "Standard Shipping" : "Worldwide Shipping";
+    // Products that ship get a flat-rate shipping option. The rate, its name and its delivery
+    // window all come from src/data/shipping.ts — the figures are unchanged from before, they are
+    // simply no longer typed into this route.
+    if (requiresShipping(productId)) {
+      const shipAmt = flatShippingCents(productId);
+      const shipName = shippingLabel(productId);
+      const window = deliveryWindow(productId);
       params.append("shipping_options[0][shipping_rate_data][type]", "fixed_amount");
       params.append("shipping_options[0][shipping_rate_data][fixed_amount][amount]", String(shipAmt));
       params.append("shipping_options[0][shipping_rate_data][fixed_amount][currency]", "usd");
       params.append("shipping_options[0][shipping_rate_data][display_name]", shipName);
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][minimum][unit]", "business_day");
-      params.append("shipping_options[0][shipping_rate_data][delivery_estimate][minimum][value]", "5");
+      params.append("shipping_options[0][shipping_rate_data][delivery_estimate][minimum][value]", String(window.min));
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][unit]", "business_day");
-      params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][value]", "21");
+      params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][value]", String(window.max));
     }
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {

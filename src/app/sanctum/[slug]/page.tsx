@@ -8,6 +8,7 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 import { getProduct } from "@/data/products";
+import { shippingNote } from "@/data/shipping";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
 import PageBackground from "@/components/scenes/PageBackground";
 
@@ -231,24 +232,15 @@ export default function ProductDetailPage({ params }: Props) {
                   )}
                 </div>
 
-                {/* Shipping info for physical items */}
-                {p.id === "codex-physical" && (
+                {/* Shipping info for physical items. The sentence is the shipping table's,
+                    not this page's, so the page cannot state a rate the checkout disagrees with. */}
+                {shippingNote(p.id) && (
                   <div className="mb-6 p-4 border" style={{ borderColor: "rgba(212,168,71,0.15)", background: "rgba(212,168,71,0.03)" }}>
                     <p className="font-mono text-[10px] tracking-widest uppercase mb-1" style={{ color: "var(--ut-gold)", opacity: 0.7 }}>
                       Shipping
                     </p>
                     <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
-                      $30 worldwide (AU/Asia $50) · Ships within 10 days
-                    </p>
-                  </div>
-                )}
-                {p.id === "hexahedron-cube" && (
-                  <div className="mb-6 p-4 border" style={{ borderColor: "rgba(212,168,71,0.15)", background: "rgba(212,168,71,0.03)" }}>
-                    <p className="font-mono text-[10px] tracking-widest uppercase mb-1" style={{ color: "var(--ut-gold)", opacity: 0.7 }}>
-                      Shipping
-                    </p>
-                    <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
-                      $20 worldwide · Requires personal inspection & signing of Certificate of Authenticity
+                      {shippingNote(p.id)}
                     </p>
                   </div>
                 )}
