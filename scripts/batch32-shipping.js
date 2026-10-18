@@ -48,7 +48,8 @@ function stubStripe() {
 function stubPayPal({ order } = {}) {
   let current = JSON.parse(JSON.stringify(order));
   const st = {
-    captureRequests: 0, financialCaptures: 0, requestIds: [], reads: 0, tokens: 0,
+    captureRequests: 0, financialCaptures: 0, requestIds: [], prefers: [], reads: 0, tokens: 0,
+    forceMinimal: false, failReadFrom: 0,
     supaReads: 0, supaUpdates: 0, supaInserts: [], supaFailWrites: 0, rows: new Map(),
     telegrams: 0, telegramFail: false,
     capturePlan: "succeed",
@@ -92,6 +93,7 @@ function stubPayPal({ order } = {}) {
     if (/\/capture$/.test(u)) {
       st.captureRequests += 1;
       st.requestIds.push(headers["PayPal-Request-Id"] ?? headers["paypal-request-id"] ?? null);
+      st.prefers.push(String(headers["Prefer"] ?? headers.prefer ?? ""));
       if (st.dropFirstResponse && st.captureRequests === 1) {
         st.financialCaptures += 1;
         current.status = "COMPLETED";
@@ -110,9 +112,26 @@ function stubPayPal({ order } = {}) {
       st.financialCaptures += 1;
       current.status = "COMPLETED";
       current.purchase_units[0].payments = captureOf();
+      /* The provider honours the requested representation. Without `Prefer: return=representation`
+         — PayPal's documented default is `return=minimal` — the body carries no purchase_units at
+         all, so the capture is invisible to the caller. `forceMinimal` reproduces a provider that
+         returns minimal even when asked. */
+      const honoursRepresentation = /return=representation/i.test(
+        String(headers["Prefer"] ?? headers.prefer ?? "")
+      );
+      if (st.forceMinimal || !honoursRepresentation) {
+        return json({ id: "ORDER-1", status: "COMPLETED" });
+      }
       return json({ status: "COMPLETED", purchase_units: [{ payments: captureOf() }], payer: current.payer });
     }
-    if (/v2\/checkout\/orders\//.test(u)) { st.reads += 1; return json(JSON.parse(JSON.stringify(current))); }
+    if (/v2\/checkout\/orders\//.test(u)) {
+      st.reads += 1;
+      // failReadFrom = 2 fails the READ-BACK (the first read is the handler's own order lookup)
+      if (st.failReadFrom && st.reads >= st.failReadFrom) {
+        return json({ name: "RESOURCE_NOT_FOUND", message: "order not found" }, 404);
+      }
+      return json(JSON.parse(JSON.stringify(current)));
+    }
     if (/v2\/checkout\/orders$/.test(u)) return json({ id: "ORDER-1" });
     return json({}, 404);
   };
@@ -277,6 +296,41 @@ function freshCaptureHandler() {
     let r = await run();
     ok(r.status === 200 && r.body.captured === true && r.body.captureId === "CAPTURE-1", "6 control: a verified fresh capture is confirmed");
     ok(st.financialCaptures === 1 && st.rows.size === 1, "6 …one capture, one order row");
+
+    /* ── PayPal's documented capture response ───────────────────────────────
+       PayPal defaults to `return=minimal`, whose body need not carry
+       purchase_units[].payments.captures. The request must ask for the representation, and a
+       minimal success must be confirmed by READING THE ORDER BACK — never by capturing again. */
+    st = stubPayPal({ order: auOrder() });
+    r = await run();
+    ok(st.prefers[0] === "return=representation", "6.1 the capture requests Prefer: return=representation");
+    ok(st.requestIds[0] === "capture-ORDER-1", "6.1 …alongside the stable idempotency key");
+    ok(r.status === 200 && r.body.captured === true && r.body.captureId === "CAPTURE-1", "6.1 a full response is verified and confirmed");
+    ok(st.reads === 1, "6.1 …with only the handler's own order read, and no extra read-back");
+
+    st = stubPayPal({ order: auOrder() });
+    st.forceMinimal = true;
+    r = await run();
+    ok(r.status === 200 && r.body.captured === true, "6.2 a MINIMAL success is confirmed");
+    ok(r.body.captureId === "CAPTURE-1", "6.2 …with the capture id taken from the read-back");
+    ok(st.captureRequests === 1 && st.financialCaptures === 1, "6.2 …from exactly one capture request and one payment");
+    ok(st.reads === 2, "6.2 …read back once beyond the initial order lookup");
+    ok(st.rows.size === 1 && st.telegrams === 1, "6.2 …one order written and one alert sent");
+
+    for (const [label, setup] of [
+      ["the read-back fails", (x) => { x.failReadFrom = 2; }],
+      ["the read-back shows a PENDING capture", (x) => { x.fresh.status = "PENDING"; }],
+      ["the read-back shows a $1 capture", (x) => { x.fresh.amount = { value: "1.00" }; }],
+      ["the read-back shows a EUR capture", (x) => { x.fresh.currency = "EUR"; }],
+    ]) {
+      st = stubPayPal({ order: auOrder() });
+      st.forceMinimal = true;
+      setup(st);
+      r = await run();
+      ok(r.status === 502 && !r.body.captured && r.body.code === "CAPTURE_NOT_CONFIRMED", `6.3 minimal success where ${label}: stays UNCONFIRMED`);
+      ok(st.rows.size === 0 && st.telegrams === 0, "6.3 …no order written and no alert sent");
+      ok(st.captureRequests === 1, "6.3 …and no second capture was issued to recover the detail");
+    }
 
     /* FRESH 200s that must NOT be confirmed */
     const freshCases = [

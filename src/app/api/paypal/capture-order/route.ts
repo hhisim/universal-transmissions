@@ -36,6 +36,16 @@ interface Expected {
 }
 
 /**
+ * A minimal capture response: HTTP 200, but no purchase_units at all — so no capture to inspect.
+ * Distinguished from a FULL response that carries purchase_units but no capture, which is a genuine
+ * verification failure rather than a missing representation.
+ */
+function isMinimalCaptureResponse(body: unknown): boolean {
+  const units = (body as { purchase_units?: unknown[] } | null)?.purchase_units;
+  return !Array.isArray(units) || units.length === 0;
+}
+
+/**
  * Decide, from PAYPAL'S OWN RECORD, whether a captured order really carries a completed payment:
  * a non-empty capture id, status COMPLETED, the amount this order was priced at, and USD.
  */
@@ -170,7 +180,13 @@ export async function POST(req: NextRequest) {
         method: "POST",
         // A STABLE key: every retry of this order reuses it, so a retry after a lost response
         // returns the original capture instead of taking a second payment.
-        headers: { "PayPal-Request-Id": `capture-${orderId}` },
+        headers: {
+          "PayPal-Request-Id": `capture-${orderId}`,
+          /* PayPal defaults to `return=minimal`, whose body NEED NOT contain
+             purchase_units[].payments.captures. Without this the handler could reject a payment
+             that had in fact been captured. */
+          Prefer: "return=representation",
+        },
       });
       if (!captureRes) {
         return NextResponse.json({ error: "PayPal authentication failed", code: "AUTH" }, { status: 502 });
@@ -205,11 +221,31 @@ export async function POST(req: NextRequest) {
         alreadyCaptured = true;
         captureId = String(check.capture.id ?? "");
       } else {
-        /* A FRESH 200 is not evidence either. The same verification runs on the capture response,
-           so a pending capture, a wrong amount, a foreign currency or a missing capture id is
-           refused exactly like every other path — and no order is written and no alert is sent. */
-        const check = verifyCompletedCapture(captured, expected);
-        if (!check.ok) {
+        /* A FRESH 200 is not evidence either. The SAME verification runs here, so a pending
+           capture, a wrong amount, a foreign currency or a missing capture id is refused exactly
+           like every other path — and no order is written and no alert is sent.
+         *
+         * One exception, and it is not a relaxation: if the response carries NO purchase_units at
+         * all, it is a minimal representation and simply does not contain the capture. The order is
+         * then READ BACK and the identical verifier is applied to that. Payment is never re-captured
+         * to recover missing response detail. */
+        let check = verifyCompletedCapture(captured, expected);
+        if (!check.ok && isMinimalCaptureResponse(captured)) {
+          const readBack = await paypalFetch(`/v2/checkout/orders/${encodeURIComponent(orderId)}`);
+          const freshOrder = readBack ? await readBack.json() : null;
+          check = freshOrder
+            ? verifyCompletedCapture(freshOrder, expected)
+            : { ok: false as const, reason: "the order could not be read back" };
+          if (!check.ok) {
+            return NextResponse.json(
+              {
+                error: `PayPal accepted the capture but returned a minimal response, and reading the order back did not confirm it: ${check.reason}. Nothing has been recorded or announced; check order ${orderId} at PayPal before acting.`,
+                code: "CAPTURE_NOT_CONFIRMED",
+              },
+              { status: 502 }
+            );
+          }
+        } else if (!check.ok) {
           return NextResponse.json(
             {
               error: `PayPal accepted the capture but its record does not confirm the payment: ${check.reason}. Nothing has been recorded or announced; check order ${orderId} at PayPal before acting.`,
