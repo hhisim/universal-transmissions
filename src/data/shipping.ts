@@ -176,6 +176,24 @@ export function allowedCountriesForCountry(countryCode: string | null | undefine
   return allowedCountriesFor(deliveryZone(countryCode));
 }
 
+/**
+ * The countries an order for THIS product may be delivered to, given the declared country.
+ *
+ * Restricted to one zone only when the two zones actually carry different rates. The cube is $20
+ * everywhere, so restricting it to the zone the buyer declared would refuse perfectly correct
+ * orders — an Australian address on a cube declared from the United States — for a rate difference
+ * that does not exist. The Codex, whose rates differ, stays restricted.
+ */
+export function allowedCountriesForProduct(
+  productId: string,
+  countryCode: string | null | undefined
+): string[] {
+  const rate = SHIPPING_RATES[productId];
+  if (!rate) return [];
+  if (rate.worldwideCents === rate.australiaAndAsiaCents) return [...SHIPPABLE_ISO];
+  return allowedCountriesForCountry(countryCode);
+}
+
 export function shippingLabel(productId: string): string {
   const rate = SHIPPING_RATES[productId];
   if (!rate) throw new Error(`${productId} does not ship`);

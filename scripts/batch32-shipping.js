@@ -208,6 +208,8 @@ function approvedOrder({ productId, priceUsd, country, shippingCents, totalCents
 
     const au = await run("codex-physical", "AU");
     const auAllowed = allowed(au.p);
+    ok(usAllowed.length + allowed(au.p).length === S.SHIPPABLE_ISO.length,
+      "5 …the Codex's two zones still partition the world exactly (the cube's relaxation did not leak)");
     ok(auAllowed.includes("AU") && auAllowed.includes("JP"), "5 an Australian session accepts an Australia/Asia address");
     ok(!auAllowed.includes("US") && !auAllowed.includes("DE"),
       "5 …and no worldwide country, so a $50 order cannot be delivered to a $30 country");
@@ -218,6 +220,18 @@ function approvedOrder({ productId, priceUsd, country, shippingCents, totalCents
     const cube = await run("hexahedron-cube", "AU");
     ok(g(cube.p, "shipping_options[0][shipping_rate_data][fixed_amount][amount]") === "2000",
       "5 the cube is $20 from Australia as well");
+
+    /* The Codex's regional restriction must not be applied to a product whose rate does not vary. */
+    const cubeFrom = async (declared) => {
+      const r = await run("hexahedron-cube", declared);
+      return allowed(r.p);
+    };
+    const cubeUS = await cubeFrom("US");
+    const cubeAU = await cubeFrom("AU");
+    ok(cubeUS.length === S.SHIPPABLE_ISO.length, `5 a cube declared from the US may go to every shippable country (${cubeUS.length})`);
+    ok(cubeUS.includes("AU") && cubeUS.includes("JP"), "5 …including Australia and Asia, which are charged the same $20");
+    ok(cubeAU.includes("US") && cubeAU.includes("DE"), "5 …and a cube declared from Australia may go anywhere too");
+    ok(S.SHIPPABLE_ISO.every((c) => cubeUS.includes(c)), "5 the cube's list is the whole shippable world, unrestricted");
 
     /* digital: no shipping option, no address collection */
     for (const id of ["codex-digital", "chakra-4k", "chakra-8k"]) {
@@ -409,6 +423,8 @@ function approvedOrder({ productId, priceUsd, country, shippingCents, totalCents
     ok(/Total · /.test(page), "8 the total including shipping is shown before payment");
     ok(/SHIPPABLE_ISO/.test(page) && /deliveryZone/.test(page), "8 the country list comes from the policy, not a hand-written list");
     ok(!/\$30 worldwide \(AU\/Asia \$50\)/.test(page), "8 no rate is typed into the page");
+    ok(!/australiaAndAsiaCents !== rate\.worldwideCents/.test(page),
+      "8 both zones are always listed — the cube charges the same either way but Australia must remain selectable");
 
     const ret = read("src/app/sanctum/paypal/return/page.tsx");
     ok(/capture-order/.test(ret), "8 the return page calls the capture route");

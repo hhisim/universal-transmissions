@@ -5,7 +5,7 @@ import {
   shippingCentsFor,
   shippingLabelFor,
   deliveryWindow,
-  allowedCountriesForCountry,
+  allowedCountriesForProduct,
 } from "@/data/shipping";
 import { supabaseAdmin } from "@/lib/supabase";
 
@@ -53,9 +53,10 @@ export async function POST(req: NextRequest) {
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][unit]", "business_day");
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][value]", String(window.max));
 
-      // Restrict delivery to the zone this rate belongs to. Nothing here is buyer-selectable: there
-      // is one rate, and the address must fall inside it.
-      allowedCountriesForCountry(country).forEach((cc, i) => {
+      // Restrict delivery to the countries carrying this rate. Nothing here is buyer-selectable:
+      // there is one rate, and the address must fall inside it. A product charged the same
+      // everywhere (the cube) is not restricted at all, because no address could disagree with it.
+      allowedCountriesForProduct(productId, country).forEach((cc, i) => {
         params.append(`shipping_address_collection[allowed_countries][${i}]`, cc);
       });
     }

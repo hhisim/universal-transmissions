@@ -312,7 +312,10 @@ export default function ProductDetailPage({ params }: Props) {
                               </option>
                             ))}
                           </optgroup>
-                          {rate.australiaAndAsiaCents !== rate.worldwideCents && (
+                          {/* Both zones are always listed. The cube charges the same either way, but an
+                              Australian buyer must still be able to choose Australia — hiding the group
+                              because the two rates matched made the cube unbuyable from there. */}
+                          {(
                             <optgroup
                               label={`Australia & Asia — ${dollars(rate.australiaAndAsiaCents)} shipping`}
                             >
