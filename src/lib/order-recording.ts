@@ -113,6 +113,49 @@ export async function recordPayPalOrder(
   }
 }
 
+/**
+ * Preserve what the studio alert actually did.
+ *
+ * A repeated return cannot observe the original notification, so it must not claim one succeeded.
+ * The outcome is recorded on the order row and read back, which is the only way a later visit can
+ * report the truth instead of a guess.
+ */
+export async function setAlertOutcome(
+  orderId: string,
+  sent: boolean,
+  detail?: string | null
+): Promise<void> {
+  const notes = `paypal order ${orderId} \u00b7 alert=${sent ? "sent" : "failed"}${detail ? `: ${detail}` : ""}`;
+  try {
+    const { error } = await supabaseAdmin
+      .from("ut_orders")
+      .update({ notes })
+      .eq("stripe_session_id", paypalOrderReference(orderId));
+    if (error) console.error("Could not record the alert outcome:", error.message);
+  } catch (err) {
+    console.error("Could not record the alert outcome:", err);
+  }
+}
+
+/** What the original alert did, as recorded at the time — or unknown, said plainly. */
+export async function readAlertOutcome(
+  orderId: string
+): Promise<{ known: boolean; sent: boolean | null; detail?: string }> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("ut_orders")
+      .select("notes")
+      .eq("stripe_session_id", paypalOrderReference(orderId));
+    if (error || !data || data.length === 0) return { known: false, sent: null };
+    const notes = String((data[0] as { notes?: string }).notes ?? "");
+    const match = /alert=(sent|failed)(?::\s*(.*))?$/.exec(notes);
+    if (!match) return { known: false, sent: null };
+    return { known: true, sent: match[1] === "sent", detail: match[2] || undefined };
+  } catch {
+    return { known: false, sent: null };
+  }
+}
+
 /** The studio is told about a sale by the same mechanism the Stripe webhook uses. */
 export async function notifyStudio(
   record: PayPalOrderRecord,
