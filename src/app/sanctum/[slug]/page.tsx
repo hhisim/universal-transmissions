@@ -8,7 +8,15 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 import { getProduct } from "@/data/products";
-import { shippingNote } from "@/data/shipping";
+import {
+  shippingNote,
+  requiresShipping,
+  shippingCentsFor,
+  deliveryZone,
+  dollars,
+  SHIPPABLE_ISO,
+  SHIPPING_RATES,
+} from "@/data/shipping";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
 import PageBackground from "@/components/scenes/PageBackground";
 
@@ -27,6 +35,10 @@ export default function ProductDetailPage({ params }: Props) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCanceled, setShowCanceled] = useState(false);
+  /* The delivery country decides the rate, so it is asked for before the purchase rather than
+     guessed at, and the total shown is the total that will be charged. */
+  const [country, setCountry] = useState("");
+  const [countryError, setCountryError] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -35,6 +47,26 @@ export default function ProductDetailPage({ params }: Props) {
   }, []);
 
   const hasMultipleImages = p.images.length > 1;
+
+  /* Everything below is displayed from the shipping policy; the server recomputes the same figures
+     from the country and never takes an amount from this page. */
+  const ships = requiresShipping(p.id);
+  const rate = SHIPPING_RATES[p.id];
+  const shipCents = ships ? shippingCentsFor(p.id, country) : 0;
+  const totalCents = Math.round(p.price * 100) + shipCents;
+  const worldwideCodes = SHIPPABLE_ISO.filter((c) => deliveryZone(c) === "WORLDWIDE");
+  const auAsiaCodes = SHIPPABLE_ISO.filter((c) => deliveryZone(c) === "AUSTRALIA_AND_ASIA");
+  const regionNames =
+    typeof Intl !== "undefined" && "DisplayNames" in Intl
+      ? new Intl.DisplayNames(["en"], { type: "region" })
+      : null;
+  const countryName = (code: string) => {
+    try {
+      return regionNames ? regionNames.of(code) || code : code;
+    } catch {
+      return code;
+    }
+  };
 
   function prevImage() {
     setCurrentImageIndex((prev) => (prev === 0 ? p.images.length - 1 : prev - 1));
@@ -45,13 +77,17 @@ export default function ProductDetailPage({ params }: Props) {
   }
 
   async function handleCheckout() {
+    if (ships && !country) {
+      setCountryError(true);
+      return;
+    }
     setLoading(true);
     try {
       if (paymentMethod === "stripe") {
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: p.id }),
+          body: JSON.stringify({ productId: p.id, country: ships ? country : undefined }),
         });
         const data = await res.json();
         if (data.url) window.location.href = data.url;
@@ -59,7 +95,7 @@ export default function ProductDetailPage({ params }: Props) {
         const res = await fetch("/api/paypal/create-order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: p.id }),
+          body: JSON.stringify({ productId: p.id, country: ships ? country : undefined }),
         });
         const data = await res.json();
         if (data.orderId) {
@@ -242,6 +278,70 @@ export default function ProductDetailPage({ params }: Props) {
                     <p className="font-body text-sm" style={{ color: "var(--ut-white-dim)" }}>
                       {shippingNote(p.id)}
                     </p>
+
+                    {ships && rate && (
+                      <div className="mt-4">
+                        <label
+                          htmlFor="delivery-country"
+                          className="block font-mono text-[10px] tracking-widest uppercase mb-2"
+                          style={{ color: "var(--ut-white-dim)", opacity: 0.7 }}
+                        >
+                          Delivery country
+                        </label>
+                        <select
+                          id="delivery-country"
+                          value={country}
+                          onChange={(e) => {
+                            setCountry(e.target.value);
+                            setCountryError(false);
+                          }}
+                          className="w-full px-3 py-2 font-body text-sm"
+                          style={{
+                            background: "rgba(6,5,10,0.8)",
+                            border: `1px solid ${countryError ? "#f87171" : "rgba(212,168,71,0.3)"}`,
+                            color: "var(--ut-white)",
+                          }}
+                          aria-describedby="delivery-total"
+                          aria-invalid={countryError}
+                        >
+                          <option value="">Choose a delivery country…</option>
+                          <optgroup label={`Rest of world — ${dollars(rate.worldwideCents)} shipping`}>
+                            {worldwideCodes.map((c) => (
+                              <option key={c} value={c}>
+                                {countryName(c)}
+                              </option>
+                            ))}
+                          </optgroup>
+                          {rate.australiaAndAsiaCents !== rate.worldwideCents && (
+                            <optgroup
+                              label={`Australia & Asia — ${dollars(rate.australiaAndAsiaCents)} shipping`}
+                            >
+                              {auAsiaCodes.map((c) => (
+                                <option key={c} value={c}>
+                                  {countryName(c)}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+
+                        <p
+                          id="delivery-total"
+                          className="mt-3 font-mono text-[11px]"
+                          style={{ color: "var(--ut-gold)" }}
+                        >
+                          {country
+                            ? `Total · ${dollars(totalCents)} — ${dollars(Math.round(p.price * 100))} + ${dollars(shipCents)} shipping`
+                            : "Choose a country to see the total with shipping."}
+                        </p>
+
+                        {countryError && (
+                          <p role="alert" className="mt-2 font-mono text-[11px]" style={{ color: "#f87171" }}>
+                            Choose a delivery country before purchasing.
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 

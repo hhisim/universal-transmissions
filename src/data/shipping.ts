@@ -1,221 +1,250 @@
 /**
- * SHIPPING — the one place that records what this project actually charges, and where it
- * currently disagrees with itself.
+ * SHIPPING — the confirmed policy, in one place, for the product pages and both providers.
  *
- * There is no shipping field on a product. The rate exists in three places that do not agree:
+ * CONFIRMED BY THE OWNER (Batch 32):
+ *   · Physical Codex .... $30 USD worldwide, except Australia and Asia at $50 USD
+ *   · Art cube .......... $20 USD worldwide
+ *   · Digital products .. no shipping charge and no delivery-address requirement
+ *   · Product prices .... unchanged
  *
- *   1. the product page's own words        "$30 worldwide (AU/Asia $50) · Ships within 10 days"
- *   2. the Stripe session construction      a single flat $30, applied to every country
- *   3. the PayPal order                     no shipping at all — the customer pays the book price
- *
- * This module does NOT resolve that. Choosing between the three is the owner's decision, and it is
- * recorded here as an open decision rather than guessed at. What this module does is make the
- * disagreement live in one file, so that whatever is decided can be applied in one place and both
- * providers can be checked against it.
- *
- * NOTHING HERE CHANGES A CHARGE. Values are transcribed from what the code already does; the
- * AU/Asia figure is the page's stated rule and is applied by nobody.
+ * The rate is a function of the DELIVERY COUNTRY and is always resolved server-side from this
+ * table. Neither provider is handed two rates to choose between: the server computes the one rate
+ * that applies, and the addresses a buyer may give are restricted to the countries that carry the
+ * same rate — so an address change inside a checkout cannot produce a total that disagrees with it.
  */
 
-/** The state of the policy. It is not reconciled, and saying so is the point of this file. */
-export const SHIPPING_POLICY_STATE = "unreconciled" as const;
+export const SHIPPING_POLICY_STATE = "confirmed" as const;
 
-export interface FlatRate {
-  /** What the Stripe session charges today, in cents, for this product. */
-  cents: number;
-  /** The name the charge carries. */
+export type Zone = "WORLDWIDE" | "AUSTRALIA_AND_ASIA";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * THE GEOGRAPHIC DEFINITION OF "AUSTRALIA AND ASIA"
+ *
+ * Defined by a NAMED STANDARD rather than by taste, so the coverage can be checked against
+ * something other than this file:
+ *
+ *   · ASIA — the five Asian subregions of the UN M49 classification:
+ *       145 Western Asia, 143 Central Asia, 034 Southern Asia,
+ *       035 South-Eastern Asia, 030 Eastern Asia
+ *   · AUSTRALIA — the country Australia (ISO 3166-1 alpha-2: AU)
+ *
+ * M49 counts Cyprus, Georgia, Armenia and Azerbaijan in Western Asia, and the Middle East there
+ * too; they are carried here because that is what the named standard says, rather than a judgement
+ * about where a country "belongs".
+ *
+ * NOT INCLUDED, AND WHY — New Zealand. It is the flagged case. An earlier draft carried NZ inside
+ * this zone; that was an assumption, not the owner's words. NZ is in the M49 *Oceania* macro-region:
+ * it is not Asia and it is not Australia, so it is charged the worldwide rate here. If NZ should
+ * price with Australia — a common commercial choice — that is one deliberate line in the list
+ * below, not something to slip in unnoticed.
+ * ───────────────────────────────────────────────────────────────────────────── */
+export const GEOGRAPHIC_DEFINITION = {
+  standard: "UN M49 — the five Asian subregions, plus the country code AU",
+  asiaSubregions: [
+    "145 Western Asia",
+    "143 Central Asia",
+    "034 Southern Asia",
+    "035 South-Eastern Asia",
+    "030 Eastern Asia",
+  ],
+  excludes: {
+    NZ: "New Zealand — M49 Oceania: not Asia, not Australia. Charged the worldwide rate unless the owner decides otherwise.",
+  },
+} as const;
+
+/** Western Asia (M49 145). */
+const WESTERN_ASIA = ["AE", "AM", "AZ", "BH", "CY", "GE", "IL", "IQ", "JO", "KW", "LB", "OM", "PS", "QA", "SA", "SY", "TR", "YE"];
+/** Central Asia (M49 143). */
+const CENTRAL_ASIA = ["KG", "KZ", "TJ", "TM", "UZ"];
+/** Southern Asia (M49 034). */
+const SOUTHERN_ASIA = ["AF", "BD", "BT", "IN", "IR", "LK", "MV", "NP", "PK"];
+/** South-Eastern Asia (M49 035). */
+const SOUTH_EASTERN_ASIA = ["BN", "ID", "KH", "LA", "MM", "MY", "PH", "SG", "TH", "TL", "VN"];
+/** Eastern Asia (M49 030). */
+const EASTERN_ASIA = ["CN", "HK", "JP", "KP", "KR", "MN", "MO", "TW"];
+
+/** Australia plus every country of the five M49 Asian subregions. */
+export const AUSTRALIA_AND_ASIA_ISO: readonly string[] = [
+  "AU",
+  ...WESTERN_ASIA,
+  ...CENTRAL_ASIA,
+  ...SOUTHERN_ASIA,
+  ...SOUTH_EASTERN_ASIA,
+  ...EASTERN_ASIA,
+].sort();
+
+/**
+ * Every ISO 3166-1 alpha-2 code this project ships to — what the worldwide zone covers. Stripe
+ * requires an explicit list for `shipping_address_collection`, and holding that list to one zone is
+ * exactly what stops an address change from changing the rate.
+ */
+export const SHIPPABLE_ISO: readonly string[] = [
+  "AD","AE","AF","AG","AI","AL","AM","AO","AQ","AR","AS","AT","AU","AW","AX","AZ","BA","BB","BD","BE","BF","BG","BH","BI","BJ","BL","BM","BN","BO","BQ","BR","BS","BT","BV","BW","BY","BZ",
+  "CA","CC","CD","CF","CG","CH","CI","CK","CL","CM","CN","CO","CR","CU","CV","CW","CX","CY","CZ","DE","DJ","DK","DM","DO","DZ","EC","EE","EG","EH","ER","ES","ET","FI","FJ","FK","FM","FO","FR",
+  "GA","GB","GD","GE","GF","GG","GH","GI","GL","GM","GN","GP","GQ","GR","GS","GT","GU","GW","GY","HK","HM","HN","HR","HT","HU","ID","IE","IL","IM","IN","IO","IQ","IR","IS","IT","JE","JM","JO","JP",
+  "KE","KG","KH","KI","KM","KN","KP","KR","KW","KY","KZ","LA","LB","LC","LI","LK","LR","LS","LT","LU","LV","LY","MA","MC","MD","ME","MF","MG","MH","MK","ML","MM","MN","MO","MP","MQ","MR","MS","MT",
+  "MU","MV","MW","MX","MY","MZ","NA","NC","NE","NF","NG","NI","NL","NO","NP","NR","NU","NZ","OM","PA","PE","PF","PG","PH","PK","PL","PM","PN","PR","PS","PT","PW","PY","QA","RE","RO","RS","RU","RW",
+  "SA","SB","SC","SD","SE","SG","SH","SI","SJ","SK","SL","SM","SN","SO","SR","SS","ST","SV","SX","SY","SZ","TC","TD","TF","TG","TH","TJ","TK","TL","TM","TN","TO","TR","TT","TV","TW","TZ","UA","UG",
+  "UM","US","UY","UZ","VA","VC","VE","VG","VI","VN","VU","WF","WS","YE","YT","ZA","ZM","ZW",
+].sort();
+
+export interface ProductShipping {
+  /** Cents charged when the delivery country is outside Australia and Asia. */
+  worldwideCents: number;
+  /** Cents charged when the delivery country is Australia or Asia. */
+  australiaAndAsiaCents: number;
+  /** The base name the charge carries. */
   label: string;
-  /** The delivery window the session advertises on the Stripe checkout. */
+  /** The dispatch promise the product page prints. */
+  dispatchDays: number;
+  /** The delivery window the Stripe checkout advertises. */
   minBusinessDays: number;
   maxBusinessDays: number;
-  /**
-   * The dispatch promise the product page prints. It does not equal the window above — the page
-   * says one thing and the checkout advertises another, which is recorded and not resolved here.
-   */
-  dispatchDays: number;
+  /** A handling requirement beyond postage, if the product has one. */
+  handlingNote?: string;
 }
 
 /**
- * The flat rate each physical product is charged, exactly as /api/checkout builds it today.
- * A product is physical precisely when it appears here — that keeps "which products ship"
- * in one place instead of a separate list that can drift from the rates.
+ * Which products ship, and at what rate. A product ships precisely when it appears here, so
+ * "which products ship" cannot drift away from "what they are charged".
  */
-export const FLAT_RATES: Record<string, FlatRate> = {
+export const SHIPPING_RATES: Record<string, ProductShipping> = {
   "codex-physical": {
-    cents: 3000,
-    label: "Standard Shipping",
+    worldwideCents: 3000,
+    australiaAndAsiaCents: 5000,
+    label: "Shipping",
+    dispatchDays: 10,
     minBusinessDays: 5,
     maxBusinessDays: 21,
-    dispatchDays: 10,
   },
   "hexahedron-cube": {
-    cents: 2000,
+    worldwideCents: 2000,
+    australiaAndAsiaCents: 2000,
     label: "Worldwide Shipping",
+    dispatchDays: 10,
     minBusinessDays: 5,
     maxBusinessDays: 21,
-    dispatchDays: 10,
+    handlingNote: "Requires personal inspection & signing of Certificate of Authenticity",
   },
-};
-
-export interface StatedZoneRate {
-  zone: string;
-  /** Countries the zone covers, upper-case ISO codes. "worldwide" is the fallback. */
-  countries: string[] | "worldwide";
-  cents: number;
-  /**
-   * Whether any provider actually charges this. It is false for the AU/Asia rate, which is why
-   * the product page and the checkout can disagree.
-   */
-  appliedByProviders: boolean;
-  source: string;
-}
-
-/**
- * The zones as the product page states them. The worldwide rate is applied by Stripe; the AU/Asia
- * rate is applied by nothing — an Australian or Asian buyer is charged the worldwide rate.
- */
-export const STATED_ZONE_RATES: Record<string, StatedZoneRate[]> = {
-  "codex-physical": [
-    {
-      zone: "worldwide",
-      countries: "worldwide",
-      cents: 3000,
-      appliedByProviders: true,
-      source: "product page, and the Stripe session's only shipping option",
-    },
-    {
-      zone: "AU/Asia",
-      countries: ["AU", "NZ", "JP", "SG", "KR", "CN", "HK", "TW", "MY", "TH", "ID", "PH", "VN", "IN"],
-      cents: 5000,
-      appliedByProviders: false,
-      source: "product page only — no provider applies it",
-    },
-  ],
-  "hexahedron-cube": [
-    {
-      zone: "worldwide",
-      countries: "worldwide",
-      cents: 2000,
-      appliedByProviders: true,
-      source: "product page, and the Stripe session's only shipping option",
-    },
-  ],
 };
 
 /** Whether this product is shipped at all. Digital goods must never acquire a shipping charge. */
 export function requiresShipping(productId: string): boolean {
-  return Object.prototype.hasOwnProperty.call(FLAT_RATES, productId);
+  return Object.prototype.hasOwnProperty.call(SHIPPING_RATES, productId);
 }
 
-/** The flat charge the Stripe session applies today. Throws for a product that does not ship. */
-export function flatShippingCents(productId: string): number {
-  const rate = FLAT_RATES[productId];
-  if (!rate) throw new Error(`${productId} does not ship`);
-  return rate.cents;
+/** Whether an order for this product needs a delivery address at all. */
+export function requiresDeliveryAddress(productId: string): boolean {
+  return requiresShipping(productId);
+}
+
+/** Where a delivery country falls. A missing or unknown country is charged the worldwide rate. */
+export function deliveryZone(countryCode: string | null | undefined): Zone {
+  if (!countryCode) return "WORLDWIDE";
+  return AUSTRALIA_AND_ASIA_ISO.includes(String(countryCode).trim().toUpperCase())
+    ? "AUSTRALIA_AND_ASIA"
+    : "WORLDWIDE";
+}
+
+/**
+ * The rate for this product delivered to this country. THE authority — every provider is priced
+ * from this call, never from a figure supplied by the browser.
+ */
+export function shippingCentsFor(productId: string, countryCode: string | null | undefined): number {
+  const rate = SHIPPING_RATES[productId];
+  if (!rate) return 0; // a product that does not ship is charged nothing, ever
+  return deliveryZone(countryCode) === "AUSTRALIA_AND_ASIA"
+    ? rate.australiaAndAsiaCents
+    : rate.worldwideCents;
+}
+
+/**
+ * Every country an order priced for this zone may be delivered to.
+ *
+ * The list is the zone ITSELF, not "everywhere that ships": a session priced at the worldwide rate
+ * must not accept an Australia-or-Asia address, or the buyer could take the $30 rate and ship to a
+ * $50 country. Restricting the list is what makes the address and the charge agree by construction.
+ */
+export function allowedCountriesFor(zone: Zone): string[] {
+  return zone === "AUSTRALIA_AND_ASIA"
+    ? [...AUSTRALIA_AND_ASIA_ISO]
+    : SHIPPABLE_ISO.filter((c) => !AUSTRALIA_AND_ASIA_ISO.includes(c));
+}
+
+/** The countries allowed for a given declared delivery country — one zone's worth, so the rate holds. */
+export function allowedCountriesForCountry(countryCode: string | null | undefined): string[] {
+  return allowedCountriesFor(deliveryZone(countryCode));
 }
 
 export function shippingLabel(productId: string): string {
-  const rate = FLAT_RATES[productId];
+  const rate = SHIPPING_RATES[productId];
   if (!rate) throw new Error(`${productId} does not ship`);
   return rate.label;
 }
 
+/**
+ * The name the charge carries, disclosing the zone when the two zones differ — so a $50 charge
+ * explains itself on the checkout instead of looking like an unexplained surcharge.
+ */
+export function shippingLabelFor(productId: string, countryCode: string | null | undefined): string {
+  const rate = SHIPPING_RATES[productId];
+  if (!rate) throw new Error(`${productId} does not ship`);
+  if (rate.worldwideCents === rate.australiaAndAsiaCents) return rate.label;
+  return `${rate.label} — ${deliveryZone(countryCode) === "AUSTRALIA_AND_ASIA" ? "Australia & Asia" : "Rest of world"}`;
+}
+
 export function deliveryWindow(productId: string): { min: number; max: number } {
-  const rate = FLAT_RATES[productId];
+  const rate = SHIPPING_RATES[productId];
   if (!rate) throw new Error(`${productId} does not ship`);
   return { min: rate.minBusinessDays, max: rate.maxBusinessDays };
 }
 
-/**
- * The rate the product page's own rule gives for a country. NOT applied by any provider — it is
- * here so the reconciliation can be checked against the published rule the moment the owner
- * settles it. `null` means no zone claimed this country.
- */
-export function statedZoneRateCents(productId: string, countryCode: string): number | null {
-  const zones = STATED_ZONE_RATES[productId];
-  if (!zones) return null;
-  const cc = countryCode.trim().toUpperCase();
-  const named = zones.find(
-    (z) => Array.isArray(z.countries) && z.countries.includes(cc)
-  );
-  if (named) return named.cents;
-  const worldwide = zones.find((z) => z.countries === "worldwide");
-  return worldwide ? worldwide.cents : null;
-}
-
-/** Money in the form the page prints it. */
+/** Money in the form the pages print it. */
 export function dollars(cents: number): string {
   return `$${Math.round(cents / 100)}`;
 }
 
-/**
- * The rate phrase the product page prints — derived from the zone table, so the page cannot state
- * one thing while the table says another. "worldwide" first, then any other zone in brackets:
- * "$30 worldwide (AU/Asia $50)".
- */
+/** The rate phrase the product page prints: "$30 worldwide (AU/Asia $50)". */
 export function rateLine(productId: string): string | null {
-  const zones = STATED_ZONE_RATES[productId];
-  if (!zones) return null;
-  const worldwide = zones.find((z) => z.countries === "worldwide");
-  const other = zones.find((z) => z.countries !== "worldwide");
-  const parts: string[] = [];
-  if (worldwide) parts.push(`${dollars(worldwide.cents)} worldwide`);
-  if (other) parts.push(`(${other.zone} ${dollars(other.cents)})`);
-  return parts.join(" ");
-}
-
-/** The dispatch promise the page prints, from the same table. */
-export function dispatchLine(productId: string): string | null {
-  const rate = FLAT_RATES[productId];
+  const rate = SHIPPING_RATES[productId];
   if (!rate) return null;
-  return `Ships within ${rate.dispatchDays} days`;
+  const base = `${dollars(rate.worldwideCents)} worldwide`;
+  return rate.australiaAndAsiaCents === rate.worldwideCents
+    ? base
+    : `${base} (AU/Asia ${dollars(rate.australiaAndAsiaCents)})`;
 }
 
-/**
- * The handling requirement a product carries beyond postage. It is not a rate, and it is not
- * shared: the cube must be inspected and its certificate signed before it goes out.
- */
-const HANDLING_NOTES: Record<string, string> = {
-  "hexahedron-cube":
-    "Requires personal inspection & signing of Certificate of Authenticity",
-};
-
-/**
- * The whole shipping sentence the product page prints, for any product that ships. One function,
- * one place: the page states exactly what this table says.
- */
+/** The whole shipping sentence the product page prints. */
 export function shippingNote(productId: string): string | null {
-  if (!requiresShipping(productId)) return null;
-  const tail = HANDLING_NOTES[productId] ?? dispatchLine(productId);
+  const rate = SHIPPING_RATES[productId];
+  if (!rate) return null;
+  const tail = rate.handlingNote ?? `Ships within ${rate.dispatchDays} days`;
   return `${rateLine(productId)} · ${tail}`;
 }
 
-/** What each provider does with shipping today. Transcribed, not aspirational. */
-export const PROVIDER_APPLICATION = {
-  stripe: {
-    appliesShippingForShippingProducts: true,
-    appliesZoneRates: false,
-    collectsDeliveryAddress: false,
-    note:
-      "one fixed shipping option at the worldwide rate, for every country; the session sets no " +
-      "shipping_address_collection, so a paid physical order can arrive without a delivery address",
-  },
-  paypal: {
-    appliesShippingForShippingProducts: false,
-    appliesZoneRates: false,
-    collectsDeliveryAddress: false,
-    note:
-      "the order is built from the product price alone; there is no shipping line and no " +
-      "shipping_preference, and the capture route is not reachable from the site",
-  },
-} as const;
+/** What a buyer in this country pays in total. */
+export function orderTotalCents(
+  productId: string,
+  priceUsd: number,
+  countryCode: string | null | undefined
+): number {
+  return Math.round(priceUsd * 100) + shippingCentsFor(productId, countryCode);
+}
+
+/** The countries a buyer may pick from on a product page, grouped by the rate they carry. */
+export function countryOptionsFor(productId: string): Array<{ code: string; zone: Zone; cents: number }> {
+  const rate = SHIPPING_RATES[productId];
+  if (!rate) return [];
+  return SHIPPABLE_ISO.map((code) => ({
+    code,
+    zone: deliveryZone(code),
+    cents: shippingCentsFor(productId, code),
+  }));
+}
 
 /**
- * The decisions only the owner can make. Each names the conflicting definitions and what changes
- * once it is answered — none of them is answered here.
+ * The one question this policy deliberately leaves to the owner rather than answering in code.
  */
-export const OPEN_SHIPPING_DECISIONS = [
-  "Is the AU/Asia $50 rate real? The page states it; no provider applies it, so those buyers are charged $30.",
-  "Does PayPal charge shipping for physical goods? Today it charges the book price alone — a physical order pays no postage and asks for no delivery address.",
-  "Should Stripe collect a delivery address for physical goods? It charges postage but never asks where to send it.",
+export const OPEN_SHIPPING_QUESTIONS = [
+  'New Zealand is charged the worldwide rate: under the M49 definition it is neither Asia nor Australia. If NZ should price with Australia, add "NZ" to AUSTRALIA_AND_ASIA_ISO — one deliberate line.',
 ] as const;

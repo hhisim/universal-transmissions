@@ -445,7 +445,8 @@ console.log("\n  11. the purchase path");
   ok(getProduct(byId.slug) === byId, "11 and the fallback still resolves a slug");
 
   /* neither route may invent a figure */
-  ok(/product\.price\.toFixed\(2\)/.test(paypal), "11 PayPal charges the registry price");
+  ok(/Math\.round\(product\.price \* 100\)/.test(paypal) && /item_total/.test(paypal),
+    "11 PayPal's item total is the registry price, carried as its own line");
   ok(/Math\.round\(product\.price \* 100\)/.test(stripe), "11 Stripe charges the registry price");
   for (const id of ["codex-physical", "codex-digital"]) {
     const prod = products.find((p) => p.id === id);

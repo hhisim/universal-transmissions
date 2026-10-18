@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { products } from "@/data/products";
-import { requiresShipping, flatShippingCents, shippingLabel, deliveryWindow } from "@/data/shipping";
+import {
+  requiresShipping,
+  shippingCentsFor,
+  shippingLabelFor,
+  deliveryWindow,
+  allowedCountriesForCountry,
+} from "@/data/shipping";
 import { supabaseAdmin } from "@/lib/supabase";
 
 const DIGITAL_PRODUCTS = ["codex-digital", "chakra-4k", "chakra-8k"];
@@ -10,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!key) return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
 
   try {
-    const { productId } = await req.json();
+    const { productId, country } = await req.json();
     const product = products.find((p) => p.id === productId);
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
@@ -30,12 +36,13 @@ export async function POST(req: NextRequest) {
       cancel_url: `${baseUrl}/sanctum/${product.slug}?canceled=true`,
     });
 
-    // Products that ship get a flat-rate shipping option. The rate, its name and its delivery
-    // window all come from src/data/shipping.ts — the figures are unchanged from before, they are
-    // simply no longer typed into this route.
+    // Products that ship are priced from the DELIVERY COUNTRY, decided here rather than in the
+    // browser: the request carries a country, never an amount. The address the buyer may give is
+    // then restricted to the countries carrying the same rate, so changing the address inside the
+    // session cannot produce a total that disagrees with the rate that was charged.
     if (requiresShipping(productId)) {
-      const shipAmt = flatShippingCents(productId);
-      const shipName = shippingLabel(productId);
+      const shipAmt = shippingCentsFor(productId, country);
+      const shipName = shippingLabelFor(productId, country);
       const window = deliveryWindow(productId);
       params.append("shipping_options[0][shipping_rate_data][type]", "fixed_amount");
       params.append("shipping_options[0][shipping_rate_data][fixed_amount][amount]", String(shipAmt));
@@ -45,6 +52,12 @@ export async function POST(req: NextRequest) {
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][minimum][value]", String(window.min));
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][unit]", "business_day");
       params.append("shipping_options[0][shipping_rate_data][delivery_estimate][maximum][value]", String(window.max));
+
+      // Restrict delivery to the zone this rate belongs to. Nothing here is buyer-selectable: there
+      // is one rate, and the address must fall inside it.
+      allowedCountriesForCountry(country).forEach((cc, i) => {
+        params.append(`shipping_address_collection[allowed_countries][${i}]`, cc);
+      });
     }
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
