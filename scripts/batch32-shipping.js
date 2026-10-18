@@ -49,7 +49,7 @@ function stubPayPal({ order } = {}) {
   let current = JSON.parse(JSON.stringify(order));
   const st = {
     captureRequests: 0, financialCaptures: 0, requestIds: [], prefers: [], reads: 0, tokens: 0,
-    forceMinimal: false, failReadFrom: 0,
+    forceMinimal: false, failReadFrom: 0, urls: [],
     supaReads: 0, supaUpdates: 0, supaInserts: [], supaFailWrites: 0, rows: new Map(),
     telegrams: 0, telegramFail: false,
     capturePlan: "succeed",
@@ -65,6 +65,7 @@ function stubPayPal({ order } = {}) {
     const u = String(url);
     const method = String(opts.method || "GET").toUpperCase();
     const headers = opts.headers || {};
+    st.urls.push(u);
     if (/supabase\.co/.test(u)) {
       const ref = decodeURIComponent((u.match(/stripe_session_id=eq\.([^&]+)/) || [])[1] || "");
       if (method === "GET") { st.supaReads += 1; const row = st.rows.get(ref); return json(row ? [{ notes: row.notes }] : []); }
@@ -221,6 +222,52 @@ function freshCaptureHandler() {
       "3 a CN PayPal order allowlists the whole Australia/Asia zone (no provider narrowing)");
     ok(D.allowedDeliveryFor("codex-physical", "stripe", "US").length === 189 && D.allowedDeliveryFor("codex-physical", "stripe", "AU").length === 49,
       "3 Stripe stays narrowed by its own contract (189 / 49)");
+  }
+
+  console.log("\n  3b. the PayPal environment");
+  {
+    const P = require(path.join(ROOT, "src/lib/paypal.ts"));
+    const LIVE = "https://api-m.paypal.com";
+    const SANDBOX = "https://api-m.sandbox.paypal.com";
+
+    for (const [value, host, why] of [
+      ["live", LIVE, "the value actually deployed"],
+      ["production", LIVE, "the code's own word"],
+      ["  LIVE  ", LIVE, "whitespace and case normalised"],
+      ["Production", LIVE, "…and again"],
+      ["sandbox", SANDBOX, "the sandbox word"],
+      ["", SANDBOX, "an empty value"],
+      ["staging", SANDBOX, "an unrecognised value"],
+      ["prod", SANDBOX, "a near-miss must NOT reach live"],
+    ]) {
+      process.env.PAYPAL_MODE = value;
+      ok(P.paypalBaseUrl() === host, `3b PAYPAL_MODE=${JSON.stringify(value)} (${why}) selects ${host.replace("https://", "")}`);
+    }
+    delete process.env.PAYPAL_MODE;
+    ok(P.paypalBaseUrl() === SANDBOX, "3b an UNSET PAYPAL_MODE selects the sandbox host");
+
+    /* both routes, on the deployed value, in one run */
+    const hostsOf = (urls) => [...new Set(urls.filter((x) => /paypal\.com/.test(x)).map((x) => String(x).match(/^https:\/\/[^/]+/)[0]))];
+    const auOrder = () => approvedOrder({ productId: "codex-physical", priceUsd: 215, country: "AU", shippingCents: 5000, totalCents: 26500 });
+
+    for (const [mode, expected] of [["live", LIVE], [undefined, SANDBOX]]) {
+      if (mode === undefined) delete process.env.PAYPAL_MODE; else process.env.PAYPAL_MODE = mode;
+      const stCreate = stubPayPal({ order: auOrder() });
+      const create = require(path.join(ROOT, "src/app/api/paypal/create-order/route.ts"));
+      await create.POST({ json: async () => ({ productId: "codex-physical", country: "AU" }) });
+      const createHosts = hostsOf(stCreate.urls);
+
+      const stCapture = stubPayPal({ order: auOrder() });
+      const capture = freshCaptureHandler();
+      await capture.POST({ json: async () => ({ orderId: "ORDER-1" }) });
+      const captureHosts = hostsOf(stCapture.urls);
+
+      const label = mode === undefined ? "unset" : mode;
+      ok(createHosts.length === 1 && createHosts[0] === expected, `3b order creation (PAYPAL_MODE=${label}) uses ${expected.replace("https://", "")}`);
+      ok(captureHosts.length === 1 && captureHosts[0] === expected, `3b capture (PAYPAL_MODE=${label}) uses the same host`);
+      ok(createHosts[0] === captureHosts[0], `3b …and both routes agree on ONE environment (PAYPAL_MODE=${label})`);
+    }
+    process.env.PAYPAL_MODE = "sandbox";
   }
 
   console.log("\n  4. the Stripe session");

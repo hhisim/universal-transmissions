@@ -12,10 +12,19 @@
 
 export type PayPalMode = "sandbox" | "production";
 
+/**
+ * Which PayPal environment to talk to.
+ *
+ * BOTH words for the real environment are accepted, because the deployed value is `live` — PayPal's
+ * own name for it — while the code's own vocabulary is `production`. Reading only one of the two
+ * sent live credentials to the sandbox host, which fails authentication and breaks every PayPal
+ * checkout. Whitespace and case are normalised, and anything unrecognised falls back to the
+ * SANDBOX, so a typo can never point a real charge at the live API.
+ */
 export function paypalMode(): PayPalMode {
-  return String(process.env.PAYPAL_MODE || "").toLowerCase() === "production"
-    ? "production"
-    : "sandbox";
+  const value = String(process.env.PAYPAL_MODE ?? "").trim().toLowerCase();
+  if (value === "production" || value === "live") return "production";
+  return "sandbox";
 }
 
 export function paypalBaseUrl(): string {
