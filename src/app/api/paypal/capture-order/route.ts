@@ -1,32 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
 import { products } from "@/data/products";
-import {
-  requiresShipping,
-  shippingCentsFor,
-  dollars,
-  deliveryZone,
-} from "@/data/shipping";
+import { requiresShipping, shippingCentsFor, dollars, deliveryZone } from "@/data/shipping";
 import { paypalConfigured, paypalFetch } from "@/lib/paypal";
+import { recordPayPalOrder, notifyStudio, type PayPalOrderRecord } from "@/lib/order-recording";
 
 /**
- * CAPTURE a PayPal order — the step that actually takes the money.
+ * CAPTURE a PayPal order — the step that takes the money.
  *
- * This route did not run at all before: nothing called it, it posted to the sandbox host while
- * orders were created on the live host, and it authenticated with an environment variable the
- * project does not define. It is called now, from the return address PayPal sends the buyer back to,
- * and it does the following IN ORDER:
+ * This route did not run at all before Batch 32: nothing called it, it posted to the sandbox host
+ * while orders were created on the live host, and it authenticated with an environment variable the
+ * project does not define. It is called now, from the address PayPal returns the buyer to, and it:
  *
- *   1. read the order back from PayPal — never trust the amount the browser saw;
- *   2. VERIFY the product, the currency, the shipping and the total against the confirmed policy,
- *      using the delivery country PayPal itself reports. A mismatch stops here and no money moves;
- *   3. capture, unless it was already captured, in which case the existing result is returned —
- *      a buyer refreshing the return page, or arriving twice, cannot be charged twice;
- *   4. report success only when PayPal confirms COMPLETED.
- *
- * The verification in step 2 is the reason the country is checked rather than taken on trust: the
- * order was priced from the country the buyer declared on the product page, and this confirms that
- * the address PayPal collected carries the same rate.
+ *   1. reads the order back from PayPal — never trusting the amount the browser saw;
+ *   2. verifies the product, currency, shipping and total against the confirmed policy, using the
+ *      delivery country PayPal itself reports. A mismatch stops here and no money moves;
+ *   3. captures, using a STABLE idempotency key derived from the order, so a retry after a lost
+ *      response can never take a second payment;
+ *   4. confirms ONLY when PayPal's own record shows a completed capture of the right amount —
+ *      an error code is never converted into a success;
+ *   5. records the order into the same `ut_orders` process the Stripe path uses and tells the studio.
  */
+
+/** The one issue code that means "this order already has a capture" — matched exactly. */
+const ALREADY_CAPTURED_ISSUE = "ORDER_ALREADY_CAPTURED";
+
+function issueCodes(body: unknown): string[] {
+  const details = (body as { details?: Array<{ issue?: string }> } | null)?.details ?? [];
+  return details.map((d) => String(d?.issue ?? "")).filter(Boolean);
+}
+
+interface Expected {
+  totalCents: number;
+  currency: string;
+}
+
+/**
+ * Decide, from PAYPAL'S OWN RECORD, whether this order carries a genuine completed capture.
+ *
+ * This is the check that replaces the old behaviour. The previous version treated ANY HTTP 422 as
+ * ORDER_ALREADY_CAPTURED and then reported status COMPLETED without asking PayPal anything — so a
+ * declined instrument (INSTRUMENT_DECLINED) and an unapproved order (ORDER_NOT_APPROVED) both came
+ * back as a confirmed payment. Nothing here is inferred from an error: the capture has to exist, be
+ * COMPLETED, and carry the amount and currency this order was priced at.
+ */
+function verifyCompletedCapture(
+  order: unknown,
+  expected: Expected
+): { ok: true; capture: Record<string, unknown> } | { ok: false; reason: string } {
+  const unit = (order as { purchase_units?: Array<Record<string, unknown>> } | null)?.purchase_units?.[0];
+  const capture = (unit?.payments as { captures?: Array<Record<string, unknown>> } | undefined)?.captures?.[0];
+  if (!capture) return { ok: false, reason: "PayPal records no capture on this order" };
+  const status = String(capture.status ?? "");
+  if (status !== "COMPLETED") {
+    return { ok: false, reason: `PayPal records the capture as ${status || "unknown"}` };
+  }
+  const amount = capture.amount as { value?: string; currency_code?: string } | undefined;
+  const capturedCents = Math.round(Number(amount?.value ?? "0") * 100);
+  if (capturedCents !== expected.totalCents) {
+    return {
+      ok: false,
+      reason: `the capture is ${dollars(capturedCents)} but this order was priced at ${dollars(expected.totalCents)}`,
+    };
+  }
+  if (String(amount?.currency_code ?? "") !== expected.currency) {
+    return {
+      ok: false,
+      reason: `the capture is in ${amount?.currency_code ?? "an unknown currency"}`,
+    };
+  }
+  return { ok: true, capture };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { orderId } = await req.json();
@@ -71,7 +115,6 @@ export async function POST(req: NextRequest) {
 
     const ships = requiresShipping(product.id);
     const country = unit?.shipping?.address?.country_code ?? null;
-
     if (ships && !country) {
       return NextResponse.json(
         { error: "A physical order arrived without a delivery country", code: "NO_DELIVERY_COUNTRY" },
@@ -105,74 +148,125 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /* ── 3. capture, unless it is already captured ──────────────────────────── */
-    // A repeated return, a refresh, or a second tab must not charge anyone twice.
+    const expected: Expected = { totalCents: paidTotal, currency: "USD" };
+
+    /* ── 3. capture, unless a verified capture already exists ───────────────── */
+    let captureId: string | null = null;
+    let alreadyCaptured = false;
+    const existingCaptureId = unit?.payments?.captures?.[0]?.id ?? null;
+
     if (order.status === "COMPLETED") {
-      const existing = order?.purchase_units?.[0]?.payments?.captures?.[0];
-      return NextResponse.json({
-        captured: true,
-        alreadyCaptured: true,
-        orderId,
-        productId: product.id,
-        productTitle: product.title,
-        totalCents: paidTotal,
-        shippingCents: paidShipping,
-        country,
-        captureId: existing?.id ?? null,
-        payerEmail: order?.payer?.email_address ?? null,
+      // Already paid. Confirm it ONLY against PayPal's own record of the capture.
+      const check = verifyCompletedCapture(order, expected);
+      if (!check.ok) {
+        return NextResponse.json(
+          {
+            error: `PayPal reports this order as completed but ${check.reason}. No payment has been confirmed.`,
+            code: "CAPTURE_NOT_CONFIRMED",
+          },
+          { status: 409 }
+        );
+      }
+      alreadyCaptured = true;
+      captureId = String(check.capture.id ?? existingCaptureId ?? "");
+    } else {
+      const captureRes = await paypalFetch(`/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
+        method: "POST",
+        // A STABLE key: every retry of this order reuses it, so a retry after a lost response
+        // returns the original capture instead of taking a second payment.
+        headers: { "PayPal-Request-Id": `capture-${orderId}` },
       });
+      if (!captureRes) {
+        return NextResponse.json({ error: "PayPal authentication failed", code: "AUTH" }, { status: 502 });
+      }
+      const captured = await captureRes.json();
+
+      if (!captureRes.ok) {
+        const issues = issueCodes(captured);
+        if (issues.includes(ALREADY_CAPTURED_ISSUE)) {
+          /* The order already has a capture. That is NOT taken as proof of payment: the order is
+             re-read and the capture itself has to verify. */
+          const reread = await paypalFetch(`/v2/checkout/orders/${encodeURIComponent(orderId)}`);
+          const fresh = reread ? await reread.json() : null;
+          const check = fresh ? verifyCompletedCapture(fresh, expected) : { ok: false as const, reason: "the order could not be re-read" };
+          if (!check.ok) {
+            return NextResponse.json(
+              {
+                error: `PayPal reported this order as already captured, but its record does not confirm a completed payment: ${check.reason}. No payment has been confirmed.`,
+                code: "CAPTURE_NOT_CONFIRMED",
+              },
+              { status: 409 }
+            );
+          }
+          alreadyCaptured = true;
+          captureId = String(check.capture.id ?? "");
+        } else {
+          // An ordinary provider error stays an error. Nothing is reported as paid.
+          return NextResponse.json(
+            {
+              error: captured?.message ?? "PayPal capture failed",
+              code: issues[0] ?? "CAPTURE_FAILED",
+            },
+            { status: 502 }
+          );
+        }
+      } else {
+        const status = String(captured?.status ?? "");
+        if (status !== "COMPLETED") {
+          return NextResponse.json(
+            { error: `PayPal returned status ${status}`, code: "NOT_COMPLETED" },
+            { status: 502 }
+          );
+        }
+        captureId = String(captured?.purchase_units?.[0]?.payments?.captures?.[0]?.id ?? "");
+      }
     }
 
-    const captureRes = await paypalFetch(`/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
-      method: "POST",
-    });
-    if (!captureRes) {
-      return NextResponse.json({ error: "PayPal authentication failed", code: "AUTH" }, { status: 502 });
-    }
-    const captured = await captureRes.json();
+    /* ── 4. the order, recorded into the process the Stripe path already uses ─ */
+    const email = order?.payer?.email_address ?? null;
+    const name =
+      [order?.payer?.name?.given_name, order?.payer?.name?.surname].filter(Boolean).join(" ") || null;
+    const address = unit?.shipping?.address ?? null;
 
-    /* A race — two returns arriving at once — surfaces as an already-captured error. That is a
-       success, not a failure, and is reported as one. */
-    const alreadyCaptured =
-      captureRes.status === 422 ||
-      String(captured?.details?.[0]?.issue ?? "").includes("ORDER_ALREADY_CAPTURED");
-
-    if (!captureRes.ok && !alreadyCaptured) {
-      console.error("PayPal capture failed:", captured);
-      return NextResponse.json(
-        {
-          error: captured?.message ?? "PayPal capture failed",
-          code: captured?.details?.[0]?.issue ?? "CAPTURE_FAILED",
-        },
-        { status: 502 }
-      );
-    }
-
-    /* ── 4. report only what PayPal confirms ───────────────────────────────── */
-    const status = alreadyCaptured ? "COMPLETED" : captured?.status;
-    if (status !== "COMPLETED") {
-      return NextResponse.json(
-        { error: `PayPal returned status ${status}`, code: "NOT_COMPLETED" },
-        { status: 502 }
-      );
-    }
-
-    const capture = captured?.purchase_units?.[0]?.payments?.captures?.[0];
+    const record: PayPalOrderRecord = {
+      orderId,
+      captureId,
+      productId: product.id,
+      productTitle: product.title,
+      amountCents: paidTotal,
+      isDigital: !ships,
+      email,
+      name,
+      address,
+    };
+    const written = await recordPayPalOrder(record);
+    /* The studio is told ONCE per order — on the call that created the row, or on any call whose
+       write failed (money has been taken either way). A refresh or a concurrent return does not send
+       a second alert; it reports that the first confirmation carried it. */
+    const shouldNotify = !written.recorded || !written.alreadyRecorded;
+    const notified = shouldNotify
+      ? await notifyStudio(record, { recorded: written.recorded, detail: written.detail })
+      : { notified: true, detail: "sent with the first confirmation" };
 
     return NextResponse.json({
       captured: true,
       alreadyCaptured,
       orderId,
-      captureId: capture?.id ?? null,
-      status,
+      captureId,
+      status: "COMPLETED",
       productId: product.id,
       productTitle: product.title,
       totalCents: paidTotal,
       shippingCents: paidShipping,
       currency,
       country,
-      payerEmail: captured?.payer?.email_address ?? order?.payer?.email_address ?? null,
-      deliveryAddress: unit?.shipping?.address ?? null,
+      payerEmail: email,
+      deliveryAddress: address,
+      orderRecorded: written.recorded,
+      orderAlreadyRecorded: written.alreadyRecorded,
+      recordingDetail: written.detail ?? null,
+      studioNotified: notified.notified,
+      notifyDetail: notified.detail ?? null,
     });
   } catch (err) {
     console.error("PayPal capture error:", err);

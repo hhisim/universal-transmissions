@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProduct, products } from "@/data/products";
 import { requiresShipping, shippingCentsFor, shippingLabelFor, deliveryZone } from "@/data/shipping";
+import { unsupportedDestinationMessage } from "@/data/destinations";
 import { getPayPalAccessToken, paypalBaseUrl, paypalConfigured, siteBaseUrl } from "@/lib/paypal";
 
 /**
@@ -26,6 +27,22 @@ export async function POST(req: NextRequest) {
     const product = products.find((p) => p.id === productId) ?? getProduct(productId);
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // PayPal collects the delivery address itself, so no allowlist is sent — but a destination
+    // PayPal does not serve must be refused before the buyer is handed to PayPal, and the refusal
+    // says plainly when paying by card would work instead.
+    if (requiresShipping(product.id)) {
+      if (!country) {
+        return NextResponse.json(
+          { error: "Choose a delivery country before purchasing.", code: "NO_DESTINATION" },
+          { status: 400 }
+        );
+      }
+      const refusal = unsupportedDestinationMessage(product.id, "paypal", country);
+      if (refusal) {
+        return NextResponse.json({ error: refusal, code: "UNSUPPORTED_DESTINATION" }, { status: 400 });
+      }
     }
 
     if (!paypalConfigured()) {

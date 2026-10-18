@@ -15,7 +15,12 @@ import PageBackground from "@/components/scenes/PageBackground";
  * arrives the page says nothing about payment.
  *
  * Refreshing, or arriving twice, is safe: the capture route returns the existing result for an
- * order that is already captured rather than capturing it again.
+ * order that is already captured rather than capturing it again, and the capture carries a stable
+ * idempotency key so a retry after a lost response cannot take a second payment.
+ *
+ * The page claims only what actually ran. There is no buyer receipt email anywhere in this project
+ * — the Stripe path records the order and alerts the studio by Telegram, and PayPal's own
+ * confirmation email is PayPal's to send, not ours — so no receipt is promised here.
  */
 
 type Result = {
@@ -29,6 +34,11 @@ type Result = {
   currency?: string;
   country?: string | null;
   payerEmail?: string | null;
+  orderRecorded?: boolean;
+  orderAlreadyRecorded?: boolean;
+  recordingDetail?: string | null;
+  studioNotified?: boolean;
+  notifyDetail?: string | null;
   error?: string;
   code?: string;
 };
@@ -98,8 +108,25 @@ export default function PayPalReturnPage() {
                     <ZalgoText text="Thank You" intensity="subtle" />
                   </h1>
                   <p className="font-body text-base mb-8" style={{ color: "var(--ut-white-dim)" }}>
-                    PayPal confirmed the payment. A receipt has been sent to your email.
+                    {result?.orderRecorded
+                      ? "PayPal confirmed the payment and your order is recorded."
+                      : "PayPal confirmed the payment, but the order could not be written to the studio's records."}{" "}
+                    {result?.orderRecorded && result?.studioNotified
+                      ? "The studio has been notified."
+                      : ""}
                   </p>
+                  {!result?.orderRecorded && (
+                    <p className="font-mono text-[11px] mb-6" style={{ color: "#f87171" }}>
+                      Please contact the studio with your PayPal order id
+                      {result?.recordingDetail ? ` — reference: ${result.recordingDetail}` : ""}.
+                    </p>
+                  )}
+                  {result?.orderRecorded && result?.studioNotified === false && (
+                    <p className="font-mono text-[11px] mb-6" style={{ color: "#fbbf24" }}>
+                      The studio alert could not be sent{result?.notifyDetail ? ` (${result.notifyDetail})` : ""} — the
+                      order is recorded, so nothing is lost.
+                    </p>
+                  )}
                   <div className="ut-card-gold p-5 text-left font-mono text-[11px] space-y-2" style={{ color: "var(--ut-white-dim)" }}>
                     {result?.productTitle && <p>Item · {result.productTitle}</p>}
                     {typeof result?.shippingCents === "number" && result.shippingCents > 0 && (
@@ -109,6 +136,7 @@ export default function PayPalReturnPage() {
                     {result?.captureId && <p>PayPal capture · {result.captureId}</p>}
                     {result?.orderId && <p>PayPal order · {result.orderId}</p>}
                     {result?.alreadyCaptured && <p>This order was already confirmed — you have not been charged twice.</p>}
+                    <p>Order recorded · {result?.orderRecorded ? "yes" : "not written"}</p>
                   </div>
                 </>
               )}

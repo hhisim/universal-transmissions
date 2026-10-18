@@ -5,20 +5,38 @@ import {
   shippingCentsFor,
   shippingLabelFor,
   deliveryWindow,
-  allowedCountriesForProduct,
 } from "@/data/shipping";
+import { allowedDeliveryFor, unsupportedDestinationMessage } from "@/data/destinations";
 import { supabaseAdmin } from "@/lib/supabase";
 
 const DIGITAL_PRODUCTS = ["codex-digital", "chakra-4k", "chakra-8k"];
 
 export async function POST(req: NextRequest) {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
-
   try {
     const { productId, country } = await req.json();
     const product = products.find((p) => p.id === productId);
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+
+    // A destination the provider cannot serve is refused HERE, before any checkout exists, rather
+    // than becoming an address the provider rejects after the buyer has filled everything in.
+    if (requiresShipping(productId)) {
+      if (!country) {
+        return NextResponse.json(
+          { error: "Choose a delivery country before purchasing.", code: "NO_DESTINATION" },
+          { status: 400 }
+        );
+      }
+      const refusal = unsupportedDestinationMessage(productId, "stripe", country);
+      if (refusal) {
+        return NextResponse.json({ error: refusal, code: "UNSUPPORTED_DESTINATION" }, { status: 400 });
+      }
+    }
+
+    // Credentials come AFTER the destination is validated: a destination the provider cannot serve
+    // is the buyer's problem to fix and deserves a 400 that says so, not a server-configuration
+    // error that hides it.
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
 
     const isDigital = DIGITAL_PRODUCTS.includes(productId);
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.universal-transmissions.com";
@@ -56,7 +74,7 @@ export async function POST(req: NextRequest) {
       // Restrict delivery to the countries carrying this rate. Nothing here is buyer-selectable:
       // there is one rate, and the address must fall inside it. A product charged the same
       // everywhere (the cube) is not restricted at all, because no address could disagree with it.
-      allowedCountriesForProduct(productId, country).forEach((cc, i) => {
+      allowedDeliveryFor(productId, "stripe", country).forEach((cc, i) => {
         params.append(`shipping_address_collection[allowed_countries][${i}]`, cc);
       });
     }

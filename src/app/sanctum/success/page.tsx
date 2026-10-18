@@ -11,7 +11,7 @@ export default function SuccessPage() {
             Transmission Received
           </h1>
           <p className="font-body text-lg mb-4" style={{ color: "var(--ut-white-dim)" }}>
-            Your order has been confirmed. A receipt has been sent to your email.
+            Your order has been confirmed and recorded.
           </p>
           <p className="font-body mb-8" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
             Physical items will be shipped within 3 business days.

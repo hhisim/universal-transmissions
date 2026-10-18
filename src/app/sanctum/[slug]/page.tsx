@@ -12,11 +12,14 @@ import {
   shippingNote,
   requiresShipping,
   shippingCentsFor,
-  deliveryZone,
   dollars,
-  SHIPPABLE_ISO,
   SHIPPING_RATES,
 } from "@/data/shipping";
+import {
+  destinationsByZone,
+  unsupportedDestinationMessage,
+  providerName,
+} from "@/data/destinations";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
 import PageBackground from "@/components/scenes/PageBackground";
 
@@ -39,6 +42,8 @@ export default function ProductDetailPage({ params }: Props) {
      guessed at, and the total shown is the total that will be charged. */
   const [country, setCountry] = useState("");
   const [countryError, setCountryError] = useState(false);
+  /* Set when switching payment method invalidates the country already chosen. */
+  const [providerNotice, setProviderNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -54,8 +59,27 @@ export default function ProductDetailPage({ params }: Props) {
   const rate = SHIPPING_RATES[p.id];
   const shipCents = ships ? shippingCentsFor(p.id, country) : 0;
   const totalCents = Math.round(p.price * 100) + shipCents;
-  const worldwideCodes = SHIPPABLE_ISO.filter((c) => deliveryZone(c) === "WORLDWIDE");
-  const auAsiaCodes = SHIPPABLE_ISO.filter((c) => deliveryZone(c) === "AUSTRALIA_AND_ASIA");
+
+  /* The destinations offered belong to the PROVIDER, not to the pricing policy: PayPal does not
+     serve every country Stripe does, so the list follows the payment method the buyer selected. */
+  const provider = paymentMethod;
+  const destinationGroups = destinationsByZone(p.id, provider);
+  const destinationProblem = ships ? unsupportedDestinationMessage(p.id, provider, country) : null;
+
+  /* Switching provider can invalidate the country already chosen. Clearing it is the only coherent
+     option — the country would no longer be in the list — so the reason is stated as it clears. */
+  function chooseProvider(next: "stripe" | "paypal") {
+    setPaymentMethod(next);
+    if (ships && country) {
+      const problem = unsupportedDestinationMessage(p.id, next, country);
+      if (problem) {
+        setCountry("");
+        setProviderNotice(problem);
+        return;
+      }
+    }
+    setProviderNotice(null);
+  }
   const regionNames =
     typeof Intl !== "undefined" && "DisplayNames" in Intl
       ? new Intl.DisplayNames(["en"], { type: "region" })
@@ -79,6 +103,12 @@ export default function ProductDetailPage({ params }: Props) {
   async function handleCheckout() {
     if (ships && !country) {
       setCountryError(true);
+      return;
+    }
+    // Defence in depth: the server refuses an unsupported destination too, but the buyer should
+    // never be sent there in the first place.
+    if (destinationProblem) {
+      setProviderNotice(destinationProblem);
       return;
     }
     setLoading(true);
@@ -306,7 +336,7 @@ export default function ProductDetailPage({ params }: Props) {
                         >
                           <option value="">Choose a delivery country…</option>
                           <optgroup label={`Rest of world — ${dollars(rate.worldwideCents)} shipping`}>
-                            {worldwideCodes.map((c) => (
+                            {destinationGroups.worldwide.map((c) => (
                               <option key={c} value={c}>
                                 {countryName(c)}
                               </option>
@@ -319,7 +349,7 @@ export default function ProductDetailPage({ params }: Props) {
                             <optgroup
                               label={`Australia & Asia — ${dollars(rate.australiaAndAsiaCents)} shipping`}
                             >
-                              {auAsiaCodes.map((c) => (
+                              {destinationGroups.australiaAndAsia.map((c) => (
                                 <option key={c} value={c}>
                                   {countryName(c)}
                                 </option>
@@ -343,6 +373,16 @@ export default function ProductDetailPage({ params }: Props) {
                             Choose a delivery country before purchasing.
                           </p>
                         )}
+
+                        {providerNotice && (
+                          <p role="alert" className="mt-2 font-mono text-[11px]" style={{ color: "#f87171" }}>
+                            {providerNotice}
+                          </p>
+                        )}
+
+                        <p className="mt-2 font-mono text-[10px]" style={{ color: "var(--ut-white-faint)" }}>
+                          {providerName(provider)} delivers to {destinationGroups.worldwide.length + destinationGroups.australiaAndAsia.length} destinations.
+                        </p>
                       </div>
                     )}
                   </div>
@@ -355,13 +395,13 @@ export default function ProductDetailPage({ params }: Props) {
                   </p>
                   <div className="flex gap-4">
                     <button
-                      onClick={() => setPaymentMethod("stripe")}
+                      onClick={() => chooseProvider("stripe")}
                       className={`font-mono text-xs tracking-widest uppercase px-4 py-2 border transition-all ${paymentMethod === "stripe" ? "border-[var(--ut-cyan)] text-[var(--ut-cyan)]" : "border-white/20 text-white/40"}`}
                     >
                       💳 Stripe
                     </button>
                     <button
-                      onClick={() => setPaymentMethod("paypal")}
+                      onClick={() => chooseProvider("paypal")}
                       className={`font-mono text-xs tracking-widest uppercase px-4 py-2 border transition-all ${paymentMethod === "paypal" ? "border-[var(--ut-gold)] text-[var(--ut-gold)]" : "border-white/20 text-white/40"}`}
                     >
                       ᵖᵃʸ PayPal
