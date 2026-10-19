@@ -219,7 +219,32 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      /* What the buyer actually paid, according to the provider.
+       *
+       * `amount_total` is the Checkout total Stripe charged (product + shipping + any tax), and
+       * `currency` is what it charged in. Neither may be re-derived here: the product price does not
+       * include shipping, and recomputing a rate would record a guess rather than a fact. If the
+       * event does not carry a trustworthy total, no PAID record is written at all — the row stays
+       * pending and the event is answered as failed so Stripe retries it.
+       */
+      const paidAmountTotal = session.amount_total;
+      const paidCurrency = session.currency;
+      const paidTotalsValid =
+        typeof paidAmountTotal === "number" &&
+        Number.isInteger(paidAmountTotal) &&
+        paidAmountTotal > 0 &&
+        typeof paidCurrency === "string" &&
+        /^[a-z]{3}$/.test(paidCurrency);
+
       let orderNote = "";
+      if (!paidTotalsValid) {
+        orderNote = "❌ Paid event without a verifiable total — NO paid record written";
+        console.error(
+          `Refusing to mark session ${session.id} paid: amount_total=${String(paidAmountTotal)} currency=${String(paidCurrency)}`
+        );
+      } else {
+        const verifiedCents = paidAmountTotal as number;
+        const verifiedCurrency = paidCurrency as string;
       try {
         // A zero-row .update().eq() returns no error, so a foreign sale used to be
         // stamped "Order updated in UT DB" although no row existed. select() returns
@@ -228,6 +253,10 @@ export async function POST(req: NextRequest) {
           .from("ut_orders")
           .update({
             status: isDigital ? "fulfilled" : "paid",
+            /* The provider's verified total and currency — NOT the product price this row was
+               created with, which excludes shipping. Overwrites the provisional pending amount. */
+            amount_cents: verifiedCents,
+            currency: verifiedCurrency,
             stripe_payment_intent_id: session.payment_intent as string,
             customer_email: session.customer_email || session.customer_details?.email || "",
             customer_name: session.customer_details?.name || null,
@@ -260,16 +289,30 @@ export async function POST(req: NextRequest) {
         console.error("Supabase update failed:", err);
         orderNote = "❌ UT DB update failed";
       }
+      }
 
       // ── Telegram notification ────────────────────────────────────────────
       await sendTelegram(
-        `<b>🛒 NEW SALE — ${formatCurrency(session.amount_total, session.currency ?? "usd")}</b>\n` +
+        `<b>🛒 NEW SALE — ${
+          paidTotalsValid
+            ? formatCurrency(paidAmountTotal as number, paidCurrency as string)
+            : "amount unverified"
+        }</b>\n` +
         `Customer: ${customerName}\n` +
         `Email: ${customerEmail}\n` +
         `Product: ${productName}\n` +
         `Time: ${ts}\n` +
         `${orderNote}`
       );
+
+      if (!paidTotalsValid) {
+        /* Not a 2xx: Stripe retries failed deliveries, and the row is still `pending`, so a retry
+           can record the correct total instead of cementing a wrong paid amount. */
+        return NextResponse.json(
+          { received: true, error: "unverifiable_paid_total", session: session.id },
+          { status: 422 }
+        );
+      }
       break;
     }
 
