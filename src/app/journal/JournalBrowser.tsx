@@ -84,10 +84,14 @@ export default function JournalBrowser() {
     if (!hash.startsWith("#j-")) return;
     const target = document.getElementById(hash.slice(1));
     if (!target) return;
-    let top = returnScrollTarget(target.getBoundingClientRect().top + window.scrollY);
+    const anchor = returnScrollTarget(target.getBoundingClientRect().top + window.scrollY);
+    let top = anchor;
     try {
       const saved = readSavedPosition(sessionStorage.getItem(POSITIONS_KEY), paramsKey, hash.slice(3));
-      if (saved) top = saved.y;
+      /* A saved position is only useful when it is actually near the record: a reader who opened the
+         card from the top of the page saved y=0, and honouring that would return them to the top with
+         the card they left from still off screen. Outside that window the card's own anchor wins. */
+      if (saved && Math.abs(saved.y - anchor) <= 600) top = saved.y;
     } catch {
       /* storage is a convenience, never a requirement */
     }
