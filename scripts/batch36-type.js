@@ -116,6 +116,11 @@ console.log("\n  5. the component contract (smoke)");
   ok(/aria-hidden="true"/.test(src), "the decorative layer is hidden from assistive technology");
   ok(/data-glyph-burst/.test(src), "the burst state is observable for verification");
   ok(/\{text\}/.test(src), "the plain words are always rendered");
+  /* Regression: the pilot headings are gradient-clipped, which makes their text transparent.
+     An absolutely positioned decoration inherits that transparency and paints nothing — the title
+     then vanishes mid-burst. The decoration must set its own fill. */
+  ok(/WebkitTextFillColor/.test(src), "the decoration sets an explicit text fill so it cannot inherit transparency");
+  ok(!/opacity: active \? 0 : 1/.test(src), "the readable text is never hidden during the burst");
   ok(/mode\?: "static" \| "burst"/.test(src), "burst is opt-in; static stays the default");
 
   const pages = ["src/app/page.tsx", "src/app/journal/page.tsx", "src/app/codex/page.tsx"];

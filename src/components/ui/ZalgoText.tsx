@@ -104,14 +104,27 @@ export default function ZalgoText({
         data-glyph-burst={active ? "active" : "settled"}
         style={{ position: "relative", display: "inline-block" }}
       >
-        {/* The words. Always present, always the accessible name, never replaced. */}
-        <span style={{ opacity: active ? 0 : 1 }}>{text}</span>
-        {/* Decoration only. Absolutely positioned, so it cannot move anything, and silent. */}
+        {/* The words. Always present, always visible, always the accessible name. The burst decorates
+            them; it never replaces them, so the title is readable even mid-transformation. */}
+        <span>{text}</span>
+        {/* Decoration only: absolutely positioned, so it cannot move anything, and silent.
+            -webkit-text-fill-color is set explicitly because the headings using this component are
+            gradient-clipped (`ut-gradient-text` paints its own text transparent and fills it from a
+            background on the h1). An absolutely positioned layer is outside that background's text
+            flow, so without an explicit fill it inherits transparency and paints nothing. */}
         {active && (
           <span
             aria-hidden="true"
             data-glyph-decoration="true"
-            style={{ position: "absolute", left: 0, top: 0, right: 0, pointerEvents: "none" }}
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              right: 0,
+              pointerEvents: "none",
+              color: "inherit",
+              WebkitTextFillColor: "currentColor",
+            }}
           >
             {corrupt(text, phase)}
           </span>
