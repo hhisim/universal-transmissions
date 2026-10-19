@@ -173,14 +173,15 @@ export function ImageThumb({ src, alt }: ImageThumbProps) {
   );
 }
 
-/* ── Internal overlay with gallery navigation ── */
-function LightboxOverlay({
+/* ── The overlay itself, exported so other surfaces can drive the same viewer ── */
+export function LightboxOverlay({
   images,
   currentIndex,
   onClose,
   onNavigate,
   title,
   positionOf,
+  maxZoom = 4,
 }: {
   images: string[];
   currentIndex: number;
@@ -189,6 +190,11 @@ function LightboxOverlay({
   title: string;
   /** Canonical 1-based registry position for the entry at an index. */
   positionOf: (index: number) => number;
+  /**
+   * How far this collection can honestly be enlarged. Defaults to the gallery's 4x; a 640px source
+   * passes a lower ceiling so the viewer never magnifies past the pixels it actually has.
+   */
+  maxZoom?: number;
 }) {
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < images.length - 1;
@@ -288,12 +294,12 @@ function LightboxOverlay({
       }
       if (e.key === "+" || e.key === "=") {
         e.preventDefault();
-        setZoom((z) => clamp(z * 1.5, 1, 4));
+        setZoom((z) => clamp(z * 1.5, 1, maxZoom));
         return;
       }
       if (e.key === "-") {
         e.preventDefault();
-        setZoom((z) => clamp(z / 1.5, 1, 4));
+        setZoom((z) => clamp(z / 1.5, 1, maxZoom));
         return;
       }
       if (e.key === "0") {
@@ -380,8 +386,8 @@ function LightboxOverlay({
     if (dragState.current) dragState.current.active = false;
   };
 
-  const zoomIn = () => setZoom((z) => clamp(z * 1.5, 1, 4));
-  const zoomOut = () => setZoom((z) => clamp(z / 1.5, 1, 4));
+  const zoomIn = () => setZoom((z) => clamp(z * 1.5, 1, maxZoom));
+  const zoomOut = () => setZoom((z) => clamp(z / 1.5, 1, maxZoom));
   /**
    * Restores the fitted view. Clears the drag state as well: leaving a stale
    * pan offset behind means the next drag resumes from the old origin and the

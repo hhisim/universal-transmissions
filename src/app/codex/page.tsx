@@ -6,6 +6,8 @@ import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import RotatingMerkaba from "@/components/three/RotatingMerkaba";
+import WebGLBoundary from "@/components/three/WebGLBoundary";
+import CodexSpreads from "@/components/codex/CodexSpreads";
 import CodexVideoCard from "@/components/codex/CodexVideoCard";
 import { getProduct } from "@/data/products";
 
@@ -171,7 +173,11 @@ export default function CodexPage() {
         <section className="codex-hero relative min-h-[85vh] overflow-hidden">
           {/* 3D Merkaba background */}
           <div className="absolute inset-0 opacity-30">
-            <RotatingMerkaba />
+            {/* Decorative only: if WebGL is unavailable or the canvas throws, this surface falls back
+                to a static atmosphere and the book keeps working. */}
+            <WebGLBoundary>
+              <RotatingMerkaba />
+            </WebGLBoundary>
           </div>
 
           <div className="codex-hero-pad container-ut relative z-10 py-32">
@@ -351,28 +357,7 @@ export default function CodexPage() {
               </div>
             </SectionReveal>
             <SectionReveal delay={0.2}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  "/codex/book/spread-06.jpg",
-                  "/codex/book/spread-02.jpg",
-                  "/codex/book/spread-03.jpg",
-                  "/codex/book/spread-146.jpg",
-                ].map((src, i) => (
-                  <div
-                    key={i}
-                    className="relative aspect-[3/4] overflow-hidden border"
-                    style={{ borderColor: "rgba(201,162,39,0.2)" }}
-                  >
-                    <Image
-                      src={src}
-                      alt={`Codex spread ${i + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                    />
-                  </div>
-                ))}
-              </div>
+              <CodexSpreads />
             </SectionReveal>
           </div>
         </section>

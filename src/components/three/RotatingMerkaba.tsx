@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import * as THREE from "three";
@@ -37,15 +37,17 @@ function StarTetrahedron() {
   // Scroll speed tracking — use a ref so we don't trigger re-renders
   const scrollSpeedRef = useRef(1);
 
-  // Attach scroll listener on mount
-  if (typeof window !== "undefined") {
+  /* The listener belongs to the mount, not to the render: attaching it in the component body
+     added a new scroll listener on every render and never removed one. */
+  useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       // Base speed 1, increases up to 5x at 2000px scroll
       scrollSpeedRef.current = 1 + Math.min(scrollY / 400, 4);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-  }
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
