@@ -3,9 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
 import SectionReveal from "@/components/ui/SectionReveal";
-import ZalgoText from "@/components/ui/ZalgoText";
 import LikeButton from "@/components/ui/LikeButton";
 import CommentSection from "@/components/ui/CommentSection";
 import { blogPosts, type BlogPost } from "@/data/blog-posts";
@@ -18,8 +16,9 @@ import {
   filterJournal,
   heroImageFor,
   journalHref,
-  pageSlice,
   parseJournalState,
+  pageSlice,
+  plainTitle,
   postsWithImagery,
   type JournalState,
 } from "@/lib/journal-browse";
@@ -28,57 +27,75 @@ import { readSavedPosition, returnScrollTarget, withSavedPosition } from "@/lib/
 
 const POSITIONS_KEY = "ut-journal-positions";
 
-const EMPTY_MESSAGE =
-  "No records answer that yet. Clear a filter, or search a word from a title you remember.";
+/**
+ * The collection. Server-rendered from the address it was requested with, so the response already
+ * contains the search field, the filters and the article links; after hydration the same state is
+ * applied without a round trip. Every control is a real link or a GET form, so the page still works
+ * when the script does not.
+ */
+export default function JournalBrowser({
+  initialState,
+  totalRecords,
+}: {
+  initialState: JournalState;
+  totalRecords: number;
+}) {
+  const [state, setState] = useState<JournalState>(initialState);
+  const [queryInput, setQueryInput] = useState(initialState.q);
+  const [showAllTags, setShowAllTags] = useState(false);
 
-export default function JournalBrowser() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const paramsKey = params?.toString() ?? "";
-  /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  const state = useMemo(() => parseJournalState(params), [paramsKey]);
+  /* The address follows the view without asking the server for it again. */
+  const apply = useCallback((next: JournalState, mode: "push" | "replace" = "push") => {
+    setState(next);
+    const href = journalHref(next);
+    try {
+      if (mode === "push") window.history.pushState({ journal: true }, "", href);
+      else window.history.replaceState({ journal: true }, "", href);
+    } catch {
+      /* if the address cannot be updated the view still changes */
+    }
+  }, []);
 
-  const [queryInput, setQueryInput] = useState(state.q);
   useEffect(() => {
-    setQueryInput(state.q);
-  }, [state.q]);
+    const onPop = () => {
+      const parsed = parseFromLocation();
+      setState(parsed);
+      setQueryInput(parsed.q);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
-  const go = useCallback(
-    (next: Partial<JournalState>, mode: "push" | "replace" = "push") => {
-      const merged: JournalState = { ...state, ...next };
-      const href = journalHref(merged);
-      if (mode === "replace") router.replace(href, { scroll: false });
-      else router.push(href, { scroll: false });
-    },
-    [router, state]
-  );
-
-  /* Typing replaces rather than pushes: a search box should not fill the Back stack with
-     one entry per keystroke. Discrete filters and pages do push, so Back walks the visits. */
+  /* Typing replaces rather than pushes: one history entry per keystroke is noise. Discrete filters
+     push, so Back walks the views the visitor actually chose. */
   useEffect(() => {
     const trimmed = queryInput.trim();
     if (trimmed === state.q) return;
-    const timer = setTimeout(() => go({ q: trimmed, page: 1 }, "replace"), 300);
+    const timer = setTimeout(() => apply({ ...state, q: trimmed, page: 1 }, "replace"), 300);
     return () => clearTimeout(timer);
-  }, [queryInput, state.q, go]);
+  }, [queryInput, state, apply]);
 
   const results = useMemo(() => filterJournal(blogPosts, state), [state]);
   const { items, page, pageCount } = pageSlice(results, state.page);
   const years = useMemo(() => deriveYears(), []);
   const categories = useMemo(() => deriveCategories(), []);
   const facets = useMemo(() => deriveTagFacets(), []);
-  const [showAllTags, setShowAllTags] = useState(false);
 
-  const filtered = Boolean(state.q || state.year || state.tag || state.category !== "all");
-  const isEntrance = !filtered && page === 1;
+  /* The selected facet is always on screen: a direct alias address resolves to the canonical facet,
+     and that facet must be visible even when it is not among the first eighteen. */
   const visibleTags = useMemo(() => {
     const head = facets.slice(0, TAGS_SHOWN_INITIALLY);
     if (!state.tag || head.some((f) => f.tag === state.tag)) return head;
     const active = facets.find((f) => f.tag === state.tag);
     return active ? [active, ...head] : head;
-  }, [facets, state.tag, showAllTags]);
+  }, [facets, state.tag]);
 
-  /* A return lands on the record it left from, in the collection it left from. */
+  const filtered = Boolean(state.q || state.year || state.tag || state.category !== "all");
+  const isEntrance = !filtered && page === 1;
+  const featured = useMemo(() => postsWithImagery(blogPosts, JOURNAL_HERO_IMAGES).slice(0, 4), []);
+
+  const returnAddressFor = (slug: string) => `${journalHref(state)}#j-${slug}`;
+
   useEffect(() => {
     const hash = window.location.hash;
     if (!hash.startsWith("#j-")) return;
@@ -87,66 +104,54 @@ export default function JournalBrowser() {
     const anchor = returnScrollTarget(target.getBoundingClientRect().top + window.scrollY);
     let top = anchor;
     try {
-      const saved = readSavedPosition(sessionStorage.getItem(POSITIONS_KEY), paramsKey, hash.slice(3));
-      /* A saved position is only useful when it is actually near the record: a reader who opened the
-         card from the top of the page saved y=0, and honouring that would return them to the top with
-         the card they left from still off screen. Outside that window the card's own anchor wins. */
+      const saved = readSavedPosition(sessionStorage.getItem(POSITIONS_KEY), journalHref(state), hash.slice(3));
       if (saved && Math.abs(saved.y - anchor) <= 600) top = saved.y;
     } catch {
       /* storage is a convenience, never a requirement */
     }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top, behavior: reduced ? "auto" : "smooth" });
-    /* Runs once per arrival; the hash is the arrival's own instruction. */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [state]);
 
   const rememberPlace = (slug: string) => {
     try {
-      const raw = sessionStorage.getItem(POSITIONS_KEY);
       sessionStorage.setItem(
         POSITIONS_KEY,
-        withSavedPosition(raw, paramsKey, { y: Math.round(window.scrollY), work: slug })
+        withSavedPosition(sessionStorage.getItem(POSITIONS_KEY), journalHref(state), {
+          y: Math.round(window.scrollY),
+          work: slug,
+        })
       );
     } catch {
       /* ignore */
     }
   };
 
-  /* The address an article offers back to this exact view, anchored on the record it was opened from. */
-  const returnAddressFor = (slug: string) => `${journalHref(state)}#j-${slug}`;
-
-  const featured = useMemo(() => postsWithImagery(blogPosts, JOURNAL_HERO_IMAGES).slice(0, 4), []);
-
   return (
     <>
-      {/* Search — the first thing a returning visitor reaches for */}
+      {/* Search first: it is the control a returning visitor reaches for. */}
       <SectionReveal delay={0.05}>
-        <form
-          role="search"
-          onSubmit={(event) => {
-            event.preventDefault();
-            go({ q: queryInput.trim(), page: 1 });
-          }}
-          className="mb-6"
-        >
+        <form role="search" method="get" action="/journal" className="mb-6" onSubmit={(event) => {
+          event.preventDefault();
+          apply({ ...state, q: queryInput.trim(), page: 1 }, "push");
+        }}>
+          {state.category !== "all" && <input type="hidden" name="category" value={state.category} />}
+          {state.year && <input type="hidden" name="year" value={state.year} />}
+          {state.tag && <input type="hidden" name="tag" value={state.tag} />}
           <label htmlFor="journal-search" className="sr-only">
             Search the Journal by title, excerpt or tag
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               id="journal-search"
+              name="q"
               type="search"
               value={queryInput}
               onChange={(event) => setQueryInput(event.target.value)}
               placeholder="Search titles, excerpts and tags…"
               autoComplete="off"
               className="flex-1 bg-transparent border px-4 py-3 font-body text-base outline-none focus-visible:ring-2"
-              style={{
-                borderColor: "rgba(0,229,255,0.25)",
-                color: "var(--ut-white)",
-                caretColor: "var(--ut-cyan)",
-              }}
+              style={{ borderColor: "rgba(0,229,255,0.25)", color: "var(--ut-white)", caretColor: "var(--ut-cyan)" }}
             />
             <button
               type="submit"
@@ -156,130 +161,106 @@ export default function JournalBrowser() {
               Search
             </button>
             {filtered && (
-              <button
-                type="button"
-                onClick={() => {
+              <Link
+                href="/journal"
+                onClick={(event) => {
+                  event.preventDefault();
                   setQueryInput("");
-                  router.push("/journal", { scroll: false });
+                  apply({ q: "", year: null, tag: null, category: "all", page: 1 }, "push");
                 }}
-                className="font-mono text-[10px] tracking-[0.25em] uppercase px-5 py-3 border transition-colors focus-visible:ring-2"
+                className="font-mono text-[10px] tracking-[0.25em] uppercase px-5 py-3 border transition-colors focus-visible:ring-2 text-center"
                 style={{ borderColor: "rgba(217,70,239,0.3)", color: "var(--ut-magenta)" }}
               >
                 Clear
-              </button>
+              </Link>
             )}
           </div>
         </form>
       </SectionReveal>
 
-      {/* Entrance — only when the visitor is looking at the whole archive */}
+      {/* Entrance — the whole archive only */}
       {isEntrance && featured.length > 0 && (
-        <SectionReveal>
-          <div className="mb-14 grid grid-cols-1 lg:grid-cols-5 gap-5">
-            <EntranceCard post={featured[0]} className="lg:col-span-3" returnAddress={returnAddressFor(featured[0].slug)} onOpen={rememberPlace} tall />
+        <SectionReveal delay={0.06}>
+          <div className="mb-12 grid grid-cols-1 lg:grid-cols-5 gap-5">
+            <FeaturedCard post={featured[0]} returnAddress={returnAddressFor(featured[0].slug)} onOpen={rememberPlace} />
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
               {featured.slice(1, 4).map((post) => (
-                <EntranceCard key={post.slug} post={post} returnAddress={returnAddressFor(post.slug)} onOpen={rememberPlace} />
+                <TileCard key={post.slug} post={post} returnAddress={returnAddressFor(post.slug)} onOpen={rememberPlace} />
               ))}
             </div>
           </div>
         </SectionReveal>
       )}
 
-      {/* Category + year, both derived from the records */}
+      {/* Collections */}
       <SectionReveal delay={0.08}>
         <div className="flex flex-wrap gap-2 justify-center mb-4" role="group" aria-label="Filter by collection">
           {categories.map(({ key, label, count }) => (
-            <button
+            <FilterLink
               key={key}
-              type="button"
-              aria-pressed={state.category === key}
-              onClick={() => go({ category: key, page: 1 })}
-              className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-colors focus-visible:ring-2"
-              style={{
-                borderColor: state.category === key ? "var(--ut-cyan)" : "rgba(0,229,255,0.2)",
-                color: state.category === key ? "var(--ut-cyan)" : "rgba(0,229,255,0.5)",
-                background: state.category === key ? "rgba(0,229,255,0.08)" : "transparent",
-              }}
-            >
-              {label} <span style={{ opacity: 0.55 }}>{count}</span>
-            </button>
+              href={journalHref({ ...state, category: key, page: 1 })}
+              active={state.category === key}
+              onClick={() => apply({ ...state, category: key, page: 1 })}
+              label={`${label} ${count}`}
+            />
           ))}
         </div>
       </SectionReveal>
 
+      {/* Years, derived */}
       <SectionReveal delay={0.1}>
         <div className="flex flex-wrap gap-2 justify-center mb-5" role="group" aria-label="Filter by year">
-          <button
-            type="button"
-            aria-pressed={!state.year}
-            onClick={() => go({ year: null, page: 1 })}
-            className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-colors focus-visible:ring-2"
-            style={{
-              borderColor: !state.year ? "var(--ut-magenta)" : "rgba(217,70,239,0.15)",
-              color: !state.year ? "var(--ut-magenta)" : "var(--ut-white-dim)",
-              background: !state.year ? "rgba(217,70,239,0.06)" : "transparent",
-            }}
-          >
-            All years
-          </button>
+          <FilterLink
+            href={journalHref({ ...state, year: null, page: 1 })}
+            active={!state.year}
+            onClick={() => apply({ ...state, year: null, page: 1 })}
+            label="All years"
+            tone="magenta"
+            small
+          />
           {years.map(({ year, count }) => (
-            <button
+            <FilterLink
               key={year}
-              type="button"
-              aria-pressed={state.year === year}
-              onClick={() => go({ year: state.year === year ? null : year, page: 1 })}
-              className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-colors focus-visible:ring-2"
-              style={{
-                borderColor: state.year === year ? "var(--ut-magenta)" : "rgba(217,70,239,0.15)",
-                color: state.year === year ? "var(--ut-magenta)" : "var(--ut-white-dim)",
-                background: state.year === year ? "rgba(217,70,239,0.06)" : "transparent",
-              }}
-            >
-              {year} <span style={{ opacity: 0.55 }}>{count}</span>
-            </button>
+              href={journalHref({ ...state, year, page: 1 })}
+              active={state.year === year}
+              onClick={() => apply({ ...state, year: state.year === year ? null : year, page: 1 })}
+              label={`${year} ${count}`}
+              tone="magenta"
+              small
+            />
           ))}
         </div>
       </SectionReveal>
 
-      {/* The tag bank, folded. 200+ tags as a wall buries the archive behind its own index. */}
+      {/* The tag bank, folded */}
       <SectionReveal delay={0.12}>
         <div className="mb-8 text-center">
           <div className="flex flex-wrap gap-2 justify-center" id="journal-tag-bank" role="group" aria-label="Filter by tag">
-            <button
-              type="button"
-              aria-pressed={!state.tag}
-              onClick={() => go({ tag: null, page: 1 })}
-              className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-colors focus-visible:ring-2"
-              style={{
-                borderColor: !state.tag ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
-                color: !state.tag ? "var(--ut-cyan)" : "var(--ut-white-dim)",
-                background: !state.tag ? "rgba(0,229,255,0.06)" : "transparent",
-              }}
-            >
-              Any tag
-            </button>
-            {(showAllTags ? facets : visibleTags).map(({ tag, label, count }) => (
-              <button
-                key={tag}
-                type="button"
-                aria-pressed={state.tag === tag}
-                aria-controls="journal-tag-bank"
-                onClick={() => go({ tag: state.tag === tag ? null : tag, page: 1 })}
-                className="font-mono text-[9px] tracking-widest uppercase px-3 py-1 border transition-colors focus-visible:ring-2"
-                style={{
-                  borderColor: state.tag === tag ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
-                  color: state.tag === tag ? "var(--ut-cyan)" : "var(--ut-white-dim)",
-                  background: state.tag === tag ? "rgba(0,229,255,0.06)" : "transparent",
-                }}
-              >
-                {label} <span style={{ opacity: 0.5 }}>{count}</span>
-              </button>
-            ))}
+            <FilterLink
+              href={journalHref({ ...state, tag: null, page: 1 })}
+              active={!state.tag}
+              onClick={() => apply({ ...state, tag: null, page: 1 })}
+              label="Any tag"
+              small
+            />
+            {(showAllTags ? facets : visibleTags).map(({ tag, label, count }) => {
+              const active = state.tag === tag;
+              return (
+                <FilterLink
+                  key={tag}
+                  href={journalHref({ ...state, tag: active ? null : tag, page: 1 })}
+                  active={active}
+                  onClick={() => apply({ ...state, tag: active ? null : tag, page: 1 })}
+                  label={`${label} ${count}`}
+                  small
+                />
+              );
+            })}
           </div>
           <button
             type="button"
             aria-expanded={showAllTags}
+            aria-controls="journal-tag-bank"
             onClick={() => setShowAllTags((open) => !open)}
             className="mt-4 font-mono text-[9px] tracking-[0.25em] uppercase underline-offset-4 hover:underline focus-visible:ring-2 px-2 py-1"
             style={{ color: "var(--ut-white-faint)" }}
@@ -289,14 +270,14 @@ export default function JournalBrowser() {
         </div>
       </SectionReveal>
 
-      {/* Derived count — never a stored number */}
       <SectionReveal delay={0.14}>
         <p className="font-mono text-[9px] tracking-widest uppercase mb-8 text-center" style={{ color: "var(--ut-white-faint)" }}>
-          {results.length} {results.length === 1 ? "transmission" : "transmissions"}
+          {results.length} of {totalRecords} {results.length === 1 ? "transmission" : "transmissions"}
           {state.category !== "all" ? ` · ${state.category === "voa" ? "Vault of Arcana" : "Personal Codex Logs"}` : ""}
           {state.year ? ` · ${state.year}` : ""}
           {state.tag ? ` · #${state.tag}` : ""}
           {state.q ? ` · “${state.q}”` : ""}
+          {pageCount > 1 ? ` · page ${page} of ${pageCount}` : ""}
         </p>
       </SectionReveal>
 
@@ -307,10 +288,15 @@ export default function JournalBrowser() {
               Nothing answers that combination
             </p>
             <p className="font-body text-sm max-w-md mx-auto mb-6" style={{ color: "var(--ut-white-dim)" }}>
-              {EMPTY_MESSAGE}
+              No records answer that yet. Clear a filter, or search a word from a title you remember.
             </p>
             <Link
               href="/journal"
+              onClick={(event) => {
+                event.preventDefault();
+                setQueryInput("");
+                apply({ q: "", year: null, tag: null, category: "all", page: 1 }, "push");
+              }}
               className="font-mono text-[10px] tracking-[0.25em] uppercase px-5 py-2 border"
               style={{ borderColor: "rgba(0,229,255,0.3)", color: "var(--ut-cyan)" }}
             >
@@ -336,41 +322,31 @@ export default function JournalBrowser() {
 
       {pageCount > 1 && (
         <SectionReveal delay={0.18}>
-          <nav className="flex items-center justify-center gap-3 flex-wrap" aria-label="Journal pages">
-            <button
-              type="button"
-              onClick={() => go({ page: Math.max(1, page - 1) })}
+          <nav className="flex items-center justify-center gap-2 flex-wrap" aria-label="Journal pages">
+            <PageLink
+              href={journalHref({ ...state, page: Math.max(1, page - 1) })}
               disabled={page === 1}
-              className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-colors disabled:opacity-30 focus-visible:ring-2"
-              style={{ borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-cyan)" }}
-            >
-              ← Prev
-            </button>
+              onClick={() => apply({ ...state, page: Math.max(1, page - 1) })}
+              label="← Prev"
+              wide
+            />
             {Array.from({ length: pageCount }, (_, idx) => idx + 1).map((number) => (
-              <button
+              <PageLink
                 key={number}
-                type="button"
-                aria-current={page === number ? "page" : undefined}
-                onClick={() => go({ page: number })}
-                className="font-mono text-[10px] w-8 h-8 flex items-center justify-center border transition-colors focus-visible:ring-2"
-                style={{
-                  borderColor: page === number ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
-                  color: page === number ? "var(--ut-cyan)" : "var(--ut-white-faint)",
-                  background: page === number ? "rgba(0,229,255,0.06)" : "transparent",
-                }}
-              >
-                {number}
-              </button>
+                href={journalHref({ ...state, page: number })}
+                current={page === number}
+                onClick={() => apply({ ...state, page: number })}
+                label={String(number)}
+                square
+              />
             ))}
-            <button
-              type="button"
-              onClick={() => go({ page: Math.min(pageCount, page + 1) })}
+            <PageLink
+              href={journalHref({ ...state, page: Math.min(pageCount, page + 1) })}
               disabled={page === pageCount}
-              className="font-mono text-[10px] tracking-widest uppercase px-4 py-2 border transition-colors disabled:opacity-30 focus-visible:ring-2"
-              style={{ borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-cyan)" }}
-            >
-              Next →
-            </button>
+              onClick={() => apply({ ...state, page: Math.min(pageCount, page + 1) })}
+              label="Next →"
+              wide
+            />
           </nav>
         </SectionReveal>
       )}
@@ -378,65 +354,203 @@ export default function JournalBrowser() {
   );
 }
 
-/* ── Cards ──────────────────────────────────────────────────────────────────────────── */
+function parseFromLocation(): JournalState {
+  try {
+    return parseJournalState(new URLSearchParams(window.location.search));
+  } catch {
+    return { q: "", year: null, tag: null, category: "all", page: 1 };
+  }
+}
+
+/* ── controls ──────────────────────────────────────────────────────────────────────── */
+
+function toneStyle(active: boolean, tone: "cyan" | "magenta", small: boolean) {
+  const rgb = tone === "cyan" ? "0,229,255" : "217,70,239";
+  return {
+    borderColor: active ? `var(--ut-${tone})` : `rgba(${rgb},0.15)`,
+    color: active ? `var(--ut-${tone})` : small ? "var(--ut-white-dim)" : `rgba(${rgb},0.5)`,
+    background: active ? `rgba(${rgb},0.06)` : "transparent",
+  } as React.CSSProperties;
+}
+
+function FilterLink({
+  href,
+  active,
+  onClick,
+  label,
+  tone = "cyan",
+  small = false,
+}: {
+  href: string;
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  tone?: "cyan" | "magenta";
+  small?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      aria-current={active ? "true" : undefined}
+      onClick={(event) => {
+        event.preventDefault();
+        onClick();
+      }}
+      className={`font-mono ${small ? "text-[9] px-3 py-1" : "text-[10] px-4 py-2"} tracking-widest uppercase border transition-colors focus-visible:ring-2`}
+      style={toneStyle(active, tone, small)}
+    >
+      {label}
+    </a>
+  );
+}
+
+function PageLink({
+  href,
+  onClick,
+  label,
+  current = false,
+  disabled = false,
+  square = false,
+  wide = false,
+}: {
+  href: string;
+  onClick: () => void;
+  label: string;
+  current?: boolean;
+  disabled?: boolean;
+  square?: boolean;
+  wide?: boolean;
+}) {
+  const cls = square
+    ? "font-mono text-[10px] w-8 h-8 flex items-center justify-center border"
+    : "font-mono text-[10px] tracking-widest uppercase px-4 py-2 border";
+  if (disabled) {
+    return <span className={`${cls} opacity-30`} style={{ borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-cyan)" }}>{label}</span>;
+  }
+  return (
+    <a
+      href={href}
+      aria-current={current ? "page" : undefined}
+      onClick={(event) => {
+        event.preventDefault();
+        onClick();
+      }}
+      className={`${cls} transition-colors focus-visible:ring-2 ${wide ? "" : ""}`}
+      style={
+        square
+          ? {
+              borderColor: current ? "var(--ut-cyan)" : "rgba(0,229,255,0.15)",
+              color: current ? "var(--ut-cyan)" : "var(--ut-white-faint)",
+              background: current ? "rgba(0,229,255,0.06)" : "transparent",
+            }
+          : { borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-cyan)" }
+      }
+    >
+      {label}
+    </a>
+  );
+}
+
+/* ── cards ────────────────────────────────────────────────────────────────────────── */
 
 function dateLabel(publishedAt: string): string {
   return new Date(publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function EntranceCard({
+/** The featured record: the image is shown whole and the caption sits beside it, not over it. */
+function FeaturedCard({
   post,
-  className = "",
   returnAddress,
   onOpen,
-  tall = false,
 }: {
   post: BlogPost;
-  className?: string;
   returnAddress: string;
   onOpen: (slug: string) => void;
-  tall?: boolean;
 }) {
   const image = heroImageFor(post, JOURNAL_HERO_IMAGES);
   const documented = artworkRecordsForJournal(post.slug);
   return (
-    <Link
-      href={`/journal/${post.slug}?from=${encodeURIComponent(returnAddress)}`}
-      onClick={() => onOpen(post.slug)}
-      className={`ut-card group block overflow-hidden relative ${className}`}
-      style={{ padding: 0, minHeight: tall ? 380 : 150 }}
-      aria-label={`${post.title.replace(/<[^>]*>/g, "")} — ${dateLabel(post.publishedAt)}`}
-    >
-      {image && (
-        <Image
-          src={image}
-          alt=""
-          fill
-          sizes={tall ? "(max-width: 1024px) 100vw, 60vw" : "(max-width: 1024px) 50vw, 25vw"}
-          className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
-          unoptimized
-        />
-      )}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.15) 100%)" }} />
-      <div className="relative h-full flex flex-col justify-end p-5">
-        <p className="font-mono text-[8px] tracking-[0.3em] uppercase mb-2" style={{ color: "var(--ut-cyan)" }}>
-          {dateLabel(post.publishedAt)} · {post.readTime}
-        </p>
-        <h2
-          className={`font-heading ${tall ? "text-xl md:text-2xl" : "text-sm"} leading-snug mb-2`}
-          style={{ color: "var(--ut-white)" }}
-          dangerouslySetInnerHTML={{ __html: post.title }}
-        />
-        {tall && (
+    <div className="ut-card overflow-hidden lg:col-span-3" style={{ padding: 0 }}>
+      <Link
+        href={`/journal/${post.slug}?from=${encodeURIComponent(returnAddress)}`}
+        onClick={() => onOpen(post.slug)}
+        className="block focus-visible:outline-none focus-visible:ring-2"
+      >
+        {image && (
+          <div className="w-full" style={{ background: "#04050a" }}>
+            <Image
+              src={image}
+              alt={plainTitle(post.title)}
+              width={1200}
+              height={900}
+              sizes="(max-width: 1024px) 100vw, 60vw"
+              className="w-full h-auto block"
+              unoptimized
+            />
+          </div>
+        )}
+        <div className="p-5">
+          <p className="font-mono text-[8px] tracking-[0.3em] uppercase mb-2" style={{ color: "var(--ut-cyan)" }}>
+            {dateLabel(post.publishedAt)} · {post.readTime}
+          </p>
+          <h2
+            className="font-heading text-xl md:text-2xl leading-snug mb-2"
+            style={{ color: "var(--ut-white)" }}
+            dangerouslySetInnerHTML={{ __html: post.title }}
+          />
           <p className="font-body text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: "var(--ut-white-dim)" }}>
             {post.excerpt}
           </p>
+          {documented.length > 0 && (
+            <p className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-gold, #d4a847)" }}>
+              Documents {documented[0].title}
+            </p>
+          )}
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+/** The three companion tiles: image above, caption beneath, so neither is read through the other. */
+function TileCard({
+  post,
+  returnAddress,
+  onOpen,
+}: {
+  post: BlogPost;
+  returnAddress: string;
+  onOpen: (slug: string) => void;
+}) {
+  const image = heroImageFor(post, JOURNAL_HERO_IMAGES);
+  return (
+    <Link
+      href={`/journal/${post.slug}?from=${encodeURIComponent(returnAddress)}`}
+      onClick={() => onOpen(post.slug)}
+      className="ut-card group block overflow-hidden h-full focus-visible:outline-none focus-visible:ring-2"
+      style={{ padding: 0 }}
+    >
+      <div className="aspect-video relative overflow-hidden" style={{ background: "#04050a" }}>
+        {image && (
+          <Image
+            src={image}
+            alt=""
+            fill
+            sizes="(max-width: 1024px) 50vw, 25vw"
+            className="object-cover object-center"
+            unoptimized
+          />
         )}
-        {documented.length > 0 && (
-          <p className="font-mono text-[8px] tracking-widest uppercase" style={{ color: "var(--ut-gold, #d4a847)" }}>
-            Documents {documented[0].title}
-          </p>
-        )}
+      </div>
+      <div className="px-4 py-3">
+        <p className="font-mono text-[8px] tracking-[0.25em] uppercase mb-1" style={{ color: "var(--ut-cyan)", opacity: 0.6 }}>
+          {dateLabel(post.publishedAt)}
+        </p>
+        <p
+          className="font-heading text-[11px] leading-snug line-clamp-2"
+          style={{ color: "var(--ut-white)" }}
+          dangerouslySetInnerHTML={{ __html: post.title }}
+        />
       </div>
     </Link>
   );

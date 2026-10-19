@@ -94,7 +94,9 @@ export function parseJournalState(params: ParamReader | null | undefined): Journ
   /* An unknown tag is KEPT, not dropped: a shared address asking for a tag the archive does not
      carry should say so with an empty result, not silently widen to everything. */
   const tagRaw = readParam(params, "tag").trim().toLowerCase().slice(0, MAX_TAG_LENGTH);
-  const tag = /^[a-z0-9][a-z0-9 _-]*$/.test(tagRaw) ? tagRaw : null;
+  /* A browse selection is written as the canonical facet, so an address naming a reviewed alias
+     (?tag=athenor) selects the visible canonical facet (athanor) instead of selecting nothing. */
+  const tag = /^[a-z0-9][a-z0-9 _-]*$/.test(tagRaw) ? canonicalTagKey(tagRaw) : null;
 
   const categoryRaw = readParam(params, "category").trim().toLowerCase();
   const category: JournalCategory =
@@ -139,8 +141,12 @@ export function safeJournalReturn(raw: string | null | undefined): string | null
   if (!value.startsWith("/journal")) return null;
   if (value.startsWith("//") || value.includes("\\")) return null;
   if (/[\u0000-\u001f\u007f]/.test(value)) return null;
-  if (value !== "/journal" && !value.startsWith("/journal?")) return null;
-  return value;
+  /* Exactly the index: a fragment is a place inside it (/journal#j-<slug>), and a query is the
+     filtered view (/journal?year=2017#j-<slug>). Anything else — an article path, a lookalike
+     route, another surface — is not a return to the collection. */
+  const rest = value.slice("/journal".length);
+  if (rest === "" || rest.startsWith("?") || rest.startsWith("#")) return value;
+  return null;
 }
 
 /* ── Searching and filtering ─────────────────────────────────────────────────────────── */
@@ -228,13 +234,18 @@ export function deriveTagFacets(posts: readonly BlogPost[] = blogPosts): TagFace
   const counts = new Map<string, number>();
   const labels = new Map<string, string>();
   for (const post of posts) {
+    /* A record that carries several spellings of one tag is ONE record in that facet: the real
+       Alchemical Vessel article carries both "athanor" and "athenor", and counting each occurrence
+       would report two articles where the archive holds one. */
+    const keysForPost = new Set<string>();
     for (const raw of post.tags || []) {
       const source = String(raw).trim().toLowerCase();
       if (!source) continue;
       const key = canonicalTagKey(source);
-      counts.set(key, (counts.get(key) || 0) + 1);
+      keysForPost.add(key);
       if (!labels.has(key) || source === key) labels.set(key, key);
     }
+    for (const key of Array.from(keysForPost)) counts.set(key, (counts.get(key) || 0) + 1);
   }
   return Array.from(counts.entries())
     .map(([tag, count]) => ({ tag, label: labels.get(tag) ?? tag, count }))

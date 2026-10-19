@@ -185,6 +185,82 @@ console.log("\n  10. the artwork relationship is read, not invented");
   ok(allLinked.every((slug) => postSlugs.has(slug)), "every derived Journal post exists in the archive");
 }
 
+console.log("\n  11. the address the cards actually generate is usable");
+{
+  /* Unfiltered cards generate /journal#j-<slug>; a fragment is a place inside the index, so the
+     return link built from an article opened there must survive validation. */
+  const unfiltered = J.journalHref(J.EMPTY_JOURNAL_STATE);
+  const generated = unfiltered + "#j-the-making-of-power";
+  ok(generated === "/journal#j-the-making-of-power", "an unfiltered card generates /journal#j-<slug>");
+  ok(J.safeJournalReturn(generated) === generated, "…and that exact address is accepted back");
+
+  const filtered = J.journalHref({ q: "", year: "2017", tag: "vortex", category: "all", page: 1 });
+  ok(J.safeJournalReturn(filtered + "#j-the-making-of-power") === filtered + "#j-the-making-of-power",
+    "a filtered return with its anchor is still accepted");
+
+  ok(J.safeJournalReturn("/journal#") === "/journal#", "an empty fragment is still the index");
+  ok(J.safeJournalReturn("/journal?year=2017") === "/journal?year=2017", "a plain filtered address is accepted");
+
+  ok(J.safeJournalReturn("/journal/third-vortex-the-power") === null, "an article path is not a return to the collection");
+  ok(J.safeJournalReturn("/journalx#j-a") === null, "a lookalike route with a fragment is refused");
+  ok(J.safeJournalReturn("https://evil.example/journal#j-a") === null, "an external address with a fragment is refused");
+  ok(J.safeJournalReturn("//evil.example/journal") === null, "a protocol-relative address is still refused");
+}
+
+console.log("\n  12. one article, one facet count — including when it carries both spellings");
+{
+  const both = blogPosts.filter((p) => p.tags.includes("athanor") || p.tags.includes("athenor"));
+  ok(both.length === 1, "the Alchemical Vessel record is the only one carrying athanor/athenor (" + both.length + ")");
+  ok(both[0].tags.includes("athanor") && both[0].tags.includes("athenor"),
+    "that record carries BOTH spellings, so occurrence-counting would report two");
+
+  const facets = J.deriveTagFacets();
+  const athanor = facets.find((f) => f.tag === "athanor");
+  ok(athanor && athanor.count === 1, "the athanor facet counts that record once, not twice (" + (athanor && athanor.count) + ")");
+
+  /* The invariant, for every facet: the count equals the number of RECORDS in the group. */
+  let mismatched = 0;
+  for (const facet of facets) {
+    const group = J.tagGroup(facet.tag);
+    const records = blogPosts.filter((p) => (p.tags || []).some((t) => group.includes(String(t).trim().toLowerCase())));
+    if (records.length !== facet.count) mismatched += 1;
+  }
+  ok(mismatched === 0, "every facet count equals the number of matching records (" + mismatched + " mismatches)");
+}
+
+console.log("\n  13. a direct alias address selects the canonical, visible facet");
+{
+  const aliases = Object.keys(J.TAG_ALIASES);
+  ok(aliases.length === 4, "four reviewed aliases");
+  let bad = 0;
+  for (const alias of aliases) {
+    const canonical = J.TAG_ALIASES[alias];
+    const parsed = J.parseJournalState(q([["tag", alias]]));
+    if (parsed.tag !== canonical) bad += 1;
+  }
+  ok(bad === 0, "?tag=<alias> resolves to the canonical facet for all four");
+
+  const facetKeys = new Set(J.deriveTagFacets().map((f) => f.tag));
+  let missing = 0;
+  for (const alias of aliases) {
+    const parsed = J.parseJournalState(q([["tag", alias]]));
+    if (!facetKeys.has(parsed.tag)) missing += 1;
+  }
+  ok(missing === 0, "the resolved facet exists in the bank, so it can be shown selected");
+
+  const rewritten = J.journalHref(J.parseJournalState(q([["tag", "athenor"]])));
+  ok(rewritten === "/journal?tag=athanor", "the address is written canonically after resolution (" + rewritten + ")");
+  const cleared = J.parseJournalState(q([["tag", "athanor"]]));
+  ok(cleared.tag === "athanor" && J.TAG_ALIASES[cleared.tag] === undefined,
+    "the selected canonical facet is a real tag, so clicking it clears rather than re-selects");
+
+  let stillPresent = 0;
+  for (const alias of aliases) {
+    if (!blogPosts.some((p) => p.tags.includes(alias))) stillPresent += 1;
+  }
+  ok(stillPresent === 0, "all four source spellings still exist verbatim in the records");
+}
+
 console.log("\n  ==================== SUMMARY ====================");
 console.log(`   assertions passed: ${pass}   assertions failed: ${fail}`);
 if (fail) {
