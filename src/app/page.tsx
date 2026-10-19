@@ -159,7 +159,7 @@ export default function HomePage() {
               className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
               style={{ color: "var(--ut-white)" }}
             >
-              <ZalgoText text="Universal Transmissions" intensity="moderate" />
+              <ZalgoText text="Universal Transmissions" intensity="moderate" mode="burst" />
             </h1>
             <GlitchTagline />
             <div className="ut-hero-actions">

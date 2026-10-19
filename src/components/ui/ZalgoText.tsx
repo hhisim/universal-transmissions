@@ -1,71 +1,34 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { burstPlan, corrupt, shouldBurst, type GlyphIntensity } from "@/lib/glyph-burst";
 
 /* ────────────────────────────────────────────────────────────
-   ZalgoText — corrupts text with combining diacritical marks
-   Deterministic (seeded) — safe for SSR/hydration
+   ZalgoText — the site's only glyph typography system.
+
+   Two modes.
+
+   `static` (default, released behaviour, unchanged) — the text carries combining marks permanently.
+   Every existing caller keeps exactly what it had.
+
+   `burst` — the readable title is the title. It is what the server renders, what a visitor sees
+   while the page loads, what they see with JavaScript disabled, and what a screen reader announces
+   at every moment. Shortly after mount — only if the visitor has not asked for reduced motion and
+   the tab is actually visible — an aria-hidden decorative layer replaces it, passes through the
+   intensity schedule, and resolves back to the plain words.
+
+   The decoration is never the accessible name: it is `aria-hidden`, and the readable span stays in
+   the accessibility tree (transparent, not removed) while the burst runs. No tabindex is added, so
+   headings gain no keyboard stops. Corruptions are seeded, so server and client cannot disagree.
    ──────────────────────────────────────────────────────────── */
-
-const ZALGO_UP = [
-  "\u0300", "\u0301", "\u0302", "\u0303", "\u0304", "\u0305", "\u0306", "\u0307",
-  "\u0308", "\u0309", "\u030A", "\u030B", "\u030C", "\u030D", "\u030E", "\u030F",
-  "\u0310", "\u0311", "\u0312", "\u0313", "\u0314", "\u0315", "\u031A",
-];
-
-const ZALGO_DOWN = [
-  "\u0316", "\u0317", "\u0318", "\u0319", "\u031C", "\u031D", "\u031E", "\u031F",
-  "\u0320", "\u0321", "\u0322", "\u0323", "\u0324", "\u0325", "\u0326", "\u0327",
-  "\u0328", "\u0329", "\u032A", "\u032B", "\u032C", "\u032D", "\u032E", "\u032F",
-  "\u0330", "\u0331", "\u0332", "\u0333",
-];
-
-const ZALGO_MID = [
-  "\u0323", "\u0334", "\u0335", "\u0336", "\u0337", "\u0338",
-  "\u0339", "\u033A", "\u033B", "\u033C", "\u033D", "\u033E", "\u033F",
-  "\u0340", "\u0341", "\u0342", "\u0343", "\u0344", "\u0345", "\u0346",
-];
-
-type Intensity = "subtle" | "moderate" | "heavy";
-
-/** Seeded LCG — deterministic, no Math.random(), safe for SSR */
-function seededRandom(seed: number): () => number {
-  let s = seed;
-  return () => {
-    s = (s * 1664525 + 1013904223) & 0xffffffff;
-    return (s >>> 0) / 0xffffffff;
-  };
-}
-
-function seededOf(arr: string[], rng: () => number): string {
-  return arr[Math.floor(rng() * arr.length)];
-}
-
-function zalgofy(char: string, intensity: Intensity, rng: () => number): string {
-  if (char === " ") return char;
-
-  const counts: Record<Intensity, { up: number; down: number; mid: number }> = {
-    subtle: { up: 1, down: 0, mid: 0 },
-    moderate: { up: 2, down: 1, mid: 1 },
-    heavy: { up: 4, down: 3, mid: 2 },
-  };
-
-  const { up, down, mid } = counts[intensity];
-  let result = "";
-
-  for (let i = 0; i < up; i++) result += seededOf(ZALGO_UP, rng);
-  for (let i = 0; i < mid; i++) result += seededOf(ZALGO_MID, rng);
-  result += char;
-  for (let i = 0; i < down; i++) result += seededOf(ZALGO_DOWN, rng);
-
-  return result;
-}
 
 interface ZalgoTextProps {
   text: string;
-  intensity?: Intensity;
+  intensity?: GlyphIntensity;
   className?: string;
   animate?: boolean;
+  /** "static" keeps permanent corruption; "burst" transforms briefly and settles readable. */
+  mode?: "static" | "burst";
 }
 
 export default function ZalgoText({
@@ -73,14 +36,89 @@ export default function ZalgoText({
   intensity = "moderate",
   className = "",
   animate = false,
+  mode = "static",
 }: ZalgoTextProps) {
-  const zalgod = useMemo(() => {
-    const rng = seededRandom(text.length * 31 + intensity.length * 17);
-    return text
-      .split("")
-      .map((char) => zalgofy(char, intensity, rng))
-      .join("");
-  }, [text, intensity]);
+  const zalgod = useMemo(() => corrupt(text, intensity), [text, intensity]);
+
+  /** null = at rest (the default, and the only state the server ever renders). */
+  const [phase, setPhase] = useState<GlyphIntensity | null>(null);
+  const playedRef = useRef(false);
+
+  useEffect(() => {
+    if (mode !== "burst" || playedRef.current) return;
+
+    const reducedMotion =
+      typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        : false;
+
+    if (
+      !shouldBurst({
+        reducedMotion,
+        hidden: typeof document !== "undefined" && document.visibilityState === "hidden",
+        alreadyPlayed: false,
+      })
+    ) {
+      return;
+    }
+
+    playedRef.current = true;
+    const plan = burstPlan(intensity);
+    let index = 0;
+    let timer: number | undefined;
+    let cancelled = false;
+
+    const step = () => {
+      if (cancelled) return;
+      /* If the tab goes away mid-burst the title resolves at once, so it is never caught
+         mid-distortion when the visitor returns. */
+      if (document.visibilityState === "hidden" || index >= plan.length) {
+        setPhase(null);
+        return;
+      }
+      const current = plan[index];
+      setPhase(current.intensity);
+      index += 1;
+      timer = window.setTimeout(step, current.ms);
+    };
+
+    step();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") setPhase(null);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [mode, intensity]);
+
+  if (mode === "burst") {
+    const active = phase !== null;
+    return (
+      <span
+        className={`ut-title-burst ${className}`.trim()}
+        data-glyph-burst={active ? "active" : "settled"}
+        style={{ position: "relative", display: "inline-block" }}
+      >
+        {/* The words. Always present, always the accessible name, never replaced. */}
+        <span style={{ opacity: active ? 0 : 1 }}>{text}</span>
+        {/* Decoration only. Absolutely positioned, so it cannot move anything, and silent. */}
+        {active && (
+          <span
+            aria-hidden="true"
+            data-glyph-decoration="true"
+            style={{ position: "absolute", left: 0, top: 0, right: 0, pointerEvents: "none" }}
+          >
+            {corrupt(text, phase)}
+          </span>
+        )}
+      </span>
+    );
+  }
 
   if (animate) {
     return (
