@@ -17,6 +17,7 @@ require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs")).registerTsModules({ ro
 
 const S = require(path.join(ROOT, "src/lib/codex-spreads.ts"));
 const W = require(path.join(ROOT, "src/lib/webgl-support.ts"));
+const Z = require(path.join(ROOT, "src/lib/zoom.ts"));
 
 let pass = 0, fail = 0;
 const failures = [];
@@ -122,8 +123,59 @@ console.log("\n  6. the page wires the guard and the viewer (smoke)");
 
   const spreads = fs.readFileSync(path.join(ROOT, "src/components/codex/CodexSpreads.tsx"), "utf8");
   ok(spreads.includes("LightboxOverlay"), "the shipped viewer is reused, not reimplemented");
-  ok(spreads.includes("zoomCeilingFor(opened)"), "the viewer is capped by the opened asset's resolution");
+  ok(/zoomCeilingFor\(displayed\)/.test(spreads), "the ceiling is resolved from the DISPLAYED image, not the clicked one");
+  ok(!/zoomCeilingFor\(opened\)/.test(spreads), "the ceiling is not pinned to the preview that was opened");
   ok(/object-contain/.test(spreads), "thumbnails contain the whole image");
+}
+
+console.log("\n  7. the ceiling follows the image on screen, through every control");
+{
+  const byId = (id) => S.CODEX_PREVIEWS.find((p) => p.id === id);
+  const cover = byId("vol1-cover");
+  const spread = byId("spread-06");
+  ok(S.zoomCeilingFor(cover) === 2.5, "the cover's ceiling is 2.5");
+  ok(S.zoomCeilingFor(spread) === 2, "the 640px spread's ceiling is 2");
+
+  /* Cover -> spread: three zoom-ins cannot pass 200%, and Zoom-in must be disabled there. */
+  let zoom = 1;
+  const coverSteps = [];
+  for (let i = 0; i < 4; i += 1) { zoom = Z.zoomBy(zoom, S.zoomCeilingFor(cover), 1.5); coverSteps.push(zoom); }
+  ok(coverSteps[0] === 1.5 && coverSteps[1] === 2.25 && coverSteps[2] === 2.5 && coverSteps[3] === 2.5,
+    "on the cover, zoom stops at 250% (" + coverSteps.join(" → ") + ")");
+  ok(Z.canZoomIn(zoom, S.zoomCeilingFor(cover)) === false, "Zoom-in is disabled at the cover's 250%");
+
+  let spreadZoom = 1;
+  const spreadSteps = [];
+  for (let i = 0; i < 4; i += 1) { spreadZoom = Z.zoomBy(spreadZoom, S.zoomCeilingFor(spread), 1.5); spreadSteps.push(spreadZoom); }
+  ok(spreadSteps[0] === 1.5 && spreadSteps[1] === 2 && spreadSteps[2] === 2 && spreadSteps[3] === 2,
+    "on a 640px spread, zoom stops at 200% (" + spreadSteps.join(" → ") + ")");
+  ok(Z.canZoomIn(spreadZoom, S.zoomCeilingFor(spread)) === false, "Zoom-in is disabled at the spread's 200%");
+
+  /* Changing the image while enlarged cannot leave an impossible zoom behind. */
+  ok(Z.clampZoom(2.5, S.zoomCeilingFor(spread)) === 2, "carrying 250% onto a spread clamps to 200%");
+  ok(Z.clampZoom(2, S.zoomCeilingFor(cover)) === 2, "carrying 200% onto the cover stays legal");
+  ok(Z.clampZoom(1, S.zoomCeilingFor(spread)) === 1, "reset to 100% is always legal");
+
+  /* Keyboard zoom must obey the same ceiling as the buttons — it did, which is why one rule is used. */
+  let kb = 1;
+  for (let i = 0; i < 6; i += 1) kb = Z.zoomBy(kb, S.zoomCeilingFor(spread), 1.5);
+  ok(kb === 2, "six keyboard steps stop at the same 200%");
+  ok(Z.zoomBy(kb, 2, 1 / 1.5) === 1.3333333333333333, "keyboard zoom-out steps back down by the same factor");
+
+  /* The gallery's ceiling is untouched. */
+  ok(Z.DEFAULT_ZOOM_CEILING === 4, "the gallery default ceiling is still 4");
+  let gal = 1;
+  for (let i = 0; i < 8; i += 1) gal = Z.zoomBy(gal, Z.DEFAULT_ZOOM_CEILING, 1.5);
+  ok(gal === 4, "the gallery still reaches 400% and stops (" + gal + ")");
+  ok(Z.clampZoom(9, Z.DEFAULT_ZOOM_CEILING) === 4, "the gallery still clamps anything above 4");
+  ok(Z.clampZoom(9, null) === 1 && Z.clampZoom(9, undefined) === 1 && Z.clampZoom(9, NaN) === 1,
+    "a missing or broken ceiling never magnifies");
+
+  const lightbox = fs.readFileSync(path.join(ROOT, "src/components/gallery/Lightbox.tsx"), "utf8");
+  ok(!/zoom >= 4/.test(lightbox), "the Zoom-in button no longer tests a literal 4");
+  ok(/canZoomIn\(zoom, maxZoom\)/.test(lightbox), "the Zoom-in button tests the active ceiling");
+  ok(/maxZoom = DEFAULT_ZOOM_CEILING/.test(lightbox), "the overlay's default comes from the shared constant");
+  ok(/clampZoom\(z, maxZoom\)/.test(lightbox), "a ceiling change clamps the current zoom instead of carrying it");
 }
 
 console.log("\n  ==================== SUMMARY ====================");

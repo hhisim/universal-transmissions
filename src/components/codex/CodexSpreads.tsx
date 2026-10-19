@@ -57,7 +57,11 @@ export default function CodexSpreads() {
   }, [currentIndex]);
 
   const images = CODEX_PREVIEWS.map((p) => p.src);
-  const opened = openIndex === null ? null : CODEX_PREVIEWS[openIndex] ?? null;
+  const isOpen = openIndex !== null;
+  /* The ceiling belongs to the image on screen, not to the one that was clicked: navigating from the
+     900px cover to a 640px spread must lower it, and navigating back must raise it. `openIndex` is
+     only the open/closed latch. */
+  const displayed = CODEX_PREVIEWS[currentIndex] ?? CODEX_PREVIEWS[0];
 
   return (
     <div>
@@ -99,7 +103,7 @@ export default function CodexSpreads() {
         ))}
       </div>
 
-      {opened && typeof document !== "undefined" &&
+      {isOpen && typeof document !== "undefined" &&
         createPortal(
           <LightboxOverlay
             images={images}
@@ -108,7 +112,7 @@ export default function CodexSpreads() {
             onNavigate={setCurrentIndex}
             title="Universal Transmissions Codex"
             positionOf={(index) => index + 1}
-            maxZoom={zoomCeilingFor(opened)}
+            maxZoom={zoomCeilingFor(displayed)}
           />,
           document.body
         )}

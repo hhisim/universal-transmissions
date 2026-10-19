@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
+import { DEFAULT_ZOOM_CEILING, canZoomIn, canZoomOut, clampZoom, zoomBy } from "@/lib/zoom";
 
 export interface LightboxItem {
   src: string;
@@ -181,7 +182,7 @@ export function LightboxOverlay({
   onNavigate,
   title,
   positionOf,
-  maxZoom = 4,
+  maxZoom = DEFAULT_ZOOM_CEILING,
 }: {
   images: string[];
   currentIndex: number;
@@ -266,6 +267,12 @@ export function LightboxOverlay({
     closeRef.current?.focus();
   }, []);
 
+  /* If the ceiling changes without the image changing (a caller resolving it per asset), an
+     impossible zoom is clamped instead of carried over. */
+  useEffect(() => {
+    setZoom((z) => clampZoom(z, maxZoom));
+  }, [maxZoom]);
+
   /* Reset zoom/pan and load state whenever the displayed image changes. */
   useEffect(() => {
     dragState.current = null;
@@ -294,12 +301,12 @@ export function LightboxOverlay({
       }
       if (e.key === "+" || e.key === "=") {
         e.preventDefault();
-        setZoom((z) => clamp(z * 1.5, 1, maxZoom));
+        setZoom((z) => zoomBy(z, maxZoom, 1.5));
         return;
       }
       if (e.key === "-") {
         e.preventDefault();
-        setZoom((z) => clamp(z / 1.5, 1, maxZoom));
+        setZoom((z) => zoomBy(z, maxZoom, 1 / 1.5));
         return;
       }
       if (e.key === "0") {
@@ -386,8 +393,8 @@ export function LightboxOverlay({
     if (dragState.current) dragState.current.active = false;
   };
 
-  const zoomIn = () => setZoom((z) => clamp(z * 1.5, 1, maxZoom));
-  const zoomOut = () => setZoom((z) => clamp(z / 1.5, 1, maxZoom));
+  const zoomIn = () => setZoom((z) => zoomBy(z, maxZoom, 1.5));
+  const zoomOut = () => setZoom((z) => zoomBy(z, maxZoom, 1 / 1.5));
   /**
    * Restores the fitted view. Clears the drag state as well: leaving a stale
    * pan offset behind means the next drag resumes from the old origin and the
@@ -562,7 +569,7 @@ export function LightboxOverlay({
           style={{ color: "var(--ut-white-dim)", border: "1px solid rgba(217,70,239,0.2)" }}
           onClick={zoomOut}
           aria-label="Zoom out"
-          disabled={zoom <= 1}
+          disabled={!canZoomOut(zoom)}
         >
           −
         </button>
@@ -582,7 +589,7 @@ export function LightboxOverlay({
           style={{ color: "var(--ut-white-dim)", border: "1px solid rgba(217,70,239,0.2)" }}
           onClick={zoomIn}
           aria-label="Zoom in"
-          disabled={zoom >= 4}
+          disabled={!canZoomIn(zoom, maxZoom)}
         >
           +
         </button>
