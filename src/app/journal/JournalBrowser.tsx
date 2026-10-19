@@ -116,20 +116,6 @@ export default function JournalBrowser() {
 
   return (
     <>
-      {/* Entrance — only when the visitor is looking at the whole archive */}
-      {isEntrance && featured.length > 0 && (
-        <SectionReveal>
-          <div className="mb-14 grid grid-cols-1 lg:grid-cols-5 gap-5">
-            <EntranceCard post={featured[0]} className="lg:col-span-3" returnAddress={returnAddressFor(featured[0].slug)} onOpen={rememberPlace} tall />
-            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-              {featured.slice(1, 4).map((post) => (
-                <EntranceCard key={post.slug} post={post} returnAddress={returnAddressFor(post.slug)} onOpen={rememberPlace} />
-              ))}
-            </div>
-          </div>
-        </SectionReveal>
-      )}
-
       {/* Search — the first thing a returning visitor reaches for */}
       <SectionReveal delay={0.05}>
         <form
@@ -181,6 +167,20 @@ export default function JournalBrowser() {
           </div>
         </form>
       </SectionReveal>
+
+      {/* Entrance — only when the visitor is looking at the whole archive */}
+      {isEntrance && featured.length > 0 && (
+        <SectionReveal>
+          <div className="mb-14 grid grid-cols-1 lg:grid-cols-5 gap-5">
+            <EntranceCard post={featured[0]} className="lg:col-span-3" returnAddress={returnAddressFor(featured[0].slug)} onOpen={rememberPlace} tall />
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+              {featured.slice(1, 4).map((post) => (
+                <EntranceCard key={post.slug} post={post} returnAddress={returnAddressFor(post.slug)} onOpen={rememberPlace} />
+              ))}
+            </div>
+          </div>
+        </SectionReveal>
+      )}
 
       {/* Category + year, both derived from the records */}
       <SectionReveal delay={0.08}>
