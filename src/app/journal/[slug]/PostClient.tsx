@@ -11,6 +11,8 @@ import CommentSection from "@/components/ui/CommentSection";
 import { blogPosts, getPostBySlug, getRelatedPosts, type BlogPost } from "@/data/blog-posts";
 import { getVoaPackInvite, shop } from "@/data/voa-pack-invites";
 import { extractFirstImage } from "@/data/blog-posts";
+import { safeJournalReturn } from "@/lib/journal-browse";
+import { artworkRecordsForJournal } from "@/lib/journal-artworks";
 import PageBackground from "@/components/scenes/PageBackground";
 
 
@@ -152,6 +154,21 @@ export default function PostClient({ slug }: { slug: string }) {
   const post = getPostBySlug(slug);
   const [copied, setCopied] = useState(false);
 
+  /* The view this article was opened from — the filtered collection, its page, its search.
+     Read from the address after hydration so the article routes stay statically generated, and
+     validated against this archive: anything that is not a /journal address is discarded rather
+     than followed. Refresh keeps it, because it lives in the URL the reader arrived on. */
+  const [returnHref, setReturnHref] = useState("/journal");
+  useEffect(() => {
+    let from: string | null = null;
+    try {
+      from = new URLSearchParams(window.location.search).get("from");
+    } catch {
+      from = null;
+    }
+    setReturnHref(safeJournalReturn(from) ?? "/journal");
+  }, []);
+
   useEffect(() => {
     if (copied) {
       const t = setTimeout(() => setCopied(false), 2000);
@@ -171,7 +188,7 @@ export default function PostClient({ slug }: { slug: string }) {
 <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
           <div className="container-ut text-center">
             <h1 className="font-display text-3xl mb-4" style={{ color: "var(--ut-cyan)" }}>Transmission Not Found</h1>
-            <Link href="/journal" className="font-mono text-sm tracking-widest uppercase" style={{ color: "var(--ut-magenta)" }}>
+            <Link href={returnHref} className="font-mono text-sm tracking-widest uppercase" style={{ color: "var(--ut-magenta)" }}>
               ← Return to Journal
             </Link>
           </div>
@@ -251,7 +268,7 @@ export default function PostClient({ slug }: { slug: string }) {
           <div className="relative container-ut pt-32 pb-24">
             <SectionReveal>
               <Link
-                href="/journal"
+                href={returnHref}
                 className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest uppercase mb-12 hover:opacity-80 transition-opacity"
                 style={{ color: "rgba(255,255,255,0.5)" }}
               >
@@ -503,11 +520,34 @@ export default function PostClient({ slug }: { slug: string }) {
                 </SectionReveal>
               )}
 
+              {/* The work this record documents — read from the artwork registry, not guessed */}
+              {artworkRecordsForJournal(slug).length > 0 && (
+                <SectionReveal delay={0.35}>
+                  <div className="mt-10 pt-8" style={{ borderTop: "1px solid rgba(0,229,255,0.12)" }}>
+                    <p className="font-mono text-[9px] tracking-[0.3em] uppercase mb-3" style={{ color: "var(--ut-white-faint)" }}>
+                      This record documents
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {artworkRecordsForJournal(slug).map((artwork) => (
+                        <Link
+                          key={artwork.slug}
+                          href={`/gallery/${artwork.slug}`}
+                          className="inline-flex items-center gap-2 font-heading text-[11px] tracking-[0.2em] uppercase px-4 py-2.5 border transition-colors hover:border-[rgba(212,168,71,0.5)]"
+                          style={{ borderColor: "rgba(212,168,71,0.25)", background: "rgba(212,168,71,0.05)", color: "rgba(212,168,71,0.85)" }}
+                        >
+                          {artwork.title} →
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </SectionReveal>
+              )}
+
               {/* Back to journal */}
               <SectionReveal delay={0.4}>
                 <div className="text-center mt-10">
                   <Link
-                    href="/journal"
+                    href={returnHref}
                     className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest uppercase px-6 py-3 border transition-all hover:border-[var(--ut-cyan)]"
                     style={{ borderColor: "rgba(0,229,255,0.15)", color: "var(--ut-white-dim)" }}
                   >
