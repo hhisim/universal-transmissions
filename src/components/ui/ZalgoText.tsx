@@ -82,7 +82,22 @@ export default function ZalgoText({
       timer = window.setTimeout(step, current.ms);
     };
 
-    step();
+    /* The burst must not begin while React is still hydrating siblings: adding a node inside the
+       heading mid-hydration is read as a server/client text mismatch. Waiting for the page to go
+       idle means the decoration appears only after the whole tree has settled. */
+    let startHandle: number | undefined;
+    const scheduleStart = () => {
+      if (cancelled) return;
+      const idle = (window as unknown as {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+      }).requestIdleCallback;
+      if (typeof idle === "function") {
+        startHandle = idle(() => step(), { timeout: 1200 });
+      } else {
+        startHandle = window.setTimeout(() => step(), 200);
+      }
+    };
+    scheduleStart();
 
     const onVisibility = () => {
       if (document.visibilityState === "hidden") setPhase(null);
