@@ -15,8 +15,9 @@ const ROOT = path.resolve(__dirname, "..");
 require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs")).registerTsModules({ root: ROOT });
 
 const SECRET = "whsec_test_batch33";
+const NO_TOKEN = process.env.BATCH33_NO_TOKEN === "1";   // child-process mode: token absent at load
 process.env.STRIPE_WEBHOOK_SECRET = SECRET;      // the handler verifies with this
-process.env.AKASHA_BOT_TOKEN = "test-token";      // so sendTelegram actually runs (fetch is stubbed)
+if (!NO_TOKEN) process.env.AKASHA_BOT_TOKEN = "test-token";  // so sendTelegram actually runs (fetch is stubbed)
 process.env.TELEGRAM_HOME_CHANNEL = "test-chat";
 process.env.UT_SUPABASE_URL = "https://isolated.test";        // the webhook uses the UT_* pair
 process.env.UT_SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
@@ -24,8 +25,8 @@ let pass = 0, fail = 0; const failures = [];
 const ok = (c, m) => { if (c) { pass += 1; console.log("    ok   " + m); } else { fail += 1; failures.push(m); console.log("    FAIL " + m); } };
 
 /* ── isolated storage ───────────────────────────────────────────────────── */
-let rows, updates, telegrams;
-function reset() { rows = new Map(); updates = []; telegrams = []; }
+let rows, updates, telegrams, dbError, dbThrow;
+function reset() { rows = new Map(); updates = []; telegrams = []; dbError = null; dbThrow = false; }
 function seed(sessionId, amountCents, isDigital) {
   rows.set(sessionId, { id: "row-" + sessionId, stripe_session_id: sessionId, amount_cents: amountCents,
     currency: null, is_digital: isDigital, status: "pending", stripe_payment_intent_id: null, notes: null });
@@ -34,9 +35,10 @@ function chain(table) {
   const q = { __payload: undefined, __eq: undefined };
   const step = () => q;
   for (const m of ["select", "in", "is", "order", "limit", "match", "not", "gte", "lte", "filter", "maybeSingle", "single", "insert", "upsert", "delete"]) q[m] = step;
-  q.update = (payload) => { q.__payload = payload; return q; };
+  q.update = (payload) => { if (dbThrow) throw new Error("connection refused"); q.__payload = payload; return q; };
   q.eq = (col, val) => { q.__eq = [col, val]; return q; };
   q.then = (res) => {
+    if (dbError) return Promise.resolve({ data: null, error: dbError }).then(res);
     let data = [];
     if (table === "ut_orders" && q.__payload && q.__eq && q.__eq[0] === "stripe_session_id") {
       const row = rows.get(q.__eq[1]);
@@ -102,6 +104,14 @@ const row = (id) => rows.get(id);
 const lastUpdate = () => updates.length ? updates[updates.length - 1] : null;
 
 (async () => {
+  if (NO_TOKEN) {
+    // Fresh process with no AKASHA_BOT_TOKEN at module load: the notification helper must not call out.
+    reset(); seed("cs_test_ORDER1", 21500, false);
+    const r = await deliver(session({ amount_total: 24500 }));
+    console.log("NO_TOKEN_RESULT " + JSON.stringify({ telegrams: telegrams.length, status: r.status,
+      amount: row("cs_test_ORDER1").amount_cents }));
+    process.exit(0);
+  }
   console.log("\n  1. the three agreed totals, taken from the provider");
   for (const [label, over, cents, status, address] of [
     ["physical US", { amount_total: 24500, currency: "usd", shipping_details: { name: "Buyer Name", address: { line1: "1 Main St", city: "Austin", state: "TX", postal_code: "78701", country: "US" } } }, 24500, "paid", "US"],
@@ -177,8 +187,56 @@ const lastUpdate = () => updates.length ? updates[updates.length - 1] : null;
   ok(updates.length === 0, "VOA shop sale writes no UT order");
   ok(telegrams.length === 1 && telegrams[0].includes("VOA shop"), "VOA shop sale is still reported");
 
+  console.log("\n  6. an unavailable order store is never acknowledged as success");
+  {
+    // (a) the store answers with an error
+    reset(); seed("cs_test_ORDER1", 21500, false);
+    dbError = { message: "connection terminated", code: "57P01" };
+    const r = await deliver(session({ amount_total: 24500 }));
+    ok(r.status === 503 && r.body && r.body.error === "order_store_unavailable",
+      "store error -> 503 order_store_unavailable (Stripe will retry)");
+    ok(row("cs_test_ORDER1").status === "pending" && row("cs_test_ORDER1").amount_cents === 21500,
+      "store error -> row untouched, never marked paid");
+    ok(telegrams.length === 1 && telegrams[0].includes("UT DB update failed"),
+      "store error -> alert reports the failure instead of a sale");
+    ok(!telegrams[0].includes("✅"), "store error -> alert claims no success");
+
+    // (b) the client cannot even be built: exactly the preview condition (no service-role key)
+    reset(); seed("cs_test_ORDER1", 21500, false);
+    const savedUrl = process.env.UT_SUPABASE_URL, savedKey = process.env.UT_SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.UT_SUPABASE_SERVICE_ROLE_KEY;
+    const r2 = await deliver(session({ amount_total: 24500 }));
+    process.env.UT_SUPABASE_URL = savedUrl; process.env.UT_SUPABASE_SERVICE_ROLE_KEY = savedKey;
+    ok(r2.status === 503 && r2.body && r2.body.error === "order_store_unavailable",
+      "missing credential -> 503, not a silent 200");
+    ok(row("cs_test_ORDER1").status === "pending", "missing credential -> row stays pending");
+
+    // (c) a thrown connection failure takes the same path
+    reset(); seed("cs_test_ORDER1", 21500, false);
+    dbThrow = true;
+    let r3; try { r3 = await deliver(session({ amount_total: 24500 })); } catch (e) { r3 = { status: 0, body: { error: "THREW: " + e.message } }; }
+    ok(r3.status === 503, "thrown failure -> 503 (no unhandled rejection)");
+    ok(row("cs_test_ORDER1").status === "pending", "thrown failure -> row stays pending");
+  }
+
+  console.log("\n  7. no studio alert without a token (the preview condition)");
+  {
+    const { execFileSync } = require("child_process");
+    const out = execFileSync(process.execPath, [__filename],
+      { env: { ...process.env, BATCH33_NO_TOKEN: "1", AKASHA_BOT_TOKEN: "" }, encoding: "utf8" });
+    const line = out.split("\n").find((l) => l.startsWith("NO_TOKEN_RESULT ")) || "";
+    const res = line ? JSON.parse(line.slice("NO_TOKEN_RESULT ".length)) : null;
+    ok(res && res.telegrams === 0, "fresh process, no AKASHA_BOT_TOKEN -> zero Telegram calls");
+    ok(res && res.status === 200, "…the sale is still acknowledged 200");
+    ok(res && res.amount === 24500, "…and the total is still recorded");
+  }
+
   console.log("\n  ==================== SUMMARY ====================");
   console.log(`   assertions passed: ${pass}   assertions failed: ${fail}`);
   if (fail) { failures.forEach((f) => console.log("   FAIL " + f)); console.log("   RESULT: FAIL"); process.exit(1); }
   console.log("   RESULT: PASS"); process.exit(0);
-})();
+})().catch((err) => {
+  console.log("\n   CRASH  the suite threw instead of asserting: " + (err && err.message));
+  console.log("   RESULT: CRASH (not a failed assertion)");
+  process.exit(2);
+});

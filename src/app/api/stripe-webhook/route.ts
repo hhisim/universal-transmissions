@@ -237,6 +237,7 @@ export async function POST(req: NextRequest) {
         /^[a-z]{3}$/.test(paidCurrency);
 
       let orderNote = "";
+      let dbWriteFailed = false;
       if (!paidTotalsValid) {
         orderNote = "❌ Paid event without a verifiable total — NO paid record written";
         console.error(
@@ -275,6 +276,7 @@ export async function POST(req: NextRequest) {
         if (error) {
           console.error("Failed to update order status:", error);
           orderNote = "❌ UT DB update failed";
+          dbWriteFailed = true;
         } else {
           const utRowsWritten = updated?.length ?? 0;
           if (utRowsWritten > 0) {
@@ -288,6 +290,7 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("Supabase update failed:", err);
         orderNote = "❌ UT DB update failed";
+        dbWriteFailed = true;
       }
       }
 
@@ -304,6 +307,16 @@ export async function POST(req: NextRequest) {
         `Time: ${ts}\n` +
         `${orderNote}`
       );
+
+      if (dbWriteFailed) {
+        /* The buyer's payment succeeded; the order did not get stored. Answering 2xx would tell
+           Stripe the delivery is complete, no retry would ever come, and the row would stay pending
+           forever with nobody told. 503 keeps the event retryable. */
+        return NextResponse.json(
+          { received: true, error: "order_store_unavailable", session: session.id },
+          { status: 503 }
+        );
+      }
 
       if (!paidTotalsValid) {
         /* Not a 2xx: Stripe retries failed deliveries, and the row is still `pending`, so a retry
