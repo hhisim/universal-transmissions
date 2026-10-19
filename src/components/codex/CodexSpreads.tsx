@@ -29,9 +29,12 @@ export default function CodexSpreads() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef(0);
   const triggerRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  /** The control that opened the viewer, kept by identity so a re-render cannot orphan it. */
+  const openedFromRef = useRef<HTMLElement | null>(null);
 
   const openPreview = useCallback((index: number) => {
     scrollRef.current = typeof window !== "undefined" ? window.scrollY : 0;
+    openedFromRef.current = (typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null);
     setCurrentIndex(index);
     setOpenIndex(index);
   }, []);
@@ -40,14 +43,17 @@ export default function CodexSpreads() {
     const returnIndex = currentIndex;
     const y = scrollRef.current;
     setOpenIndex(null);
-    /* Restore the place, then the control: the overlay restores focus to whatever opened it, and
-       this makes the scroll restoration explicit rather than incidental. */
-    if (typeof window !== "undefined") {
-      window.requestAnimationFrame(() => {
-        window.scrollTo({ top: y, behavior: "auto" });
-        triggerRefs.current[returnIndex]?.focus({ preventScroll: true });
-      });
-    }
+    if (typeof window === "undefined") return;
+    /* The place first, then the control. Focus is restored a beat after the overlay unmounts, so it
+       lands on the button the visitor used rather than being overtaken by the unmount cleanup. */
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: y, behavior: "auto" });
+    });
+    window.setTimeout(() => {
+      const target = openedFromRef.current;
+      if (target && document.contains(target)) target.focus({ preventScroll: true });
+      else triggerRefs.current[returnIndex]?.focus({ preventScroll: true });
+    }, 80);
   }, [currentIndex]);
 
   const images = CODEX_PREVIEWS.map((p) => p.src);
