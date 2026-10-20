@@ -167,6 +167,8 @@ export default function ResearchGeometryPage({
           </div>
         </section>
 
+        <ResearchDescents topic="geometry" accent="var(--ut-gold)" searchParams={searchParams} />
+
         {/* ── DIVIDER ───────────────────────────────── */}
         <div className="container-ut">
           <div className="divider-spectrum" />
@@ -875,7 +877,6 @@ export default function ResearchGeometryPage({
           </div>
         </section>
 
-        <ResearchDescents topic="geometry" accent="var(--ut-gold)" searchParams={searchParams} />
         <ResearchPathways
           eyebrow="[ From Form into Transmission ]"
           title="Follow Geometry into the Live Work"

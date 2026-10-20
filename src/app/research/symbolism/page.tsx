@@ -111,6 +111,8 @@ export default function ResearchSymbolismPage({
           </div>
         </section>
 
+        <ResearchDescents topic="symbolism" accent="var(--ut-purple)" searchParams={searchParams} />
+
         {/* ── DIVIDER ───────────────────────────────── */}
         <div className="container-ut">
           <div className="divider-spectrum" />
@@ -747,7 +749,6 @@ export default function ResearchSymbolismPage({
           topBorder="rgba(139, 92, 246, 0.06)"
           glowClass="glow-purple"
         />
-        <ResearchDescents topic="symbolism" accent="var(--ut-purple)" searchParams={searchParams} />
         <ResearchPathways
           eyebrow="[ From Symbol into Correspondence ]"
           title="Move from Symbolism into the Engine"

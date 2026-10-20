@@ -105,6 +105,8 @@ export default function ResearchCymaticsPage({
           </div>
         </section>
 
+        <ResearchDescents topic="cymatics" accent="var(--ut-cyan)" searchParams={searchParams} />
+
         {/* ── DIVIDER ───────────────────────────────── */}
         <div className="container-ut">
           <div className="divider-spectrum" />
@@ -503,7 +505,6 @@ export default function ResearchCymaticsPage({
           </div>
         </section>
 
-        <ResearchDescents topic="cymatics" accent="var(--ut-cyan)" searchParams={searchParams} />
         <ResearchPathways
           eyebrow="[ From Frequency into Experience ]"
           title="Take Cymatics into the Live Instruments"

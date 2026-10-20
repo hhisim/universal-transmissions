@@ -105,6 +105,8 @@ export default function ResearchLinguisticsPage({
           </div>
         </section>
 
+        <ResearchDescents topic="linguistics" accent="var(--ut-magenta)" searchParams={searchParams} />
+
         {/* ── DIVIDER ───────────────────────────────── */}
         <div className="container-ut">
           <div className="divider-spectrum" />
@@ -534,7 +536,6 @@ export default function ResearchLinguisticsPage({
           topBorder="rgba(224, 64, 251, 0.06)"
           glowClass="glow-magenta"
         />
-        <ResearchDescents topic="linguistics" accent="var(--ut-magenta)" searchParams={searchParams} />
         <ResearchPathways
           eyebrow="[ From Language into Transmission ]"
           title="Follow Xenolinguistics into the Site"
