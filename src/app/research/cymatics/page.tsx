@@ -4,6 +4,7 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import ResearchDescents from "@/components/research/ResearchDescents";
 import CymaticsConnections from "@/components/research/CymaticsConnections";
 import ResearchOraclePortal from "@/components/research/ResearchOraclePortal";
 import { CYMATICS_CONNECTIONS } from "@/lib/research-connections";
@@ -28,7 +29,11 @@ const frequencyData = [
   { freq: "963 Hz", note: "Crown · Pure Tone", color: "var(--ut-gold)" },
 ];
 
-export default function ResearchCymaticsPage() {
+export default function ResearchCymaticsPage({
+  searchParams,
+}: {
+  searchParams?: { path?: string; stop?: string };
+}) {
   /* Resolved here, on the server, from the authoritative registry. This page holds a
      fixed stable identifier; nothing descriptive ever arrives from the URL. */
   const cymaticsTopic = resolveResearchTopic(researchTopicId("cymatics"));
@@ -498,6 +503,7 @@ export default function ResearchCymaticsPage() {
           </div>
         </section>
 
+        <ResearchDescents topic="cymatics" accent="var(--ut-cyan)" searchParams={searchParams} />
         <ResearchPathways
           eyebrow="[ From Frequency into Experience ]"
           title="Take Cymatics into the Live Instruments"

@@ -247,8 +247,9 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
                   </Link>
                   {/* leaving for ordinary exploration, without losing your place */}
                   <Link
-                    href={stop.href}
+                    href={`${stop.href}${stop.href.includes("?") ? "&" : "?"}path=${path.slug}&stop=${stop.number}`}
                     data-path-destination={stop.anchor ?? "room"}
+                    data-path-context={`${path.slug}:${stop.number}`}
                     className="font-mono text-[10px] tracking-[0.2em] uppercase focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
                     style={{ color: "var(--ut-white-dim)", opacity: 0.85 }}
                   >

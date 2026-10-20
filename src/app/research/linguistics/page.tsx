@@ -4,6 +4,7 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import ResearchDescents from "@/components/research/ResearchDescents";
 import ResearchConnections from "@/components/research/ResearchConnections";
 import { LINGUISTICS_CONNECTIONS, LINGUISTICS_GAPS } from "@/lib/research-connections";
 
@@ -39,7 +40,11 @@ const linguisticsConcepts = [
 
 export const dynamic = 'force-dynamic';
 
-export default function ResearchLinguisticsPage() {
+export default function ResearchLinguisticsPage({
+  searchParams,
+}: {
+  searchParams?: { path?: string; stop?: string };
+}) {
   return (
     <>
       <PageBackground variant="xenolinguistics" />
@@ -529,6 +534,7 @@ export default function ResearchLinguisticsPage() {
           topBorder="rgba(224, 64, 251, 0.06)"
           glowClass="glow-magenta"
         />
+        <ResearchDescents topic="linguistics" accent="var(--ut-magenta)" searchParams={searchParams} />
         <ResearchPathways
           eyebrow="[ From Language into Transmission ]"
           title="Follow Xenolinguistics into the Site"

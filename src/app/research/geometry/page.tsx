@@ -5,6 +5,7 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
+import ResearchDescents from "@/components/research/ResearchDescents";
 import ResearchConnections from "@/components/research/ResearchConnections";
 import { GEOMETRY_CONNECTIONS, GEOMETRY_GAPS } from "@/lib/research-connections";
 import { resolveResearchTopic, researchTopicId } from "@/lib/research-topics";
@@ -97,7 +98,11 @@ const chakraResonances = [
   { chakra: "Crown", tone: "B · 480 Hz", form: "Dodecahedron / the whole", element: "Aether", color: "var(--ut-white)" },
 ];
 
-export default function ResearchGeometryPage() {
+export default function ResearchGeometryPage({
+  searchParams,
+}: {
+  searchParams?: { path?: string; stop?: string };
+}) {
   // Resolved server-side from the registry, so the page and the Oracle grounding
   // read the SAME record: the streams below and the references cited with them
   // cannot drift apart from what a selected Geometry anchor is given.
@@ -870,6 +875,7 @@ export default function ResearchGeometryPage() {
           </div>
         </section>
 
+        <ResearchDescents topic="geometry" accent="var(--ut-gold)" searchParams={searchParams} />
         <ResearchPathways
           eyebrow="[ From Form into Transmission ]"
           title="Follow Geometry into the Live Work"
