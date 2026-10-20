@@ -1199,7 +1199,25 @@ body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(rgba(212,168,71,0.47), rgba(217,70,239,0.6), rgba(34,211,238,0.47));
   margin: 25px 0;
 }
-.lg-reading { color: var(--ut-white); }
+.lg-reading {
+  position: relative;
+  color: var(--ut-white);
+  background: color-mix(in srgb, var(--lg-reading) 95%, transparent);
+  border: 1px solid var(--lg-reading-edge);
+  padding: clamp(1.1rem, 3vw, 2rem) clamp(1.1rem, 3.4vw, 2.4rem);
+}
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  .lg-reading { background: #110f1a; }
+}
+.lg-reading::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(217, 70, 239, 0.45), rgba(34, 211, 238, 0.28));
+  opacity: 0.75;
+  pointer-events: none;
+}
 .lg-reading p { color: var(--lg-muted); }
 
 /* Essential text stays essential: no email-era opacity on the web. */
