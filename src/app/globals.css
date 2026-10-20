@@ -1103,6 +1103,9 @@ body::-webkit-scrollbar-thumb:hover {
   position: relative;
 }
 .ut-hero.lg-hero .ut-hero-copy { padding: 14px 0 24px; min-width: 0; }
+/* The study reads copy first, artefact second — keep that order in the grid. */
+.ut-hero.lg-hero > .ut-hero-copy { order: 1; }
+.ut-hero.lg-hero > .lg-transmission { order: 2; }
 .ut-hero.lg-hero .ut-hero-emblem { min-width: 0; }
 
 /* — Actions: border only, label left, marker right, glow on approach — */
