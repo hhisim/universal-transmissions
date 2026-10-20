@@ -122,14 +122,7 @@ export default function ResearchGeometryPage({
             }}
           />
           <div className="container-ut relative">
-            <SectionReveal>
-              <p
-                className="font-mono text-[9px] tracking-[0.5em] uppercase mb-4"
-                style={{ color: "var(--ut-gold)", opacity: 0.5 }}
-              >
-                [ Research — Form & Proportion ]
-              </p>
-            </SectionReveal>
+            
 
             <SectionReveal delay={0.1}>
               <h1
@@ -140,7 +133,27 @@ export default function ResearchGeometryPage({
               </h1>
             </SectionReveal>
 
-            <SectionReveal delay={0.2}>
+                        <div className="lg-reading-columns">
+              <aside className="lg-marginalia" aria-label="Geometry context and registered navigation">
+                <span className="lg-margin-spectrum" aria-hidden="true" />
+                <p className="font-mono text-[9px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-gold)" }}>
+                  [ Research — Form & Proportion ]
+                </p>
+                <nav className="flex flex-col gap-2 mt-3" aria-label="Registered connections">
+                  {GEOMETRY_CONNECTIONS.slice(0, 3).map((c) => (
+                    <a
+                      key={c.anchorSlug}
+                      href={c.href}
+                      className="font-mono text-[10px] leading-relaxed tracking-[0.12em] uppercase no-underline hover:underline"
+                      style={{ color: "var(--ut-white-dim)" }}
+                    >
+                      {c.title}
+                    </a>
+                  ))}
+                </nav>
+              </aside>
+              <div>
+<SectionReveal delay={0.2}>
               <blockquote
                 className="font-display text-lg md:text-xl max-w-2xl mb-8 lg-reading"
                 style={{ color: "var(--ut-gold)" }}
@@ -164,6 +177,8 @@ export default function ResearchGeometryPage({
                 geometry is encoded into the visual language of Universal Transmissions.
               </p>
             </SectionReveal>
+              </div>
+            </div>
           </div>
         </section>
 
