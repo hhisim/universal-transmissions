@@ -154,7 +154,7 @@ export default function HomePage() {
           <div className="ut-hero-emblem" aria-hidden="true">
             <LogoHero />
           </div>
-          <div className="ut-hero-copy lg-margin">
+          <div className="ut-hero-copy lg-margin lg-illuminated">
             <h1
               className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
               style={{ color: "var(--ut-white)" }}

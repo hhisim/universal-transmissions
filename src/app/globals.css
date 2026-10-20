@@ -1189,3 +1189,23 @@ body::-webkit-scrollbar-thumb:hover {
 @media (prefers-reduced-motion: reduce) {
   .lg-action { transition: none; }
 }
+
+/* — Illuminated opening: a drawn frame with gold hairlines, for centred compositions — */
+.lg-illuminated {
+  position: relative;
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+.lg-illuminated::before,
+.lg-illuminated::after {
+  content: "";
+  position: absolute;
+  left: clamp(0.75rem, 6vw, 5rem);
+  right: clamp(0.75rem, 6vw, 5rem);
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(212, 168, 71, 0.62) 26%, rgba(237, 233, 246, 0.22) 50%, rgba(212, 168, 71, 0.62) 74%, transparent);
+  box-shadow: 0 0 12px rgba(212, 168, 71, 0.10);
+}
+.lg-illuminated::before { top: 0; }
+.lg-illuminated::after { bottom: 0; }
