@@ -1227,3 +1227,35 @@ body::-webkit-scrollbar-thumb:hover {
   .lg-book-object img { transform: none !important; }
   .lg-book-object:hover img { transform: none !important; }
 }
+
+/* — Featured transmission: the study's framed plate with registration marks — */
+.lg-transmission { position: relative; margin: 0; padding: 0; }
+.lg-transmission-frame {
+  position: relative;
+  border: 1px solid rgba(147, 51, 234, 0.42);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.14), 0 22px 60px rgba(0, 0, 0, 0.55);
+  background: #050507;
+}
+.lg-transmission-frame img { display: block; width: 100%; height: auto; }
+.lg-transmission-mark {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(212, 168, 71, 0.6);
+  pointer-events: none;
+}
+.lg-transmission-mark--tl { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
+.lg-transmission-mark--tr { top: -1px; right: -1px; border-top: 1px solid; border-right: 1px solid; }
+.lg-transmission-mark--bl { bottom: -1px; left: -1px; border-bottom: 1px solid; border-left: 1px solid; }
+.lg-transmission-mark--br { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
+.lg-transmission figcaption { text-align: center; padding: 18px 10px 0; }
+.lg-transmission figcaption .lg-kicker { color: var(--ut-gold); }
+.lg-transmission-title {
+  font-family: "Cinzel Decorative", serif;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  letter-spacing: 0.08em;
+  color: var(--ut-white);
+  margin: 10px 0 4px;
+}
+.lg-transmission-medium { font-style: italic; color: var(--lg-muted); font-size: 0.95rem; }
+.lg-transmission-meta { margin-top: 10px; color: var(--lg-dim); }

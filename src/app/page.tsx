@@ -121,6 +121,8 @@ function buildThread() {
   return { entry, work, descents };
 }
 
+const featuredTransmission = artworks.find((a) => a.slug === "vitruvian-spirit") ?? artworks[0];
+
 export default function HomePage() {
   const firstPath = GUIDED_PATHS[0];
   const openingStop = firstPath?.stops[0];
@@ -152,9 +154,28 @@ export default function HomePage() {
         {/* ── HERO — the threshold ─────────────────────── */}
         <section className="ut-hero lg-hero">
           <span className="lg-spectral-edge" aria-hidden="true" />
-          <div className="ut-hero-emblem" aria-hidden="true">
-            <LogoHero />
-          </div>
+          <figure className="lg-transmission">
+            <div className="lg-transmission-frame">
+              <Image
+                src={featuredTransmission.images[0]}
+                alt={featuredTransmission.title}
+                width={0}
+                height={0}
+                sizes="(max-width: 760px) 92vw, (max-width: 1100px) 46vw, 640px"
+                style={{ width: "100%", height: "auto" }}
+              />
+              <span className="lg-transmission-mark lg-transmission-mark--tl" aria-hidden="true" />
+              <span className="lg-transmission-mark lg-transmission-mark--tr" aria-hidden="true" />
+              <span className="lg-transmission-mark lg-transmission-mark--bl" aria-hidden="true" />
+              <span className="lg-transmission-mark lg-transmission-mark--br" aria-hidden="true" />
+            </div>
+            <figcaption>
+              <p className="lg-kicker font-mono text-[9px] tracking-[0.3em] uppercase">[ Transmission ]</p>
+              <p className="lg-transmission-title">{featuredTransmission.title}</p>
+              <p className="lg-transmission-medium">{featuredTransmission.medium}</p>
+              <p className="lg-transmission-meta lg-meta">{featuredTransmission.year} · {featuredTransmission.slug}</p>
+            </figcaption>
+          </figure>
           <div className="ut-hero-copy lg-margin lg-illuminated">
             <h1
               className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
