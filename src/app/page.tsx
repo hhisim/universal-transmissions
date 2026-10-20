@@ -150,7 +150,8 @@ export default function HomePage() {
         </div>
 
         {/* ── HERO — the threshold ─────────────────────── */}
-        <section className="ut-hero">
+        <section className="ut-hero lg-hero">
+          <span className="lg-spectral-edge" aria-hidden="true" />
           <div className="ut-hero-emblem" aria-hidden="true">
             <LogoHero />
           </div>
@@ -165,9 +166,11 @@ export default function HomePage() {
             <div className="ut-hero-actions">
               <Link href="/codex" className="lg-action lg-action--gold">
                 DISCOVER THE CODEX
+                <span aria-hidden="true">→</span>
               </Link>
               <Link href="/gallery" className="lg-action lg-action--magenta">
                 ENTER THE GALLERY
+                <span aria-hidden="true">→</span>
               </Link>
             </div>
             <p className="ut-hero-secondary">
@@ -210,7 +213,8 @@ export default function HomePage() {
           <div className="container-ut">
             <div className="ut-book-grid">
               <div className="ut-book-plates">
-                <span className="ut-book-plate ut-book-cover">
+                <span className="ut-book-plate ut-book-cover lg-book-object">
+                  <span className="lg-book-halo" aria-hidden="true" />
                   <Image
                     src="/codex/book/vol1-cover.jpg"
                     alt="Universal Transmissions Codex Vol.1 — the cover"

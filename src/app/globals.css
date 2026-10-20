@@ -1043,169 +1043,187 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* ============================================================
    THE LIVING GRIMOIRE — shared visual language (Batch 42)
-   One layer of reusable primitives. It does not replace the
-   existing system; it gives it composition, surface and material.
-   Sharp corners only. No fills on actions. No new dependency.
+   Translated from the approved study (The-Living-Grimoire.html).
+   Class names are the application's; the composition, proportion
+   and material character are the study's. Sharp corners only.
    ============================================================ */
 
 :root {
-  /* Illumination: the light the page is read by. */
   --lg-illum: rgba(212, 168, 71, 0.20);
   --lg-illum-soft: rgba(212, 168, 71, 0.07);
-  --lg-rule: rgba(237, 233, 246, 0.10);
+  --lg-rule: #302336;
   --lg-rule-faint: rgba(237, 233, 246, 0.05);
   --lg-reading: #110f1a;
   --lg-reading-edge: rgba(237, 233, 246, 0.09);
   --lg-codex-surface: #0c0906;
   --lg-codex-edge: rgba(212, 168, 71, 0.28);
+  --lg-muted: #b7adc6;
+  --lg-dim: #92879f;
 }
 
-/* — Spectral rule: the site's one ornament, used sparingly — */
+/* — Spectral edge: the world's boundary, drawn into the opening — */
+.lg-spectral-edge {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 1px 0 rgba(217, 70, 239, 0.53), inset -1px 0 rgba(34, 211, 238, 0.47);
+  pointer-events: none;
+}
+
+/* — Spectral rule, carrying one ornament — */
 .lg-spectrum-rule {
+  position: relative;
   height: 1px;
   border: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(217, 70, 239, 0.55) 22%, rgba(212, 168, 71, 0.5) 50%, rgba(34, 211, 238, 0.5) 78%, transparent 100%);
-  opacity: 0.55;
+  margin: 0 35px;
+  background: linear-gradient(90deg, transparent, rgba(217,70,239,0.4) 22%, rgba(147,51,234,0.6) 38%, rgba(212,168,71,0.8) 50%, rgba(34,211,238,0.47) 78%, transparent);
 }
-
-/* — Illuminated margin: content inset from the atmosphere, not boxed by it — */
-.lg-margin {
-  position: relative;
-  padding-left: clamp(1.25rem, 5vw, 4.5rem);
-  padding-right: clamp(1.25rem, 5vw, 4.5rem);
-}
-.lg-margin::before {
-  content: "";
+.lg-spectrum-rule > span {
   position: absolute;
-  left: clamp(0.5rem, 2.2vw, 1.75rem);
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, var(--lg-illum) 18%, var(--lg-rule-faint) 60%, transparent);
-  pointer-events: none;
-}
-@media (max-width: 640px) {
-  .lg-margin::before { display: none; }
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font: 22px/1 "Cormorant Garamond", serif;
+  padding: 0 14px;
+  background: var(--ut-black);
+  color: var(--ut-gold);
 }
 
-/* — Reading surface: where prose lives, so the scene plays around it — */
-.lg-reading {
-  position: relative;
-  background: color-mix(in srgb, var(--lg-reading) 88%, transparent);
-  border: 1px solid var(--lg-reading-edge);
-  padding: clamp(1.1rem, 3vw, 2rem) clamp(1.1rem, 3.4vw, 2.4rem);
-}
-@supports not (background: color-mix(in srgb, red 50%, transparent)) {
-  .lg-reading { background: #110f1a; }
-}
-.lg-reading::after {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 2px;
-  background: linear-gradient(180deg, rgba(217, 70, 239, 0.45), rgba(34, 211, 238, 0.28));
-  opacity: 0.75;
-  pointer-events: none;
-}
-
-/* — Illuminated plate: a real artwork at its own proportions — */
-.lg-plate {
-  position: relative;
-  display: block;
-  border: 1px solid var(--lg-illum-soft);
-  background: #050507;
-}
-.lg-plate img {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-/* Corner illumination — drawn, not imaged. */
-.lg-plate::before,
-.lg-plate::after {
-  content: "";
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-  border-color: var(--lg-illum);
-}
-.lg-plate::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
-.lg-plate::after { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
-
-/* — The Codex register: warmer ground, same family — */
-.lg-codex {
+/* — The opening: copy and artefact side by side — */
+.ut-hero.lg-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.07fr;
+  gap: 12px;
+  padding: 76px 48px 45px 60px;
+  align-items: center;
+  overflow: clip;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(212, 168, 71, 0.10) 0%, transparent 62%),
-    var(--lg-codex-surface);
-  border-top: 1px solid var(--lg-codex-edge);
-  border-bottom: 1px solid rgba(212, 168, 71, 0.16);
+    radial-gradient(ellipse at 78% 50%, rgba(66, 16, 77, 0.2), transparent 62%),
+    radial-gradient(ellipse at 65% 22%, rgba(23, 65, 78, 0.13), transparent 50%),
+    #09080e;
+  position: relative;
 }
-.lg-codex .lg-plate { border-color: var(--lg-codex-edge); }
-.lg-codex .lg-plate::before,
-.lg-codex .lg-plate::after { border-color: rgba(212, 168, 71, 0.5); }
+.ut-hero.lg-hero .ut-hero-copy { padding: 14px 0 24px; min-width: 0; }
+.ut-hero.lg-hero .ut-hero-emblem { min-width: 0; }
 
-/* — Actions: sharp outlines, no fill, one accent each — */
+/* — Actions: border only, label left, marker right, glow on approach — */
 .lg-action {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 19px;
   min-height: 48px;
-  padding: 0.85rem 2rem;
-  border: 1px solid currentColor;
   background: transparent;
-  font-family: "Cinzel", serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.2em;
+  border: 1px solid rgba(217, 70, 239, 0.53);
+  color: #efa1f8;
+  font: 10px/1.7 "Cinzel", serif;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  line-height: 1.2;
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+  border-radius: 0;
+  transition: background 0.22s, border-color 0.22s, box-shadow 0.22s;
 }
 .lg-action:hover,
 .lg-action:focus-visible {
-  background: color-mix(in srgb, currentColor 9%, transparent);
+  background: rgba(217, 70, 239, 0.05);
+  border-color: var(--ut-magenta);
+  box-shadow: 0 0 24px rgba(217, 70, 239, 0.07);
 }
-@supports not (background: color-mix(in srgb, red 50%, transparent)) {
-  .lg-action:hover, .lg-action:focus-visible { background: rgba(237, 233, 246, 0.06); }
+.lg-action--magenta { border-color: rgba(217,70,239,0.53); color: #efa1f8; }
+.lg-action--gold { border-color: rgba(212,168,71,0.53); color: #e6c47f; }
+.lg-action--gold:hover, .lg-action--gold:focus-visible {
+  background: rgba(212,168,71,0.05); border-color: var(--ut-gold); box-shadow: 0 0 24px rgba(212,168,71,0.07);
 }
-.lg-action--magenta { color: #d946ef; border-color: rgba(217, 70, 239, 0.55); }
-.lg-action--gold    { color: #d4a847; border-color: rgba(212, 168, 71, 0.55); }
-.lg-action--cyan    { color: #22d3ee; border-color: rgba(34, 211, 238, 0.5); }
+.lg-action--cyan { border-color: rgba(34,211,238,0.53); color: var(--ut-cyan); }
 
-/* — Subordinate metadata — */
+/* — The book as an object, not a thumbnail — */
+.lg-book-object {
+  position: relative;
+  isolation: isolate;
+  perspective: 1200px;
+  padding: 15px 30px 0;
+}
+.lg-book-object img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-left: 6px solid #3b3021;
+  box-shadow: -14px 18px 30px rgba(0,0,0,0.73), 2px 0 1px rgba(212,168,71,0.53);
+  transform: rotateY(14deg) rotateZ(-4deg);
+  transition: transform 0.5s;
+}
+.lg-book-object:hover img { transform: rotateY(0deg) rotateZ(0deg); }
+.lg-book-halo {
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(212, 168, 71, 0.15);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+/* — The Codex register: warmer ground, cream title — */
+.lg-codex {
+  background:
+    radial-gradient(ellipse at 60% 30%, rgba(80, 55, 16, 0.13), transparent 65%),
+    var(--lg-codex-surface);
+  color: var(--ut-cream-page, #f5e6c8);
+  border-top: 1px solid var(--lg-codex-edge);
+  border-bottom: 1px solid rgba(212, 168, 71, 0.18);
+}
+.lg-codex .ut-gradient-text,
+.lg-codex .lg-cream-title {
+  background: linear-gradient(135deg, #f0d49a, #d4a847 45%, #f5e6c8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* — Reading columns: marginalia beside the text, not a box around it — */
+.lg-reading-columns {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 35px;
+}
+.lg-marginalia { padding-top: 32px; font-size: 18px; min-width: 0; }
+.lg-marginalia p { padding-top: 12px; color: #ddd1ea; font-style: italic; }
+.lg-margin-glyph {
+  font: 70px/1.5 "Cinzel", serif;
+  color: rgba(34, 211, 238, 0.53);
+  display: block;
+}
+.lg-margin-spectrum {
+  height: 60px;
+  width: 1px;
+  background: linear-gradient(rgba(212,168,71,0.47), rgba(217,70,239,0.6), rgba(34,211,238,0.47));
+  margin: 25px 0;
+}
+.lg-reading { color: var(--ut-white); }
+.lg-reading p { color: var(--lg-muted); }
+
+/* Essential text stays essential: no email-era opacity on the web. */
 .lg-meta {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.62rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ut-white-faint);
+  color: var(--lg-dim);
 }
 
-/* Essential text stays essential: no email-era opacity on the web. */
-.lg-reading, .lg-margin { color: var(--ut-white); }
-.lg-reading p { color: var(--ut-white-dim); }
+@media (max-width: 1100px) {
+  .ut-hero.lg-hero { grid-template-columns: 1fr 1fr; padding-left: 42px; padding-right: 28px; gap: 20px; }
+  .lg-reading-columns { grid-template-columns: 150px 1fr; gap: 24px; }
+}
+@media (max-width: 760px) {
+  .ut-hero.lg-hero { grid-template-columns: 1fr; gap: 12px; padding: 38px 25px 36px 30px; }
+  .ut-hero.lg-hero .ut-hero-copy { padding: 8px 0; }
+  .lg-action { font-size: 9px; padding: 14px; gap: 12px; }
+  .lg-reading-columns { grid-template-columns: 1fr; gap: 25px; }
+  .lg-marginalia { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; padding-top: 0; }
+  .lg-marginalia p { padding-top: 0; }
+  .lg-margin-glyph, .lg-margin-spectrum { display: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .lg-action { transition: none; }
+  .lg-book-object img { transform: none !important; }
+  .lg-book-object:hover img { transform: none !important; }
 }
-
-/* — Illuminated opening: a drawn frame with gold hairlines, for centred compositions — */
-.lg-illuminated {
-  position: relative;
-  padding-top: clamp(1.5rem, 3vw, 2.5rem);
-  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
-}
-.lg-illuminated::before,
-.lg-illuminated::after {
-  content: "";
-  position: absolute;
-  left: clamp(0.75rem, 6vw, 5rem);
-  right: clamp(0.75rem, 6vw, 5rem);
-  height: 1px;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(212, 168, 71, 0.62) 26%, rgba(237, 233, 246, 0.22) 50%, rgba(212, 168, 71, 0.62) 74%, transparent);
-  box-shadow: 0 0 12px rgba(212, 168, 71, 0.10);
-}
-.lg-illuminated::before { top: 0; }
-.lg-illuminated::after { bottom: 0; }
