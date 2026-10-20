@@ -8,6 +8,7 @@ import ArtworkHero from "@/components/gallery/ArtworkHero";
 import ProgressiveDetailExplorer from "@/components/gallery/ProgressiveDetailExplorer";
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import ReturnToBrowse from "@/components/gallery/ReturnToBrowse";
+import DescentReturn from "@/components/research/DescentReturn";
 import PageBackground from "@/components/scenes/PageBackground";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 import { ARTWORK_CONNECTION_GAPS, connectionsForArtwork } from "@/lib/artwork-connections";
@@ -33,6 +34,7 @@ const PILOT_INITIAL_DETAIL_INDICES = [1, 2, 3, 35, 37, 38];
 
 interface Props {
   params: { slug: string };
+  searchParams?: { path?: string; stop?: string };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -67,7 +69,7 @@ export function generateStaticParams() {
   return artworks.map((a) => ({ slug: a.slug }));
 }
 
-export default function ArtworkDetailPage({ params }: Props) {
+export default function ArtworkDetailPage({ params, searchParams }: Props) {
   const artwork = getArtwork(params.slug);
   if (!artwork) notFound();
 
@@ -97,6 +99,12 @@ export default function ArtworkDetailPage({ params }: Props) {
         </div>
 
         {/* ── MAIN ARTWORK ─────────────────────────────── */}
+        <DescentReturn
+          recordPath={`/gallery/${artwork.slug}`}
+          accent="var(--ut-cyan)"
+          searchParams={searchParams}
+        />
+
         <div className="container-ut">
           <SectionReveal>
             {/* Batch 18: the artwork leads. A resized derivative arrives first and the

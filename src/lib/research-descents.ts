@@ -95,6 +95,43 @@ export interface DescentContext {
   href: string;
 }
 
+/** Strip query, fragment and trailing slashes so destinations compare by identity, not by decoration. */
+function normalise(href: string): string {
+  return href.split("#")[0].split("?")[0].replace(/\/+$/, "");
+}
+
+function contextFor(path: GuidedPath, stop: { number: number; topic: string }): DescentContext {
+  return {
+    pathSlug: path.slug,
+    pathTitle: path.title,
+    number: stop.number,
+    total: path.stops.length,
+    href: stopHref(path.slug, stop.number),
+  };
+}
+
+/**
+ * Locate the AUTHORED stop a pair names, with strict parsing and no array-position guessing.
+ * Returns either the stop or the reason it cannot be used. Shared by every arrival check so they
+ * cannot drift apart.
+ */
+function locateStop(
+  path: GuidedPath,
+  params: { stop?: string }
+):
+  | { stop: { number: number; topic: string; href: string; title: string } }
+  | { refused: "malformed-stop" | "out-of-range" | "unavailable-stop" } {
+  const rawStop = params.stop ?? "";
+  /* No trimming: " 1", "1 ", "01", "1.5", "+1", "1garbage" and "" are all malformed here. */
+  if (!/^[1-9]\d*$/.test(rawStop)) return { refused: "malformed-stop" };
+  const requested = Number(rawStop);
+  if (requested > path.stops.length) return { refused: "out-of-range" };
+  const { stops } = resolvePath(path);
+  const stop = stops.find((s) => s.number === requested);
+  if (!stop) return { refused: "unavailable-stop" };
+  return { stop: { number: stop.number, topic: stop.topic, href: stop.href, title: stop.title } };
+}
+
 export interface DescentContextResult {
   /** Present only when the context was proved against the registry AND this room. */
   context: DescentContext | null;
@@ -127,31 +164,38 @@ export function resolveDescentContext(
   /* STRICT: an arrival claim needs a well-formed authored number. `1garbage`, `1.5`, `+1`, ` 1` and a
      missing value are refused rather than coerced — `parseInt` would have read `1garbage` as 1. The
      path page's own selection keeps its lenient behaviour; this is only about claiming an arrival. */
-  const rawStop = params.stop ?? "";
-  const total = path.stops.length;
-  /* No trimming: " 1", "1 ", "01", "1.5", "+1", "1garbage" and "" are all malformed here. The value
-     must be exactly the authored number as written, or no arrival is claimed. */
-  if (!/^[1-9]\d*$/.test(rawStop)) {
-    return { context: null, refused: "malformed-stop" };
+  const found = locateStop(path, params);
+  if ("refused" in found) return { context: null, refused: found.refused };
+
+  /* A stop that belongs to this room but opens another record did not bring the visitor here. */
+  if (!opensRoom(found.stop.href, topic)) return { context: null, refused: "other-record" };
+
+  return { context: contextFor(path, found.stop) };
+}
+
+/**
+ * Prove an inbound `?path=&stop=` pair against the registry for ANY served record: a Journal article,
+ * an artwork, a room. The stop's resolved destination must be exactly the record being served.
+ *
+ * Batch 40: following a record should preserve the visitor's place. Stops 2 and 3 of "Sound into Form"
+ * open a Journal piece and an artwork; both used to receive the context and show nothing.
+ */
+export function resolveRecordArrival(
+  recordPath: string,
+  params: { path?: string; stop?: string }
+): DescentContextResult {
+  const rawPath = (params.path ?? "").trim();
+  if (!rawPath) return { context: null };
+
+  const path = findGuidedPath(rawPath);
+  if (!path) return { context: null, refused: "unknown-path" };
+
+  const found = locateStop(path, params);
+  if ("refused" in found) return { context: null, refused: found.refused };
+
+  /* Compare normalised destinations: the stop must open THIS record, not merely a same-shaped one. */
+  if (normalise(found.stop.href) !== normalise(recordPath)) {
+    return { context: null, refused: "other-record" };
   }
-  const requested = Number(rawStop);
-  if (requested > total) return { context: null, refused: "out-of-range" };
-
-  const { stops } = resolvePath(path);
-  /* Authored number, not array position — the same rule the path page itself follows. */
-  const stop = stops.find((s) => s.number === requested);
-  if (!stop) return { context: null, refused: "unavailable-stop" };
-  /* The same destination check as the visit list: a stop that belongs to this room but opens another
-     record did not bring the visitor here, so no arrival may be claimed. */
-  if (!opensRoom(stop.href, topic)) return { context: null, refused: "other-record" };
-
-  return {
-    context: {
-      pathSlug: path.slug,
-      pathTitle: path.title,
-      number: stop.number,
-      total,
-      href: stopHref(path.slug, stop.number),
-    },
-  };
+  return { context: contextFor(path, found.stop) };
 }

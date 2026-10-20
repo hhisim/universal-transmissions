@@ -1,6 +1,7 @@
 import { blogPosts, getPostBySlug, getRelatedPosts } from "@/data/blog-posts";
 import type { Metadata } from "next";
 import PostClient from "./PostClient";
+import DescentReturn from "@/components/research/DescentReturn";
 import {
   absoluteUrl,
   DEFAULT_OG_IMAGE,
@@ -14,6 +15,7 @@ export const revalidate = 300;
 
 interface Props {
   params: { slug: string };
+  searchParams?: { path?: string; stop?: string };
 }
 
 export async function generateStaticParams() {
@@ -55,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function PostPage({ params }: Props) {
+export default function PostPage({ params, searchParams }: Props) {
   const post = getPostBySlug(params.slug);
   if (!post) return <PostClient slug={params.slug} />;
   const imageUrl = absoluteUrl(post.heroImage || DEFAULT_OG_IMAGE);
@@ -84,6 +86,11 @@ export default function PostPage({ params }: Props) {
             },
           }),
         }}
+      />
+      <DescentReturn
+        recordPath={`/journal/${post.slug}`}
+        accent="var(--ut-gold)"
+        searchParams={searchParams}
       />
       <PostClient slug={params.slug} />
     </>
