@@ -505,7 +505,8 @@ export default function Navigation() {
 
         {/* Mobile toggle */}
         <button
-          className="lg:hidden p-2"
+          className="lg:hidden grid place-items-center"
+          style={{ minWidth: 44, minHeight: 44 }}
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}

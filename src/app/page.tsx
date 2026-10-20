@@ -145,7 +145,7 @@ export default function HomePage() {
       <main style={{ background: "var(--ut-black)" }}>
         <div style={{ paddingTop: 2, paddingBottom: 2, textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "var(--ut-black)", backdropFilter: "blur(10px)" }}>
           <p style={{ margin: 0, fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.28em", textTransform: "uppercase", color: "#f5e9ff", opacity: 0.82, animation: "utPortalRespectShift 8s linear infinite" }}>
-            This website is an experience portal — put down your mobile device and engage with respect.
+            Signal mode — the portal, tuned for the phone in your hand. Fast. Readable. Still strange. The Codex, the Gallery and the records are a touch away.
           </p>
         </div>
 
