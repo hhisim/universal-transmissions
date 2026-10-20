@@ -66,6 +66,12 @@ console.log("\n  2. the touch floor on the menu toggle");
   ok(/aria-expanded=\{mobileOpen\}/.test(nav), "the toggle still reports its expanded state");
   ok(/aria-label=\{mobileOpen \? "Close menu" : "Open menu"\}/.test(nav), "the toggle still has a spoken name for each state");
   ok(!/className="lg:hidden p-2"/.test(nav), "the old 36px padding-only toggle is gone");
+  const floorCount = (nav.match(/minHeight: 44/g) || []).length;
+  ok(floorCount >= 4, "the menu's secondary links carry the same 44px floor (" + floorCount + " declarations)");
+  ok(/href="\/sanctum\/member" className="nav-constellation" style=\{\{ minHeight: 44/.test(nav),
+    "Member Portal in the mobile menu meets the touch floor");
+  ok(/vaultofarcana\.com"[^>]*minHeight: 44/.test(nav) && /hakanhisim\.net"[^>]*minHeight: 44/.test(nav),
+    "both external links in the mobile menu meet the touch floor");
 }
 
 console.log("\n  3. what must not change");

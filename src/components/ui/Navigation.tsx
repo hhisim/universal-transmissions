@@ -545,11 +545,11 @@ export default function Navigation() {
               )}
 
               <li className="border-t border-white/10 pt-4 mt-2 flex flex-col gap-3">
-                <Link href="/sanctum/member" className="nav-constellation">Member Portal</Link>
-                <a href="https://vaultofarcana.com" target="_blank" rel="noopener noreferrer" className="nav-constellation">
+                <Link href="/sanctum/member" className="nav-constellation" style={{ minHeight: 44, alignItems: "center" }}>Member Portal</Link>
+                <a href="https://vaultofarcana.com" target="_blank" rel="noopener noreferrer" className="nav-constellation" style={{ minHeight: 44, alignItems: "center" }}>
                   Vault of Arcana ↗
                 </a>
-                <a href="https://hakanhisim.net" target="_blank" rel="noopener noreferrer" className="nav-constellation">
+                <a href="https://hakanhisim.net" target="_blank" rel="noopener noreferrer" className="nav-constellation" style={{ minHeight: 44, alignItems: "center" }}>
                   Hakan Hisim ↗
                 </a>
               </li>
