@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { burstPlan, corrupt, shouldBurst, type GlyphIntensity } from "@/lib/glyph-burst";
+import { burstPlan, corrupt, type GlyphIntensity } from "@/lib/glyph-burst";
+import { startBurst, windowScheduler } from "@/lib/glyph-burst-runner";
 
 /* ────────────────────────────────────────────────────────────
    ZalgoText — the site's only glyph typography system.
@@ -46,68 +47,46 @@ export default function ZalgoText({
 
   useEffect(() => {
     if (mode !== "burst" || playedRef.current) return;
-
-    const reducedMotion =
-      typeof window !== "undefined" && typeof window.matchMedia === "function"
-        ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        : false;
-
-    if (
-      !shouldBurst({
-        reducedMotion,
-        hidden: typeof document !== "undefined" && document.visibilityState === "hidden",
-        alreadyPlayed: false,
-      })
-    ) {
-      return;
-    }
-
     playedRef.current = true;
-    const plan = burstPlan(intensity);
-    let index = 0;
-    let timer: number | undefined;
-    let cancelled = false;
 
-    const step = () => {
-      if (cancelled) return;
-      /* If the tab goes away mid-burst the title resolves at once, so it is never caught
-         mid-distortion when the visitor returns. */
-      if (document.visibilityState === "hidden" || index >= plan.length) {
-        setPhase(null);
-        return;
-      }
-      const current = plan[index];
-      setPhase(current.intensity);
-      index += 1;
-      timer = window.setTimeout(step, current.ms);
-    };
+    let disposed = false;
+    const mql =
+      typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
 
-    /* The burst must not begin while React is still hydrating siblings: adding a node inside the
-       heading mid-hydration is read as a server/client text mismatch. Waiting for the page to go
-       idle means the decoration appears only after the whole tree has settled. */
-    let startHandle: number | undefined;
-    const scheduleStart = () => {
-      if (cancelled) return;
-      const idle = (window as unknown as {
-        requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
-      }).requestIdleCallback;
-      if (typeof idle === "function") {
-        startHandle = idle(() => step(), { timeout: 1200 });
-      } else {
-        startHandle = window.setTimeout(() => step(), 200);
-      }
-    };
-    scheduleStart();
+    const runner = startBurst({
+      plan: burstPlan(intensity),
+      scheduler: windowScheduler(window),
+      environment: {
+        /* Read live, not sampled once: the runner re-checks these at playback start and on every
+           step, so a preference or visibility change that arrives later still stops the sequence. */
+        isReducedMotion: () => (mql ? mql.matches : false),
+        isHidden: () => document.visibilityState === "hidden",
+      },
+      onPhase: (next) => {
+        if (!disposed) setPhase(next);
+      },
+    });
 
+    /* Both of these call the same cancellation path, which settles the title, clears the pending
+       idle callback and timer, and forbids any later phase. Clearing the displayed phase alone was
+       the bug: the scheduled sequence survived and the next phase reappeared. */
     const onVisibility = () => {
-      if (document.visibilityState === "hidden") setPhase(null);
+      if (document.visibilityState === "hidden") runner.cancel();
     };
+    const onPreference = () => {
+      if (mql && mql.matches) runner.cancel();
+    };
+
     document.addEventListener("visibilitychange", onVisibility);
+    if (mql && typeof mql.addEventListener === "function") mql.addEventListener("change", onPreference);
 
     return () => {
-      cancelled = true;
-      if (timer !== undefined) window.clearTimeout(timer);
+      disposed = true;
+      runner.cancel();
       document.removeEventListener("visibilitychange", onVisibility);
+      if (mql && typeof mql.removeEventListener === "function") mql.removeEventListener("change", onPreference);
     };
   }, [mode, intensity]);
 
@@ -117,11 +96,13 @@ export default function ZalgoText({
       <span
         className={`ut-title-burst ${className}`.trim()}
         data-glyph-burst={active ? "active" : "settled"}
-        style={{ position: "relative", display: "inline-block" }}
+        style={{ position: "relative" }}
       >
-        {/* The words. Always present, always visible, always the accessible name. The burst decorates
-            them; it never replaces them, so the title is readable even mid-transformation. */}
-        <span>{text}</span>
+        {/* The words, as this element's own text node — not a nested span. The headings using this
+            component are gradient-clipped (`background-clip: text` on the h1), and that clip reaches
+            this element's own text. A nested span inside a positioned wrapper is not painted through
+            the ancestor's clip, which made the title invisible at rest. */}
+        {text}
         {/* Decoration only: absolutely positioned, so it cannot move anything, and silent.
             -webkit-text-fill-color is set explicitly because the headings using this component are
             gradient-clipped (`ut-gradient-text` paints its own text transparent and fills it from a

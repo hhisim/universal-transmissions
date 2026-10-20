@@ -18,6 +18,7 @@ const ROOT = path.resolve(__dirname, "..");
 require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs")).registerTsModules({ root: ROOT });
 
 const G = require(path.join(ROOT, "src/lib/glyph-burst.ts"));
+const R = require(path.join(ROOT, "src/lib/glyph-burst-runner.ts"));
 
 let pass = 0, fail = 0;
 const failures = [];
@@ -120,6 +121,10 @@ console.log("\n  5. the component contract (smoke)");
      An absolutely positioned decoration inherits that transparency and paints nothing — the title
      then vanishes mid-burst. The decoration must set its own fill. */
   ok(/WebkitTextFillColor/.test(src), "the decoration sets an explicit text fill so it cannot inherit transparency");
+  /* Regression: the pilot headings clip their background to text on the h1. A nested span inside a
+     positioned wrapper is not painted through that clip, so the title rendered invisible at rest. */
+  ok(!/<span[^>]*>\s*\{text\}\s*<\/span>/.test(src),
+    "the readable text is this element's own text node, not a nested span (which a gradient-clipped ancestor does not paint)");
   ok(!/opacity: active \? 0 : 1/.test(src), "the readable text is never hidden during the burst");
   ok(/mode\?: "static" \| "burst"/.test(src), "burst is opt-in; static stays the default");
 
@@ -134,6 +139,144 @@ console.log("\n  5. the component contract (smoke)");
   const nav = fs.readFileSync(path.join(ROOT, "src/components/ui/Navigation.tsx"), "utf8");
   ok(!/mode="burst"/.test(nav), "navigation keeps its existing behaviour — no global change");
   ok(/<ZalgoText/.test(nav), "navigation still uses the same typography system");
+}
+
+console.log("\n  6. the component lifecycle, driven by a controlled clock");
+{
+  /* A deterministic scheduler that can fire ONE callback at a time, so a test can stand in the
+     middle of the sequence — which is the only place the reported defects live. */
+  function makeClock() {
+    let now = 0;
+    let nextId = 1;
+    const timers = new Map();
+    const idles = new Map();
+    const pick = () => {
+      let best = null;
+      for (const [id, t] of idles) if (!best || t.at < best.at) best = { id, at: t.at, fn: t.fn, kind: "idle" };
+      for (const [id, t] of timers) if (!best || t.at < best.at) best = { id, at: t.at, fn: t.fn, kind: "timer" };
+      return best;
+    };
+    const clock = {
+      scheduler: {
+        schedule: (fn, ms) => { const id = nextId++; timers.set(id, { fn, at: now + ms }); return id; },
+        cancelSchedule: (id) => { timers.delete(id); },
+        scheduleAfterIdle: (fn, ms) => { const id = nextId++; idles.set(id, { fn, at: now + ms }); return id; },
+        cancelIdle: (id) => { idles.delete(id); },
+      },
+      /** Fire exactly the next scheduled callback. Returns false when nothing is scheduled. */
+      next() {
+        const item = pick();
+        if (!item) return false;
+        if (item.kind === "idle") idles.delete(item.id); else timers.delete(item.id);
+        now = item.at;
+        item.fn();
+        return true;
+      },
+      advance(ms) {
+        const target = now + ms;
+        for (let guard = 0; guard < 200; guard += 1) {
+          const item = pick();
+          if (!item || item.at > target) break;
+          if (item.kind === "idle") idles.delete(item.id); else timers.delete(item.id);
+          now = item.at;
+          item.fn();
+        }
+        now = target;
+      },
+      pending: () => timers.size + idles.size,
+      now: () => now,
+    };
+    return clock;
+  }
+
+  function harness({ reducedMotion = false, hidden = false } = {}) {
+    const clock = makeClock();
+    const state = { reduced: reducedMotion, hidden };
+    const phases = [];
+    const runner = R.startBurst({
+      plan: G.burstPlan("moderate"),
+      scheduler: clock.scheduler,
+      environment: { isReducedMotion: () => state.reduced, isHidden: () => state.hidden },
+      onPhase: (p) => phases.push(p),
+    });
+    return { clock, state, phases, runner };
+  }
+
+  /* (a) an ordinary burst completes and settles */
+  {
+    const h = harness();
+    h.clock.advance(5000);
+    const plan = G.burstPlan("moderate").map((p) => p.intensity);
+    ok(JSON.stringify(h.runner.emitted()) === JSON.stringify(plan),
+      "an ordinary burst emits every scheduled phase (" + h.runner.emitted().join(" → ") + ")");
+    ok(h.phases[h.phases.length - 1] === null, "…and settles to the readable title");
+    ok(h.phases.filter((p) => p === null).length === 1, "…settling exactly once");
+    ok(h.clock.pending() === 0, "…with no work left pending");
+  }
+
+  /* (b) hide during the FIRST phase, return before its timer fires */
+  {
+    const h = harness();
+    ok(h.clock.next() === true, "the idle callback fires");
+    ok(h.phases.length === 1 && h.phases[0] !== null, "the first phase is on screen");
+    const emittedAtHide = h.runner.emitted().length;
+
+    h.state.hidden = true;
+    h.runner.cancel();                 // what the visibility listener does
+    h.state.hidden = false;            // the visitor returns before the next phase was due
+    h.clock.advance(20000);
+
+    ok(h.runner.emitted().length === emittedAtHide,
+      "hiding mid-burst emits no further phase after a quick return (saw " + h.runner.emitted().join(",") + ")");
+    ok(h.phases[h.phases.length - 1] === null, "…the title is settled");
+    ok(h.clock.pending() === 0, "…and the sequence was cancelled, not merely hidden");
+  }
+
+  /* (c) reduced motion enabled BEFORE playback starts (after scheduling, before idle) */
+  {
+    const h = harness();
+    ok(h.clock.pending() === 1, "the burst is scheduled but not started");
+    h.state.reduced = true;            // changed while waiting for idle
+    h.clock.advance(20000);
+    ok(h.runner.emitted().length === 0, "reduced motion before playback prevents any phase");
+    ok(h.phases.length === 1 && h.phases[0] === null, "…and settles the title once");
+    ok(h.clock.pending() === 0, "…with no idle or timer work left");
+  }
+
+  /* (d) reduced motion enabled mid-burst */
+  {
+    const h = harness();
+    h.clock.next();
+    ok(h.phases.length === 1 && h.phases[0] !== null, "a phase is playing");
+    const before = h.runner.emitted().length;
+    h.state.reduced = true;
+    h.clock.advance(20000);
+    ok(h.runner.emitted().length === before, "reduced motion mid-burst stops further phases");
+    ok(h.phases[h.phases.length - 1] === null, "…the title settles");
+    ok(h.phases.filter((p) => p === null).length === 1, "…once");
+    ok(h.clock.pending() === 0, "…and nothing stays scheduled");
+  }
+
+  /* (e) unmount: nothing may update state afterwards */
+  {
+    const h = harness();
+    h.clock.next();
+    h.runner.cancel();                 // unmount
+    const callsAfterCancel = h.phases.length;   // the settle emitted by cancel itself is expected
+    h.clock.advance(20000);
+    ok(h.phases.length === callsAfterCancel, "after cancellation returns, no callback updates state");
+    ok(h.clock.pending() === 0, "after cancellation nothing remains scheduled");
+    ok(h.runner.cancelled() === true, "the runner reports itself cancelled");
+  }
+
+  /* the component routes visibility and preference changes through that one path */
+  const comp = fs.readFileSync(path.join(ROOT, "src/components/ui/ZalgoText.tsx"), "utf8");
+  ok(/runner\.cancel\(\)/.test(comp), "the component cancels through the shared path");
+  ok(/mql\.addEventListener\("change"/.test(comp), "reduced-motion changes are observed");
+  ok(/runner\.cancel\(\);\s*\n\s*document\.removeEventListener/.test(comp), "cleanup cancels pending work");
+  ok(/isReducedMotion: \(\) =>/.test(comp), "the environment is read live rather than sampled once");
+  ok(/disposed = true;/.test(comp) && /if \(!disposed\) setPhase\(next\)/.test(comp),
+    "the component suppresses state updates after unmount");
 }
 
 console.log("\n  ==================== SUMMARY ====================");
