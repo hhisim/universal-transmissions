@@ -30,6 +30,10 @@ export default function ResearchDescents({
 
   const { context } = resolveDescentContext(topic, searchParams ?? {});
 
+  /* Count PATHS, not stops: one path may legitimately visit a room more than once, and its authored
+     stop numbers are identity — both are preserved in the list below. */
+  const pathCount = new Set(descents.map((d) => d.pathSlug)).size;
+
   return (
     <section
       className="py-16"
@@ -37,6 +41,8 @@ export default function ResearchDescents({
       aria-labelledby="descents-heading"
       data-descents-room={topic}
       data-descent-context={context ? `${context.pathSlug}:${context.number}` : "none"}
+      data-descent-stops={descents.length}
+      data-descent-paths={pathCount}
     >
       <div className="container-ut">
         <div className="max-w-4xl mx-auto">
@@ -62,10 +68,10 @@ export default function ResearchDescents({
             </p>
           ) : (
             <p className="font-body text-base mb-6" style={{ color: "var(--ut-white-dim)", opacity: 0.72 }}>
-              {descents.length === 1
+              {pathCount === 1
                 ? "One authored descent passes through this room."
-                : `${descents.length} authored descents pass through this room.`}{" "}
-              Each stop is an existing record; the order is the path&rsquo;s editorial reading.
+                : `${pathCount} authored descents pass through this room.`}{" "}
+              Every stop opens this room; the order is the path&rsquo;s editorial reading.
             </p>
           )}
 

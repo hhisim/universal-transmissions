@@ -42,7 +42,20 @@ export function stopHref(pathSlug: string, number: number): string {
 }
 
 /**
- * Every authored stop, across every path, that visits `topic`.
+ /**
+  * Does this resolved stop actually OPEN the room it names?
+  *
+  * A stop carries the room it belongs to (`topic`), but its destination is a separate fact: the stop
+  * for a Journal piece, an artwork, an instrument or a Codex selection names the same room while opening
+  * something else entirely. Only a destination that IS the room counts as a visit.
+  */
+ export function opensRoom(href: string, topic: string): boolean {
+   const [withoutQuery] = href.split("#");
+   const [pathname] = withoutQuery.split("?");
+   return pathname.replace(/\/+$/, "") === `/research/${topic}`;
+ }
+
+ /** Every authored stop, across every path, that actually OPENS `topic`.
  *
  * Derived by resolving each path and comparing the resolved stop's room. A stop whose connection
  * anchor fails to resolve is skipped exactly as the path page skips it, so this list can never
@@ -53,7 +66,8 @@ export function descentsForRoom(topic: string): DescentStop[] {
   for (const path of GUIDED_PATHS) {
     const { stops } = resolvePath(path);
     for (const stop of stops) {
-      if (stop.topic !== topic) continue;
+      /* The DESTINATION decides, not the room the stop merely belongs to. */
+      if (!opensRoom(stop.href, topic)) continue;
       out.push({
         pathSlug: path.slug,
         pathTitle: path.title,
@@ -85,7 +99,12 @@ export interface DescentContextResult {
   /** Present only when the context was proved against the registry AND this room. */
   context: DescentContext | null;
   /** Why a supplied context was refused. Absent when none was supplied or it was accepted. */
-  refused?: "unknown-path" | "out-of-range" | "unavailable-stop" | "other-room";
+  refused?:
+    | "unknown-path"
+    | "malformed-stop"
+    | "out-of-range"
+    | "unavailable-stop"
+    | "other-record";
 }
 
 /**
@@ -105,18 +124,26 @@ export function resolveDescentContext(
   const path: GuidedPath | null = findGuidedPath(rawPath);
   if (!path) return { context: null, refused: "unknown-path" };
 
-  const rawStop = (params.stop ?? "").trim();
+  /* STRICT: an arrival claim needs a well-formed authored number. `1garbage`, `1.5`, `+1`, ` 1` and a
+     missing value are refused rather than coerced — `parseInt` would have read `1garbage` as 1. The
+     path page's own selection keeps its lenient behaviour; this is only about claiming an arrival. */
+  const rawStop = params.stop ?? "";
   const total = path.stops.length;
-  const requested = rawStop === "" ? 1 : Number.parseInt(rawStop, 10);
-  if (!Number.isFinite(requested) || requested < 1 || requested > total) {
-    return { context: null, refused: "out-of-range" };
+  /* No trimming: " 1", "1 ", "01", "1.5", "+1", "1garbage" and "" are all malformed here. The value
+     must be exactly the authored number as written, or no arrival is claimed. */
+  if (!/^[1-9]\d*$/.test(rawStop)) {
+    return { context: null, refused: "malformed-stop" };
   }
+  const requested = Number(rawStop);
+  if (requested > total) return { context: null, refused: "out-of-range" };
 
   const { stops } = resolvePath(path);
   /* Authored number, not array position — the same rule the path page itself follows. */
   const stop = stops.find((s) => s.number === requested);
   if (!stop) return { context: null, refused: "unavailable-stop" };
-  if (stop.topic !== topic) return { context: null, refused: "other-room" };
+  /* The same destination check as the visit list: a stop that belongs to this room but opens another
+     record did not bring the visitor here, so no arrival may be claimed. */
+  if (!opensRoom(stop.href, topic)) return { context: null, refused: "other-record" };
 
   return {
     context: {
