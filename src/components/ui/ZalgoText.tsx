@@ -48,7 +48,7 @@ export default function ZalgoText({
   /* The decoration must sit exactly on the title and wrap where the title wraps, without contributing
      any layout of its own. It is absolutely positioned, so its anchoring has to be measured — and
      measured again after fonts load or the layout changes. */
-  const [overlayBox, setOverlayBox] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [overlayBox, setOverlayBox] = useState<{ top: number; left: number; width: number; lines: number } | null>(null);
 
   useEffect(() => {
     if (mode !== "burst" || playedRef.current) return;
@@ -68,10 +68,21 @@ export default function ZalgoText({
       const base = anchor ? anchor.getBoundingClientRect() : { left: 0, top: 0 };
       const borderLeft = anchor ? anchor.clientLeft : 0;
       const borderTop = anchor ? anchor.clientTop : 0;
+      /* How many lines the title itself occupies, so the decoration breaks the same way: a single-line
+         title gets an unbreakable overlay, a wrapping title gets the same width and wraps with it. */
+      let lines = 1;
+      const textNode = Array.from(el.childNodes).find((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim());
+      if (textNode) {
+        const range = document.createRange();
+        range.selectNodeContents(textNode);
+        const measured = Array.from(range.getClientRects()).filter((r) => r.width > 1 && r.height > 1);
+        if (measured.length > 0) lines = measured.length;
+      }
       setOverlayBox({
         left: Math.round(rect.left - base.left - borderLeft),
         top: Math.round(rect.top - base.top - borderTop),
         width: Math.round(rect.width),
+        lines,
       });
     };
     const remeasure = () => {
@@ -131,6 +142,27 @@ export default function ZalgoText({
     };
   }, [mode, intensity]);
 
+  /* The absolute layer is positioned from its offsetParent, but its own line box can sit a few pixels
+     below the title's text. Measure the difference and correct once, so the decoration lands exactly
+     on the title regardless of leading, font or wrapping. */
+  const alignedRef = useRef(false);
+  useEffect(() => {
+    if (mode !== "burst" || phase === null || !overlayBox || alignedRef.current) return;
+    const root = rootRef.current;
+    const dec = root?.querySelector('[data-glyph-decoration]') as HTMLElement | null;
+    if (!root || !dec) return;
+    const t = root.getBoundingClientRect();
+    const d = dec.getBoundingClientRect();
+    const dx = Math.round(d.left - t.left);
+    const dy = Math.round(d.top - t.top);
+    if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
+      alignedRef.current = true;
+      return;
+    }
+    alignedRef.current = true;
+    setOverlayBox((box) => (box ? { ...box, left: box.left - dx, top: box.top - dy } : box));
+  }, [mode, phase, overlayBox]);
+
   if (mode === "burst") {
     const active = phase !== null;
     return (
@@ -156,7 +188,7 @@ export default function ZalgoText({
               top: overlayBox.top,
               left: overlayBox.left,
               width: overlayBox.width,
-              whiteSpace: "normal",
+              whiteSpace: overlayBox.lines <= 1 ? "nowrap" : "normal",
               pointerEvents: "none",
               color: "inherit",
               WebkitTextFillColor: "currentColor",
