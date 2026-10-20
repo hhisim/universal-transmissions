@@ -87,7 +87,7 @@ export default function ResearchSymbolismPage({
 
             <SectionReveal delay={0.2}>
               <blockquote
-                className="font-display text-lg md:text-xl max-w-2xl mb-8"
+                className="font-display text-lg md:text-xl max-w-2xl mb-8 lg-reading"
                 style={{ color: "var(--ut-gold)" }}
               >
                 <ZalgoText
@@ -99,7 +99,7 @@ export default function ResearchSymbolismPage({
 
             <SectionReveal delay={0.3}>
               <p
-                className="font-body text-lg max-w-3xl leading-relaxed"
+                className="font-body text-lg max-w-3xl leading-relaxed lg-reading"
                 style={{ color: "var(--ut-white-dim)" }}
               >
                 Symbolism is the currency of the unconscious mind — the language that operates beneath

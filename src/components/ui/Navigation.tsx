@@ -246,7 +246,7 @@ export default function Navigation() {
         </Link>
 
         {/* Desktop nav */}
-        <ul className="hidden lg:flex items-center gap-5" ref={navRef}>
+        <ul className="hidden xl:flex items-center gap-4 2xl:gap-5" ref={navRef}>
           {NAV_ITEMS.map((item) => {
             if (!item.children) {
               return (
@@ -505,7 +505,7 @@ export default function Navigation() {
 
         {/* Mobile toggle */}
         <button
-          className="lg:hidden grid place-items-center"
+          className="xl:hidden grid place-items-center"
           style={{ minWidth: 44, minHeight: 44 }}
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -522,7 +522,7 @@ export default function Navigation() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden overflow-hidden"
+            className="xl:hidden overflow-hidden"
             style={{ background: "rgba(10, 9, 14, 0.95)", borderBottom: "1px solid rgba(217, 70, 239, 0.06)" }}
           >
             <ul className="flex flex-col p-6 gap-1">

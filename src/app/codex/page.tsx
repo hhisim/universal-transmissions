@@ -170,7 +170,7 @@ export default function CodexPage() {
 <main style={{ background: "var(--ut-black)" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}
-        <section className="codex-hero relative min-h-[85vh] overflow-hidden">
+        <section className="codex-hero lg-codex relative min-h-[85vh] overflow-hidden">
           {/* 3D Merkaba background */}
           <div className="absolute inset-0 opacity-30">
             {/* Decorative only: if WebGL is unavailable or the canvas throws, this surface falls back

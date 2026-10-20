@@ -1040,3 +1040,152 @@ body::-webkit-scrollbar-thumb:hover {
 @media (max-width: 1279px) {
   .nav-external { display: none; }
 }
+
+/* ============================================================
+   THE LIVING GRIMOIRE — shared visual language (Batch 42)
+   One layer of reusable primitives. It does not replace the
+   existing system; it gives it composition, surface and material.
+   Sharp corners only. No fills on actions. No new dependency.
+   ============================================================ */
+
+:root {
+  /* Illumination: the light the page is read by. */
+  --lg-illum: rgba(212, 168, 71, 0.20);
+  --lg-illum-soft: rgba(212, 168, 71, 0.07);
+  --lg-rule: rgba(237, 233, 246, 0.10);
+  --lg-rule-faint: rgba(237, 233, 246, 0.05);
+  --lg-reading: #110f1a;
+  --lg-reading-edge: rgba(237, 233, 246, 0.09);
+  --lg-codex-surface: #0c0906;
+  --lg-codex-edge: rgba(212, 168, 71, 0.28);
+}
+
+/* — Spectral rule: the site's one ornament, used sparingly — */
+.lg-spectrum-rule {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(217, 70, 239, 0.55) 22%, rgba(212, 168, 71, 0.5) 50%, rgba(34, 211, 238, 0.5) 78%, transparent 100%);
+  opacity: 0.55;
+}
+
+/* — Illuminated margin: content inset from the atmosphere, not boxed by it — */
+.lg-margin {
+  position: relative;
+  padding-left: clamp(1.25rem, 5vw, 4.5rem);
+  padding-right: clamp(1.25rem, 5vw, 4.5rem);
+}
+.lg-margin::before {
+  content: "";
+  position: absolute;
+  left: clamp(0.5rem, 2.2vw, 1.75rem);
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--lg-illum) 18%, var(--lg-rule-faint) 60%, transparent);
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .lg-margin::before { display: none; }
+}
+
+/* — Reading surface: where prose lives, so the scene plays around it — */
+.lg-reading {
+  position: relative;
+  background: color-mix(in srgb, var(--lg-reading) 88%, transparent);
+  border: 1px solid var(--lg-reading-edge);
+  padding: clamp(1.1rem, 3vw, 2rem) clamp(1.1rem, 3.4vw, 2.4rem);
+}
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  .lg-reading { background: #110f1a; }
+}
+.lg-reading::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(217, 70, 239, 0.45), rgba(34, 211, 238, 0.28));
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* — Illuminated plate: a real artwork at its own proportions — */
+.lg-plate {
+  position: relative;
+  display: block;
+  border: 1px solid var(--lg-illum-soft);
+  background: #050507;
+}
+.lg-plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+/* Corner illumination — drawn, not imaged. */
+.lg-plate::before,
+.lg-plate::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  border-color: var(--lg-illum);
+}
+.lg-plate::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
+.lg-plate::after { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
+
+/* — The Codex register: warmer ground, same family — */
+.lg-codex {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(212, 168, 71, 0.10) 0%, transparent 62%),
+    var(--lg-codex-surface);
+  border-top: 1px solid var(--lg-codex-edge);
+  border-bottom: 1px solid rgba(212, 168, 71, 0.16);
+}
+.lg-codex .lg-plate { border-color: var(--lg-codex-edge); }
+.lg-codex .lg-plate::before,
+.lg-codex .lg-plate::after { border-color: rgba(212, 168, 71, 0.5); }
+
+/* — Actions: sharp outlines, no fill, one accent each — */
+.lg-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.85rem 2rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  font-family: "Cinzel", serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+.lg-action:hover,
+.lg-action:focus-visible {
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  .lg-action:hover, .lg-action:focus-visible { background: rgba(237, 233, 246, 0.06); }
+}
+.lg-action--magenta { color: #d946ef; border-color: rgba(217, 70, 239, 0.55); }
+.lg-action--gold    { color: #d4a847; border-color: rgba(212, 168, 71, 0.55); }
+.lg-action--cyan    { color: #22d3ee; border-color: rgba(34, 211, 238, 0.5); }
+
+/* — Subordinate metadata — */
+.lg-meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ut-white-faint);
+}
+
+/* Essential text stays essential: no email-era opacity on the web. */
+.lg-reading, .lg-margin { color: var(--ut-white); }
+.lg-reading p { color: var(--ut-white-dim); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-action { transition: none; }
+}

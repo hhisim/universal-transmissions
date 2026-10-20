@@ -154,7 +154,7 @@ export default function HomePage() {
           <div className="ut-hero-emblem" aria-hidden="true">
             <LogoHero />
           </div>
-          <div className="ut-hero-copy">
+          <div className="ut-hero-copy lg-margin">
             <h1
               className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
               style={{ color: "var(--ut-white)" }}
@@ -163,10 +163,10 @@ export default function HomePage() {
             </h1>
             <GlitchTagline />
             <div className="ut-hero-actions">
-              <Link href="/codex" className="btn-primary">
+              <Link href="/codex" className="lg-action lg-action--gold">
                 DISCOVER THE CODEX
               </Link>
-              <Link href="/gallery" className="btn-primary">
+              <Link href="/gallery" className="lg-action lg-action--magenta">
                 ENTER THE GALLERY
               </Link>
             </div>
@@ -195,7 +195,7 @@ export default function HomePage() {
                       alt={work.title}
                       fill
                       sizes="(max-width: 640px) 44vw, (max-width: 1100px) 23vw, 250px"
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </span>
                   <span className="ut-entrance-label">{work.title}</span>
@@ -206,7 +206,7 @@ export default function HomePage() {
         </section>
 
         {/* ── THE BOOK — the manuscript itself, and how to own it ── */}
-        <section className="ut-book" aria-labelledby="ut-book-h">
+        <section className="ut-book lg-codex" aria-labelledby="ut-book-h">
           <div className="container-ut">
             <div className="ut-book-grid">
               <div className="ut-book-plates">
@@ -216,7 +216,7 @@ export default function HomePage() {
                     alt="Universal Transmissions Codex Vol.1 — the cover"
                     fill
                     sizes="(max-width: 900px) 68vw, 360px"
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </span>
                 <span className="ut-book-plate ut-book-spread">
@@ -225,7 +225,7 @@ export default function HomePage() {
                     alt="A spread from inside the Codex"
                     fill
                     sizes="(max-width: 900px) 46vw, 240px"
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </span>
               </div>

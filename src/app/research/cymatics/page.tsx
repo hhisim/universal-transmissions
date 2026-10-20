@@ -75,7 +75,7 @@ export default function ResearchCymaticsPage({
 
             <SectionReveal delay={0.2}>
               <blockquote
-                className="font-display text-lg md:text-xl max-w-2xl mb-8"
+                className="font-display text-lg md:text-xl max-w-2xl mb-8 lg-reading"
                 style={{ color: "var(--ut-gold)" }}
               >
                 <ZalgoText
@@ -93,7 +93,7 @@ export default function ResearchCymaticsPage({
 
             <SectionReveal delay={0.3}>
               <p
-                className="font-body text-lg max-w-3xl leading-relaxed"
+                className="font-body text-lg max-w-3xl leading-relaxed lg-reading"
                 style={{ color: "var(--ut-white-dim)" }}
               >
                 Cymatics is the study of visible sound and vibration — the geometric patterns that
