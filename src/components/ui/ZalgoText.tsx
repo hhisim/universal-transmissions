@@ -96,27 +96,23 @@ export default function ZalgoText({
       <span
         className={`ut-title-burst ${className}`.trim()}
         data-glyph-burst={active ? "active" : "settled"}
-        style={{ position: "relative" }}
       >
-        {/* The words, as this element's own text node — not a nested span. The headings using this
-            component are gradient-clipped (`background-clip: text` on the h1), and that clip reaches
-            this element's own text. A nested span inside a positioned wrapper is not painted through
-            the ancestor's clip, which made the title invisible at rest. */}
-        {text}
-        {/* Decoration only: absolutely positioned, so it cannot move anything, and silent.
-            -webkit-text-fill-color is set explicitly because the headings using this component are
-            gradient-clipped (`ut-gradient-text` paints its own text transparent and fills it from a
-            background on the h1). An absolutely positioned layer is outside that background's text
-            flow, so without an explicit fill it inherits transparency and paints nothing. */}
+        {/* Decoration first, in a zero-width inline box, so it starts at the title's left edge and
+            occupies no space of its own. Nothing here is positioned: a positioned wrapper stops the
+            ancestor's `background-clip: text` from painting its glyphs, which made the title
+            invisible at rest. The explicit text fill is likewise required — these headings paint
+            their text transparent and fill it from a gradient on the h1, and an inline-block's own
+            text is not filled by that clip. */}
         {active && (
           <span
             aria-hidden="true"
             data-glyph-decoration="true"
             style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              right: 0,
+              display: "inline-block",
+              width: 0,
+              overflow: "visible",
+              whiteSpace: "nowrap",
+              verticalAlign: "baseline",
               pointerEvents: "none",
               color: "inherit",
               WebkitTextFillColor: "currentColor",
@@ -125,6 +121,8 @@ export default function ZalgoText({
             {corrupt(text, phase)}
           </span>
         )}
+        {/* The words, as this element's own text node: the ancestor's text clip reaches it. */}
+        {text}
       </span>
     );
   }
