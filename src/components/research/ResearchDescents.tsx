@@ -45,7 +45,7 @@ export default function ResearchDescents({
       data-descent-paths={pathCount}
     >
       <div className="container-ut">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto lg-backing">
           <p
             className="font-mono text-[9px] tracking-[0.5em] uppercase mb-3"
             style={{ color: accent, opacity: 0.55 }}
