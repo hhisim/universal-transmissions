@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ResonatorLoader from "./ResonatorLoader";
+import DescentReturn from "@/components/research/DescentReturn";
 import { allRegisteredConnections, resolveResearchTopic } from "@/lib/research-topics";
 import { BASIS_STYLE } from "@/components/research/basis-style";
 
@@ -14,7 +15,11 @@ const ANCHOR_SLUG = "instrument-universal-resonator";
  * it, from ResonatorLoader. Everything on this page before that point is text, links
  * and the room's own registry data.
  */
-export default function UniversalResonatorPage() {
+export default function UniversalResonatorPage({
+  searchParams,
+}: {
+  searchParams?: { path?: string; stop?: string };
+}) {
   const entry = allRegisteredConnections().find(
     (r) => r.topicSlug === "cymatics" && r.connection.anchorSlug === ANCHOR_SLUG
   );
@@ -30,6 +35,16 @@ export default function UniversalResonatorPage() {
 
   return (
     <div data-instrument-room="true">
+      {/* Batch 41: the descent continues through the instrument too. The arrival control is
+          rendered by the page, outside the instrument frame, from the address alone — it cannot
+          start the engine, request audio or microphone, or fetch the payload. The launch gate
+          below is unchanged. */}
+      <DescentReturn
+        recordPath="/experience/universal-resonator"
+        accent="var(--ut-purple)"
+        searchParams={searchParams}
+      />
+
       {/* ── the room, and the launch ─────────────────────────────────────────── */}
       <section className="py-16 relative overflow-hidden">
         <div
