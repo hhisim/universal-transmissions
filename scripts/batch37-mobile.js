@@ -87,9 +87,11 @@ console.log("\n  3. what must not change");
   /* The instruments stay behind their own routes: the homepage may link to them, never mount them. */
   ok(!/import .*RotatingMerkaba/.test(home), "no heavy instrument is mounted into the homepage entrance");
 
-  /* Batch 36 typography is untouched by this batch. */
+  /* The typography was restored to its released static treatment by owner direction; this batch must
+     not have touched it either way. */
   const zalgo = read("src/components/ui/ZalgoText.tsx");
-  ok(/data-glyph-burst/.test(zalgo) && /startBurst\(/.test(zalgo), "the accepted typography component is unchanged in behaviour");
+  ok(/aria-label=\{text\}/.test(zalgo) && !/mode=|burst/i.test(zalgo),
+    "the titles keep their released static treatment and clean accessible name");
 }
 
 console.log("\n  ==================== SUMMARY ====================");

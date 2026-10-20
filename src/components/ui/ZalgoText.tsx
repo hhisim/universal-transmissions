@@ -1,35 +1,71 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { burstPlan, corrupt, type GlyphIntensity } from "@/lib/glyph-burst";
-import { startBurst, windowScheduler } from "@/lib/glyph-burst-runner";
+import { useMemo } from "react";
 
 /* ────────────────────────────────────────────────────────────
-   ZalgoText — the site's only glyph typography system.
-
-   Two modes.
-
-   `static` (default, released behaviour, unchanged) — the text carries combining marks permanently.
-   Every existing caller keeps exactly what it had.
-
-   `burst` — the readable title is the title. It is what the server renders, what a visitor sees
-   while the page loads, what they see with JavaScript disabled, and what a screen reader announces
-   at every moment. Shortly after mount — only if the visitor has not asked for reduced motion and
-   the tab is actually visible — an aria-hidden decorative layer replaces it, passes through the
-   intensity schedule, and resolves back to the plain words.
-
-   The decoration is never the accessible name: it is `aria-hidden`, and the readable span stays in
-   the accessibility tree (transparent, not removed) while the burst runs. No tabindex is added, so
-   headings gain no keyboard stops. Corruptions are seeded, so server and client cannot disagree.
+   ZalgoText — corrupts text with combining diacritical marks
+   Deterministic (seeded) — safe for SSR/hydration
    ──────────────────────────────────────────────────────────── */
+
+const ZALGO_UP = [
+  "\u0300", "\u0301", "\u0302", "\u0303", "\u0304", "\u0305", "\u0306", "\u0307",
+  "\u0308", "\u0309", "\u030A", "\u030B", "\u030C", "\u030D", "\u030E", "\u030F",
+  "\u0310", "\u0311", "\u0312", "\u0313", "\u0314", "\u0315", "\u031A",
+];
+
+const ZALGO_DOWN = [
+  "\u0316", "\u0317", "\u0318", "\u0319", "\u031C", "\u031D", "\u031E", "\u031F",
+  "\u0320", "\u0321", "\u0322", "\u0323", "\u0324", "\u0325", "\u0326", "\u0327",
+  "\u0328", "\u0329", "\u032A", "\u032B", "\u032C", "\u032D", "\u032E", "\u032F",
+  "\u0330", "\u0331", "\u0332", "\u0333",
+];
+
+const ZALGO_MID = [
+  "\u0323", "\u0334", "\u0335", "\u0336", "\u0337", "\u0338",
+  "\u0339", "\u033A", "\u033B", "\u033C", "\u033D", "\u033E", "\u033F",
+  "\u0340", "\u0341", "\u0342", "\u0343", "\u0344", "\u0345", "\u0346",
+];
+
+type Intensity = "subtle" | "moderate" | "heavy";
+
+/** Seeded LCG — deterministic, no Math.random(), safe for SSR */
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+function seededOf(arr: string[], rng: () => number): string {
+  return arr[Math.floor(rng() * arr.length)];
+}
+
+function zalgofy(char: string, intensity: Intensity, rng: () => number): string {
+  if (char === " ") return char;
+
+  const counts: Record<Intensity, { up: number; down: number; mid: number }> = {
+    subtle: { up: 1, down: 0, mid: 0 },
+    moderate: { up: 2, down: 1, mid: 1 },
+    heavy: { up: 4, down: 3, mid: 2 },
+  };
+
+  const { up, down, mid } = counts[intensity];
+  let result = "";
+
+  for (let i = 0; i < up; i++) result += seededOf(ZALGO_UP, rng);
+  for (let i = 0; i < mid; i++) result += seededOf(ZALGO_MID, rng);
+  result += char;
+  for (let i = 0; i < down; i++) result += seededOf(ZALGO_DOWN, rng);
+
+  return result;
+}
 
 interface ZalgoTextProps {
   text: string;
-  intensity?: GlyphIntensity;
+  intensity?: Intensity;
   className?: string;
   animate?: boolean;
-  /** "static" keeps permanent corruption; "burst" transforms briefly and settles readable. */
-  mode?: "static" | "burst";
 }
 
 export default function ZalgoText({
@@ -37,171 +73,14 @@ export default function ZalgoText({
   intensity = "moderate",
   className = "",
   animate = false,
-  mode = "static",
 }: ZalgoTextProps) {
-  const zalgod = useMemo(() => corrupt(text, intensity), [text, intensity]);
-
-  /** null = at rest (the default, and the only state the server ever renders). */
-  const [phase, setPhase] = useState<GlyphIntensity | null>(null);
-  const playedRef = useRef(false);
-  const rootRef = useRef<HTMLSpanElement | null>(null);
-  /* The decoration must sit exactly on the title and wrap where the title wraps, without contributing
-     any layout of its own. It is absolutely positioned, so its anchoring has to be measured — and
-     measured again after fonts load or the layout changes. */
-  const [overlayBox, setOverlayBox] = useState<{ top: number; left: number; width: number; lines: number } | null>(null);
-
-  useEffect(() => {
-    if (mode !== "burst" || playedRef.current) return;
-    playedRef.current = true;
-
-    let disposed = false;
-    let measureFrame: number | undefined;
-
-    /* Anchoring is measured from the decoration's offsetParent, so scroll position does not matter
-       and the number stays valid while the burst runs. */
-    const measure = () => {
-      const el = rootRef.current;
-      if (disposed || !el) return;
-      const rect = el.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const anchor = el.offsetParent as HTMLElement | null;
-      const base = anchor ? anchor.getBoundingClientRect() : { left: 0, top: 0 };
-      const borderLeft = anchor ? anchor.clientLeft : 0;
-      const borderTop = anchor ? anchor.clientTop : 0;
-      /* How many lines the title itself occupies, so the decoration breaks the same way: a single-line
-         title gets an unbreakable overlay, a wrapping title gets the same width and wraps with it. */
-      let lines = 1;
-      const textNode = Array.from(el.childNodes).find((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim());
-      if (textNode) {
-        const range = document.createRange();
-        range.selectNodeContents(textNode);
-        const measured = Array.from(range.getClientRects()).filter((r) => r.width > 1 && r.height > 1);
-        if (measured.length > 0) lines = measured.length;
-      }
-      setOverlayBox({
-        left: Math.round(rect.left - base.left - borderLeft),
-        top: Math.round(rect.top - base.top - borderTop),
-        width: Math.round(rect.width),
-        lines,
-      });
-    };
-    const remeasure = () => {
-      if (measureFrame !== undefined) window.cancelAnimationFrame(measureFrame);
-      measureFrame = window.requestAnimationFrame(measure);
-    };
-
-    measure();
-    /* Late font loading and responsive changes both move the title; the decoration follows. */
-    if (typeof document !== "undefined" && document.fonts?.ready) {
-      document.fonts.ready.then(remeasure).catch(() => {});
-    }
-    window.addEventListener("resize", remeasure);
-    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(remeasure) : null;
-    if (observer && rootRef.current) observer.observe(rootRef.current);
-
-    const mql =
-      typeof window !== "undefined" && typeof window.matchMedia === "function"
-        ? window.matchMedia("(prefers-reduced-motion: reduce)")
-        : null;
-
-    const runner = startBurst({
-      plan: burstPlan(intensity),
-      scheduler: windowScheduler(window),
-      environment: {
-        /* Read live, not sampled once: the runner re-checks these at playback start and on every
-           step, so a preference or visibility change that arrives later still stops the sequence. */
-        isReducedMotion: () => (mql ? mql.matches : false),
-        isHidden: () => document.visibilityState === "hidden",
-      },
-      onPhase: (next) => {
-        if (!disposed) setPhase(next);
-      },
-    });
-
-    /* Both of these call the same cancellation path, which settles the title, clears the pending
-       idle callback and timer, and forbids any later phase. Clearing the displayed phase alone was
-       the bug: the scheduled sequence survived and the next phase reappeared. */
-    const onVisibility = () => {
-      if (document.visibilityState === "hidden") runner.cancel();
-    };
-    const onPreference = () => {
-      if (mql && mql.matches) runner.cancel();
-    };
-
-    document.addEventListener("visibilitychange", onVisibility);
-    if (mql && typeof mql.addEventListener === "function") mql.addEventListener("change", onPreference);
-
-    return () => {
-      disposed = true;
-      runner.cancel();
-      if (measureFrame !== undefined) window.cancelAnimationFrame(measureFrame);
-      window.removeEventListener("resize", remeasure);
-      observer?.disconnect();
-      document.removeEventListener("visibilitychange", onVisibility);
-      if (mql && typeof mql.removeEventListener === "function") mql.removeEventListener("change", onPreference);
-    };
-  }, [mode, intensity]);
-
-  /* The absolute layer is positioned from its offsetParent, but its own line box can sit a few pixels
-     below the title's text. Measure the difference and correct once, so the decoration lands exactly
-     on the title regardless of leading, font or wrapping. */
-  const alignedRef = useRef(false);
-  useEffect(() => {
-    if (mode !== "burst" || phase === null || !overlayBox || alignedRef.current) return;
-    const root = rootRef.current;
-    const dec = root?.querySelector('[data-glyph-decoration]') as HTMLElement | null;
-    if (!root || !dec) return;
-    const t = root.getBoundingClientRect();
-    const d = dec.getBoundingClientRect();
-    const dx = Math.round(d.left - t.left);
-    const dy = Math.round(d.top - t.top);
-    if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
-      alignedRef.current = true;
-      return;
-    }
-    alignedRef.current = true;
-    setOverlayBox((box) => (box ? { ...box, left: box.left - dx, top: box.top - dy } : box));
-  }, [mode, phase, overlayBox]);
-
-  if (mode === "burst") {
-    const active = phase !== null;
-    return (
-      <span
-        ref={rootRef}
-        className={`ut-title-burst ${className}`.trim()}
-        data-glyph-burst={active ? "active" : "settled"}
-      >
-        {/* Decoration first, in a zero-width inline box, so it starts at the title's left edge and
-            occupies no space of its own. Nothing here is positioned: a positioned wrapper stops the
-            ancestor's `background-clip: text` from painting its glyphs, which made the title
-            invisible at rest. The explicit text fill is likewise required — these headings paint
-            their text transparent and fill it from a gradient on the h1, and an inline-block's own
-            text is not filled by that clip. */}
-        {active && overlayBox && (
-          <span
-            aria-hidden="true"
-            data-glyph-decoration="true"
-            style={{
-              /* Out of flow: contributes no width, no height and no baseline, so the line box and the
-                 content below it never move. */
-              position: "absolute",
-              top: overlayBox.top,
-              left: overlayBox.left,
-              width: overlayBox.width,
-              whiteSpace: overlayBox.lines <= 1 ? "nowrap" : "normal",
-              pointerEvents: "none",
-              color: "inherit",
-              WebkitTextFillColor: "currentColor",
-            }}
-          >
-            {corrupt(text, phase)}
-          </span>
-        )}
-        {/* The words, as this element's own text node: the ancestor's text clip reaches it. */}
-        {text}
-      </span>
-    );
-  }
+  const zalgod = useMemo(() => {
+    const rng = seededRandom(text.length * 31 + intensity.length * 17);
+    return text
+      .split("")
+      .map((char) => zalgofy(char, intensity, rng))
+      .join("");
+  }, [text, intensity]);
 
   if (animate) {
     return (

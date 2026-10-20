@@ -189,7 +189,7 @@ export default function CodexPage() {
               </SectionReveal>
               <SectionReveal delay={0.2}>
                 <h1 className="font-display text-5xl md:text-7xl mb-6 ut-gradient-text">
-                  <ZalgoText text="THE CODEX" intensity="heavy" mode="burst" />
+                  <ZalgoText text="THE CODEX" intensity="heavy" />
                 </h1>
               </SectionReveal>
               <SectionReveal delay={0.35}>

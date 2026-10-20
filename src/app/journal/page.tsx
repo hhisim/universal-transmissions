@@ -59,7 +59,7 @@ export default function JournalPage({ searchParams }: Props) {
                 [ Dispatches from the Inner Planes ]
               </p>
               <h1 className="font-display text-5xl md:text-7xl glow-cyan mb-6">
-                <ZalgoText text="Journal" intensity="moderate" mode="burst" />
+                <ZalgoText text="Journal" intensity="moderate" />
               </h1>
               <p className="font-body text-lg max-w-xl mx-auto" style={{ color: "var(--ut-white-dim)" }}>
                 Writings on symbolism, sacred geometry, cymatics, and the living oracle — co-authored by Prime + Hakan.
