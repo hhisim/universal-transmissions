@@ -45,18 +45,49 @@ export default function ZalgoText({
   const [phase, setPhase] = useState<GlyphIntensity | null>(null);
   const playedRef = useRef(false);
   const rootRef = useRef<HTMLSpanElement | null>(null);
-  /* The decoration must wrap exactly where the title wraps, or a narrow heading is overlaid with a
-     single wide line that runs off the screen. Measured once, when playback starts. */
-  const [overlayWidth, setOverlayWidth] = useState<number | null>(null);
+  /* The decoration must sit exactly on the title and wrap where the title wraps, without contributing
+     any layout of its own. It is absolutely positioned, so its anchoring has to be measured — and
+     measured again after fonts load or the layout changes. */
+  const [overlayBox, setOverlayBox] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
     if (mode !== "burst" || playedRef.current) return;
     playedRef.current = true;
 
-    const measured = rootRef.current?.getBoundingClientRect().width;
-    if (measured && measured > 0) setOverlayWidth(Math.round(measured));
-
     let disposed = false;
+    let measureFrame: number | undefined;
+
+    /* Anchoring is measured from the decoration's offsetParent, so scroll position does not matter
+       and the number stays valid while the burst runs. */
+    const measure = () => {
+      const el = rootRef.current;
+      if (disposed || !el) return;
+      const rect = el.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const anchor = el.offsetParent as HTMLElement | null;
+      const base = anchor ? anchor.getBoundingClientRect() : { left: 0, top: 0 };
+      const borderLeft = anchor ? anchor.clientLeft : 0;
+      const borderTop = anchor ? anchor.clientTop : 0;
+      setOverlayBox({
+        left: Math.round(rect.left - base.left - borderLeft),
+        top: Math.round(rect.top - base.top - borderTop),
+        width: Math.round(rect.width),
+      });
+    };
+    const remeasure = () => {
+      if (measureFrame !== undefined) window.cancelAnimationFrame(measureFrame);
+      measureFrame = window.requestAnimationFrame(measure);
+    };
+
+    measure();
+    /* Late font loading and responsive changes both move the title; the decoration follows. */
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(remeasure).catch(() => {});
+    }
+    window.addEventListener("resize", remeasure);
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(remeasure) : null;
+    if (observer && rootRef.current) observer.observe(rootRef.current);
+
     const mql =
       typeof window !== "undefined" && typeof window.matchMedia === "function"
         ? window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -92,6 +123,9 @@ export default function ZalgoText({
     return () => {
       disposed = true;
       runner.cancel();
+      if (measureFrame !== undefined) window.cancelAnimationFrame(measureFrame);
+      window.removeEventListener("resize", remeasure);
+      observer?.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       if (mql && typeof mql.removeEventListener === "function") mql.removeEventListener("change", onPreference);
     };
@@ -111,29 +145,24 @@ export default function ZalgoText({
             invisible at rest. The explicit text fill is likewise required — these headings paint
             their text transparent and fill it from a gradient on the h1, and an inline-block's own
             text is not filled by that clip. */}
-        {active && (
+        {active && overlayBox && (
           <span
             aria-hidden="true"
             data-glyph-decoration="true"
             style={{
-              display: "inline-block",
-              width: 0,
-              overflow: "visible",
-              verticalAlign: "baseline",
+              /* Out of flow: contributes no width, no height and no baseline, so the line box and the
+                 content below it never move. */
+              position: "absolute",
+              top: overlayBox.top,
+              left: overlayBox.left,
+              width: overlayBox.width,
+              whiteSpace: "normal",
               pointerEvents: "none",
+              color: "inherit",
+              WebkitTextFillColor: "currentColor",
             }}
           >
-            <span
-              style={{
-                display: "inline-block",
-                width: overlayWidth ? `${overlayWidth}px` : undefined,
-                whiteSpace: overlayWidth ? "normal" : "nowrap",
-                color: "inherit",
-                WebkitTextFillColor: "currentColor",
-              }}
-            >
-              {corrupt(text, phase)}
-            </span>
+            {corrupt(text, phase)}
           </span>
         )}
         {/* The words, as this element's own text node: the ancestor's text clip reaches it. */}

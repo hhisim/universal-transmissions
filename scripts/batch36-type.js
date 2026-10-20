@@ -127,9 +127,15 @@ console.log("\n  5. the component contract (smoke)");
     "the readable text is this element's own text node, not a nested span (which a gradient-clipped ancestor does not paint)");
   ok(!/position: "relative"/.test(src),
     "the burst wrapper is not positioned — a positioned box is not painted through the h1's text clip");
-  ok(/width: 0/.test(src), "the decoration's outer box is zero-width, so it overlays without taking space");
-  ok(/overlayWidth/.test(src) && /whiteSpace: overlayWidth \? "normal" : "nowrap"/.test(src),
-    "the decoration takes the title's measured width, so a wrapping heading is not overlaid by one wide line");
+  /* Regression: a zero-width inline-block still contributes a line box, height and baseline, which
+     pushed the content below the heading down by ~72px. The decoration must be out of flow. */
+  ok(/position: "absolute"/.test(src), "the decoration is absolutely positioned, so it occupies no layout");
+  ok(!/width: 0/.test(src), "the decoration is not an in-flow zero-width box");
+  ok(/overlayBox\.top/.test(src) && /overlayBox\.left/.test(src) && /overlayBox\.width/.test(src),
+    "the decoration is anchored to the measured title box");
+  ok(/document\.fonts\.ready/.test(src), "the anchor is re-measured after fonts load");
+  ok(/ResizeObserver/.test(src) && /addEventListener\("resize"/.test(src),
+    "the anchor is re-measured when the layout changes");
   ok(!/opacity: active \? 0 : 1/.test(src), "the readable text is never hidden during the burst");
   ok(/mode\?: "static" \| "burst"/.test(src), "burst is opt-in; static stays the default");
 
@@ -278,7 +284,8 @@ console.log("\n  6. the component lifecycle, driven by a controlled clock");
   const comp = fs.readFileSync(path.join(ROOT, "src/components/ui/ZalgoText.tsx"), "utf8");
   ok(/runner\.cancel\(\)/.test(comp), "the component cancels through the shared path");
   ok(/mql\.addEventListener\("change"/.test(comp), "reduced-motion changes are observed");
-  ok(/runner\.cancel\(\);\s*\n\s*document\.removeEventListener/.test(comp), "cleanup cancels pending work");
+  ok(/disposed = true;[\s\S]{0,600}runner\.cancel\(\);[\s\S]{0,600}removeEventListener\("visibilitychange"/.test(comp),
+    "cleanup cancels pending work");
   ok(/isReducedMotion: \(\) =>/.test(comp), "the environment is read live rather than sampled once");
   ok(/disposed = true;/.test(comp) && /if \(!disposed\) setPhase\(next\)/.test(comp),
     "the component suppresses state updates after unmount");
