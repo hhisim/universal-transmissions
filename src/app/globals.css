@@ -1189,22 +1189,22 @@ body::-webkit-scrollbar-thumb:hover {
 /* Restrained local backing: a wash behind text that the scene would otherwise cross.
    No blur, no shadow, no rounding — it lowers the art locally without becoming a card. */
 .lg-backing {
-  background: rgba(10, 9, 14, 0.84);
+  background: rgba(10, 9, 14, 0.93);
   border: 1px solid rgba(237, 233, 246, 0.07);
   padding: clamp(0.9rem, 2.2vw, 1.6rem);
 }
-@supports (background: color-mix(in srgb, #0a090e 84%, transparent)) {
-  .lg-backing { background: color-mix(in srgb, #0a090e 84%, transparent); }
+@supports (background: color-mix(in srgb, #0a090e 93%, transparent)) {
+  .lg-backing { background: color-mix(in srgb, #0a090e 93%, transparent); }
 }
 .lg-marginalia {
   padding: 0.5rem 0.6rem 0.9rem;
   font-size: 18px;
   min-width: 0;
-  background: rgba(10, 9, 14, 0.84);
+  background: rgba(10, 9, 14, 0.93);
   border: 1px solid rgba(237, 233, 246, 0.07);
 }
-@supports (background: color-mix(in srgb, #0a090e 84%, transparent)) {
-  .lg-marginalia { background: color-mix(in srgb, #0a090e 84%, transparent); }
+@supports (background: color-mix(in srgb, #0a090e 93%, transparent)) {
+  .lg-marginalia { background: color-mix(in srgb, #0a090e 93%, transparent); }
 }
 .lg-marginalia p { padding-top: 12px; color: #ddd1ea; font-style: italic; }
 .lg-margin-glyph {
