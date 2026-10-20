@@ -127,8 +127,9 @@ console.log("\n  5. the component contract (smoke)");
     "the readable text is this element's own text node, not a nested span (which a gradient-clipped ancestor does not paint)");
   ok(!/position: "relative"/.test(src),
     "the burst wrapper is not positioned — a positioned box is not painted through the h1's text clip");
-  ok(/width: 0/.test(src) && /whiteSpace: "nowrap"/.test(src),
-    "the decoration is a zero-width inline box, so it overlays without taking space");
+  ok(/width: 0/.test(src), "the decoration's outer box is zero-width, so it overlays without taking space");
+  ok(/overlayWidth/.test(src) && /whiteSpace: overlayWidth \? "normal" : "nowrap"/.test(src),
+    "the decoration takes the title's measured width, so a wrapping heading is not overlaid by one wide line");
   ok(!/opacity: active \? 0 : 1/.test(src), "the readable text is never hidden during the burst");
   ok(/mode\?: "static" \| "burst"/.test(src), "burst is opt-in; static stays the default");
 

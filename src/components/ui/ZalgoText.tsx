@@ -44,10 +44,17 @@ export default function ZalgoText({
   /** null = at rest (the default, and the only state the server ever renders). */
   const [phase, setPhase] = useState<GlyphIntensity | null>(null);
   const playedRef = useRef(false);
+  const rootRef = useRef<HTMLSpanElement | null>(null);
+  /* The decoration must wrap exactly where the title wraps, or a narrow heading is overlaid with a
+     single wide line that runs off the screen. Measured once, when playback starts. */
+  const [overlayWidth, setOverlayWidth] = useState<number | null>(null);
 
   useEffect(() => {
     if (mode !== "burst" || playedRef.current) return;
     playedRef.current = true;
+
+    const measured = rootRef.current?.getBoundingClientRect().width;
+    if (measured && measured > 0) setOverlayWidth(Math.round(measured));
 
     let disposed = false;
     const mql =
@@ -94,6 +101,7 @@ export default function ZalgoText({
     const active = phase !== null;
     return (
       <span
+        ref={rootRef}
         className={`ut-title-burst ${className}`.trim()}
         data-glyph-burst={active ? "active" : "settled"}
       >
@@ -111,14 +119,21 @@ export default function ZalgoText({
               display: "inline-block",
               width: 0,
               overflow: "visible",
-              whiteSpace: "nowrap",
               verticalAlign: "baseline",
               pointerEvents: "none",
-              color: "inherit",
-              WebkitTextFillColor: "currentColor",
             }}
           >
-            {corrupt(text, phase)}
+            <span
+              style={{
+                display: "inline-block",
+                width: overlayWidth ? `${overlayWidth}px` : undefined,
+                whiteSpace: overlayWidth ? "normal" : "nowrap",
+                color: "inherit",
+                WebkitTextFillColor: "currentColor",
+              }}
+            >
+              {corrupt(text, phase)}
+            </span>
           </span>
         )}
         {/* The words, as this element's own text node: the ancestor's text clip reaches it. */}
