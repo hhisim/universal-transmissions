@@ -1999,7 +1999,7 @@ body::-webkit-scrollbar-thumb:hover {
 /* ══ Experience portal and instrument wrappers (Batch 47) ═════════════════════ */
 /* The head sits on its own surface: the particle field is atmosphere and must
            not read through the words. */
-        .ut-portal-head{
+.ut-experience .ut-portal-head{
           position: relative;
           z-index: 1;
           max-width: 800px;
@@ -2026,11 +2026,11 @@ body::-webkit-scrollbar-thumb:hover {
            hidden. The old reveal waited on an intersection observer, so sections
            below the fold — and the cards inside the first screen, which sat just
            past the trigger margin — stayed at opacity 0. */
-        .ut-rise{ animation: utRise 0.7s ease-out both; }
+.ut-experience .ut-rise{ animation: utExperienceRise 0.7s ease-out both; }
 /* Opacity is deliberately NOT animated. A fill mode that starts at zero
            leaves content invisible whenever the animation does not run — a background
            tab, a throttled frame, an interrupted load. The entrance is motion only. */
-        @keyframes utRise{
+@keyframes utExperienceRise{
           from { transform: translateY(14px); }
           to { transform: none; }
         }
