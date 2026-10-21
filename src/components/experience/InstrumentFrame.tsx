@@ -47,7 +47,7 @@ export default function InstrumentFrame({
     return (
       <div
         data-instrument-launch="true"
-        className="ut-card p-8 md:p-10"
+        className="ut-experience ut-experience-launch ut-card p-8 md:p-10"
         style={{ background: 'rgba(10, 9, 16, 0.72)' }}
       >
         <p
@@ -87,7 +87,7 @@ export default function InstrumentFrame({
   }
 
   return (
-    <div data-instrument-stage="true">
+    <div data-instrument-stage="true" className="ut-experience ut-experience-stage">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <span
           className="font-mono text-[10px] tracking-[0.25em] uppercase"

@@ -29,7 +29,7 @@ export default function ResonatorLoader() {
     return (
       <div
         data-resonator-launch-panel="true"
-        className="ut-card p-8 md:p-10"
+        className="ut-experience ut-experience-launch ut-card p-8 md:p-10"
         style={{ background: 'rgba(147, 51, 234, 0.03)' }}
       >
         <p
@@ -79,7 +79,7 @@ export default function ResonatorLoader() {
   }
 
   return (
-    <div data-resonator-stage="true">
+    <div data-resonator-stage="true" className="ut-experience ut-experience-stage">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <span
           className="font-mono text-[10px] tracking-[0.25em] uppercase"
