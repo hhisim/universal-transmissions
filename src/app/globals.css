@@ -3709,7 +3709,26 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 640px) {
-  .ut-oracle .oracle-chat-input button[aria-label] { min-width: 5.5rem; }
+  /* The composer shares 318px between field and action. At 16px the placeholder
+     needed two lines and the second was clipped, so at this width the field takes
+     the room it needs: tighter padding and type, and a box tall enough for two
+     lines of placeholder. Multiline entry scrolls inside the same box. */
+  .ut-oracle .oracle-chat-input {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .ut-oracle .oracle-chat-input textarea {
+    padding: 0.6rem 0.7rem !important;
+    font-size: 0.95rem !important;
+    line-height: 1.45 !important;
+    min-height: 4rem !important;
+    min-width: 0;
+  }
+  .ut-oracle .oracle-chat-input button[aria-label] {
+    min-width: 4.75rem;
+    padding-inline: 0.7rem;
+    letter-spacing: 0.18em;
+  }
   .ut-oracle .oracle-answer-readable { font-size: 0.97rem; line-height: 1.72; }
   .ut-oracle .oracle-scroll { padding: 16px 16px 10px !important; }
 }
