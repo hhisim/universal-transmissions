@@ -1835,11 +1835,15 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* One focus treatment for the whole scope, matching the rest of the site. */
-.ut-correspondence a:focus-visible,
-.ut-correspondence button:focus-visible,
-.ut-correspondence input:focus-visible,
-.ut-correspondence summary:focus-visible,
-.ut-correspondence [tabindex]:focus-visible {
+.ut-correspondence.cx-wrap a:focus-visible,
+.ut-correspondence.cx-wrap button:focus-visible,
+.ut-correspondence.cx-wrap input:focus-visible,
+.ut-correspondence.cx-wrap summary:focus-visible,
+.ut-correspondence.cx-wrap [tabindex]:focus-visible,
+.ut-correspondence.cx-wrap .cx-searchinput:focus-visible,
+.ut-correspondence.cx-wrap .cx-searchgo:focus-visible,
+.ut-correspondence.cx-wrap .cx-relsum:focus-visible,
+.ut-correspondence.cx-wrap .cx-card:focus-visible {
   outline: 2px solid #d4a847;
   outline-offset: 2px;
 }
