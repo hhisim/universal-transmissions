@@ -1102,10 +1102,12 @@ body::-webkit-scrollbar-thumb:hover {
     #09080e;
   position: relative;
 }
-/* One shared foreground layer. The atmosphere canvas declares `position: fixed; z-index: 0`,
-   and unpositioned content paints below a positioned zero — which is why art crossed the
-   research text. This single layer sits above the canvas; the page stays transparent, so the
-   scene remains visible wherever nothing is painted. */
+/* Shared foreground owner. A room's scene canvas is `position: fixed; z-index: 0` and lives
+   INSIDE the layout main, beside the page content. Positioned elements at z-index 0 paint after
+   unpositioned text, so the scene covered the prose. A z-index on an ancestor cannot reorder its
+   own descendants; the content itself must own a layer above the canvas. `.ut-foreground` is that
+   owner, applied to the reading content's own <main>. The page stays transparent, so the scene
+   remains visible wherever nothing is painted — including around every panel. */
 .ut-foreground {
   position: relative;
   z-index: 1;

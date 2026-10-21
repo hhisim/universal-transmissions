@@ -110,7 +110,7 @@ export default function ResearchGeometryPage({
 
   return (
     <>
-<PageBackground variant="geometry" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="geometry" /> <main className="pt-24 pb-20 ut-foreground">
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">

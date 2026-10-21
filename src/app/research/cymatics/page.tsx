@@ -43,7 +43,7 @@ export default function ResearchCymaticsPage({
 
   return (
     <>
-<PageBackground variant="cymatics" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="cymatics" /> <main className="pt-24 pb-20 ut-foreground">
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
