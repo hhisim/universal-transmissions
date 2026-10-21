@@ -3635,8 +3635,13 @@ body::-webkit-scrollbar-thumb:hover {
       Still clearly a control, still clearly not yet available. */
   background: color-mix(in srgb, currentColor 10%, transparent) !important;
   border-color: color-mix(in srgb, currentColor 55%, transparent) !important;
-  color: color-mix(in srgb, currentColor 72%, transparent) !important;
   opacity: 0.72 !important;
+}
+/* transition-all made the focus ring fade in from transparent; named
+   properties only, so the ring is there the moment it is needed. */
+.ut-oracle .oracle-chat-input textarea {
+  transition-property: border-color, background-color, color;
+  transition-duration: 0.15s;
 }
 /* A text field always shows where it is, whichever way focus arrived. */
 .ut-oracle .oracle-chat-input textarea:focus,
