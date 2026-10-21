@@ -1400,7 +1400,8 @@ body::-webkit-scrollbar-thumb:hover {
   display: block;
   height: 1px;
   margin-top: 1.1rem;
-  background: linear-gradient(90deg, transparent, rgba(217,70,239,0.35) 25%, rgba(212,168,71,0.55) 50%, rgba(34,211,238,0.35) 75%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(217,70,239,0.75) 25%, rgba(212,168,71,0.95) 50%, rgba(34,211,238,0.75) 75%, transparent);
+  box-shadow: 0 0 10px rgba(212, 168, 71, 0.16);
 }
 .ut-foreground .ut-collection-controls::before { margin: 0 0 1.1rem; }
 
