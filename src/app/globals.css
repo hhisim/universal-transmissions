@@ -3631,7 +3631,18 @@ body::-webkit-scrollbar-thumb:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent);
 }
 .ut-oracle .oracle-chat-input button[aria-label]:disabled {
-  background: color-mix(in srgb, currentColor 8%, transparent) !important;
+  /* The inline style drops the whole control to 30% once the input is empty.
+      Still clearly a control, still clearly not yet available. */
+  background: color-mix(in srgb, currentColor 10%, transparent) !important;
+  border-color: color-mix(in srgb, currentColor 55%, transparent) !important;
+  color: color-mix(in srgb, currentColor 72%, transparent) !important;
+  opacity: 0.72 !important;
+}
+/* A text field always shows where it is, whichever way focus arrived. */
+.ut-oracle .oracle-chat-input textarea:focus,
+.ut-oracle .oracle-chat-input textarea:focus-visible {
+  outline: 2px solid var(--ut-gold, #d4a847) !important;
+  outline-offset: 2px;
 }
 
 /* The conversation reads as one column of prose, never as a scroll trough. */
