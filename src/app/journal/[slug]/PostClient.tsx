@@ -200,6 +200,9 @@ export default function PostClient({ slug }: { slug: string }) {
   const related = getRelatedPosts(post.slug, 3);
   const headings = extractHeadings(post.content);
   const heroImage = post.heroImage ?? extractFirstImage(post.content);
+  // A tall cover carries its own caption and subject. Rather than cropping them away, the
+  // hero shows the whole plate over a softened fill of the same image.
+  const [heroPortrait, setHeroPortrait] = useState(false);
   const vaultInvite = VAULT_INVITES_BY_SLUG[post.slug];
   const voaPackInvite = getVoaPackInvite(post.slug);
 
@@ -250,7 +253,8 @@ export default function PostClient({ slug }: { slug: string }) {
                 className="object-cover object-center"
                 sizes="100vw"
                 priority
-                style={{ opacity: 0.55 }}
+                style={{ opacity: heroPortrait ? 0.32 : 0.55, filter: heroPortrait ? "blur(18px) saturate(0.9)" : undefined }}
+                onLoadingComplete={(img) => setHeroPortrait(img.naturalHeight > img.naturalWidth * 1.15)}
               />
               <div className={`absolute inset-0 bg-gradient-to-br ${heroGradient}`} style={{ opacity: 0.75 }} />
               <div
@@ -263,6 +267,20 @@ export default function PostClient({ slug }: { slug: string }) {
             </div>
           ) : (
             <div className={`absolute inset-0 bg-gradient-to-br ${heroGradient}`} style={{ opacity: 0.9 }} />
+          )}
+
+          {heroPortrait && heroImage && (
+            <div className="ut-journal-hero-plate-wrap">
+              <Image
+                src={heroImage}
+                alt=""
+                aria-hidden
+                fill
+                unoptimized={true}
+                className="ut-journal-hero-plate object-contain object-center"
+                sizes="100vw"
+              />
+            </div>
           )}
 
           <div className="relative container-ut pt-32 pb-24">

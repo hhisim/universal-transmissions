@@ -5,7 +5,7 @@ publishedAt: "2026-09-22"
 author: "Prime + Hakan"
 excerpt: "Zhuangzi's fasting of the heart is not a demand to stop thinking. It is a discipline of loosening the self's first grip on experience so perception can meet the world before it turns everything into a verdict."
 readTime: "19 min"
-heroImage: "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-3-power-1.jpg"
+heroImage: "/journal/voa-20260922/fasting-of-the-heart-zhuangzi-attention/cover.png"
 hero_gradient: "from-teal-950 via-slate-950 to-black"
 tags: ["zhuangzi", "fasting-of-the-heart", "xinzhai", "sitting-and-forgetting", "daoism", "taoism", "attention", "embodied-practice", "meditation", "studio-practice", "esoteric-history"]
 ---

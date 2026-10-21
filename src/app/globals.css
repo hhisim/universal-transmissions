@@ -1538,3 +1538,21 @@ body::-webkit-scrollbar-thumb:hover {
   .ut-journal article { padding: 1.1rem; }
   .ut-journal aside { border-left: 0; padding-left: 0; }
 }
+
+
+/* A tall cover keeps its subject and its own caption: the plate is shown whole over a
+   softened fill of itself, instead of being cropped to a banner. */
+.ut-journal .ut-journal-hero-plate-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ut-journal .ut-journal-hero-plate {
+  object-fit: contain;
+  object-position: center;
+  opacity: 0.92;
+}
+@media (max-width: 767px) {
+  .ut-journal .ut-journal-hero { min-height: 78vh; }
+  .ut-journal .ut-journal-hero-plate { object-position: center 35%; }
+}
