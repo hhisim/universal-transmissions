@@ -653,8 +653,7 @@ function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
           </div>
         ))}
       </dl>
-      <footer className="oracle-evidence-foot">
-
+      <footer className="oracle-evidence-foot">
         <code className="oracle-evidence-id">{evidence.entityId}</code>
         {evidence.action ? (
           <span className="oracle-evidence-actions">
