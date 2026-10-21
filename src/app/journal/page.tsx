@@ -51,7 +51,7 @@ export default function JournalPage({ searchParams }: Props) {
   return (
     <>
       <PageBackground variant="journal" />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-24 pb-20 ut-foreground ut-journal">
         <div className="container-ut">
           <SectionReveal>
             <div className="text-center mb-12 pt-8">

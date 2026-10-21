@@ -1458,3 +1458,83 @@ body::-webkit-scrollbar-thumb:hover {
   outline: 2px solid var(--ut-gold);
   outline-offset: 2px;
 }
+
+
+/* ============================================================
+   THE LIVING GRIMOIRE — Journal index and article pages
+   Scoped to .ut-journal. .ut-foreground stays the stacking
+   owner; nothing here reaches another route.
+   ============================================================ */
+
+/* Reading surfaces: the article measure and the contents rail sit on quiet ground
+   so the scene stays visible around them without sitting under the text. */
+.ut-journal article {
+  background: rgba(10, 9, 14, 0.86);
+  border: 1px solid rgba(237, 233, 246, 0.07);
+  border-left: 2px solid rgba(217, 70, 239, 0.55);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+.ut-journal aside {
+  border-left: 1px solid rgba(237, 233, 246, 0.08);
+  padding-left: 1.1rem;
+}
+
+/* Cards keep sharp corners and take a gold edge on interaction. */
+.ut-journal .ut-card {
+  border-radius: 0;
+  background: rgba(10, 9, 14, 0.88);
+  border: 1px solid rgba(237, 233, 246, 0.08);
+  transition: border-color 0.25s;
+}
+.ut-journal .ut-card:hover,
+.ut-journal .ut-card:focus-within { border-color: rgba(212, 168, 71, 0.5); }
+
+/* Search, filters and actions are outlined, never pills. */
+.ut-journal form[role="search"] input,
+.ut-journal form[role="search"] button,
+.ut-journal [aria-label="Filter by tag"] button,
+.ut-journal [aria-label="Filter by year"] button,
+.ut-journal nav[aria-label="Journal pages"] a,
+.ut-journal nav[aria-label="Journal pages"] button {
+  border-radius: 0;
+}
+.ut-journal form[role="search"] input {
+  border: 1px solid rgba(237, 233, 246, 0.14);
+  background: rgba(10, 9, 14, 0.9);
+}
+.ut-journal form[role="search"] input:focus-visible {
+  outline: 2px solid var(--ut-gold);
+  outline-offset: 2px;
+  border-color: rgba(212, 168, 71, 0.6);
+}
+.ut-journal form[role="search"] button { border: 1px solid rgba(237, 233, 246, 0.18); }
+
+/* Spectral rules mark the hero foot and the paging seam. */
+.ut-journal .ut-journal-hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(217,70,239,0.75) 25%, rgba(212,168,71,0.95) 50%, rgba(34,211,238,0.75) 75%, transparent);
+  box-shadow: 0 0 10px rgba(212, 168, 71, 0.16);
+}
+.ut-journal nav[aria-label="Journal pages"] {
+  border-top: 1px solid rgba(237, 233, 246, 0.08);
+  padding-top: 1.4rem;
+}
+
+/* Metadata reads as the archive's marker type. */
+.ut-journal .ut-card p,
+.ut-journal .ut-card span { letter-spacing: 0.02em; }
+
+/* Keyboard focus stays visible everywhere in the group. */
+.ut-journal a:focus-visible,
+.ut-journal button:focus-visible {
+  outline: 2px solid var(--ut-gold);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .ut-journal article { padding: 1.1rem; }
+  .ut-journal aside { border-left: 0; padding-left: 0; }
+}

@@ -185,7 +185,7 @@ export default function PostClient({ slug }: { slug: string }) {
   if (!post) {
     return (
       <>
-<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20 ut-foreground ut-journal">
           <div className="container-ut text-center">
             <h1 className="font-display text-3xl mb-4" style={{ color: "var(--ut-cyan)" }}>Transmission Not Found</h1>
             <Link href={returnHref} className="font-mono text-sm tracking-widest uppercase" style={{ color: "var(--ut-magenta)" }}>
@@ -236,9 +236,9 @@ export default function PostClient({ slug }: { slug: string }) {
   return (
     <>
 <PageBackground variant="journal" />
-      <main style={{ background: "var(--ut-black)" }}>
+      <main className="ut-foreground ut-journal">
         {/* ── Hero ── */}
-        <div className="relative overflow-hidden" style={{ minHeight: "65vh" }}>
+        <div className="ut-journal-hero relative overflow-hidden" style={{ minHeight: "65vh" }}>
           {/* Background: image + gradient overlay */}
           {heroImage ? (
             <div className="absolute inset-0">
