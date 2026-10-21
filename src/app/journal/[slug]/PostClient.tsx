@@ -12,6 +12,7 @@ import { blogPosts, getPostBySlug, getRelatedPosts, type BlogPost } from "@/data
 import { getVoaPackInvite, shop } from "@/data/voa-pack-invites";
 import { extractFirstImage } from "@/data/blog-posts";
 import { safeJournalReturn } from "@/lib/journal-browse";
+import { tallCoverSize } from "@/lib/image-orientation";
 import { artworkRecordsForJournal } from "@/lib/journal-artworks";
 import PageBackground from "@/components/scenes/PageBackground";
 
@@ -205,6 +206,7 @@ export default function PostClient({ slug, tallCover = false }: { slug: string; 
   // A tall cover is known from the asset itself at render time, so the plate never depends on a
   // load event, a decode race or the viewport it happens to open in.
   const heroPortrait = tallCover;
+  const heroCoverSize = tallCoverSize(heroImage ?? undefined);
   const vaultInvite = VAULT_INVITES_BY_SLUG[post.slug];
   const voaPackInvite = getVoaPackInvite(post.slug);
 
@@ -217,6 +219,58 @@ export default function PostClient({ slug, tallCover = false }: { slug: string; 
     month: "long",
     day: "numeric",
   });
+
+  const heroCopy = (
+    <>
+            <SectionReveal>
+                <Link
+                  href={returnHref}
+                  className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest uppercase mb-12 hover:opacity-80 transition-opacity"
+                  style={{ color: "rgba(255,255,255,0.5)" }}
+                >
+                  ← Journal
+                </Link>
+              </SectionReveal>
+  
+              <div className="max-w-4xl">
+                <SectionReveal delay={0.1}>
+                  <div className="flex flex-wrap items-center gap-4 mb-6">
+                    <span className="font-mono text-[9px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-cyan)" }}>
+                      {dateLabel}
+                    </span>
+                    <span className="font-mono text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>/</span>
+                    <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      {post.readTime}
+                    </span>
+                    <span className="font-mono text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>/</span>
+                    <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      {post.author}
+                    </span>
+                  </div>
+                </SectionReveal>
+  
+                <SectionReveal delay={0.2}>
+                  <h1 className="font-display text-4xl md:text-6xl mb-6" style={{ color: "var(--ut-white)" }}>
+                    <ZalgoText text={post.title} intensity="moderate" />
+                  </h1>
+                </SectionReveal>
+  
+                <SectionReveal delay={0.3}>
+                  <div className="flex gap-2 flex-wrap">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="font-mono text-[8px] tracking-widest uppercase px-2 py-1 border"
+                        style={{ borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.4)" }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </SectionReveal>
+              </div>
+    </>
+  );
 
   const gradientMap: Record<string, string> = {
     "from-fuchsia-900 via-violet-900 to-black": "from-fuchsia-950 via-violet-950 to-black",
@@ -243,6 +297,28 @@ export default function PostClient({ slug, tallCover = false }: { slug: string; 
 <PageBackground variant="journal" />
       <main className="ut-foreground ut-journal">
         {/* ── Hero ── */}
+        {tallCover && heroImage ? (
+          /* A tall cover carries its own title. The article's heading, metadata and tags read in
+             their own column so the two never share a space, and the plate is shown whole. */
+          <div className="ut-journal-hero ut-journal-hero--tall">
+            <div className="container-ut ut-journal-tall">
+              <div className="ut-journal-tall-copy">{heroCopy}</div>
+              <figure className="ut-journal-tall-plate">
+                <Image
+                  src={heroImage}
+                  alt={post.title}
+                  width={heroCoverSize.width}
+                  height={heroCoverSize.height}
+                  sizes="(max-width: 1023px) 100vw, 46vw"
+                  unoptimized={true}
+                  priority
+                  className="ut-journal-tall-plate-img"
+                />
+              </figure>
+            </div>
+          </div>
+        ) : (
+        /* ── Standard hero: the wash sits behind the article's own copy ── */
         <div className="ut-journal-hero relative overflow-hidden" style={{ minHeight: "65vh" }}>
           {/* Background: image + gradient overlay */}
           {heroImage ? (
@@ -270,71 +346,12 @@ export default function PostClient({ slug, tallCover = false }: { slug: string; 
             <div className={`absolute inset-0 bg-gradient-to-br ${heroGradient}`} style={{ opacity: 0.9 }} />
           )}
 
-          {heroPortrait && heroImage && (
-            <div className="ut-journal-hero-plate-wrap">
-              <Image
-                src={heroImage}
-                alt=""
-                aria-hidden
-                fill
-                unoptimized={true}
-                className="ut-journal-hero-plate object-contain object-center"
-                sizes="100vw"
-              />
-            </div>
-          )}
 
           <div className="relative container-ut pt-32 pb-24">
-            <SectionReveal>
-              <Link
-                href={returnHref}
-                className="inline-flex items-center gap-2 font-mono text-[10px] tracking-widest uppercase mb-12 hover:opacity-80 transition-opacity"
-                style={{ color: "rgba(255,255,255,0.5)" }}
-              >
-                ← Journal
-              </Link>
-            </SectionReveal>
-
-            <div className="max-w-4xl">
-              <SectionReveal delay={0.1}>
-                <div className="flex flex-wrap items-center gap-4 mb-6">
-                  <span className="font-mono text-[9px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-cyan)" }}>
-                    {dateLabel}
-                  </span>
-                  <span className="font-mono text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>/</span>
-                  <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>
-                    {post.readTime}
-                  </span>
-                  <span className="font-mono text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>/</span>
-                  <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>
-                    {post.author}
-                  </span>
-                </div>
-              </SectionReveal>
-
-              <SectionReveal delay={0.2}>
-                <h1 className="font-display text-4xl md:text-6xl mb-6" style={{ color: "var(--ut-white)" }}>
-                  <ZalgoText text={post.title} intensity="moderate" />
-                </h1>
-              </SectionReveal>
-
-              <SectionReveal delay={0.3}>
-                <div className="flex gap-2 flex-wrap">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="font-mono text-[8px] tracking-widest uppercase px-2 py-1 border"
-                      style={{ borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.4)" }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </SectionReveal>
-            </div>
+            {heroCopy}
           </div>
         </div>
-
+        )}
         {/* ── Article body ── */}
         <div className="container-ut py-16">
           <div className="flex gap-12">

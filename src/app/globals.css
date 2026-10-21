@@ -1540,19 +1540,40 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 
-/* A tall cover keeps its subject and its own caption: the plate is shown whole over a
-   softened fill of itself, instead of being cropped to a banner. */
-.ut-journal .ut-journal-hero-plate-wrap {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+/* A tall cover carries its own title, so it is never laid under the article's heading.
+   The copy and the whole plate occupy separate areas; on narrow screens they stack in a
+   clear vertical order with the cover first. These rules apply to the tall treatment only. */
+.ut-journal .ut-journal-hero--tall { padding-block: 0.5rem 0; }
+.ut-journal .ut-journal-tall {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding-top: 6.5rem;
+  padding-bottom: 2.5rem;
 }
-.ut-journal .ut-journal-hero-plate {
-  object-fit: contain;
-  object-position: center;
-  opacity: 0.92;
+.ut-journal .ut-journal-tall-plate {
+  order: -1;
+  margin: 0;
+  border: 1px solid rgba(237, 233, 246, 0.1);
+  background: #050507;
+  align-self: center;
+  width: min(100%, 30rem);
 }
-@media (max-width: 767px) {
-  .ut-journal .ut-journal-hero { min-height: 78vh; }
-  .ut-journal .ut-journal-hero-plate { object-position: center 35%; }
+.ut-journal .ut-journal-tall-plate-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ut-journal .ut-journal-tall-copy > :first-child { margin-top: 0; }
+
+@media (min-width: 1024px) {
+  .ut-journal .ut-journal-tall {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 42%);
+    align-items: center;
+    gap: 3.5rem;
+    padding-top: 8.5rem;
+    padding-bottom: 4rem;
+  }
+  .ut-journal .ut-journal-tall-plate { order: 0; width: 100%; align-self: center; }
 }
