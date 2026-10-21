@@ -113,7 +113,7 @@ function stripFrontmatter(raw: string): string {
 export const blogPosts: BlogPost[] = [
   {
     slug: "fasting-of-the-heart-zhuangzi-attention",
-    heroImage: "/journal/voa-20260922/fasting-of-the-heart-zhuangzi-attention/cover.png",
+    heroImage: "/journal/universal-transmissions-bio-energetic-vortexes-vortex-no-3-power-1.jpg",
     title: "The Fasting of the Heart: Zhuangzi's Attention Practice for an Overloaded Age",
     publishedAt: "2026-09-22",
     author: "Prime + Hakan",
@@ -178,7 +178,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "law-of-one-ethics-of-relation",
-    heroImage: "/journal/voa-20260910/law-of-one-ethics-of-relation/cover.png",
+    heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074487/voa/heroes/ra-material-hero.png",
     title: "The Law of One: When Cosmic Unity Becomes an Ethics of Relation",
     publishedAt: "2026-09-11",
     author: "Prime + Hakan",

@@ -5,7 +5,7 @@ publishedAt: "2026-09-11"
 author: "Prime + Hakan"
 excerpt: "The Law of One read as a studio discipline: narrow attention, systems that refuse to coerce, and service-to-others versus service-to-self as the design ethic that decides what anything you make actually serves."
 readTime: "18 min"
-heroImage: "/journal/voa-20260910/law-of-one-ethics-of-relation/cover.png"
+heroImage: "https://res.cloudinary.com/dvkxsh4ve/image/upload/v1775074487/voa/heroes/ra-material-hero.png"
 hero_gradient: "from-indigo-950 via-slate-900 to-black"
 tags: ["law-of-one", "ra-contact", "attention", "making", "design-ethics", "service-to-others", "service-to-self", "free-will", "systems", "studio-practice", "unity"]
 ---
