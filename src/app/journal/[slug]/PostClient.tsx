@@ -206,13 +206,22 @@ export default function PostClient({ slug }: { slug: string }) {
   // A cached hero can finish loading before the load handler is attached, so measure the
   // already-complete image too rather than trusting the event alone.
   useEffect(() => {
-    const img = document.querySelector<HTMLImageElement>(".ut-journal-hero img");
+    // Measure the cover itself, never the plate it may render. The image can still be decoding
+    // when this runs, so poll a frame at a time until its intrinsic size is known.
+    const img = document.querySelector<HTMLImageElement>(
+      ".ut-journal-hero img:not(.ut-journal-hero-plate)"
+    );
     if (!img) return;
+    let frame = 0;
     const measure = () => {
-      if (img.naturalWidth) setHeroPortrait(img.naturalHeight > img.naturalWidth * 1.15);
+      if (img.naturalWidth > 0) {
+        setHeroPortrait(img.naturalHeight > img.naturalWidth * 1.15);
+        return;
+      }
+      frame = requestAnimationFrame(measure);
     };
-    if (img.complete) measure();
-    else img.addEventListener("load", measure, { once: true });
+    measure();
+    return () => cancelAnimationFrame(frame);
   }, [heroImage]);
   const vaultInvite = VAULT_INVITES_BY_SLUG[post.slug];
   const voaPackInvite = getVoaPackInvite(post.slug);
