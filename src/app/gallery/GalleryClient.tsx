@@ -61,6 +61,7 @@ import {
   type Orientation,
 } from "@/lib/gallery-collection";
 import { artworks } from "@/data/artworks";
+import { ARTWORK_IMAGE_META } from "@/data/artwork-image-meta";
 
 /** Positions are kept per collection, so one visit cannot answer for another. */
 const POSITIONS_KEY = "ut:gallery:positions";
@@ -241,12 +242,16 @@ export default function GalleryClient() {
                 data-begin-work={a.slug}
               >
                 <span className="ut-begin-thumb">
+                  {/* The plate takes the work's own recorded proportions rather than a fixed
+                      window. Dimensions come from the registry's master metadata; a work with no
+                      recorded size falls back to the collection's landscape default. */}
                   <Image
                     src={a.images[0]}
                     alt={a.title}
-                    fill
-                    sizes="(max-width: 640px) 40vw, 180px"
-                    style={{ objectFit: "cover" }}
+                    width={ARTWORK_IMAGE_META[a.slug]?.width ?? 1200}
+                    height={ARTWORK_IMAGE_META[a.slug]?.height ?? 900}
+                    sizes="(max-width: 640px) 40vw, 240px"
+                    style={{ width: "100%", height: "auto" }}
                   />
                 </span>
                 <span className="ut-begin-title">{a.title}</span>
