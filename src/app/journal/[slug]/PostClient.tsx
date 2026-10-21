@@ -150,7 +150,7 @@ function ProcessedContent({ content, fallbackAlt }: { content: string; fallbackA
 
 // ─── Post Client ─────────────────────────────────────────────────────────────
 
-export default function PostClient({ slug }: { slug: string }) {
+export default function PostClient({ slug, tallCover = false }: { slug: string; tallCover?: boolean }) {
   const post = getPostBySlug(slug);
   const [copied, setCopied] = useState(false);
 
@@ -202,27 +202,9 @@ export default function PostClient({ slug }: { slug: string }) {
   const heroImage = post.heroImage ?? extractFirstImage(post.content);
   // A tall cover carries its own caption and subject. Rather than cropping them away, the
   // hero shows the whole plate over a softened fill of the same image.
-  const [heroPortrait, setHeroPortrait] = useState(false);
-  // A cached hero can finish loading before the load handler is attached, so measure the
-  // already-complete image too rather than trusting the event alone.
-  useEffect(() => {
-    // Measure the cover itself, never the plate it may render. The image can still be decoding
-    // when this runs, so poll a frame at a time until its intrinsic size is known.
-    const img = document.querySelector<HTMLImageElement>(
-      ".ut-journal-hero img:not(.ut-journal-hero-plate)"
-    );
-    if (!img) return;
-    let frame = 0;
-    const measure = () => {
-      if (img.naturalWidth > 0) {
-        setHeroPortrait(img.naturalHeight > img.naturalWidth * 1.15);
-        return;
-      }
-      frame = requestAnimationFrame(measure);
-    };
-    measure();
-    return () => cancelAnimationFrame(frame);
-  }, [heroImage]);
+  // A tall cover is known from the asset itself at render time, so the plate never depends on a
+  // load event, a decode race or the viewport it happens to open in.
+  const heroPortrait = tallCover;
   const vaultInvite = VAULT_INVITES_BY_SLUG[post.slug];
   const voaPackInvite = getVoaPackInvite(post.slug);
 
@@ -274,7 +256,6 @@ export default function PostClient({ slug }: { slug: string }) {
                 sizes="100vw"
                 priority
                 style={{ opacity: heroPortrait ? 0.32 : 0.55, filter: heroPortrait ? "blur(18px) saturate(0.9)" : undefined }}
-                onLoadingComplete={(img) => setHeroPortrait(img.naturalHeight > img.naturalWidth * 1.15)}
               />
               <div className={`absolute inset-0 bg-gradient-to-br ${heroGradient}`} style={{ opacity: 0.75 }} />
               <div

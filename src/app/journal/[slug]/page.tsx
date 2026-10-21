@@ -1,6 +1,7 @@
 import { blogPosts, getPostBySlug, getRelatedPosts } from "@/data/blog-posts";
 import type { Metadata } from "next";
 import PostClient from "./PostClient";
+import { isTallCover } from "@/lib/image-orientation";
 import DescentReturn from "@/components/research/DescentReturn";
 import {
   absoluteUrl,
@@ -92,7 +93,7 @@ export default function PostPage({ params, searchParams }: Props) {
         accent="var(--ut-gold)"
         searchParams={searchParams}
       />
-      <PostClient slug={params.slug} />
+      <PostClient slug={params.slug} tallCover={isTallCover(post.heroImage)} />
     </>
   );
 }
