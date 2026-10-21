@@ -1593,7 +1593,6 @@ body::-webkit-scrollbar-thumb:hover {
   cursor:pointer}
 .ut-correspondence .cx-searchgo:hover{background:#e040fb;border-color:#e040fb;color:#05040c}
 .ut-correspondence .cx-searchgo:focus-visible{outline:2px solid #e040fb;outline-offset:2px}
-.ut-correspondence .cx-wrap{max-width:1100px;margin:0 auto;padding:104px 24px 120px;color:var(--ut-white,#f0ecff)}
 .ut-correspondence .cx-crumb{margin-bottom:20px}
 .ut-correspondence .cx-back, .ut-correspondence .cx-out, .ut-correspondence .cx-ask{display:inline-block;font-family:var(--font-mono,monospace);font-size:11px;
   letter-spacing:.18em;text-transform:uppercase;color:#22d3ee;text-decoration:none;
@@ -1701,7 +1700,6 @@ body::-webkit-scrollbar-thumb:hover {
 .ut-correspondence .cx-oracle{border:1px solid rgba(224,64,251,.22);padding:24px;background:rgba(224,64,251,.03)}
 .ut-correspondence .cx-ask{font-size:12px;margin-top:4px}
 @media (max-width:560px){
-.ut-correspondence .cx-wrap{padding:88px 16px 96px}
 .ut-correspondence .cx-field{grid-template-columns:1fr;gap:5px}
 .ut-correspondence .cx-grid{grid-template-columns:1fr}
 .ut-correspondence .cx-relitem>*:not(summary){padding-left:16px}
@@ -1712,9 +1710,13 @@ body::-webkit-scrollbar-thumb:hover {
    carries no presentation here. The archive is a reading surface: records, values
    and their provenance stay legible at every width, and controls stay reachable. */
 
+/* Owner. The element itself carries both classes, so these declarations bind with a compound
+   selector; a descendant selector would silently miss it and the column would lose its centring. */
 .ut-correspondence.cx-wrap {
   max-width: 1120px;
+  margin-inline: auto;
   padding: clamp(7rem, 11vh, 8.5rem) clamp(1rem, 4vw, 2.5rem) clamp(5rem, 9vh, 7rem);
+  color: var(--ut-white, #f0ecff);
 }
 
 /* Header: hierarchy and a single spectral seam instead of a flat divider. */
@@ -1849,6 +1851,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 560px) {
+  .ut-correspondence.cx-wrap { padding: 5.5rem 1rem 6rem; }
   .ut-correspondence .cx-field { grid-template-columns: 1fr; gap: 0.3rem; }
   .ut-correspondence .cx-searchgo { flex: 1 1 100%; }
   .ut-correspondence .cx-title { max-width: none; }
