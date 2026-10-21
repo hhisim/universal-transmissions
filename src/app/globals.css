@@ -3623,12 +3623,23 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: currentColor !important;
 }
 .ut-oracle .oracle-chat-input button[aria-label]:disabled { cursor: not-allowed; }
+/* The mode still colours the control, but the control must read as the action:
+   a filled ground and a solid edge in its own hue, not a whisper of one. */
+.ut-oracle .oracle-chat-input button[aria-label] {
+  background: color-mix(in srgb, currentColor 16%, transparent) !important;
+  border-color: currentColor !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent);
+}
+.ut-oracle .oracle-chat-input button[aria-label]:disabled {
+  background: color-mix(in srgb, currentColor 8%, transparent) !important;
+}
 
 /* The conversation reads as one column of prose, never as a scroll trough. */
-.ut-oracle .oracle-chat-card {
-  background: rgba(10, 9, 14, 0.88);
-  border: 1px solid rgba(237, 233, 246, 0.09);
-  border-left: 2px solid rgba(212, 168, 71, 0.42);
+.ut-oracle .oracle-chat-card,
+.ut-oracle .oracle-chat-glass-card {
+  background: rgba(10, 9, 14, 0.88) !important;
+  border: 1px solid rgba(237, 233, 246, 0.09) !important;
+  border-left: 2px solid rgba(212, 168, 71, 0.42) !important;
 }
 .ut-oracle .oracle-scroll { scrollbar-gutter: stable; }
 .ut-oracle .oracle-answer-readable {
