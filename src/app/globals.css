@@ -1373,8 +1373,11 @@ body::-webkit-scrollbar-thumb:hover {
   display: block;
   position: relative;
   overflow: hidden;
+  aspect-ratio: auto;   /* the work sets its own height; the plate follows it */
   border-bottom: 1px solid rgba(237, 233, 246, 0.08);
 }
+.ut-foreground .ut-begin-tile { align-self: start; }
+.ut-foreground .ut-begin-head::after { flex: 0 0 100%; }
 .ut-foreground .ut-begin-thumb img {
   display: block;
   width: 100%;
