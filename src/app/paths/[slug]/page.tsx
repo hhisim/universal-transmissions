@@ -63,7 +63,7 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
     <>
       <PageBackground variant="research" />
       <PageBackground variant="homepage" opacity={0.4} />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <main className="ut-foreground ut-paths pt-24 pb-20">
         {/* ── HEADER: which path, which stop, how far along ─────────────── */}
         <section className="container-ut pt-10 pb-6">
           <nav
@@ -143,8 +143,7 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
             <article
               data-path-stop={stop.number}
               data-path-anchor={stop.anchor ?? "room"}
-              className="p-6 md:p-8"
-              style={{ border: "1px solid var(--ut-border)", background: "rgba(255,255,255,0.015)" }}
+              className="ut-path-stop p-6 md:p-8"
             >
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
                 <span
@@ -208,7 +207,6 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
                 <div
                   data-curated-reading
                   className="mb-6 p-4"
-                  style={{ border: "1px dashed rgba(240,199,94,0.28)", background: "rgba(240,199,94,0.03)" }}
                 >
                   <p
                     className="font-mono text-[9px] tracking-[0.25em] uppercase mb-2"
@@ -298,7 +296,6 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
             <article
               data-path-out-of-range
               className="p-6 md:p-8"
-              style={{ border: "1px dashed var(--ut-border)", background: "rgba(255,255,255,0.015)" }}
             >
               <p
                 className="font-mono text-[9px] tracking-[0.25em] uppercase mb-4"
@@ -330,15 +327,13 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
               <Link
                 href={stopHref(previous.number)}
                 data-path-prev={previous.number}
-                className="font-mono text-[10px] tracking-[0.2em] uppercase px-3 py-2 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
-                style={{ color: "var(--ut-white-dim)", border: "1px solid var(--ut-border)" }}
+                className="ut-path-nav"
               >
                 ← Stop {previous.number}
               </Link>
             ) : (
               <span
-                className="font-mono text-[10px] tracking-[0.2em] uppercase px-3 py-2"
-                style={{ color: "var(--ut-white-faint)", border: "1px solid var(--ut-border)", opacity: 0.5 }}
+                className="ut-path-nav"
               >
                 ← Start of path
               </span>
@@ -348,8 +343,7 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
               <Link
                 href={stopHref(next.number)}
                 data-path-next={next.number}
-                className="font-mono text-[10px] tracking-[0.2em] uppercase px-4 py-2 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
-                style={{ color: "var(--ut-gold)", border: "1px solid rgba(240,199,94,0.35)" }}
+                className="ut-path-nav"
               >
                 Next: {next.title} →
               </Link>
@@ -357,8 +351,7 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
               <Link
                 href="/paths"
                 data-path-end
-                className="font-mono text-[10px] tracking-[0.2em] uppercase px-4 py-2 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
-                style={{ color: "var(--ut-gold)", border: "1px solid rgba(240,199,94,0.35)" }}
+                className="ut-path-nav"
               >
                 End of path — all paths →
               </Link>
@@ -383,11 +376,7 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
                     href={stopHref(s.number)}
                     data-path-stop-link={s.number}
                     aria-current={current ? "step" : undefined}
-                    className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2 px-3 focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
-                    style={{
-                      border: `1px solid ${current ? "rgba(240,199,94,0.4)" : "transparent"}`,
-                      background: current ? "rgba(240,199,94,0.04)" : "transparent",
-                    }}
+                    className="ut-path-stoplink flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2 px-3"
                   >
                     <span
                       className="font-mono text-[10px] w-5 text-right shrink-0"

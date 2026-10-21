@@ -31,7 +31,7 @@ export default function PathsPage() {
     <>
       <PageBackground variant="research" />
       <PageBackground variant="homepage" opacity={0.4} />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <main className="ut-foreground ut-paths pt-24 pb-20">
         <section className="py-20 md:py-28 relative overflow-hidden">
           <div
             className="absolute inset-0 pointer-events-none"
@@ -86,14 +86,7 @@ export default function PathsPage() {
           <div className="grid gap-8 lg:gap-10">
             {paths.map(({ path, stops, unresolved }) => (
               <SectionReveal key={path.slug}>
-                <article
-                  className="p-6 md:p-8"
-                  style={{
-                    border: "1px solid var(--ut-border)",
-                    background: "rgba(255,255,255,0.015)",
-                  }}
-                  data-guided-path={path.slug}
-                >
+                <article className="p-6 md:p-8" data-guided-path={path.slug}>
                   <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 mb-4">
                     <h2
                       className="font-display text-2xl md:text-3xl tracking-[0.04em]"

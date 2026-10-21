@@ -1867,3 +1867,131 @@ body::-webkit-scrollbar-thumb:hover {
     animation: none !important;
   }
 }
+
+
+/* ══ Paths presentation (Batch 46) ══════════════════════════════════════════
+   Scope: .ut-paths. .ut-foreground keeps only the stacking role. The opaque page
+   ground is gone so the active scene stays visible behind the reading surfaces. */
+
+.ut-paths {
+  color: var(--ut-white, #ede9f6);
+}
+
+/* Path cards on the index: one quiet surface, gold on approach. */
+.ut-paths [data-guided-path] {
+  background: rgba(10, 9, 14, 0.86);
+  border: 1px solid rgba(237, 233, 246, 0.09) !important;
+  padding: clamp(1.25rem, 2.6vw, 2rem);
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.ut-paths [data-guided-path]:hover {
+  border-color: rgba(212, 168, 71, 0.42) !important;
+  background: rgba(14, 13, 20, 0.94);
+}
+.ut-paths [data-guided-path] h2 a {
+  text-decoration: none;
+  color: inherit;
+}
+.ut-paths [data-guided-path] h2 a:hover { color: var(--ut-gold, #d4a847); }
+.ut-paths [data-guided-path] ol li {
+  border-left: 1px solid rgba(147, 51, 234, 0.28);
+  padding-left: 0.6rem;
+  overflow-wrap: anywhere;
+}
+
+/* The stop being read: a reading surface with its own rule, clearly not a passage. */
+.ut-paths .ut-path-stop {
+  background: rgba(10, 9, 14, 0.86);
+  border: 1px solid rgba(237, 233, 246, 0.08);
+  border-left: 2px solid rgba(212, 168, 71, 0.55);
+  padding: clamp(1.25rem, 2.8vw, 2.2rem);
+}
+.ut-paths [data-curated-reading] {
+  background: rgba(212, 168, 71, 0.035);
+  border: 1px solid rgba(212, 168, 71, 0.26);
+  border-left: 2px solid rgba(212, 168, 71, 0.6);
+  padding: clamp(0.9rem, 2vw, 1.15rem);
+}
+.ut-paths [data-curated-reading] p:last-child {
+  color: rgba(237, 233, 246, 0.78);
+}
+
+/* Unavailable and out-of-range states keep their warning character, not a second card design. */
+.ut-paths [data-path-unavailable],
+.ut-paths [data-path-out-of-range] {
+  background: rgba(10, 9, 14, 0.7);
+  border: 1px dashed rgba(217, 70, 239, 0.32);
+  border-left: 2px solid rgba(217, 70, 239, 0.55);
+}
+
+/* The stop list: the current stop must not read like the others. */
+.ut-paths .ut-path-stoplink {
+  border: 1px solid rgba(237, 233, 246, 0.06);
+  border-left: 2px solid rgba(147, 51, 234, 0.22);
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  overflow-wrap: anywhere;
+}
+.ut-paths .ut-path-stoplink:hover {
+  background: rgba(237, 233, 246, 0.035);
+  border-left-color: rgba(212, 168, 71, 0.5);
+}
+.ut-paths .ut-path-stoplink[aria-current="step"] {
+  background: rgba(212, 168, 71, 0.075);
+  border-color: rgba(212, 168, 71, 0.45);
+  border-left: 3px solid var(--ut-gold, #d4a847);
+}
+
+/* Onward choices: quiet for back, stated for forward. */
+.ut-paths .ut-path-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(237, 233, 246, 0.75);
+  border: 1px solid rgba(237, 233, 246, 0.14);
+  background: rgba(10, 9, 14, 0.6);
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.ut-paths a.ut-path-nav:hover {
+  color: var(--ut-gold, #d4a847);
+  border-color: rgba(212, 168, 71, 0.5);
+}
+.ut-paths [data-path-next],
+.ut-paths [data-path-end] {
+  color: var(--ut-gold, #d4a847);
+  border-color: rgba(212, 168, 71, 0.45);
+  background: rgba(212, 168, 71, 0.06);
+}
+.ut-paths span.ut-path-nav { opacity: 0.45; }
+
+/* One focus treatment for the whole scope. */
+.ut-paths a:focus-visible,
+.ut-paths button:focus-visible,
+.ut-paths [tabindex]:focus-visible {
+  outline: 2px solid var(--ut-gold, #d4a847) !important;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .ut-paths .ut-path-nav {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .ut-paths [data-guided-path] ol li { padding-left: 0.45rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ut-paths *,
+  .ut-paths *::before,
+  .ut-paths *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
