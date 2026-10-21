@@ -29,5 +29,7 @@ export const metadata: Metadata = {
 }
 
 export default function OracleLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  // The Oracle presentation scope must enclose everything the page paints, including
+  // the boot overlay and the atmosphere layers that sit outside <main>.
+  return <div className="ut-oracle">{children}</div>
 }
