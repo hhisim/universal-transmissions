@@ -120,7 +120,7 @@ window.__utGetSession = function() {
         <AuthSessionGate />
         <Navigation />
         <div className="min-h-screen flex flex-col pt-16">
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 ut-foreground">{children}</main>
           <Footer />
         </div>
       </body>

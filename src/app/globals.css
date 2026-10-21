@@ -1095,14 +1095,35 @@ body::-webkit-scrollbar-thumb:hover {
   gap: 12px;
   padding: 76px 48px 45px 60px;
   align-items: center;
-  overflow: clip;
+  overflow: visible;
   background:
     radial-gradient(ellipse at 78% 50%, rgba(66, 16, 77, 0.2), transparent 62%),
     radial-gradient(ellipse at 65% 22%, rgba(23, 65, 78, 0.13), transparent 50%),
     #09080e;
   position: relative;
 }
-.ut-hero.lg-hero .ut-hero-copy { padding: 14px 0 24px; min-width: 0; }
+/* One shared foreground layer. The atmosphere canvas declares `position: fixed; z-index: 0`,
+   and unpositioned content paints below a positioned zero — which is why art crossed the
+   research text. This single layer sits above the canvas; the page stays transparent, so the
+   scene remains visible wherever nothing is painted. */
+.ut-foreground {
+  position: relative;
+  z-index: 1;
+}
+
+/* The painted title must fit the copy column it actually gets, combining marks included.
+   Sized from the column (container query), allowed to wrap, never clipped. */
+.ut-hero.lg-hero .ut-hero-copy { padding: 14px 0 24px; min-width: 0; container-type: inline-size; }
+.ut-hero.lg-hero .ut-hero-copy h1 {
+  font-size: clamp(1.45rem, 8.9cqw, 4.5rem);
+  line-height: 1.16;
+  letter-spacing: 0.05em;
+  max-width: 100%;
+  padding: 0.32em 0.12em 0.32em 0.1em;
+  margin-left: -0.1em;
+  overflow-wrap: break-word;
+  hyphens: none;
+}
 /* The study reads copy first, artefact second — keep that order in the grid. */
 .ut-hero.lg-hero > .ut-hero-copy { order: 1; }
 .ut-hero.lg-hero > .lg-transmission { order: 2; }
