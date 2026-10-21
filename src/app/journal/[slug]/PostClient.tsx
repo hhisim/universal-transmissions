@@ -203,6 +203,17 @@ export default function PostClient({ slug }: { slug: string }) {
   // A tall cover carries its own caption and subject. Rather than cropping them away, the
   // hero shows the whole plate over a softened fill of the same image.
   const [heroPortrait, setHeroPortrait] = useState(false);
+  // A cached hero can finish loading before the load handler is attached, so measure the
+  // already-complete image too rather than trusting the event alone.
+  useEffect(() => {
+    const img = document.querySelector<HTMLImageElement>(".ut-journal-hero img");
+    if (!img) return;
+    const measure = () => {
+      if (img.naturalWidth) setHeroPortrait(img.naturalHeight > img.naturalWidth * 1.15);
+    };
+    if (img.complete) measure();
+    else img.addEventListener("load", measure, { once: true });
+  }, [heroImage]);
   const vaultInvite = VAULT_INVITES_BY_SLUG[post.slug];
   const voaPackInvite = getVoaPackInvite(post.slug);
 
