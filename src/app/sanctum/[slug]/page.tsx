@@ -141,7 +141,7 @@ export default function ProductDetailPage({ params }: Props) {
 
   return (
     <>
-<PageBackground variant="sanctum" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="sanctum" /> <main className="ut-foreground ut-shop pt-24 pb-20">
         <div className="container-ut">
           {/* Success Banner */}
           {showSuccess && (
@@ -272,7 +272,7 @@ export default function ProductDetailPage({ params }: Props) {
 
             {/* Info + Checkout */}
             <SectionReveal direction="right" delay={0.15}>
-              <div>
+              <div className="ut-shop-buy">
                 <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
                   {p.category}
                 </p>
@@ -287,7 +287,7 @@ export default function ProductDetailPage({ params }: Props) {
                 </p>
 
                 {/* Price */}
-                <div className="mb-8">
+                <div className="mb-8 ut-shop-price">
                   <p className="font-display text-4xl" style={{ color: "var(--ut-gold)" }}>
                     ${p.price}
                   </p>
@@ -301,7 +301,7 @@ export default function ProductDetailPage({ params }: Props) {
                 {/* Shipping info for physical items. The sentence is the shipping table's,
                     not this page's, so the page cannot state a rate the checkout disagrees with. */}
                 {shippingNote(p.id) && (
-                  <div className="mb-6 p-4 border" style={{ borderColor: "rgba(212,168,71,0.15)", background: "rgba(212,168,71,0.03)" }}>
+                  <div className="ut-shop-shipping">
                     <p className="font-mono text-[10px] tracking-widest uppercase mb-1" style={{ color: "var(--ut-gold)", opacity: 0.7 }}>
                       Shipping
                     </p>
@@ -393,16 +393,18 @@ export default function ProductDetailPage({ params }: Props) {
                   <p className="font-mono text-[10px] tracking-[0.2em] uppercase mb-3" style={{ color: "var(--ut-white-dim)", opacity: 0.6 }}>
                     Payment Method
                   </p>
-                  <div className="flex gap-4">
+                  <div className="ut-shop-pay" role="group" aria-label="Payment method">
                     <button
                       onClick={() => chooseProvider("stripe")}
-                      className={`font-mono text-xs tracking-widest uppercase px-4 py-2 border transition-all ${paymentMethod === "stripe" ? "border-[var(--ut-cyan)] text-[var(--ut-cyan)]" : "border-white/20 text-white/40"}`}
+                      aria-pressed={paymentMethod === "stripe"}
+                      className={`ut-shop-pay-option${paymentMethod === "stripe" ? " is-active" : ""}`}
                     >
                       💳 Stripe
                     </button>
                     <button
                       onClick={() => chooseProvider("paypal")}
-                      className={`font-mono text-xs tracking-widest uppercase px-4 py-2 border transition-all ${paymentMethod === "paypal" ? "border-[var(--ut-gold)] text-[var(--ut-gold)]" : "border-white/20 text-white/40"}`}
+                      aria-pressed={paymentMethod === "paypal"}
+                      className={`ut-shop-pay-option${paymentMethod === "paypal" ? " is-active" : ""}`}
                     >
                       ᵖᵃʸ PayPal
                     </button>
@@ -413,12 +415,12 @@ export default function ProductDetailPage({ params }: Props) {
                 <button
                   onClick={handleCheckout}
                   disabled={loading || !p.available}
-                  className="w-full btn-gold justify-center text-base py-4 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="ut-shop-checkout w-full btn-gold justify-center text-base disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {!p.available ? "Out of Stock" : loading ? "Processing..." : `Purchase for $${p.price}`}
                 </button>
 
-                <p className="font-mono text-[9px] text-center mt-3" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
+                <p className="ut-shop-note">
                   Secure checkout · Instant download or mail delivery
                 </p>
 

@@ -9,7 +9,7 @@ export default function SanctumPage() {
   return (
     <>
       <PageBackground variant="homepage" opacity={0.4} />
-<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="ut-foreground ut-shop pt-24 pb-20">
         <div className="container-ut">
           {/* Header */}
           <SectionReveal>
@@ -30,8 +30,8 @@ export default function SanctumPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, i) => (
               <SectionReveal key={product.id} delay={i * 0.1}>
-                <div className="ut-card-gold overflow-hidden group">
-                  <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="ut-card-gold ut-shop-card overflow-hidden group">
+                  <div className="ut-shop-card-media relative aspect-[4/3] overflow-hidden">
                     <Image
                       src={product.images[0]}
                       alt={product.title}
@@ -62,7 +62,7 @@ export default function SanctumPage() {
                           </p>
                         )}
                       </div>
-                      <Link href={`/sanctum/${product.slug}`} className="btn-gold text-xs py-2 px-4">
+                      <Link href={`/sanctum/${product.slug}`} className="ut-shop-card-cta btn-gold text-xs px-4">
                         View
                       </Link>
                     </div>
