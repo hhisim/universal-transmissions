@@ -2386,6 +2386,12 @@ body::-webkit-scrollbar-thumb:hover {
   color: var(--ut-gold, #d4a847);
 }
 
+/* btn-gold animates `all`, which made the focus outline grow from nothing over
+   half a second. Scope the transition so the ring is immediate. */
+.ut-shop .btn-gold {
+  transition-property: background, background-color, border-color, color, box-shadow, transform;
+  transition-duration: 0.2s;
+}
 .ut-shop-checkout {
   min-height: 3.25rem;
   margin-top: 1.1rem;
