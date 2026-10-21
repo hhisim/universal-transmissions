@@ -20,7 +20,7 @@ export default function GalleryPage() {
           could see. The sheet is now translucent, so the field reads faintly behind the works
           while every card and control keeps its own opaque surface. */}
       <PageBackground variant="gallery" />
-      <main className="pt-24 pb-20" style={{ background: "rgba(4,3,9,0.74)" }}>
+      <main className="pt-24 pb-20 ut-foreground" style={{ background: "rgba(4,3,9,0.74)" }}>
         <div className="container-ut">
           {/* The browse state lives in the URL, which is read on the client, so this section
               prerenders as a fallback. That fallback is the collection itself — every work, in

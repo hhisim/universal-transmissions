@@ -82,7 +82,7 @@ export default function ArtworkDetailPage({ params, searchParams }: Props) {
   return (
     <>
 <PageBackground variant="gallery" />
-      <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-24 pb-20 ut-foreground">
 
         {/* ── BREADCRUMB ───────────────────────────────── */}
         <div className="container-ut pt-8 pb-4">

@@ -1322,3 +1322,115 @@ body::-webkit-scrollbar-thumb:hover {
 }
 .lg-transmission-medium { font-style: italic; color: var(--lg-muted); font-size: 0.95rem; }
 .lg-transmission-meta { margin-top: 10px; color: var(--lg-dim); }
+
+
+/* ============================================================
+   THE LIVING GRIMOIRE — Gallery index and artwork plates
+   Same language as the entrance and Codex: sharp corners,
+   bracketed labels, spectral rules, artwork at its own
+   proportions. No new tokens, no new registry.
+   ============================================================ */
+
+/* Filters and actions are outlined, never pills. */
+.ut-foreground .ut-chip {
+  border-radius: 0;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid rgba(237, 233, 246, 0.16);
+  background: transparent;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.ut-foreground .ut-chip:hover,
+.ut-foreground .ut-chip:focus-visible {
+  border-color: var(--ut-magenta);
+  background: rgba(217, 70, 239, 0.06);
+}
+.ut-foreground .ut-chip[aria-pressed="true"],
+.ut-foreground .ut-chip[aria-current="true"] {
+  border-color: var(--ut-gold);
+  color: var(--ut-gold);
+  background: rgba(212, 168, 71, 0.07);
+}
+.ut-foreground .btn-secondary,
+.ut-foreground .ut-search,
+.ut-foreground .ut-select {
+  border-radius: 0;
+}
+
+/* The featured row is a sequence of framed plates, not thumbnails. */
+.ut-foreground .ut-begin-tile {
+  position: relative;
+  background: #0b090f;
+  border: 1px solid rgba(237, 233, 246, 0.09);
+  transition: border-color 0.25s, transform 0.25s;
+}
+.ut-foreground .ut-begin-tile:hover,
+.ut-foreground .ut-begin-tile:focus-visible {
+  border-color: rgba(212, 168, 71, 0.55);
+}
+.ut-foreground .ut-begin-thumb {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(237, 233, 246, 0.08);
+}
+.ut-foreground .ut-begin-thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;   /* the work at its own proportions, never cropped to a tile */
+}
+.ut-foreground .ut-begin-title {
+  display: block;
+  padding: 0.7rem 0.8rem 0.85rem;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  color: var(--ut-white);
+}
+
+/* Section labels read as the archive's own bracketed markers. */
+.ut-foreground .ut-begin-head::after,
+.ut-foreground .ut-collection-controls::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 1.1rem;
+  background: linear-gradient(90deg, transparent, rgba(217,70,239,0.35) 25%, rgba(212,168,71,0.55) 50%, rgba(34,211,238,0.35) 75%, transparent);
+}
+.ut-foreground .ut-collection-controls::before { margin: 0 0 1.1rem; }
+
+/* Where the atmosphere could sit behind body copy, give it a quiet surface. */
+.ut-foreground .ut-begin-say,
+.ut-foreground .ut-collection-count {
+  background: rgba(10, 9, 14, 0.86);
+  border: 1px solid rgba(237, 233, 246, 0.06);
+  padding: 0.55rem 0.8rem;
+  display: inline-block;
+}
+
+/* Artwork page: the plate and its caption block. */
+.ut-foreground .glow-border-magenta {
+  border-radius: 0;
+  border: 1px solid rgba(217, 70, 239, 0.42);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.12), 0 24px 60px rgba(0, 0, 0, 0.55);
+  background: #050507;
+}
+.ut-foreground .ut-card {
+  border-radius: 0;
+  background: rgba(10, 9, 14, 0.9);
+  border: 1px solid rgba(237, 233, 246, 0.08);
+}
+.ut-foreground .divider-spectrum {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(217,70,239,0.45), rgba(212,168,71,0.6) 50%, rgba(34,211,238,0.45));
+}
+
+/* Keyboard focus is always visible. */
+.ut-foreground .ut-chip:focus-visible,
+.ut-foreground .ut-begin-tile:focus-visible,
+.ut-foreground .btn-secondary:focus-visible {
+  outline: 2px solid var(--ut-gold);
+  outline-offset: 2px;
+}
