@@ -101,6 +101,7 @@ import the_star_and_the_uncarved_block_raw from "./blog-content/2026-09-07/the-s
 import hermetic_crater_raw from "./blog-content/2026-09-08/hermetic-crater-cup-of-mind.md";
 import law_of_one_ethics_of_relation_raw from "./blog-content/2026-09-10/law-of-one-ethics-of-relation.md";
 import fasting_of_the_heart_zhuangzi_attention_raw from "./blog-content/2026-09-22/fasting-of-the-heart-zhuangzi-attention.md";
+import alphabet_was_invented_once_raw from "./blog-content/2026-10-25/the-alphabet-was-invented-once.md";
 
 // === Strip YAML frontmatter from raw markdown ==========================================
 
@@ -111,6 +112,19 @@ function stripFrontmatter(raw: string): string {
 // === Registry =======================================================================
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "the-alphabet-was-invented-once",
+    heroImage: "/journal/voa-20261025/the-alphabet-was-invented-once/cover.png",
+    title: "The Alphabet Was Invented Once",
+    publishedAt: "2026-10-25",
+    author: "Prime + Hakan",
+    excerpt: "Every alphabet in use today descends from one invention: Semitic-speaking miners in a Sinai turquoise mine, repurposing Egyptian hieroglyphs around 1800 BCE. The real history of acrophony, and the mystical claims later built on top of it.",
+    readTime: "13 min",
+    hero_gradient: "from-teal-950 via-amber-950 to-black",
+    tags: ["alphabet", "proto-sinaitic", "serabit-el-khadim", "acrophony", "wadi-el-hol", "sefer-yetzirah", "phoenician", "egyptian-hieroglyphs", "historical-linguistics", "kabbalah", "zodiac"],
+    tradition: "kemet",
+    content: stripFrontmatter(alphabet_was_invented_once_raw),
+  },
   {
     slug: "fasting-of-the-heart-zhuangzi-attention",
     heroImage: "/journal/voa-20260922/fasting-of-the-heart-zhuangzi-attention/cover.png",
