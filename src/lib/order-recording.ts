@@ -69,7 +69,7 @@ export async function recordPayPalOrder(
         {
           stripe_session_id: reference,
           stripe_payment_intent_id: record.captureId,
-          customer_email: record.email ?? "",
+          customer_email: (record.email ?? "").trim().toLowerCase(),
           customer_name: record.name,
           product_id: record.productId,
           product_title: record.productTitle,

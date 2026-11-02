@@ -187,7 +187,11 @@ export async function POST(req: NextRequest) {
 
   switch (event.type) {
     // ── One-time product payments (existing) ──────────────────────────────
-    case "checkout.session.completed": {
+    /* Async methods (SEPA, bank debits) settle AFTER the session completes: `completed` arrives
+       with payment_status "unpaid", then `async_payment_succeeded` arrives when the money lands.
+       Both are the same write; the settled-payment guard below decides which one may record a sale. */
+    case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded": {
       const session = event.data.object as Stripe.Checkout.Session;
 
       // Check if this is a subscription (has subscription_data or mode === 'subscription')
@@ -312,7 +316,7 @@ export async function POST(req: NextRequest) {
             amount_cents: verifiedCents,
             currency: verifiedCurrency,
             stripe_payment_intent_id: session.payment_intent as string,
-            customer_email: resolvedEmail.email,
+            customer_email: resolvedEmail.email.toLowerCase(),
             customer_name: session.customer_details?.name || null,
             shipping_name: shippingDetails?.name || null,
             shipping_address_line1: shippingDetails?.address?.line1 || null,
@@ -379,6 +383,20 @@ export async function POST(req: NextRequest) {
           { status: 422 }
         );
       }
+      break;
+    }
+
+    /* The money never arrived. Nothing is marked paid and the row stays pending, so the order is
+       not fulfilled on a payment that failed. Reported to the studio, not silently dropped. */
+    case "checkout.session.async_payment_failed": {
+      const failedSession = event.data.object as Stripe.Checkout.Session;
+      console.warn(`Async payment failed for session ${failedSession.id} — order left pending`);
+      await sendTelegram(
+        `<b>⚠️ ASYNC PAYMENT FAILED</b>\n` +
+          `Session: ${failedSession.id}\n` +
+          `Amount: ${formatCurrency(failedSession.amount_total, failedSession.currency ?? "usd")}\n` +
+          `Status: ${String(failedSession.payment_status)} — no paid record written, order stays pending.`
+      );
       break;
     }
 
