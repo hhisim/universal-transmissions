@@ -44,6 +44,10 @@ export default function PageBackground() {
     if (!ctx) return;
 
     let W = 0, H = 0, t = 0, rafId = 0;
+    /* prefers-reduced-motion: the field still renders — it is the page's depth and palette —
+       but it stops repainting. CSS cannot do this: the motion is a canvas redraw loop. */
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    let still = mq?.matches ?? false;
     const stars: Star[] = [];
     const drops: GlyphDrop[] = [];
 
@@ -146,16 +150,25 @@ export default function PageBackground() {
       ctx.fillStyle = "rgba(217,70,239,0.004)";
       ctx.fillRect(0, sy - 1, W, 2);
 
-      rafId = requestAnimationFrame(frame);
+      if (!still) rafId = requestAnimationFrame(frame);
     }
 
     resize();
     window.addEventListener("resize", resize);
-    rafId = requestAnimationFrame(frame);
+    if (still) frame(); else rafId = requestAnimationFrame(frame);
+
+    /* Follow the preference if it changes while the page is open. */
+    const onPreference = () => {
+      still = mq?.matches ?? false;
+      cancelAnimationFrame(rafId);
+      if (still) frame(); else rafId = requestAnimationFrame(frame);
+    };
+    mq?.addEventListener?.("change", onPreference);
 
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", resize);
+      mq?.removeEventListener?.("change", onPreference);
     };
   }, []);
 

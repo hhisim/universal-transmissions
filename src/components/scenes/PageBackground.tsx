@@ -2027,6 +2027,10 @@ export default function PageBackground({ variant, className = "", opacity = 1 }:
     if (!cx) return;
 
     let W = 0, H = 0, t = 0, af = 0;
+    /* prefers-reduced-motion: draw the scene once and hold it. The composition stays
+       (depth, palette, structure); the drift, particles and sweep stop. */
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    let still = mq?.matches ?? false;
     const state: any = {};
     const sceneFn = SCENES[variant] || sceneXenolinguistics;
 
@@ -2054,11 +2058,23 @@ export default function PageBackground({ variant, className = "", opacity = 1 }:
       t += 0.016;
       cx!.clearRect(0, 0, W, H);
       sceneFn(cx!, W, H, t, state);
-      af = requestAnimationFrame(frame);
+      if (!still) af = requestAnimationFrame(frame);
     }
     frame();
 
-    return () => { cancelAnimationFrame(af); window.removeEventListener("resize", resize); };
+    /* Follow the preference if it changes while the page is open. */
+    const onPreference = () => {
+      still = mq?.matches ?? false;
+      cancelAnimationFrame(af);
+      if (still) frame(); else af = requestAnimationFrame(frame);
+    };
+    mq?.addEventListener?.("change", onPreference);
+
+    return () => {
+      cancelAnimationFrame(af);
+      window.removeEventListener("resize", resize);
+      mq?.removeEventListener?.("change", onPreference);
+    };
   }, [variant]);
 
   return (

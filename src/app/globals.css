@@ -919,6 +919,18 @@ body::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* Two decorative loops are declared as INLINE styles — the rotating logo mark in the
+   navigation and the colour-cycling signal line on the home page. A component-level change
+   would have to reach into three different files, and a stylesheet declaration marked
+   !important is the only thing that outranks an inline declaration. Only the motion stops:
+   colour, position, size and layout are untouched, so the page still composes identically. */
+@media (prefers-reduced-motion: reduce) {
+  [style*="logoSpin"],
+  [style*="utPortalRespectShift"] {
+    animation: none !important;
+  }
+}
+
 /* ============================================================
    THE COLLECTION (Batch 30)
    ============================================================
