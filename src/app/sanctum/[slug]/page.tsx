@@ -421,7 +421,9 @@ export default function ProductDetailPage({ params }: Props) {
                 </button>
 
                 <p className="ut-shop-note">
-                  Secure checkout · Instant download or mail delivery
+                  {product.available === false
+                    ? "Listing shown for reference · purchasing temporarily suspended"
+                    : "Secure checkout · Instant download or mail delivery"}
                 </p>
 
                 {/* Cross-links between related products */}

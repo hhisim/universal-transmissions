@@ -8,6 +8,8 @@ export interface Product {
   description: string;
   images: string[];
   available: boolean;
+  /** Shown when `available` is false, so a suspended listing still explains itself. */
+  unavailableNote?: string;
   category: string;
   tags: string[];
   transcriptionVideoId?: string;
@@ -46,7 +48,11 @@ export const products: Product[] = [
       "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695718380540-INT53Y12EC86JNY3N7TP/Page+146.jpg",
       "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695718380177-R3IZR6CY7OA8V7TFD90V/Page+145.jpg",
     ],
-    available: true,
+    /* The edition file does not exist yet, so this cannot be sold. The listing, images, description
+       and price stay visible; the purchase path is refused server-side until delivery exists. */
+    available: false,
+    unavailableNote:
+      "The digital edition is temporarily unavailable while we finalise delivery. Join the mailing list to be told the moment it returns.",
     category: "Codex",
     tags: ["codex", "digital", "PDF", "download"],
     transcriptionVideoId: "e841xiYE6Rg",

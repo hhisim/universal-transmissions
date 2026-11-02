@@ -29,6 +29,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
+    /* The same refusal as the card path. Blocking only one provider would leave the other as an open
+       door to buying something we cannot deliver. */
+    if (product.available === false) {
+      return NextResponse.json(
+        {
+          error: product.unavailableNote ?? "This item is temporarily unavailable.",
+          code: "UNAVAILABLE",
+        },
+        { status: 409 }
+      );
+    }
+
     // PayPal collects the delivery address itself, so no allowlist is sent — but a destination
     // PayPal does not serve must be refused before the buyer is handed to PayPal, and the refusal
     // says plainly when paying by card would work instead.

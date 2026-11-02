@@ -141,17 +141,33 @@ export default function ProductDetailPage({ params }: Props) {
                   </p>
                 )}
 
-                {/* Checkout button */}
-                <button
-                  onClick={handleCheckout}
-                  disabled={loading}
-                  className="w-full btn-gold justify-center text-base py-4"
-                >
-                  {loading ? "Processing..." : `Purchase for $${product.price}`}
-                </button>
+                {/* Checkout — refused upstream as well; this only spares the buyer a dead click. */}
+                {product.available === false ? (
+                  <div
+                    className="w-full text-center py-4 px-4"
+                    style={{ border: "1px solid rgba(231,197,107,0.28)", background: "rgba(231,197,107,0.05)" }}
+                  >
+                    <p className="font-mono text-[11px] tracking-[0.18em] uppercase" style={{ color: "var(--ut-gold, #E7C56B)" }}>
+                      Temporarily unavailable
+                    </p>
+                    <p className="font-mono text-[10px] mt-2 leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.65 }}>
+                      {product.unavailableNote ?? "This edition is temporarily unavailable."}
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleCheckout}
+                    disabled={loading}
+                    className="w-full btn-gold justify-center text-base py-4"
+                  >
+                    {loading ? "Processing..." : `Purchase for $${product.price}`}
+                  </button>
+                )}
 
                 <p className="font-mono text-[9px] text-center mt-3" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
-                  Secure checkout · Instant download or mail delivery
+                  {product.available === false
+                    ? "Listing shown for reference · purchasing temporarily suspended"
+                    : "Secure checkout · Instant download or mail delivery"}
                 </p>
               </div>
             </SectionReveal>

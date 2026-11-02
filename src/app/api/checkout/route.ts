@@ -17,6 +17,18 @@ export async function POST(req: NextRequest) {
     const product = products.find((p) => p.id === productId);
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
+    /* Refused HERE, not in the browser. Hiding a button is presentation; a direct POST to this route
+       would still create a payable session for something we cannot deliver. */
+    if (product.available === false) {
+      return NextResponse.json(
+        {
+          error: product.unavailableNote ?? "This item is temporarily unavailable.",
+          code: "UNAVAILABLE",
+        },
+        { status: 409 }
+      );
+    }
+
     // A destination the provider cannot serve is refused HERE, before any checkout exists, rather
     // than becoming an address the provider rejects after the buyer has filled everything in.
     if (requiresShipping(productId)) {
