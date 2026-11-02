@@ -1,20 +1,26 @@
 #!/usr/bin/env node
 /**
- * m20-order-notifications.js — one logical confirmation per purchase, and nothing else.
+ * m20-order-notifications.js — the outbox state machine, including the three ways a send can die.
  *
- * The ledger and Brevo are both faked: this suite is about the RULES, not about either service.
+ *   1. crash BEFORE the provider call               → lease expires → `uncertain`, never stuck
+ *   2. crash DURING the provider call               → same, because acceptance is unknowable
+ *   3. crash AFTER acceptance, before the DB write  → same, and it is NOT auto-resent
+ *
+ * The third is the honest limit: Brevo offers no idempotency key, so a message may exist that we never
+ * recorded. That is why `uncertain` is alerted and reconciled by delivery webhook rather than retried
+ * into a second receipt.
  */
 const path = require("path");
 const ROOT = path.resolve(__dirname, "..", "..");
 const { registerTsModules } = require(path.join(ROOT, "scripts/lib/ut-ts-require.cjs"));
 registerTsModules({ root: ROOT });
 
-const { notifyOrderConfirmed, renderConfirmation, isConfirmable } = require(path.join(
-  ROOT,
-  "src/lib/order-notifications.ts"
-));
+const outbox = require(path.join(ROOT, "src/lib/order-outbox.ts"));
+const {
+  enqueue, claimNext, recoverStale, drainOutbox, applyDeliveryEvent,
+  backoffMs, idempotencyKeyFor, SEND_LEASE_MS, MAX_ATTEMPTS,
+} = outbox;
 
-// ── a ledger with just enough behaviour to be honest ───────────────────────
 function makeDb(opts = {}) {
   const rows = [];
   return {
@@ -24,8 +30,9 @@ function makeDb(opts = {}) {
       const api = {
         upsert(row) { state.op = "upsert"; state.payload = row; return api; },
         update(patch) { state.op = "update"; state.payload = patch; return api; },
-        select() { state.wantSelect = true; return api; },
+        select() { if (!state.op) state.op = "select"; return api; },
         eq(k, v) { state.filters.push([k, v]); return api; },
+        order() { return api; },
         limit() { return api; },
         then(res, rej) { return run().then(res, rej); },
       };
@@ -34,62 +41,38 @@ function makeDb(opts = {}) {
         if (opts.broken) return { data: null, error: { message: "relation does not exist" } };
 
         if (state.op === "upsert") {
-          const exists = rows.some(
-            (r) => r.order_id === state.payload.order_id && r.kind === state.payload.kind
+          const dup = rows.some(
+            (r) =>
+              (r.order_id === state.payload.order_id && r.kind === state.payload.kind) ||
+              (state.payload.idempotency_key && r.idempotency_key === state.payload.idempotency_key)
           );
-          if (exists) return { data: [], error: null };
-          const row = { id: "n" + (rows.length + 1), attempts: 1, ...state.payload };
+          if (dup) return { data: [], error: null };
+          const row = { id: "n" + (rows.length + 1), ...state.payload };
           rows.push(row);
           return { data: [{ id: row.id }], error: null };
         }
 
-        if (state.op === "update") {
-          const matches = rows.filter((r) =>
-            state.filters.every(([k, v]) => String(r[k]) === String(v))
-          );
-          matches.forEach((r) => Object.assign(r, state.payload, { attempts: (r.attempts || 1) + (state.payload.status === "sending" ? 1 : 0) }));
-          return { data: matches.map((r) => ({ id: r.id })), error: null };
+        if (state.op === "select") {
+          return {
+            data: rows.filter((r) => state.filters.every(([k, v]) => String(r[k]) === String(v))),
+            error: null,
+          };
         }
 
-        return { data: rows, error: null };
+        if (state.op === "update") {
+          const matches = rows.filter((r) => state.filters.every(([k, v]) => String(r[k]) === String(v)));
+          matches.forEach((r) => Object.assign(r, state.payload));
+          // PostgREST returns the full updated row when select() is used.
+          return { data: matches.map((r) => ({ ...r })), error: null };
+        }
+
+        return { data: [], error: null };
       }
 
       return api;
     },
   };
 }
-
-function makeFetch(responses) {
-  const calls = [];
-  const fn = async (url, init) => {
-    calls.push({ url, body: JSON.parse(init.body) });
-    const next = responses.shift() ?? { ok: true, messageId: "msg" };
-    return {
-      ok: !!next.ok,
-      status: next.ok ? 201 : 400,
-      json: async () => (next.ok ? { messageId: next.messageId } : { message: next.error ?? "rejected" }),
-    };
-  };
-  return { fn, calls };
-}
-
-const ORDER = {
-  id: "9403c334-6a4f-4b31-be46-b6c51d434081",
-  product_title: "Universal Transmissions Codex Vol.1 — Physical Edition",
-  amount_cents: 24500,
-  currency: "usd",
-  customer_email: "buyer@example.com",
-  customer_name: "Test Buyer",
-  shipping_name: "Test Buyer",
-  shipping_address_line1: "1 Test Way",
-  shipping_address_line2: null,
-  shipping_city: "Austin",
-  shipping_state: "TX",
-  shipping_postal_code: "78701",
-  shipping_country: "US",
-  is_digital: false,
-  status: "paid",
-};
 
 let passed = 0;
 const failures = [];
@@ -99,85 +82,115 @@ function check(name, ok, detail) {
 }
 
 (async () => {
-  const ON = { ORDER_EMAILS_ENABLED: "true", BREVO_KEY: "test-key" };
-
-  console.log("gating");
+  console.log("queueing");
   {
-    const db = makeDb(); const f = makeFetch([]);
-    const r = await notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: { BREVO_KEY: "test-key" } });
-    check("disabled unless ORDER_EMAILS_ENABLED is exactly true", r.sent === false && f.calls.length === 0, r.reason);
+    const db = makeDb();
+    const a = await enqueue(db, { orderId: "o1", kind: "confirmation" });
+    const b = await enqueue(db, { orderId: "o1", kind: "confirmation" });
+    check("a purchase enqueues exactly one row", a.queued === true && db.rows.length === 1);
+    check("re-queueing is refused, not duplicated", b.queued === false && db.rows.length === 1);
+    check("the idempotency key is deterministic", db.rows[0].idempotency_key === idempotencyKeyFor("o1", "confirmation"));
+    check("a new row starts as pending", db.rows[0].status === "pending");
   }
   {
-    const db = makeDb(); const f = makeFetch([]);
-    const r = await notifyOrderConfirmed({ ...ORDER, status: "pending" }, { db, fetchImpl: f.fn, env: ON });
-    check("never sent for an unpaid order", r.sent === false && f.calls.length === 0);
-  }
-  {
-    const db = makeDb(); const f = makeFetch([]);
-    const r = await notifyOrderConfirmed({ ...ORDER, customer_email: "" }, { db, fetchImpl: f.fn, env: ON });
-    check("never sent without an address", r.sent === false && f.calls.length === 0);
-  }
-  {
-    const db = makeDb({ broken: true }); const f = makeFetch([]);
-    const r = await notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON });
-    check("no ledger (migration not applied) → no email is sent", r.sent === false && f.calls.length === 0, r.reason);
-    check("and the reason says the ledger is unavailable", /ledger unavailable/.test(r.reason));
+    const db = makeDb({ broken: true });
+    const r = await enqueue(db, { orderId: "o1", kind: "confirmation" });
+    check("no ledger (migration unapplied) → nothing is queued", r.queued === false && /outbox unavailable/.test(r.reason));
   }
 
-  console.log("exactly once");
+  console.log("claiming");
   {
-    const db = makeDb(); const f = makeFetch([{ ok: true, messageId: "m-1" }, { ok: true, messageId: "m-2" }]);
-    const first = await notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON });
-    const second = await notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON });
-    check("the first delivery sends", first.sent === true);
-    check("the retry does NOT send again", second.sent === false && /already sent|in flight/.test(second.reason), second.reason);
-    check("exactly one network send happened", f.calls.length === 1, `${f.calls.length} sends`);
-    check("the ledger records it as sent", db.rows[0].status === "sent" && db.rows[0].provider_message_id === "m-1");
-  }
-  {
-    const db = makeDb(); const f = makeFetch([]);
-    await Promise.all([
-      notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON }),
-      notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON }),
-      notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON }),
-    ]);
-    check("three concurrent deliveries send exactly once", f.calls.length === 1, `${f.calls.length} sends`);
+    const db = makeDb();
+    await enqueue(db, { orderId: "o2", kind: "confirmation" });
+    const first = await claimNext(db);
+    const second = await claimNext(db);
+    check("the first worker claims the row", !!first && first.status === "sending");
+    check("a second worker cannot claim it", second === null);
+    check("the claim records a lease and an attempt", !!db.rows[0].claimed_at && db.rows[0].attempts === 1);
   }
 
-  console.log("failure and retry");
+  console.log("outcomes");
   {
-    const db = makeDb(); const f = makeFetch([{ ok: false, error: "sender not verified" }, { ok: true, messageId: "m-3" }]);
-    const first = await notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON });
-    check("a rejected send is reported as not sent", first.sent === false);
-    check("and is recorded as failed for retry", db.rows[0].status === "failed" && /sender not verified/.test(db.rows[0].last_error || ""));
-    const second = await notifyOrderConfirmed(ORDER, { db, fetchImpl: f.fn, env: ON });
-    check("a later delivery may reclaim a failed send", second.sent === true);
-    check("and the ledger ends sent", db.rows[0].status === "sent");
-    check("two network attempts in total", f.calls.length === 2);
+    const db = makeDb();
+    await enqueue(db, { orderId: "o3", kind: "confirmation" });
+    const res = await drainOutbox({ db, send: async () => ({ outcome: "accepted", messageId: "mid-1" }) });
+    check("accepted → sent with the provider message id", res.sent === 1 && db.rows[0].status === "sent" && db.rows[0].provider_message_id === "mid-1");
+  }
+  {
+    const db = makeDb();
+    await enqueue(db, { orderId: "o4", kind: "confirmation" });
+    const res = await drainOutbox({ db, send: async () => ({ outcome: "rejected", reason: "sender not verified" }) });
+    check("rejected → failed, not lost", res.failed === 1 && db.rows[0].status === "failed");
+    check("a retry is scheduled with backoff", new Date(db.rows[0].next_attempt_at) > new Date());
+    check("the provider's reason is recorded", /sender not verified/.test(db.rows[0].last_error));
+  }
+  {
+    const db = makeDb();
+    await enqueue(db, { orderId: "o5", kind: "confirmation" });
+    const res = await drainOutbox({ db, send: async () => ({ outcome: "unknown", reason: "provider timed out" }) });
+    check("a timeout → uncertain, never sent", res.uncertain === 1 && db.rows[0].status === "uncertain");
   }
 
-  console.log("content");
+  console.log("crash before sending");
   {
-    const { subject, html, text } = renderConfirmation(ORDER);
-    check("subject names the product", /Codex Vol\.1/.test(subject));
-    check("html shows the paid total, formatted", /\$245\.00/.test(html));
-    check("html shows the shipping address", /Austin/.test(html) && /78701/.test(html));
-    check("html carries the order reference", /9403c334/.test(html));
-    check("html has no unrendered template syntax", !/\{\{|\}\}/.test(html));
-    check("the plain-text alternative is present", /Total paid: \$245\.00/.test(text));
-    check("brand survives: dark ground and gold accent", /#030308/.test(html) && /#E7C56B/.test(html));
+    const db = makeDb();
+    await enqueue(db, { orderId: "o6", kind: "confirmation" });
+    await claimNext(db);
+    check("the row is left in sending", db.rows[0].status === "sending");
+    const moved = await recoverStale(db, new Date(Date.now() + SEND_LEASE_MS + 1000));
+    check("an expired lease is recovered", moved === 1);
+    check("and becomes uncertain, not pending", db.rows[0].status === "uncertain");
+    const again = await drainOutbox({ db, send: async () => ({ outcome: "accepted", messageId: "x" }) });
+    check("an uncertain row is never resent automatically", again.processed === 0 && db.rows[0].status === "uncertain");
+  }
+
+  console.log("crash during sending (provider may have accepted)");
+  {
+    const db = makeDb();
+    await enqueue(db, { orderId: "o7", kind: "confirmation" });
+    await claimNext(db);
+    const moved = await recoverStale(db, new Date(Date.now() + SEND_LEASE_MS + 1000));
+    check("a send interrupted mid-flight becomes uncertain", moved === 1 && db.rows[0].status === "uncertain");
+    check("no second attempt is made", db.rows[0].attempts === 1);
+    check("the reason states acceptance is unknown", /unknown/i.test(db.rows[0].last_error || ""));
+  }
+
+  console.log("retry after a recorded failure");
+  {
+    const db = makeDb();
+    await enqueue(db, { orderId: "o8", kind: "confirmation" });
+    await drainOutbox({ db, send: async () => ({ outcome: "rejected", reason: "429 rate limited" }) });
+    const later = new Date(new Date(db.rows[0].next_attempt_at).getTime() + 1000);
+    const res = await drainOutbox({ db, now: later, send: async () => ({ outcome: "accepted", messageId: "mid-2" }) });
+    check("once due, the retry sends", res.sent === 1 && db.rows[0].status === "sent");
+    check("the failed attempt is still on the record", db.rows[0].attempts === 2);
   }
   {
-    const { html } = renderConfirmation({ ...ORDER, customer_name: '<script>alert(1)</script>', shipping_city: 'A&B' });
-    check("customer-supplied text is escaped", !/<script>/.test(html) && /&lt;script&gt;/.test(html) && /A&amp;B/.test(html));
+    const db = makeDb();
+    await enqueue(db, { orderId: "o9", kind: "confirmation" });
+    db.rows[0].attempts = MAX_ATTEMPTS;
+    await drainOutbox({ db, send: async () => ({ outcome: "rejected", reason: "permanent rejection" }) });
+    check("exhausted retries surface as uncertain", db.rows[0].status === "uncertain");
   }
+
+  console.log("delivery reconciliation");
   {
-    const digital = renderConfirmation({ ...ORDER, is_digital: true, shipping_address_line1: null, shipping_city: null });
-    check("a digital order says nothing ships", /digital edition/i.test(digital.html));
+    const db = makeDb();
+    await enqueue(db, { orderId: "o10", kind: "confirmation" });
+    await drainOutbox({ db, send: async () => ({ outcome: "accepted", messageId: "mid-3" }) });
+    const ok = await applyDeliveryEvent(db, { messageId: "mid-3", event: "delivered" });
+    check("a delivery event is recorded", ok === true && db.rows[0].delivery_status === "delivered");
+    check("and does not rewrite the send state", db.rows[0].status === "sent");
+    const bounce = await applyDeliveryEvent(db, { messageId: "mid-3", event: "hard_bounce" });
+    check("a later bounce is recorded too", bounce === true && db.rows[0].delivery_status === "hard_bounce");
+    const unknown = await applyDeliveryEvent(db, { messageId: "nope", event: "delivered" });
+    check("an unknown message id changes nothing", unknown === false);
   }
+
+  console.log("policy");
   {
-    check("a fulfilled physical order is confirmable", isConfirmable({ status: "fulfilled", customer_email: "a@b.com" }) === true);
-    check("a pending order is not", isConfirmable({ status: "pending", customer_email: "a@b.com" }) === false);
+    check("backoff grows and is capped", backoffMs(1) === 60_000 && backoffMs(2) === 120_000 && backoffMs(9) === 16 * 60_000);
+    check("the guarantee is at-most-once with reconciliation", /at-most-once/.test(outbox.DELIVERY_GUARANTEE));
   }
 
   console.log(`\n${failures.length === 0 ? "ALL PASS" : "FAILURES"} — ${passed} passed, ${failures.length} failed`);

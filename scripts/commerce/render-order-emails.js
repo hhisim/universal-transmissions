@@ -48,9 +48,12 @@ const digital = {
 };
 
 const jobs = [
-  ["01-confirmation-physical", renderConfirmation(sample)],
+  // Physical: item, shipping and total shown separately, from the catalogue rate that was charged.
+  ["01-confirmation-physical", renderConfirmation(sample, { shippingCents: 3000 })],
   ["02-confirmation-digital", renderConfirmation(digital)],
-  ["03-payment-failed", renderPaymentFailed(sample, "Your card was declined by the issuer")],
+  // Failed: an unsettled provider state may claim "nothing charged"; a settled one may not.
+  ["03-payment-failed", renderPaymentFailed(sample, { reason: "Your card was declined by the issuer", providerState: "failed" })],
+  ["04-payment-failed-settled", renderPaymentFailed(sample, { reason: "Provider state: succeeded", providerState: "succeeded" })],
 ];
 
 for (const [name, mail] of jobs) {

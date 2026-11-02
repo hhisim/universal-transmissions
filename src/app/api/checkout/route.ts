@@ -58,6 +58,11 @@ export async function POST(req: NextRequest) {
     // browser: the request carries a country, never an amount. The address the buyer may give is
     // then restricted to the countries carrying the same rate, so changing the address inside the
     // session cannot produce a total that disagrees with the rate that was charged.
+    /* Metadata is what makes a webhook recovery trustworthy: without it a reconstructed order can
+       only guess which catalogue product the payment bought. Written here, once, at session creation. */
+    params.append("metadata[product_id]", productId);
+    params.append("metadata[product_type]", isDigital ? "digital" : "physical");
+
     if (requiresShipping(productId)) {
       const shipAmt = shippingCentsFor(productId, country);
       const shipName = shippingLabelFor(productId, country);

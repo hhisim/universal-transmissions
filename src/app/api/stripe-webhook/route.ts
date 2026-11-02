@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pickCustomerEmail, isSettledPayment } from "@/lib/order-identity";
-import { buildRecoveredOrder } from "@/lib/order-recovery";
+import { buildRecoveredOrder, recordPaymentException } from "@/lib/order-recovery";
 import { notifyOrderConfirmed } from "@/lib/order-notifications";
 import { getStripe } from "@/lib/stripe";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
@@ -224,7 +224,11 @@ export async function POST(req: NextRequest) {
       // do not claim that either.
       const isVoaShopSale = session.metadata?.source === "voa-shop";
 
-      const shippingDetails = (session as any).shipping_details as {
+      /* Stripe moved the collected address to `collected_information.shipping_details`; the
+         top-level field is legacy and absent on current sessions. Read both, or the address is lost
+         exactly when it matters — on a physical order that has to ship. */
+      const shippingDetails = ((session as any).shipping_details ??
+        (session as any).collected_information?.shipping_details) as {
         name?: string;
         address?: { line1?: string; line2?: string; city?: string; state?: string; postal_code?: string; country?: string };
       } | null | undefined;
@@ -366,11 +370,20 @@ export async function POST(req: NextRequest) {
                being acknowledged as lost. The insert is keyed on the payment reference, so a
                concurrent delivery cannot produce a second order. */
             console.warn(`No ut_orders row matched session ${session.id} — rebuilding from verified Stripe data`);
-            const recovery = buildRecoveredOrder({ session, lineItems, isDigital });
+            /* The catalogue decides what this payment bought; the handler does not override it. An
+               order that does not reconcile is still recorded, but marked incomplete. */
+            const recovery = buildRecoveredOrder({ session, lineItems });
 
             if (!recovery.row) {
               dbWriteFailed = true;
-              orderNote = `❌ Paid session with no order row, and it could not be rebuilt (${recovery.reason}) — not acknowledged, Stripe will retry`;
+              const logged = await recordPaymentException(utSupabaseAdmin, {
+                paymentReference: session.id,
+                reason: recovery.reason,
+                amountCents: session.amount_total ?? null,
+                currency: session.currency ?? null,
+                payload: { recovered: false, issues: recovery.issues },
+              });
+              orderNote = `❌ Paid session with no order row and it could not be rebuilt (${recovery.reason}) — ${logged ? "exception recorded" : "exception could not be recorded"}; Stripe will retry`;
             } else {
               const { data: inserted, error: insertError } = await utSupabaseAdmin
                 .from("ut_orders")
@@ -382,9 +395,20 @@ export async function POST(req: NextRequest) {
                 dbWriteFailed = true;
                 orderNote = "❌ Order recovery failed — not acknowledged, Stripe will retry";
               } else if ((inserted?.length ?? 0) > 0) {
-                orderNote = recovery.complete
-                  ? "⚠️ ORDER RECOVERED — no checkout row existed; rebuilt from verified Stripe data"
-                  : `⚠️ ORDER RECOVERED but INCOMPLETE (${recovery.reason}) — needs review`;
+                if (recovery.complete) {
+                  orderNote = "⚠️ ORDER RECOVERED — no checkout row existed; rebuilt and reconciled against the catalogue";
+                } else {
+                  /* Recorded so it stays discoverable after Stripe stops retrying, and so the
+                     monitoring job has something to alert on. */
+                  await recordPaymentException(utSupabaseAdmin, {
+                    paymentReference: session.id,
+                    reason: recovery.reason,
+                    amountCents: session.amount_total ?? null,
+                    currency: session.currency ?? null,
+                    payload: { recovered: true, issues: recovery.issues },
+                  });
+                  orderNote = `⚠️ ORDER RECOVERED but INCOMPLETE (${recovery.reason}) — exception recorded, no fulfilment, no email`;
+                }
               } else {
                 orderNote = "✅ Order row appeared during recovery (concurrent delivery) — nothing duplicated";
               }

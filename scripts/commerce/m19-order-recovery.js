@@ -98,22 +98,26 @@ function check(name, ok, detail) {
       id: "cs_x", payment_status: "paid", amount_total: 24500, currency: "usd",
       payment_intent: "pi_x", customer_details: { email: "A@B.com", name: "N" },
       shipping_details: { name: "N", address: { city: "Austin", country: "US" } },
+      /* The catalogue product the checkout stamps into metadata, and the shipping Stripe charged.
+         Without these the rebuild cannot reconcile and is (correctly) marked incomplete. */
+      metadata: { product_id: "codex-physical", product_type: "physical" },
+      total_details: { amount_shipping: 3000 },
     };
     const full = buildRecoveredOrder({
       session: base,
-      lineItems: { data: [{ description: "Codex Vol.1 — Physical", quantity: 1, price: { product: "prod_123" } }] },
+      lineItems: { data: [{ description: "Codex Vol.1 — Physical", quantity: 1, amount_total: 21500, price: { product: "prod_123" } }] },
       isDigital: false,
     });
     check("a complete rebuild is marked complete", full.complete === true);
     check("the product title comes from the line item", /Codex Vol\.1/.test(full.row.product_title));
-    check("the product id comes from the line item", full.row.product_id === "prod_123");
+    check("the product id comes from the catalogue metadata", full.row.product_id === "codex-physical");
     check("the address is lowercased", full.row.customer_email === "a@b.com");
     check("a digital product is fulfilled, a physical one is paid", full.row.status === "paid");
 
     const noItems = buildRecoveredOrder({ session: base, lineItems: null, isDigital: false });
     check("missing line items still produce a recordable row", !!noItems.row);
     check("and are flagged incomplete", noItems.complete === false);
-    check("with an explicit placeholder rather than a guess", /could not be resolved/.test(noItems.row.product_title));
+    check("falls back to the catalogue title, never a guess", /Codex Vol\.1/.test(noItems.row.product_title || ""));
 
     const noEmail = buildRecoveredOrder({ session: { ...base, customer_details: null }, lineItems: null, isDigital: false });
     check("a session without an address is flagged", noEmail.complete === false && noEmail.row.customer_email === "");
@@ -122,7 +126,8 @@ function check(name, ok, detail) {
     check("no payable total → nothing is rebuilt", badTotal.row === null);
 
     const digital = buildRecoveredOrder({
-      session: base, lineItems: { data: [{ description: "PDF", quantity: 1, price: { product: "prod_x" } }] }, isDigital: true,
+      session: { ...base, amount_total: 9900, total_details: { amount_shipping: 0 }, metadata: { product_id: "codex-digital", product_type: "digital" } },
+      lineItems: { data: [{ description: "Codex Vol.1 — Digital", quantity: 1, amount_total: 9900, price: { product: "prod_x" } }] },
     });
     check("a digital sale is recorded as fulfilled", digital.row.status === "fulfilled");
   }

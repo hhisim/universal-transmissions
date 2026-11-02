@@ -78,8 +78,15 @@ function startDb() {
                 (!need("status") || n.status === need("status").replace("eq.", ""))
             );
             rows.forEach((n) => Object.assign(n, body));
-            return send(j(rows.map((n) => ({ id: n.id }))));
+            return send(j(rows.map((n) => ({ ...n }))));
           }
+          // GET — the worker reads due rows before it claims one.
+          const filtered = db.notifications.filter(
+            (n) =>
+              (!need("status") || n.status === need("status").replace("eq.", "")) &&
+              (!need("order_id") || n.order_id === need("order_id").replace("eq.", ""))
+          );
+          return send(j(filtered.map((n) => ({ ...n }))));
         }
 
         send(j([], 200));
@@ -108,7 +115,8 @@ function event(overrides = {}) {
         customer_details: { email: "Journey@Example.com", name: "Journey Buyer" },
         shipping_details: { name: "Journey Buyer", address: { line1: "1 Road", city: "Austin", state: "TX", postal_code: "78701", country: "US" } },
         line_items: null,
-        metadata: {},
+        metadata: { product_id: "codex-physical", product_type: "physical" },
+        total_details: { amount_shipping: 3000 },
         ...overrides,
       },
     },
@@ -148,6 +156,15 @@ function check(name, ok, detail) {
   // Brevo is intercepted; everything else passes straight through to the local mock.
   const realFetch = global.fetch;
   global.fetch = async (url, init) => {
+    const u = String(url);
+    /* Line items are fetched from Stripe by the handler; serve them locally so the rebuild can
+       reconcile against the catalogue without a network call. */
+    if (u.includes("api.stripe.com") && u.includes("/line_items")) {
+      return new Response(JSON.stringify({ data: [{ description: "Universal Transmissions Codex Vol.1 — Physical Edition", quantity: 1, amount_total: 21500, price: { product: "prod_codex_physical" } }] }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (u.includes("api.stripe.com")) {
+      return new Response(JSON.stringify({ id: "pi_journey_1", status: "succeeded", receipt_email: null, latest_charge: null }), { status: 200, headers: { "content-type": "application/json" } });
+    }
     if (String(url).includes("api.brevo.com")) {
       db.brevo.push(JSON.parse(init.body));
       return { ok: true, status: 201, json: async () => ({ messageId: "brevo-" + db.brevo.length }) };

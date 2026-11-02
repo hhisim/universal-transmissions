@@ -1,5 +1,5 @@
 /**
- * Recovering a paid order that has no row.
+ * Recovering a paid order that has no row — and refusing to recover one we cannot trust.
  *
  * The failure this closes: `/api/checkout` writes the `ut_orders` row when the Checkout session is
  * created. If that insert fails, the customer still pays, Stripe still confirms, and the webhook's
@@ -10,16 +10,18 @@
  * So the webhook RECONSTRUCTS the order from the verified session instead.
  *
  * What makes that safe:
- *   · every value comes from Stripe's own record of the settled payment, or from the product
- *     information carried in the session — nothing is inferred from a price table or a guess;
- *   · the insert is keyed on `stripe_session_id`, the table's unique payment reference, so a
- *     concurrent or repeated delivery cannot create a second order;
- *   · a recovered row is marked in `notes`, so it is never indistinguishable from a normal sale;
- *   · if the reconstruction cannot be completed, the caller is told, and the handler answers
- *     non-2xx so Stripe keeps retrying instead of the loss being acknowledged.
+ *   · every value comes from Stripe's record of the settled payment, the session's line items, or the
+ *     catalogue entry the checkout stamped into metadata — never from a guess;
+ *   · the reconstruction is CHECKED against the catalogue: the product must exist and the money must
+ *     reconcile (line items + shipping = the amount actually charged);
+ *   · a reconstruction that fails a check is still recorded, but marked INCOMPLETE — and an
+ *     incomplete order never fulfils, never grants access and never emails the customer;
+ *   · the insert is keyed on `stripe_session_id`, so a concurrent delivery cannot duplicate it.
  */
 
 import { pickCustomerEmail } from "@/lib/order-identity";
+import { products } from "@/data/products";
+import { shippingCentsFor, requiresShipping } from "@/data/shipping";
 
 export interface RecoveryAddress {
   line1?: string | null;
@@ -47,6 +49,7 @@ export interface RecoveryPrice {
 export interface RecoveryLineItem {
   description?: string | null;
   quantity?: number | null;
+  amount_total?: number | null;
   price?: RecoveryPrice | null;
 }
 
@@ -62,6 +65,11 @@ export interface RecoverySession {
   customer_details?: RecoveryCustomerDetails | null;
   customer_email?: string | null;
   shipping_details?: RecoveryShipping | null;
+  /* Modern sessions carry the address here; `shipping_details` is the legacy top-level field and is
+     absent on current API versions. Reading only the legacy one silently loses the address. */
+  collected_information?: { shipping_details?: RecoveryShipping | null } | null;
+  metadata?: Record<string, string> | null;
+  total_details?: { amount_shipping?: number | null } | null;
 }
 
 export interface RecoveredOrder {
@@ -86,12 +94,15 @@ export interface RecoveredOrder {
 }
 
 export interface RecoveryResult {
-  /** The row to insert, or null when the session cannot be trusted enough to rebuild from. */
   row: RecoveredOrder | null;
-  /** True when every element the customer will see came from verified data. */
+  /** True only when the order reconciles with the catalogue AND every customer-facing field exists. */
   complete: boolean;
   /** Human-readable reason when the row is null or incomplete. Never contains customer data. */
   reason: string;
+  /** Issues that must be resolved by a person before this order may fulfil. */
+  issues: string[];
+  /** Shipping the provider charged, when it is known — used for the receipt's money breakdown. */
+  shippingCents: number | null;
 }
 
 /** The provider's own answer to "was this paid, and for how much" — the only basis for recovery. */
@@ -107,19 +118,79 @@ export function isRecoverablePayment(session: RecoverySession): boolean {
   );
 }
 
+/**
+ * Does this payment reconcile with the product it claims to be?
+ *
+ * Three independent facts must agree: the catalogue product named in metadata, the money Stripe
+ * charged, and the line items the session actually carried. A disagreement is not corrected here —
+ * it is reported, because an order we force into shape is worse than one a human looks at.
+ */
+export function validateAgainstCatalogue(input: {
+  session: RecoverySession;
+  lineItems: RecoveryLineItems | null;
+}): { productId: string | null; isDigital: boolean; issues: string[]; shippingCents: number | null } {
+  const issues: string[] = [];
+  const declaredId = input.session.metadata?.product_id ?? null;
+  const product = declaredId ? products.find((p) => p.id === declaredId) : undefined;
+
+  if (!declaredId) issues.push("no product metadata on the session");
+  else if (!product) issues.push(`unknown product "${declaredId}"`);
+
+  const isDigital = (input.session.metadata?.product_type ?? "") === "digital" || (product ? !requiresShipping(product.id) : false);
+
+  const chargedTotal = input.session.amount_total ?? null;
+  const chargedShipping = input.session.total_details?.amount_shipping ?? null;
+  const items = input.lineItems?.data ?? [];
+  const itemTotal = items.length
+    ? items.reduce((sum, li) => sum + (typeof li.amount_total === "number" ? li.amount_total : 0), 0)
+    : null;
+
+  if (product && itemTotal !== null) {
+    const catalogueCents = Math.round(product.price * 100);
+    if (itemTotal !== catalogueCents) {
+      issues.push(`line items ${itemTotal} do not match catalogue price ${catalogueCents}`);
+    }
+  }
+
+  if (chargedTotal !== null && itemTotal !== null) {
+    const expected = itemTotal + (chargedShipping ?? 0);
+    if (expected !== chargedTotal) issues.push(`charged ${chargedTotal} does not equal items+shipping ${expected}`);
+  }
+
+  /* Nothing to reconcile against: we cannot prove the amount belongs to a catalogue product, so the
+     order is recorded but stays incomplete. */
+  if (itemTotal === null) issues.push("session line items unavailable");
+
+  return {
+    productId: product?.id ?? declaredId,
+    isDigital,
+    issues,
+    shippingCents: typeof chargedShipping === "number" ? chargedShipping : null,
+  };
+}
+
 export function buildRecoveredOrder(input: {
   session: RecoverySession;
   lineItems: RecoveryLineItems | null;
-  isDigital: boolean;
+  isDigital?: boolean;
 }): RecoveryResult {
-  const { session, lineItems, isDigital } = input;
+  const { session, lineItems } = input;
 
   if (!session?.id) {
-    return { row: null, complete: false, reason: "session has no id" };
+    return { row: null, complete: false, reason: "session has no id", issues: ["no session id"], shippingCents: null };
   }
   if (!isRecoverablePayment(session)) {
-    return { row: null, complete: false, reason: "no verifiable total or currency on the session" };
+    return {
+      row: null,
+      complete: false,
+      reason: "no verifiable total or currency on the session",
+      issues: ["no verifiable total"],
+      shippingCents: null,
+    };
   }
+
+  const validation = validateAgainstCatalogue({ session, lineItems });
+  const isDigital = input.isDigital ?? validation.isDigital;
 
   const email = pickCustomerEmail({
     customerDetailsEmail: session.customer_details?.email,
@@ -127,22 +198,22 @@ export function buildRecoveredOrder(input: {
   });
 
   const items = lineItems?.data ?? [];
-  const first = items[0];
   const productTitle = items.length
     ? items.map((li) => `${li.description ?? "item"} ×${li.quantity ?? 1}`).join(" + ")
     : "";
-  const rawProduct = first?.price?.product;
-  const productId = typeof rawProduct === "string" ? rawProduct : null;
+  const catalogue = validation.productId ? products.find((p) => p.id === validation.productId) : undefined;
+  const fallbackProduct = lineItems?.data?.[0]?.price?.product;
 
-  /* An incomplete reconstruction is still recorded — an order with a missing product title is
-     recoverable by a human, whereas a sale acknowledged and never stored is not. It is marked. */
-  const missing: string[] = [];
-  if (!productTitle) missing.push("product title");
-  if (!email.email) missing.push("customer email");
+  const issues = [...validation.issues];
+  if (!productTitle) issues.push("no line-item description");
+  if (!email.email) issues.push("no customer email");
 
-  const address = session.shipping_details?.address ?? null;
+  const complete = issues.length === 0;
+
+  const shipping = session.shipping_details ?? session.collected_information?.shipping_details ?? null;
+  const address = shipping?.address ?? null;
   const noteParts = ["recovered from the Stripe webhook: the checkout row never existed"];
-  if (missing.length) noteParts.push(`unresolved: ${missing.join(", ")}`);
+  if (!complete) noteParts.push(`unresolved: ${issues.join("; ")}`);
 
   const paymentIntent =
     typeof session.payment_intent === "string"
@@ -150,20 +221,24 @@ export function buildRecoveredOrder(input: {
       : ((session.payment_intent as { id?: string } | null | undefined)?.id ?? null);
 
   return {
-    complete: missing.length === 0,
-    reason: missing.length ? `unresolved: ${missing.join(", ")}` : "complete",
+    complete,
+    reason: complete ? "complete" : `unresolved: ${issues.join("; ")}`,
+    issues,
+    shippingCents: validation.shippingCents,
     row: {
       stripe_session_id: session.id,
       stripe_payment_intent_id: paymentIntent,
       customer_email: email.email.toLowerCase(),
       customer_name: session.customer_details?.name ?? null,
-      product_id: productId,
-      product_title: productTitle || "— (product could not be resolved)",
+      product_id: catalogue?.id ?? validation.productId ?? (typeof fallbackProduct === "string" ? fallbackProduct : null),
+      product_title: productTitle || catalogue?.title || "— (product could not be resolved)",
       amount_cents: session.amount_total as number,
       currency: session.currency as string,
-      status: isDigital ? "fulfilled" : "paid",
+      /* An incomplete recovery is NEVER fulfilled: fulfilment would grant access to a product we could
+         not verify. It stays `paid` until a person resolves it. */
+      status: isDigital && complete ? "fulfilled" : "paid",
       is_digital: isDigital,
-      shipping_name: session.shipping_details?.name ?? null,
+      shipping_name: shipping?.name ?? null,
       shipping_address_line1: address?.line1 ?? null,
       shipping_address_line2: address?.line2 ?? null,
       shipping_city: address?.city ?? null,
@@ -173,4 +248,42 @@ export function buildRecoveredOrder(input: {
       notes: noteParts.join(" · "),
     },
   };
+}
+
+/**
+ * Durably record a payment we could not turn into a valid order. Stripe stops retrying eventually;
+ * this row is what keeps the payment discoverable after that, and what the monitoring job alerts on.
+ */
+export async function recordPaymentException(
+  db: { from: (table: string) => any },
+  input: {
+    paymentReference: string;
+    provider?: "stripe" | "paypal";
+    reason: string;
+    amountCents?: number | null;
+    currency?: string | null;
+    payload?: unknown;
+  }
+): Promise<boolean> {
+  try {
+    const { error } = await db
+      .from("ut_order_exceptions")
+      .upsert(
+        {
+          payment_reference: input.paymentReference,
+          provider: input.provider ?? "stripe",
+          reason: input.reason.slice(0, 300),
+          amount_cents: input.amountCents ?? null,
+          currency: input.currency ?? null,
+          payload: input.payload ?? null,
+          status: "open",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "payment_reference", ignoreDuplicates: false }
+      )
+      .select("id");
+    return !error;
+  } catch {
+    return false;
+  }
 }
