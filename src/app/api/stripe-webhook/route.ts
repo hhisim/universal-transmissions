@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pickCustomerEmail, isSettledPayment } from "@/lib/order-identity";
+import { buildRecoveredOrder } from "@/lib/order-recovery";
+import { notifyOrderConfirmed } from "@/lib/order-notifications";
 import { getStripe } from "@/lib/stripe";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -295,6 +297,9 @@ export async function POST(req: NextRequest) {
 
       let orderNote = "";
       let dbWriteFailed = false;
+      /* Declared here, not inside the write branch: the confirmation step below runs after that block
+         closes and must know whether this delivery represents a brand-new sale. */
+      let isFreshSale = false;
       if (!paidTotalsValid) {
         orderNote = "❌ Paid event without a verifiable total — NO paid record written";
         console.error(
@@ -303,6 +308,22 @@ export async function POST(req: NextRequest) {
       } else {
         const verifiedCents = paidAmountTotal as number;
         const verifiedCurrency = paidCurrency as string;
+
+      /* What was there BEFORE the write. A row that is already paid is a replay, not a new sale —
+         that distinction is what stops a webhook retry from mailing a customer a second time. */
+      let priorStatus: string | null = null;
+      try {
+        const { data: priorRows } = await utSupabaseAdmin
+          .from("ut_orders")
+          .select("status")
+          .eq("stripe_session_id", session.id)
+          .limit(1);
+        priorStatus = (priorRows?.[0]?.status as string | undefined) ?? null;
+      } catch (err) {
+        console.warn("Could not read the prior order state:", err);
+      }
+      isFreshSale = priorStatus === null || priorStatus.toLowerCase() === "pending";
+
       try {
         // A zero-row .update().eq() returns no error, so a foreign sale used to be
         // stamped "Order updated in UT DB" although no row existed. select() returns
@@ -340,8 +361,34 @@ export async function POST(req: NextRequest) {
             console.log(`Order updated to: ${isDigital ? "fulfilled" : "paid"}`);
             orderNote = "✅ Order updated in UT DB";
           } else {
-            console.warn(`No ut_orders row matched session ${session.id} — nothing written`);
-            orderNote = "⚠️ No matching UT order found — nothing written to UT DB";
+            /* A paid session with no row means the checkout insert never happened. Retrying the
+               webhook cannot create it, so the order is rebuilt from the verified session instead of
+               being acknowledged as lost. The insert is keyed on the payment reference, so a
+               concurrent delivery cannot produce a second order. */
+            console.warn(`No ut_orders row matched session ${session.id} — rebuilding from verified Stripe data`);
+            const recovery = buildRecoveredOrder({ session, lineItems, isDigital });
+
+            if (!recovery.row) {
+              dbWriteFailed = true;
+              orderNote = `❌ Paid session with no order row, and it could not be rebuilt (${recovery.reason}) — not acknowledged, Stripe will retry`;
+            } else {
+              const { data: inserted, error: insertError } = await utSupabaseAdmin
+                .from("ut_orders")
+                .upsert(recovery.row, { onConflict: "stripe_session_id", ignoreDuplicates: true })
+                .select("id");
+
+              if (insertError) {
+                console.error("Order recovery insert failed:", insertError);
+                dbWriteFailed = true;
+                orderNote = "❌ Order recovery failed — not acknowledged, Stripe will retry";
+              } else if ((inserted?.length ?? 0) > 0) {
+                orderNote = recovery.complete
+                  ? "⚠️ ORDER RECOVERED — no checkout row existed; rebuilt from verified Stripe data"
+                  : `⚠️ ORDER RECOVERED but INCOMPLETE (${recovery.reason}) — needs review`;
+              } else {
+                orderNote = "✅ Order row appeared during recovery (concurrent delivery) — nothing duplicated";
+              }
+            }
           }
         }
       } catch (err) {
@@ -349,6 +396,30 @@ export async function POST(req: NextRequest) {
         orderNote = "❌ UT DB update failed";
         dbWriteFailed = true;
       }
+      }
+
+      /* Customer confirmation — only for a sale that was just persisted, never for a replay, and only
+         if the row actually exists. The sender itself is gated on ORDER_EMAILS_ENABLED and on the
+         notification ledger, so this call cannot mail anybody by itself. */
+      if (isFreshSale && !dbWriteFailed) {
+        try {
+          const { data: freshRows } = await utSupabaseAdmin
+            .from("ut_orders")
+            .select("*")
+            .eq("stripe_session_id", session.id)
+            .limit(1);
+          const fresh = freshRows?.[0];
+          if (fresh) {
+            const outcome = await notifyOrderConfirmed(fresh as never, {
+              db: utSupabaseAdmin as never,
+              fetchImpl: fetch,
+            });
+            orderNote += outcome.sent ? " · confirmation emailed" : ` · no email (${outcome.reason})`;
+          }
+        } catch (err) {
+          console.error("Confirmation could not be attempted:", err);
+          orderNote += " · confirmation attempt failed (order still recorded)";
+        }
       }
 
       // ── Telegram notification ────────────────────────────────────────────

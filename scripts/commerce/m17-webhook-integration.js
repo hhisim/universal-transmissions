@@ -159,7 +159,12 @@ function check(name, ok, detail) {
   const dupe = buildEvent({});
   await POST(signedRequest(dupe, secret));
   await POST(signedRequest(dupe, secret));
-  check("a repeated event writes again (idempotent by key), never a second order", WRITES.length === 2 && !JSON.stringify(WRITES).includes("insert"));
+  const mutations = WRITES.filter((w) => w.method !== "GET");
+  check(
+    "a repeated event writes again (idempotent by key), never a second order",
+    mutations.length === 2 && !JSON.stringify(mutations).includes("insert")
+  );
+  check("no insert is ever attempted for an existing row", !mutations.some((w) => w.method === "POST"));
 
   // ── 5. bad signature ────────────────────────────────────────────────────
   console.log("signature");
