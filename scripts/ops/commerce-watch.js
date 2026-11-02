@@ -122,6 +122,35 @@ function hoursAgo(h) {
     }
   }
 
+  // 4. paid digital orders the studio has not yet delivered
+  /* Digital editions are sent by hand, so a paid order can sit undelivered indefinitely if the sale
+     notification was missed. This is the belt to that notification's braces: anything still paid
+     after a day is surfaced until a human actually fulfils it. The schedule is the interval — this
+     job runs once a day, so an overdue order produces one reminder per day, never a stream of them. */
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    try {
+      const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const rows = await sb(
+        `ut_orders?select=id,stripe_session_id,product_title,customer_email,created_at,status` +
+          `&is_digital=eq.true&status=eq.paid&created_at=lt.${cutoff}&order=created_at.asc&limit=25`
+      );
+      if (Array.isArray(rows) && rows.length) {
+        findings.push({
+          kind: "digital_awaiting_fulfilment",
+          severity: "high",
+          count: rows.length,
+          detail: rows.map((r) => {
+            const age = Math.floor((Date.now() - new Date(r.created_at).getTime()) / 3600000);
+            const ref = r.stripe_session_id || r.id;
+            return `${ref} · paid ${age}h ago · ${r.customer_email || "no email"} · ${r.product_title || "digital edition"} · status=paid`;
+          }),
+        });
+      }
+    } catch (err) {
+      if (!/42P01|does not exist|404/.test(String(err.message))) errors.push(`digital fulfilment: ${err.message}`);
+    }
+  }
+
   const summary = { checkedAt: new Date().toISOString(), findings, errors, ok: findings.length === 0 && errors.length === 0 };
 
   if (JSON_ONLY) {
@@ -142,13 +171,17 @@ function hoursAgo(h) {
       .map((f) => `<b>[${f.severity.toUpperCase()}] ${f.kind} ×${f.count}</b>\n` + f.detail.map((d) => `· ${d}`).join("\n"))
       .join("\n\n");
     try {
-      await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+      const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ chat_id: TG_CHAT, text: `<b>UT commerce watch</b>\n\n${lines}`, parse_mode: "HTML" }),
       });
+      /* An alert that failed to send is itself an incident: were this swallowed, a paid order could
+         go unfulfilled with nobody ever told. Surface it as an operational error so the schedule
+         reports a broken run instead of a quiet all-clear. */
+      if (!res.ok) errors.push(`telegram_alert_failed: HTTP ${res.status} — ${findings.map((f) => f.kind).join(", ")}`);
     } catch (err) {
-      console.error("telegram alert failed:", err.message);
+      errors.push(`telegram_alert_failed: ${err.message} — ${findings.map((f) => f.kind).join(", ")}`);
     }
   }
 
