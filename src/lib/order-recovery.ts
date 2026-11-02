@@ -50,6 +50,10 @@ export interface RecoveryLineItem {
   price?: RecoveryPrice | null;
 }
 
+export interface RecoveryLineItems {
+  data?: RecoveryLineItem[];
+}
+
 export interface RecoverySession {
   id: string;
   payment_intent?: unknown;
@@ -105,7 +109,7 @@ export function isRecoverablePayment(session: RecoverySession): boolean {
 
 export function buildRecoveredOrder(input: {
   session: RecoverySession;
-  lineItems: RecoveryLineItems;
+  lineItems: RecoveryLineItems | null;
   isDigital: boolean;
 }): RecoveryResult {
   const { session, lineItems, isDigital } = input;
