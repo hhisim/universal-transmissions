@@ -64,11 +64,22 @@ function nextUtcMidnight(): string {
   return d.toISOString();
 }
 
+/**
+ * The caller's address, from a hop the client cannot write.
+ *
+ * `x-forwarded-for` is client-appendable: taking its FIRST entry let a caller send
+ * `x-forwarded-for: <anything>` and receive a brand-new guest allowance — demonstrated
+ * against the deployed preview, where 10 spent questions were followed by a spoofed header
+ * and a fresh 200. The platform's own address header wins, and the LAST forwarded hop is
+ * the one appended by the proxy rather than the one supplied by the caller.
+ */
 function clientIp(request: Request): string {
-  const fwd = request.headers.get("x-forwarded-for") ?? "";
-  const first = fwd.split(",")[0]?.trim();
-  if (first) return first;
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+  const real = request.headers.get("x-real-ip")?.trim();
+  if (real) return real;
+  const forwarded = request.headers.get("x-forwarded-for") ?? "";
+  const hops = forwarded.split(",").map((hop) => hop.trim()).filter(Boolean);
+  if (hops.length > 0) return hops[hops.length - 1];
+  return "unknown";
 }
 
 /**
