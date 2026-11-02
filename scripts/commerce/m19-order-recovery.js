@@ -129,7 +129,9 @@ function check(name, ok, detail) {
       session: { ...base, amount_total: 9900, total_details: { amount_shipping: 0 }, metadata: { product_id: "codex-digital", product_type: "digital" } },
       lineItems: { data: [{ description: "Codex Vol.1 — Digital", quantity: 1, amount_total: 9900, price: { product: "prod_x" } }] },
     });
-    check("a digital sale is recorded as fulfilled", digital.row.status === "fulfilled");
+    /* Payment is not delivery: a digital sale stays `paid` until the buyer has actually been given
+       the edition (see m25). Recovery marks it fulfilled only if proof of delivery exists. */
+    check("a digital sale is recorded as paid, not fulfilled", digital.row.status === "paid", digital.row.status);
 
     // ── money configurations other than plain price + shipping ──────────────
     const discounted = buildRecoveredOrder({

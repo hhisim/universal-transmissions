@@ -335,7 +335,7 @@ export async function POST(req: NextRequest) {
         const { data: updated, error } = await utSupabaseAdmin
           .from("ut_orders")
           .update({
-            status: isDigital ? "fulfilled" : "paid",
+            status: "paid",
             /* The provider's verified total and currency — NOT the product price this row was
                created with, which excludes shipping. Overwrites the provisional pending amount. */
             amount_cents: verifiedCents,
@@ -362,7 +362,7 @@ export async function POST(req: NextRequest) {
         } else {
           const utRowsWritten = updated?.length ?? 0;
           if (utRowsWritten > 0) {
-            console.log(`Order updated to: ${isDigital ? "fulfilled" : "paid"}`);
+            console.log("Order updated to: paid");
             orderNote = "✅ Order updated in UT DB";
           } else {
             /* A paid session with no row means the checkout insert never happened. Retrying the

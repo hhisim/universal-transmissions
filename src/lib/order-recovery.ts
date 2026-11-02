@@ -250,7 +250,9 @@ export function buildRecoveredOrder(input: {
       currency: session.currency as string,
       /* An incomplete recovery is NEVER fulfilled: fulfilment would grant access to a product we could
          not verify. It stays `paid` until a person resolves it. */
-      status: isDigital && complete ? "fulfilled" : "paid",
+      /* Payment is not delivery. A digital purchase is "paid" until the buyer has actually been
+         given the product; marking it fulfilled here would assert a delivery that never happened. */
+      status: "paid",
       is_digital: isDigital,
       shipping_name: shipping?.name ?? null,
       shipping_address_line1: address?.line1 ?? null,
