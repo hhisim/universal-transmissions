@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+import { consumeQuota, quotaRefusal } from '@/lib/oracle-quota';
 
 const BACKEND_URL = process.env.ORACLE_BACKEND_URL || 'http://204.168.154.237:8001';
 
 export async function POST(req: Request) {
+  let refundQuota: (() => Promise<void>) | undefined;
   try {
     const body = await req.json();
     const { message, mode, lang, speed } = body;
@@ -10,6 +12,12 @@ export async function POST(req: Request) {
     if (!message?.trim()) {
       return NextResponse.json({ error: 'No message provided' }, { status: 400 });
     }
+
+    const quota = await consumeQuota(req);
+    if (!quota.allowed) {
+      return NextResponse.json(quotaRefusal(quota), { status: 429 });
+    }
+    refundQuota = quota.refund;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000);
@@ -41,6 +49,7 @@ export async function POST(req: Request) {
     const data = await res.json();
     return NextResponse.json({ response: data.response || data.answer || '' });
   } catch (err: unknown) {
+    if (refundQuota) await refundQuota();
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[oracle-v2/api]', msg);
     if (msg.includes('abort')) {

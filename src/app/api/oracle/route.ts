@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
+import { consumeQuota, quotaRefusal } from '@/lib/oracle-quota';
 import { artworks } from '@/data/artworks';
 import {
   buildHistoryFromMessages,
@@ -45,6 +46,9 @@ function msSince(start: number): number {
 }
 
 export async function POST(req: Request) {
+  /* The allowance is spent here, on the server. A refund is taken when the
+     answer itself fails, so a provider outage does not cost the caller a unit. */
+  let refundQuota: (() => Promise<void>) | undefined;
   /* Stage timings carry stage names and durations only. No prompt, answer or
      transcript content is ever logged. Timings are returned for measurement and
      are safe to show. */
@@ -64,6 +68,13 @@ export async function POST(req: Request) {
     if (message.trim().length > MAX_QUESTION_CHARS) {
       return NextResponse.json({ error: 'Question is too long' }, { status: 413 });
     }
+
+    // ── Server-side allowance ────────────────────────────────────────────────
+    const quota = await consumeQuota(req);
+    if (!quota.allowed) {
+      return NextResponse.json(quotaRefusal(quota), { status: 429 });
+    }
+    refundQuota = quota.refund;
 
     const question = message.trim();
 
@@ -378,6 +389,7 @@ export async function POST(req: Request) {
       timings: timings.concat([{ stage: 'total', ms: total }]),
     });
   } catch (err: unknown) {
+    if (refundQuota) await refundQuota();
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[oracle/api]', msg);
     if (msg.includes('abort')) {

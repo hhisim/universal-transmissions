@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resolveVerifiedEmail } from "@/lib/verified-identity";
-import { resolveMembershipPlan } from "@/lib/membership-plan";
+import { resolveMembershipPlan, effectiveSubscriptionState } from "@/lib/membership-plan";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +45,16 @@ export async function GET(req: NextRequest) {
     // The row itself comes from ut_members when present; the plan is the
     // resolved effective plan, which may come from profiles.
     const row = membership.member ?? membership.profile ?? {};
-    return NextResponse.json({ ...row, plan: membership.plan });
+    // Report the same maintained lifecycle state as /api/billing/session, and
+    // name the unmaintained column separately instead of letting it pose as one.
+    const state = effectiveSubscriptionState(membership);
+    return NextResponse.json({
+      ...row,
+      plan: membership.plan,
+      subscription_status: state.status,
+      subscription_source: state.source,
+      profile_subscription_status: state.profileStatus,
+    });
   } catch (err) {
     console.error("Member API error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

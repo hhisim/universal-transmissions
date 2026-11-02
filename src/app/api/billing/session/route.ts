@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { normalizeMemberPlan } from "@/lib/plans";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resolveVerifiedIdentity } from "@/lib/verified-identity";
-import { resolveMembershipPlan } from "@/lib/membership-plan";
+import { resolveMembershipPlan, effectiveSubscriptionState } from "@/lib/membership-plan";
 
 /**
  * GET /api/billing/session
@@ -70,14 +70,18 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ authenticated: false, plan: "guest" });
       }
       const { membership } = resolved;
+      // One subscription state for every reader — see effectiveSubscriptionState.
+      const state = effectiveSubscriptionState(membership);
 
       return NextResponse.json({
         authenticated: true,
         email,
         plan: membership.plan,
         stripeCustomerId: membership.profile?.stripe_customer_id ?? null,
-        subscription_status: membership.member?.subscription_status ?? "inactive",
-        current_period_end: membership.member?.current_period_end ?? null,
+        subscription_status: state.status,
+        subscription_source: state.source,
+        profile_subscription_status: state.profileStatus,
+        current_period_end: state.currentPeriodEnd,
       });
     } catch (err) {
       // Fail closed: a membership we could not read is never reported as data.

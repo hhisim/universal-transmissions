@@ -1,25 +1,20 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import PageBackground from "@/components/scenes/PageBackground";
 import CodexIIGalleryClient from "./CodexIIGalleryClient";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getSessionMember } from "@/lib/member-session";
 
 const PLAN_CHECK = ["initiate"];
 
 export default async function CodexIIGalleryPage() {
-  // Use NextAuth session — UT uses NextAuth (magic link), NOT Supabase Auth directly
-  const { resolveMembershipPlan } = await import("@/lib/membership-plan");
-  const { auth } = await import("@/lib/auth");
-  const session = await auth();
+  // The session /login actually creates. NextAuth was never this application's
+  // sign-in path, so it answered null for every real member.
+  const member = await getSessionMember();
 
-  if (!session?.user?.email) {
-    redirect("/sanctum/member/login?redirect=/sanctum/member/codex-ii/gallery");
+  if (!member) {
+    redirect("/login?redirect=/sanctum/member/codex-ii/gallery");
   }
 
-  // The same revocation-aware resolver as every other reader.
-  const resolved = await resolveMembershipPlan(supabaseAdmin, session.user.email!);
-  const plan = resolved.ok ? resolved.membership.plan : null;
-  const isPaid = plan && PLAN_CHECK.includes(plan);
+  const isPaid = PLAN_CHECK.includes(member.plan);
 
   return (
     <>

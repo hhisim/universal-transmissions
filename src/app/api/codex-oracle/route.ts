@@ -7,6 +7,7 @@ import {
 } from "@/lib/oracle-conversation";
 import { resolveNamedRecords } from "@/lib/named-record-resolver";
 import { recordLinksFor } from "@/lib/record-links";
+import { consumeQuota, quotaRefusal } from "@/lib/oracle-quota";
 
 /** Marker the backend seam recognises, so the referent is never mistaken for grounding. */
 const SUBJECT_MARKER = "Current subject of this conversation:";
@@ -26,6 +27,7 @@ const ORACLE_BACKEND = "http://204.168.154.237:8001/chat";
  * shape this client expects, and requests without history keep working.
  */
 export async function POST(req: NextRequest) {
+  let refundQuota: (() => Promise<void>) | undefined;
   try {
     const body = await req.json();
     // `systemPrompt` is deliberately NOT destructured and NOT forwarded. A client
@@ -48,6 +50,14 @@ export async function POST(req: NextRequest) {
         { status: tooLong ? 413 : 400 }
       );
     }
+    // ── Server-side allowance ────────────────────────────────────────────────
+    // The same counter as /api/oracle: switching endpoints is not a second allowance.
+    const quota = await consumeQuota(req);
+    if (!quota.allowed) {
+      return NextResponse.json(quotaRefusal(quota), { status: 429 });
+    }
+    refundQuota = quota.refund;
+
     const conversation: HistoryMessage[] = validation.messages;
 
     /* ── Named-record resolution ──────────────────────────────────────────────
@@ -117,6 +127,7 @@ export async function POST(req: NextRequest) {
       stop_reason: "stop_sequence",
     });
   } catch (err: unknown) {
+    if (refundQuota) await refundQuota();
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
   }

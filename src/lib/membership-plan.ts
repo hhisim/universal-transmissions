@@ -127,6 +127,44 @@ export function hasVerifiedStripeLinkage(row: MembershipRow | null | undefined):
   );
 }
 
+/**
+ * The maintained subscription state for a resolved membership — ONE answer for every reader.
+ *
+ * `plan` is resolved across both tables, but the lifecycle columns are not
+ * symmetric. Per the AUTHORITY SCOPE note above, `ut_members` is the table the
+ * subscription events own and `profiles.subscription_status` is an unmaintained
+ * column. Reporting status from whichever table happened to be read produced two
+ * different answers for the same member (`/api/member` said "active" from
+ * `profiles`, `/api/billing/session` said "inactive" from a missing `ut_members`
+ * row).
+ *
+ * The rule here is: a state is reported only when a maintained row records one.
+ * No `ut_members` row means "no maintained lifecycle state" — `status: null`,
+ * not "inactive", which was an assertion the data never supported.
+ *
+ * `profiles.subscription_status` is still returned, but named for what it is, so
+ * nothing silently upgrades an unmaintained column into a lifecycle claim.
+ */
+export interface SubscriptionState {
+  /** Maintained lifecycle status, or null when no maintained row records one. */
+  status: string | null;
+  /** Which table answered. `none` = no maintained lifecycle record exists. */
+  source: "ut_members" | "none";
+  /** End of the current period, when a maintained row records one. */
+  currentPeriodEnd: string | null;
+  /** The unmaintained legacy column, surfaced separately and never as `status`. */
+  profileStatus: string | null;
+}
+
+export function effectiveSubscriptionState(membership: ResolvedMembership): SubscriptionState {
+  return {
+    status: membership.member?.subscription_status ?? null,
+    source: membership.member ? "ut_members" : "none",
+    currentPeriodEnd: membership.member?.current_period_end ?? null,
+    profileStatus: membership.profile?.subscription_status ?? null,
+  };
+}
+
 export type PlanResolution =
   | { ok: true; membership: ResolvedMembership }
   | { ok: false; reason: "lookup_failed" | "ambiguous"; detail: string };
