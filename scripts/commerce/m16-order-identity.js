@@ -90,7 +90,8 @@ console.log("wiring");
   const capture = fs.readFileSync(path.join(ROOT, "src/app/api/paypal/capture-order/route.ts"), "utf8");
   const writer = fs.readFileSync(path.join(ROOT, "src/lib/order-recording.ts"), "utf8");
   check("PayPal capture reads the payer address", /payer\?\.email_address/.test(capture));
-  check("PayPal writer persists that address", /customer_email: record\.email \?\? ""/.test(writer));
+  check("PayPal writer persists that address", /customer_email:.*record\.email/.test(writer));
+  check("both writers store the address in one canonical case", /\.trim\(\)\.toLowerCase\(\)/.test(writer) && /resolvedEmail\.email\.toLowerCase\(\)/.test(fs.readFileSync(path.join(ROOT, "src/app/api/stripe-webhook/route.ts"), "utf8")));
 }
 
 console.log(`\n${failures.length === 0 ? "ALL PASS" : "FAILURES"} — ${passed} passed, ${failures.length} failed`);
