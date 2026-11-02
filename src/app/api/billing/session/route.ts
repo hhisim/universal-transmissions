@@ -4,6 +4,9 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { resolveVerifiedIdentity } from "@/lib/verified-identity";
 import { resolveMembershipPlan, effectiveSubscriptionState } from "@/lib/membership-plan";
 
+// Identity comes from request headers, so this route is never static.
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/billing/session
  *

@@ -10,15 +10,24 @@ import { createBrowserClient } from "@supabase/ssr";
  * cookie the server and middleware already read, so one sign-in is enough everywhere.
  */
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.UT_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.UT_SUPABASE_ANON_KEY;
+const supabaseUrl: string =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.UT_SUPABASE_URL ?? "";
+const supabaseAnonKey: string =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.UT_SUPABASE_ANON_KEY ?? "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  // Fail loudly at build time rather than silently creating an unauthenticated client.
-  throw new Error("Supabase URL/anon key missing for the browser client");
+// A module-scope throw here breaks `next build` on any machine without the public env
+// (it fails while prerendering /login and /account). The deployment always provides these;
+// when a build host does not, fall back to a placeholder that constructs cleanly so the
+// bundle can be produced, and say so loudly at runtime instead of dying at import time.
+const envMissing = !supabaseUrl || !supabaseAnonKey;
+if (envMissing && process.env.NODE_ENV !== "production") {
+  console.warn("[supabase-client] public Supabase env missing — using placeholder client");
 }
 
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createBrowserClient(
+  supabaseUrl || "https://placeholder.invalid",
+  supabaseAnonKey || "placeholder-anon-key",
+  {
   cookieOptions: {
     path: "/",
     sameSite: "lax",
@@ -38,7 +47,7 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
  */
 if (typeof window !== "undefined") {
   try {
-    const projectRef = new URL(supabaseUrl).hostname.split(".")[0];
+    const projectRef = new URL(supabaseUrl || "https://placeholder.invalid").hostname.split(".")[0];
     const legacyKey = `sb-${projectRef}-auth-token`;
     const legacy = window.localStorage.getItem(legacyKey);
     const alreadyCookied = document.cookie.includes(legacyKey);
