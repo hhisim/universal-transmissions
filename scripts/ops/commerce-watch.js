@@ -90,14 +90,31 @@ function hoursAgo(h) {
   // 3. webhook delivery backlog
   if (STRIPE_KEY) {
     try {
-      const events = await stripe("events?limit=20");
+      const events = await stripe("events?limit=100");
       const pending = events.data.filter((e) => e.pending_webhooks > 0);
-      if (pending.length) {
+      const DAY = 24 * 3600;
+      const now = Date.now() / 1000;
+      const fresh = pending.filter((e) => now - e.created < DAY);
+      const stale = pending.filter((e) => now - e.created >= DAY);
+
+      /* Fresh failures mean deliveries are broken right now. Old ones are a historical backlog that
+         will otherwise re-alert every single day until someone clears it — alert fatigue is how a
+         monitor stops being read, so stale items are reported once as low severity, with their age. */
+      if (fresh.length) {
         findings.push({
           kind: "webhook_backlog",
           severity: "high",
-          count: pending.length,
-          detail: pending.slice(0, 5).map((e) => `${e.type} pending=${e.pending_webhooks}`),
+          count: fresh.length,
+          detail: fresh.slice(0, 5).map((e) => `${e.type} pending=${e.pending_webhooks}`),
+        });
+      }
+      if (stale.length) {
+        const oldestDays = Math.round((now - Math.min(...stale.map((e) => e.created))) / DAY);
+        findings.push({
+          kind: "webhook_backlog_stale",
+          severity: "low",
+          count: stale.length,
+          detail: [`oldest ${oldestDays} day(s) old — historical backlog, not a live failure`],
         });
       }
     } catch (err) {
@@ -135,7 +152,13 @@ function hoursAgo(h) {
     }
   }
 
-  process.exit(findings.length || errors.length ? 1 : 0);
+  /* Exit semantics matter under a scheduler: with no_agent mode, a non-zero exit is reported to the
+     operator as "the job broke", which buries the actual finding. Findings are the OUTPUT — the job
+     succeeded in finding them. Only a genuine inability to check (bad config, unreachable services)
+     is a failure. `--strict` restores non-zero-on-findings for callers that want it. */
+  if (errors.length) process.exit(2);
+  if (process.argv.includes("--strict") && findings.length) process.exit(1);
+  process.exit(0);
 })().catch((err) => {
   console.error("commerce-watch crashed:", err);
   process.exit(2);
