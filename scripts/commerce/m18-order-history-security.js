@@ -86,6 +86,18 @@ function req(url) {
   check("select(*) is gone — only display fields are exposed", QUERIES[0]?.select !== "*" && !/(^|,)\*(,|$)/.test(QUERIES[0]?.select || ""));
   check("internal ids that the page does not need are not selected", !String(QUERIES[0]?.select).includes("stripe_session_id"));
 
+  /* A column that does not exist turns the whole response into a 500 — that is how `fulfillment_tracking`
+     got shipped once. Pin the select list to the real schema so a typo fails here, not in production. */
+  const KNOWN_COLUMNS = [
+    "amount_cents", "created_at", "currency", "customer_email", "customer_name", "id", "is_digital",
+    "notes", "product_id", "product_title", "shipping_address_line1", "shipping_address_line2",
+    "shipping_city", "shipping_country", "shipping_name", "shipping_postal_code", "shipping_state",
+    "status", "stripe_payment_intent_id", "stripe_session_id", "updated_at",
+  ];
+  const selected = String(QUERIES[0]?.select || "").split(",").map((c) => c.trim()).filter(Boolean);
+  const unknown = selected.filter((c) => !KNOWN_COLUMNS.includes(c));
+  check("every selected field exists in ut_orders", unknown.length === 0, `unknown: ${unknown.join(", ")}`);
+
   // ── 4. forged email parameter ──────────────────────────────────────────
   console.log("forged parameter");
   QUERIES.length = 0;

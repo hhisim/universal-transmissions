@@ -28,7 +28,6 @@ const ORDER_FIELDS = [
   "shipping_city",
   "shipping_state",
   "shipping_country",
-  "fulfillment_tracking",
 ].join(",");
 
 export async function GET(req: NextRequest) {
