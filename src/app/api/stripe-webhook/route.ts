@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { pickCustomerEmail, isSettledPayment } from "@/lib/order-identity";
 import { getStripe } from "@/lib/stripe";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -71,6 +72,42 @@ function reconciliationStamp(): string {
  */
 const MAX_LIFECYCLE_ATTEMPTS = 2;
 
+
+/**
+ * The customer email for an order, from the most authoritative source that has one.
+ *
+ * `session.customer_email` is the legacy field and is null on modern Checkout sessions; the address
+ * the buyer typed is in `customer_details.email`. When a session carries neither (rare), the charge's
+ * billing details still hold it — that costs one extra read, and only in the case that would otherwise
+ * write an empty email onto a real sale.
+ */
+async function resolveOrderCustomerEmail(session: Stripe.Checkout.Session) {
+  const direct = pickCustomerEmail({
+    customerDetailsEmail: session.customer_details?.email,
+    sessionEmail: session.customer_email,
+  });
+  if (direct.email) return direct;
+
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : (session.payment_intent as { id?: string } | null | undefined)?.id;
+  if (!paymentIntentId) return direct;
+
+  try {
+    const pi = await getStripe().paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
+    const charge = typeof pi.latest_charge === "object" ? (pi.latest_charge as { billing_details?: { email?: string | null } }) : null;
+    return pickCustomerEmail({
+      customerDetailsEmail: session.customer_details?.email,
+      sessionEmail: session.customer_email,
+      billingDetailsEmail: charge?.billing_details?.email,
+      receiptEmail: pi.receipt_email,
+    });
+  } catch (err) {
+    console.error(`Could not read the payment instrument for session ${session.id}:`, err);
+    return direct;
+  }
+}
 
 // ── Telegram notification helper ────────────────────────────────────────────
 const TELEGRAM_BOT_TOKEN = process.env.AKASHA_BOT_TOKEN ?? "";
@@ -159,6 +196,18 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      /* A completed session is NOT proof of payment. Asynchronous methods (SEPA, bank debits) emit
+         `checkout.session.completed` with `payment_status: "unpaid"` and settle later via
+         `async_payment_succeeded`. Stamping such a session "paid" would record money that had not
+         arrived; the row stays pending and the settling event completes it. */
+      if (!isSettledPayment(session.payment_status)) {
+        console.log(
+          `Session ${session.id} completed with payment_status=${String(session.payment_status)} — ` +
+            `no paid record written; the row stays pending until payment settles.`
+        );
+        break;
+      }
+
       // One-time product payment
       console.log(`✅ Product payment succeeded for session: ${session.id}`);
 
@@ -200,7 +249,7 @@ export async function POST(req: NextRequest) {
         : (lineItems.data ?? [])
             .map((li) => `${li.description ?? "item"} ×${li.quantity ?? 1}`)
             .join(" + ") || "—";
-      const customerEmail = session.customer_email ?? session.customer_details?.email ?? "—";
+      const customerEmail = pickCustomerEmail({ customerDetailsEmail: session.customer_details?.email, sessionEmail: session.customer_email }).email || "—";
       const customerName =
         session.customer_details?.name ?? (customerEmail !== "—" ? customerEmail : "Unknown");
       const ts = new Date((session.created ?? Math.floor(Date.now() / 1000)) * 1000)
@@ -218,6 +267,10 @@ export async function POST(req: NextRequest) {
         );
         break;
       }
+
+      /* The buyer's address, resolved from the most authoritative source before it is written.
+         Reading only the legacy `customer_email` is what lost the April sale's address. */
+      const resolvedEmail = await resolveOrderCustomerEmail(session);
 
       /* What the buyer actually paid, according to the provider.
        *
@@ -259,7 +312,7 @@ export async function POST(req: NextRequest) {
             amount_cents: verifiedCents,
             currency: verifiedCurrency,
             stripe_payment_intent_id: session.payment_intent as string,
-            customer_email: session.customer_email || session.customer_details?.email || "",
+            customer_email: resolvedEmail.email,
             customer_name: session.customer_details?.name || null,
             shipping_name: shippingDetails?.name || null,
             shipping_address_line1: shippingDetails?.address?.line1 || null,
