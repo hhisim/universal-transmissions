@@ -13,6 +13,7 @@
  *   · a send that times out is `uncertain`, never retried automatically and never reported as sent.
  */
 
+import { createHash } from "crypto";
 import { layout, escapeHtml, formatMoney, glyph } from "@/lib/order-email-template";
 import {
   enqueue,
@@ -57,6 +58,27 @@ const SENDER_NAME = "Universal Transmissions";
 const SENDER_EMAIL = "hakan@universal-transmissions.com";
 const REPLY_TO = "hakan@universal-transmissions.com";
 const SEND_TIMEOUT_MS = 15_000;
+
+/**
+ * Brevo accepts an `idempotencyKey` header (UUID, TTL 15–30 minutes) and answers a repeat with
+ * `duplicate_parameter` instead of sending again. That converts part of our "at-most-once" posture
+ * into a genuine no-duplicate guarantee inside the window, so every send carries one — derived
+ * deterministically from the outbox key, so a retry reuses the same value and a *different* purchase
+ * can never collide with it.
+ */
+const IDEMPOTENCY_NAMESPACE = "6f2c3b1e-6a41-5f0e-9a6d-2c7d8b9f4a10";
+
+export function idempotencyUuid(key: string): string {
+  // UUID v5 (SHA-1, namespaced) — stable across processes and runs without any stored mapping.
+  const nsBytes = Buffer.from(IDEMPOTENCY_NAMESPACE.replace(/-/g, ""), "hex");
+  const nameBytes = Buffer.from(key, "utf8");
+  const hash = createHash("sha1").update(nsBytes).update(nameBytes).digest();
+  const bytes = hash.subarray(0, 16);
+  bytes[6] = (bytes[6] & 0x0f) | 0x50;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = bytes.toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 
 /** An order we could not fully reconstruct must not be confirmed as though it were ordinary. */
 export function isIncompleteRecovery(order: { notes?: string | null }): boolean {
@@ -306,12 +328,25 @@ export function makeBrevoSender(deps: {
           htmlContent: html,
           textContent: text,
           tags: ["order-confirmation"],
-          headers: { "X-Mailin-custom": row.idempotency_key },
+          headers: {
+            "X-Mailin-custom": row.idempotency_key,
+            /* Provider-side duplicate suppression: a retry inside the TTL cannot become a second
+               receipt. Outside the TTL it can, which is why the outbox still refuses to resend an
+               outcome it could not observe. */
+            idempotencyKey: idempotencyUuid(row.idempotency_key),
+          },
         }),
       });
 
-      const payload = (await res.json().catch(() => ({}))) as { messageId?: string; message?: string };
-      if (!res.ok) return { outcome: "rejected", reason: payload?.message ?? `HTTP ${res.status}` };
+      const payload = (await res.json().catch(() => ({}))) as { messageId?: string; message?: string; code?: string };
+      if (!res.ok) {
+        /* Brevo's idempotency reply: the same key was already accepted in this window. That is not a
+           failure — it means the customer has (or will have) exactly one copy, which is the outcome
+           we wanted. Recorded as accepted with no new message id. */
+        const duplicate = payload?.code === "duplicate_parameter" || /duplicate/i.test(String(payload?.message ?? ""));
+        if (duplicate) return { outcome: "accepted", messageId: null };
+        return { outcome: "rejected", reason: payload?.message ?? `HTTP ${res.status}` };
+      }
       return { outcome: "accepted", messageId: payload?.messageId ?? null };
     } catch (err) {
       const aborted = (err as Error)?.name === "AbortError";

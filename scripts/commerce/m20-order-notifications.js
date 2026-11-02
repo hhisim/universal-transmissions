@@ -187,6 +187,32 @@ function check(name, ok, detail) {
     check("an unknown message id changes nothing", unknown === false);
   }
 
+  console.log("provider idempotency");
+  {
+    const notif = require(path.join(ROOT, "src/lib/order-notifications.ts"));
+    const a = notif.idempotencyUuid("order-1:confirmation");
+    const b = notif.idempotencyUuid("order-1:confirmation");
+    const c = notif.idempotencyUuid("order-2:confirmation");
+    check("the idempotency key is a valid UUID v5", /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(a), a);
+    check("it is stable for the same order", a === b);
+    check("and distinct between purchases", a !== c);
+
+    // Brevo's duplicate reply means "already accepted", not "failed".
+    const sent = [];
+    const sender = notif.makeBrevoSender({
+      fetchImpl: async (url, init) => {
+        sent.push(JSON.parse(init.body || "{}"));
+        return { ok: false, status: 400, json: async () => ({ code: "duplicate_parameter", message: "duplicate request" }) };
+      },
+      apiKey: "k",
+      loadOrder: async () => ({ id: "o1", status: "paid", customer_email: "a@b.com", product_title: "X", amount_cents: 100, currency: "usd", is_digital: false }),
+    });
+    const out = await sender({ id: "n1", order_id: "o1", kind: "confirmation", attempts: 1, idempotency_key: "order-1:confirmation", next_attempt_at: "", claimed_at: null, provider_message_id: null, status: "sending" });
+    check("a duplicate reply is treated as accepted, not failed", out.outcome === "accepted");
+    check("the request carried the idempotency header", sent[0]?.headers?.idempotencyKey === a);
+    check("the custom header carries the outbox key", sent[0]?.headers?.["X-Mailin-custom"] === "order-1:confirmation");
+  }
+
   console.log("policy");
   {
     check("backoff grows and is capped", backoffMs(1) === 60_000 && backoffMs(2) === 120_000 && backoffMs(9) === 16 * 60_000);

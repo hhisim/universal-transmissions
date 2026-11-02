@@ -69,7 +69,11 @@ export interface RecoverySession {
      absent on current API versions. Reading only the legacy one silently loses the address. */
   collected_information?: { shipping_details?: RecoveryShipping | null } | null;
   metadata?: Record<string, string> | null;
-  total_details?: { amount_shipping?: number | null } | null;
+  total_details?: {
+    amount_shipping?: number | null;
+    amount_discount?: number | null;
+    amount_tax?: number | null;
+  } | null;
 }
 
 export interface RecoveredOrder {
@@ -153,8 +157,18 @@ export function validateAgainstCatalogue(input: {
   }
 
   if (chargedTotal !== null && itemTotal !== null) {
-    const expected = itemTotal + (chargedShipping ?? 0);
-    if (expected !== chargedTotal) issues.push(`charged ${chargedTotal} does not equal items+shipping ${expected}`);
+    /* The reconciliation must understand every way Stripe can reach the charged total: a discount
+       subtracts, tax adds, shipping adds. Anything else (a partial refund mid-checkout, a proration)
+       surfaces as a mismatch rather than being silently absorbed. */
+    const discount = input.session.total_details?.amount_discount ?? 0;
+    const tax = input.session.total_details?.amount_tax ?? 0;
+    const expected = itemTotal + (chargedShipping ?? 0) - discount + tax;
+    if (expected !== chargedTotal) {
+      issues.push(
+        `charged ${chargedTotal} does not equal items ${itemTotal}` +
+          ` + shipping ${chargedShipping ?? 0} - discount ${discount} + tax ${tax} = ${expected}`
+      );
+    }
   }
 
   /* Nothing to reconcile against: we cannot prove the amount belongs to a catalogue product, so the

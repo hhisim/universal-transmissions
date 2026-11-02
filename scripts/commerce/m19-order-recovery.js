@@ -130,6 +130,34 @@ function check(name, ok, detail) {
       lineItems: { data: [{ description: "Codex Vol.1 — Digital", quantity: 1, amount_total: 9900, price: { product: "prod_x" } }] },
     });
     check("a digital sale is recorded as fulfilled", digital.row.status === "fulfilled");
+
+    // ── money configurations other than plain price + shipping ──────────────
+    const discounted = buildRecoveredOrder({
+      session: { ...base, amount_total: 22500, total_details: { amount_shipping: 3000, amount_discount: 2000, amount_tax: 0 } },
+      lineItems: { data: [{ description: "Codex", quantity: 1, amount_total: 21500, price: { product: "prod" } }] },
+    });
+    check("a discount reconciles (items + shipping - discount)", discounted.complete === true, discounted.reason);
+
+    const taxed = buildRecoveredOrder({
+      session: { ...base, amount_total: 24500, total_details: { amount_shipping: 0, amount_discount: 0, amount_tax: 3000 } },
+      lineItems: { data: [{ description: "Codex", quantity: 1, amount_total: 21500, price: { product: "prod" } }] },
+    });
+    check("tax reconciles (items + tax)", taxed.complete === true, taxed.reason);
+
+    const wrongMoney = buildRecoveredOrder({
+      session: { ...base, amount_total: 99900, total_details: { amount_shipping: 3000, amount_discount: 0, amount_tax: 0 } },
+      lineItems: { data: [{ description: "Codex", quantity: 1, amount_total: 21500, price: { product: "prod" } }] },
+    });
+    check("a total that does not reconcile is refused fulfilment", wrongMoney.row.status === "paid" && wrongMoney.complete === false);
+
+    // ── legacy session: no metadata, as written by older checkout code ──────
+    const legacy = buildRecoveredOrder({
+      session: { id: "cs_legacy", payment_status: "paid", amount_total: 24500, currency: "usd", customer_details: { email: "L@E.com" } },
+      lineItems: { data: [{ description: "Codex", quantity: 1, amount_total: 21500, price: { product: "prod_x" } }] },
+    });
+    check("a session without product metadata still produces a record", !!legacy.row);
+    check("but is marked unresolved, so it cannot vanish silently", legacy.complete === false && /no product metadata/.test(legacy.reason));
+    check("and is never auto-fulfilled", legacy.row.status === "paid");
   }
 
   const server = await startMockDb();
