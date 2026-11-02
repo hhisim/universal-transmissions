@@ -7,7 +7,7 @@ import Link from "next/link";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { supabase } from "@/lib/supabase-client";
-import { Package, Download, Truck, CheckCircle, Clock, XCircle, Eye } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock, XCircle, Eye } from "lucide-react";
 import PageBackground from "@/components/scenes/PageBackground";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
@@ -180,13 +180,30 @@ export default function OrdersPage() {
                         </div>
                       )}
 
-                      {/* Digital download */}
-                      {order.is_digital && (order.status === "fulfilled" || order.status === "paid") && (
+                      {/* Digital fulfilment is manual: the studio sends the high-resolution edition
+                          personally. There is deliberately no download button — one that cannot
+                          deliver anything would be a lie in the most sensitive part of the journey. */}
+                      {order.is_digital && (
                         <div className="mt-4 pt-4 border-t" style={{ borderColor: "rgba(217,70,239,0.08)" }}>
-                          <button className="btn-primary text-xs py-2 px-4 inline-flex items-center gap-2">
-                            <Download size={12} />
-                            Download
-                          </button>
+                          <p
+                            className="font-mono text-[10px] tracking-[0.18em] uppercase"
+                            style={{ color: order.status === "fulfilled" ? "var(--ut-magenta)" : "var(--ut-gold)" }}
+                          >
+                            {order.status === "fulfilled"
+                              ? "Fulfilled — Delivered by Studio"
+                              : "Paid — Awaiting Studio Delivery"}
+                          </p>
+                          <p className="font-mono text-[9px] mt-2 leading-relaxed" style={{ color: "var(--ut-white-dim)", opacity: 0.55 }}>
+                            The high-resolution digital edition is sent to you personally by the studio
+                            after payment is confirmed.
+                          </p>
+                          <a
+                            href="mailto:hakan@universal-transmissions.com?subject=Digital%20Codex%20order%20enquiry"
+                            className="font-mono text-[9px] tracking-widest uppercase mt-3 inline-block underline"
+                            style={{ color: "var(--ut-cyan)" }}
+                          >
+                            Contact the studio about this order
+                          </a>
                         </div>
                       )}
                     </div>

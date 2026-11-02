@@ -167,7 +167,7 @@ export default function ProductDetailPage({ params }: Props) {
                 <p className="font-mono text-[9px] text-center mt-3" style={{ color: "var(--ut-white-dim)", opacity: 0.3 }}>
                   {product.available === false
                     ? "Listing shown for reference · purchasing temporarily suspended"
-                    : "Secure checkout · Instant download or mail delivery"}
+                    : product.deliveryNote ?? "Secure checkout · Instant download or mail delivery"}
                 </p>
               </div>
             </SectionReveal>

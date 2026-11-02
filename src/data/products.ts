@@ -10,6 +10,8 @@ export interface Product {
   available: boolean;
   /** Shown when `available` is false, so a suspended listing still explains itself. */
   unavailableNote?: string;
+  /** How a digital edition actually reaches the buyer. */
+  deliveryNote?: string;
   category: string;
   tags: string[];
   transcriptionVideoId?: string;
@@ -42,7 +44,7 @@ export const products: Product[] = [
     price: 99,
     originalPrice: 150,
     description:
-      "PDF Edition of the Universal Transmissions Codex Vol.1. 'The Unwritten Book that cannot be read.' 150 pages of the same bizarre beauty as the physical edition — a book not written but woven into existence with childlike fascination towards linguistics, etymology, semiotics, and visionary experience. Not an ordinary PDF, something special.",
+      "The high-resolution digital edition of the Universal Transmissions Codex Vol.1. 'The Unwritten Book that cannot be read.' 156 pages of the same bizarre beauty as the physical edition — a book not written but woven into existence with childlike fascination towards linguistics, etymology, semiotics, and visionary experience. Sent to you personally by the studio after payment is confirmed.",
     images: [
       "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695718351745-8WJJ4R9DM3N4VD3IHFHR/cover.jpg",
       "https://images.squarespace-cdn.com/content/v1/587faaa8db29d66d9a26b202/1695718380540-INT53Y12EC86JNY3N7TP/Page+146.jpg",
@@ -51,8 +53,12 @@ export const products: Product[] = [
     /* The edition file does not exist yet, so this cannot be sold. The listing, images, description
        and price stay visible; the purchase path is refused server-side until delivery exists. */
     available: false,
+    /* Digital editions are delivered by hand from the studio's own high-resolution master, so the
+       listing promises exactly that and nothing faster. */
+    deliveryNote:
+      "Delivered personally by the studio after payment is confirmed. The high-resolution edition is sent to you directly — no instant download.",
     unavailableNote:
-      "The digital edition is temporarily unavailable while we finalise delivery. Join the mailing list to be told the moment it returns.",
+      "The digital edition is temporarily unavailable while the studio prepares the high-resolution master. When it returns, it is sent to you personally after payment is confirmed.",
     category: "Codex",
     tags: ["codex", "digital", "PDF", "download"],
     transcriptionVideoId: "e841xiYE6Rg",

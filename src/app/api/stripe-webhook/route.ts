@@ -115,25 +115,38 @@ async function resolveOrderCustomerEmail(session: Stripe.Checkout.Session) {
 const TELEGRAM_BOT_TOKEN = process.env.AKASHA_BOT_TOKEN ?? "";
 const TELEGRAM_CHAT_ID   = process.env.TELEGRAM_HOME_CHANNEL ?? "5491669332";
 
-async function sendTelegram(html: string) {
+/**
+ * Tell the studio about a sale. Returns whether it actually got through.
+ *
+ * A single failed fetch used to be lost silently — and for a digital order that notification IS the
+ * delivery trigger, so a dropped message meant a paid customer waiting forever. It now retries, and
+ * reports failure so the caller can leave a durable trail on the order.
+ */
+async function sendTelegram(html: string): Promise<boolean> {
   if (!TELEGRAM_BOT_TOKEN) {
     console.warn("AKASHA_BOT_TOKEN not set — skipping Telegram notification");
-    return;
+    return false;
   }
-  try {
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: html,
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-      }),
-    });
-  } catch (err) {
-    console.error("Telegram notification failed:", err);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: html,
+          parse_mode: "HTML",
+          disable_web_page_preview: true,
+        }),
+      });
+      if (res.ok) return true;
+      console.error(`Telegram notification attempt ${attempt} failed: HTTP ${res.status}`);
+    } catch (err) {
+      console.error(`Telegram notification attempt ${attempt} threw:`, err);
+    }
+    if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 500));
   }
+  return false;
 }
 
 function formatCurrency(amount: number | null | undefined, currency: string = "usd"): string {
@@ -446,19 +459,44 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // ── Telegram notification ────────────────────────────────────────────
-      await sendTelegram(
-        `<b>🛒 NEW SALE — ${
-          paidTotalsValid
-            ? formatCurrency(paidAmountTotal as number, paidCurrency as string)
-            : "amount unverified"
-        }</b>\n` +
-        `Customer: ${customerName}\n` +
-        `Email: ${customerEmail}\n` +
-        `Product: ${productName}\n` +
-        `Time: ${ts}\n` +
-        `${orderNote}`
-      );
+      // ── Studio notification ──────────────────────────────────────────────
+      /* One notification per SALE, not per delivery: a webhook replay must never tell the studio to
+         send a digital edition twice. For a digital order this message is the delivery trigger, so
+         the wording says what to do and carries the reference needed to act on it. */
+      if (isFreshSale) {
+        const reference = String(session.id ?? "unknown");
+        const amountLine = paidTotalsValid
+          ? formatCurrency(paidAmountTotal as number, paidCurrency as string)
+          : "amount unverified";
+
+        const message = isDigital
+          ? `<b>📖 DIGITAL SALE — ${amountLine}</b>\n` +
+            `<b>MANUAL DELIVERY REQUIRED</b>\n` +
+            `Order ref: <code>${reference}</code>\n` +
+            `Customer: ${customerName}\n` +
+            `Email: ${customerEmail}\n` +
+            `Product: ${productName}\n` +
+            `Status: paid — awaiting studio delivery\n` +
+            `Sent the file? Mark it fulfilled. Never marked automatically.\n` +
+            `Time: ${ts}\n` +
+            `${orderNote}`
+          : `<b>🛒 NEW SALE — ${amountLine}</b>\n` +
+            `Customer: ${customerName}\n` +
+            `Email: ${customerEmail}\n` +
+            `Product: ${productName}\n` +
+            `Time: ${ts}\n` +
+            `${orderNote}`;
+
+        const notified = await sendTelegram(message);
+        if (!notified && isDigital) {
+          /* The sale is real and the studio was not told. Leave the loudest trail we can without
+             rewriting the order: the daily watcher reports paid digital orders that were never
+             fulfilled, so this cannot be lost forever. */
+          console.error(
+            `STUDIO NOTIFICATION FAILED for digital sale ${reference} (${customerEmail}) — awaiting studio delivery`
+          );
+        }
+      }
 
       if (dbWriteFailed) {
         /* The buyer's payment succeeded; the order did not get stored. Answering 2xx would tell

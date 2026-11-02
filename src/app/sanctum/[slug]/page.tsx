@@ -423,7 +423,7 @@ export default function ProductDetailPage({ params }: Props) {
                 <p className="ut-shop-note">
                   {product.available === false
                     ? "Listing shown for reference · purchasing temporarily suspended"
-                    : "Secure checkout · Instant download or mail delivery"}
+                    : product.deliveryNote ?? "Secure checkout · Instant download or mail delivery"}
                 </p>
 
                 {/* Cross-links between related products */}
