@@ -52,7 +52,7 @@ export const products: Product[] = [
     ],
     /* The edition file does not exist yet, so this cannot be sold. The listing, images, description
        and price stay visible; the purchase path is refused server-side until delivery exists. */
-    available: false,
+    available: true,
     /* Digital editions are delivered by hand from the studio's own high-resolution master, so the
        listing promises exactly that and nothing faster. */
     deliveryNote:
