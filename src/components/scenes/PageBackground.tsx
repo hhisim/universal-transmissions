@@ -2087,7 +2087,10 @@ export default function PageBackground({ variant, className = "", opacity = 1 }:
         width: "100%",
         height: "100%",
         pointerEvents: "none",
-        zIndex: 0,
+        /* Behind the content, always. At z-index 0 this fixed layer painted OVER the page — a
+           pointer-events:none canvas still composites, so hit-testing reported the image while the
+           pixels showed background. The decoration must never cover what is for sale. */
+        zIndex: -1,
         opacity,
       }}
     />
