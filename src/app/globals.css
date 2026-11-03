@@ -3831,6 +3831,16 @@ body::-webkit-scrollbar-thumb:hover {
 
 .ut-hero.lg-hero { isolation: isolate; }
 
+/* The room is clipped to the hero's own box: the atmospheric layers bleed beyond it by design,
+   and that bleed must never become horizontal scroll on the page. */
+.lgx-room {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .lgx-deep {
   position: absolute;
   inset: -34% -14% -26%;

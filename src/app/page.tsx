@@ -154,9 +154,11 @@ export default function HomePage() {
         {/* ── HERO — the threshold ─────────────────────── */}
         <section className="ut-hero lg-hero lgx-env">
           <span className="lg-spectral-edge" aria-hidden="true" />
-          <div className="lgx-deep" aria-hidden="true" />
-          <div className="lgx-arch" aria-hidden="true" />
-          <div className="lgx-light" aria-hidden="true" />
+          <div className="lgx-room" aria-hidden="true">
+            <div className="lgx-deep" />
+            <div className="lgx-arch" />
+            <div className="lgx-light" />
+          </div>
           <figure className="lg-transmission">
             <div className="lg-transmission-frame">
               <Image
