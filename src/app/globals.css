@@ -3947,24 +3947,24 @@ body::-webkit-scrollbar-thumb:hover {
   border-bottom: 1px solid rgba(233, 208, 255, 0.06);
 }
 
-.ut-logo-hero-canvas { height: 86vh !important; }
+.ut-logo-hero-canvas { height: 60vh !important; }
 .ut-logo-hero-canvas > div { background: transparent !important; }
 
 @media (max-width: 760px) {
-  .ut-logo-hero-canvas { height: 64vh !important; }
+  .ut-logo-hero-canvas { height: 46vh !important; }
 }
 
 
 /* The emblem owns the opening: the rotating sigil fills the viewport, the title and the three
    doors sit beneath it, exactly as the original entrance did. */
-.ut-logo-hero { display: flex; flex-direction: column; }
+.ut-logo-hero { display: flex; flex-direction: column; min-height: 100vh; justify-content: center; }
 .ut-logo-hero-copy {
   position: relative;
   z-index: 20;
   display: grid;
   justify-items: center;
   gap: 26px;
-  padding: 8px 24px 74px;
+  padding: 0 24px 64px;
   text-align: center;
 }
 .ut-logo-hero-copy h1 { max-width: 18ch; line-height: 1.02; }
