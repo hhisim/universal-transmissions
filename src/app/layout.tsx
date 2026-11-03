@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import PageBackground from "@/components/ui/PageBackground";
 import Navigation from "@/components/ui/Navigation";
@@ -116,6 +117,7 @@ window.__utGetSession = function() {
       <body className="antialiased">
         <PageBackground />
         <Analytics />
+        <SpeedInsights />
         <InteractionTracker />
         <AuthSessionGate />
         <Navigation />
