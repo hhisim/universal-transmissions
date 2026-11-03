@@ -6,7 +6,6 @@ import ZalgoText from "@/components/ui/ZalgoText";
 import HomeVideo from "@/components/ui/HomeVideo";
 import GlitchTagline from "@/components/ui/GlitchTagline";
 import PageBackground from "@/components/scenes/PageBackground";
-import { LivingEntrance } from "@/components/hero/LivingEntrance";
 import { artworks } from "@/data/artworks";
 import { getProduct } from "@/data/products";
 import { GUIDED_PATHS } from "@/lib/guided-paths";
@@ -153,13 +152,60 @@ export default function HomePage() {
         </div>
 
         {/* ── HERO — the threshold ─────────────────────── */}
-        <LivingEntrance
-          image={featuredTransmission.images[0]}
-          title={featuredTransmission.title}
-          medium={featuredTransmission.medium}
-          year={featuredTransmission.year}
-          records={CORPUS_SUMMARY.distinctIdentities}
-        />
+        <section className="ut-hero lg-hero">
+          <span className="lg-spectral-edge" aria-hidden="true" />
+          <figure className="lg-transmission">
+            <div className="lg-transmission-frame">
+              <Image
+                src={featuredTransmission.images[0]}
+                alt={featuredTransmission.title}
+                width={0}
+                height={0}
+                sizes="(max-width: 760px) 92vw, (max-width: 1100px) 46vw, 640px"
+                style={{ width: "100%", height: "auto" }}
+              />
+              <span className="lg-transmission-mark lg-transmission-mark--tl" aria-hidden="true" />
+              <span className="lg-transmission-mark lg-transmission-mark--tr" aria-hidden="true" />
+              <span className="lg-transmission-mark lg-transmission-mark--bl" aria-hidden="true" />
+              <span className="lg-transmission-mark lg-transmission-mark--br" aria-hidden="true" />
+            </div>
+            <figcaption>
+              <p className="lg-kicker font-mono text-[9px] tracking-[0.3em] uppercase">[ Transmission ]</p>
+              <p className="lg-transmission-title">{featuredTransmission.title}</p>
+              <p className="lg-transmission-medium">{featuredTransmission.medium}</p>
+              <p className="lg-transmission-meta lg-meta">{featuredTransmission.year} · {featuredTransmission.slug}</p>
+            </figcaption>
+          </figure>
+          <div className="ut-hero-copy lg-margin lg-illuminated">
+            <h1
+              className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
+              style={{ color: "var(--ut-white)" }}
+            >
+              <ZalgoText text="Universal Transmissions" intensity="moderate" />
+            </h1>
+            <GlitchTagline />
+            <div className="ut-hero-actions">
+              <Link href="/codex" className="lg-action lg-action--gold">
+                DISCOVER THE CODEX
+                <span aria-hidden="true">→</span>
+              </Link>
+              <Link href="/gallery" className="lg-action lg-action--magenta">
+                ENTER THE GALLERY
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+            <p className="ut-hero-secondary">
+              <Link href="/codex/archive">Search the Correspondence Archive</Link>
+              <span aria-hidden="true">·</span>
+              <Link href="/paths">Take a guided descent</Link>
+            </p>
+            <p className="ut-hero-note">
+              The artistic project of Hakan Hisim — paintings, archival prints and a manuscript ten
+              years in the making, with {CORPUS_SUMMARY.distinctIdentities} correspondence records
+              and the instruments built from them beside it.
+            </p>
+          </div>
+        </section>
 
         {/* ── THE ENTRANCE — the work itself, before any explanation ── */}
         <section className="ut-entrance" aria-label="Works in this archive">
