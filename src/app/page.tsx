@@ -154,6 +154,29 @@ export default function HomePage() {
         {/* ── THE EMBLEM — the rotating UT sigil, restored ─────────────────── */}
         <section className="ut-logo-hero" aria-label="Universal Transmissions emblem">
           <LogoHero className="ut-logo-hero-canvas" />
+          <div className="ut-logo-hero-copy">
+            <h1
+              className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
+              style={{ color: "var(--ut-white)" }}
+            >
+              <ZalgoText text="Universal Transmissions" intensity="moderate" />
+            </h1>
+            <p className="ut-logo-hero-tagline">Language is a code — and it can be hacked</p>
+            <div className="ut-hero-actions">
+              <Link href="/gallery" className="lg-action lg-action--magenta">
+                ENTER THE GALLERY
+                <span aria-hidden="true">→</span>
+              </Link>
+              <Link href="/codex" className="lg-action lg-action--gold">
+                DISCOVER THE CODEX
+                <span aria-hidden="true">→</span>
+              </Link>
+              <Link href="/oracle" className="lg-action lg-action--cyan">
+                CONSULT THE ORACLE
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </div>
         </section>
 
         {/* ── HERO — the threshold ─────────────────────── */}
@@ -187,35 +210,6 @@ export default function HomePage() {
               <p className="lg-transmission-meta lg-meta">{featuredTransmission.year} · {featuredTransmission.slug}</p>
             </figcaption>
           </figure>
-          <div className="ut-hero-copy lg-margin lg-illuminated">
-            <h1
-              className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.1em] ut-gradient-text"
-              style={{ color: "var(--ut-white)" }}
-            >
-              <ZalgoText text="Universal Transmissions" intensity="moderate" />
-            </h1>
-            <GlitchTagline />
-            <div className="ut-hero-actions">
-              <Link href="/codex" className="lg-action lg-action--gold">
-                DISCOVER THE CODEX
-                <span aria-hidden="true">→</span>
-              </Link>
-              <Link href="/gallery" className="lg-action lg-action--magenta">
-                ENTER THE GALLERY
-                <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-            <p className="ut-hero-secondary">
-              <Link href="/codex/archive">Search the Correspondence Archive</Link>
-              <span aria-hidden="true">·</span>
-              <Link href="/paths">Take a guided descent</Link>
-            </p>
-            <p className="ut-hero-note">
-              The artistic project of Hakan Hisim — paintings, archival prints and a manuscript ten
-              years in the making, with {CORPUS_SUMMARY.distinctIdentities} correspondence records
-              and the instruments built from them beside it.
-            </p>
-          </div>
         </section>
 
         <nav className="lgx-descent" aria-label="Continue into the archive">
