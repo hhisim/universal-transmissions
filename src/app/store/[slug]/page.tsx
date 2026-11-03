@@ -70,22 +70,22 @@ export default function ProductDetailPage({ params }: Props) {
             </div>
           </SectionReveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
             {/* Image */}
-            <SectionReveal direction="left">
-              <div className="relative aspect-square glow-border-gold" style={{ borderColor: "rgba(212,168,71,0.2)" }}>
+            <SectionReveal direction="left" className="min-w-0">
+              <div className="relative aspect-square w-full glow-border-gold" style={{ borderColor: "rgba(212,168,71,0.2)" }}>
                 <Image src={product.images[0]} alt={product.title} fill unoptimized={true} className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
               </div>
             </SectionReveal>
 
             {/* Info + Checkout */}
-            <SectionReveal direction="right" delay={0.15}>
-              <div>
+            <SectionReveal direction="right" delay={0.15} className="min-w-0">
+              <div className="min-w-0">
                 <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
                   {product.category}
                 </p>
-                <h1 className="font-display text-3xl md:text-4xl mb-4" style={{ color: "var(--ut-gold)" }}>
-                  <ZalgoText text={product.title} intensity="subtle" />
+                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl mb-4 leading-tight break-words" style={{ color: "var(--ut-gold)" }}>
+                  {product.title}
                 </h1>
 
                 <div className="sacred-divider mb-8" />
