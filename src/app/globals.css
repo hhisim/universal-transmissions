@@ -3752,3 +3752,121 @@ body::-webkit-scrollbar-thumb:hover {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* ══ LIVING GRIMOIRE — optical CONTINUITY for the original entrance ════════════════════════
+   Nothing here replaces the original identity: the title, its aberration, the glyph interference
+   and the spectral canvas are untouched. This layer puts the artwork and the type into the same
+   optical space — one depth axis, one spectral signature, no new imagery, no particle system. */
+
+.lgx-env {
+  perspective: 1400px;
+  perspective-origin: 62% 40%;
+}
+
+/* depth: the plate recedes very slightly as the page moves, independent of the particle field.
+   Scroll-driven CSS only — no JS, no rAF, and it degrades to a still frame where unsupported. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lgx-env .lg-transmission {
+      animation: lgx-recede linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 60%;
+    }
+    @keyframes lgx-recede {
+      from { transform: translate3d(0, 14px, -26px) scale(0.994); }
+      to   { transform: translate3d(0, -10px, 0) scale(1); }
+    }
+  }
+}
+
+/* chromatic continuity: the plate's edge carries the same spectral split as the title,
+   kept to a 2px halo so it reads as one optical system rather than an RGB glitch. */
+.lgx-env .lg-transmission-frame {
+  filter:
+    drop-shadow(2px 0 0 rgba(214, 74, 168, 0.32))
+    drop-shadow(-2px 0 0 rgba(74, 214, 210, 0.26));
+}
+
+/* opalescent refraction, additive only — it may light the plate, never dim it */
+.lgx-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.34;
+  background:
+    linear-gradient(116deg,
+      transparent 34%,
+      rgba(255, 222, 244, 0.20) 47%,
+      rgba(214, 255, 250, 0.16) 55%,
+      transparent 70%),
+    radial-gradient(ellipse 62% 44% at 26% 6%, rgba(255, 236, 186, 0.14), transparent 66%);
+  animation: lgx-rake 18s ease-in-out infinite;
+}
+
+@keyframes lgx-rake {
+  0%, 100% { opacity: 0.26; transform: translate3d(-2%, 0, 0); }
+  46%      { opacity: 0.44; transform: translate3d(2.4%, -1%, 0); }
+}
+
+/* the descent — speaks the original's mono/gold voice, not a second navigation system */
+.lgx-descent {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 auto;
+  max-width: 1680px;
+  padding: 0 60px 34px;
+  border-bottom: 1px solid rgba(233, 208, 255, 0.08);
+}
+.lgx-descent a {
+  display: grid;
+  gap: 3px;
+  padding: 20px 20px 18px 0;
+  text-decoration: none;
+  border-right: 1px solid rgba(233, 208, 255, 0.07);
+  transition: background 260ms ease, border-color 260ms ease;
+}
+.lgx-descent a:last-child { border-right: 0; }
+.lgx-descent a:hover {
+  background: linear-gradient(180deg, rgba(214, 74, 168, 0.09), transparent 78%);
+}
+.lgx-descent-num {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  color: rgba(226, 188, 96, 0.9);
+}
+.lgx-descent-name {
+  font-family: var(--font-display, serif);
+  font-size: 0.98rem;
+  letter-spacing: 0.04em;
+  color: rgba(244, 239, 255, 0.88);
+}
+.lgx-descent-sub {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(233, 232, 255, 0.46);
+}
+
+@media (max-width: 960px) {
+  .lgx-descent { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 24px 24px; }
+  .lgx-descent a:nth-child(2n) { border-right: 0; }
+  .lgx-env .lg-transmission-frame {
+    filter: drop-shadow(1px 0 0 rgba(214, 74, 168, 0.28))
+            drop-shadow(-1px 0 0 rgba(74, 214, 210, 0.22));
+  }
+}
+
+@media (max-width: 560px) {
+  .lgx-descent { grid-template-columns: 1fr; }
+  .lgx-descent a { border-right: 0; border-bottom: 1px solid rgba(233, 208, 255, 0.07); padding: 14px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lgx-env .lg-transmission,
+  .lgx-sheen { animation: none !important; transform: none !important; }
+  .lgx-sheen { opacity: 0.3; }
+}

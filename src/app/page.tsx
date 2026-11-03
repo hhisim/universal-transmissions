@@ -152,7 +152,7 @@ export default function HomePage() {
         </div>
 
         {/* ── HERO — the threshold ─────────────────────── */}
-        <section className="ut-hero lg-hero">
+        <section className="ut-hero lg-hero lgx-env">
           <span className="lg-spectral-edge" aria-hidden="true" />
           <figure className="lg-transmission">
             <div className="lg-transmission-frame">
@@ -168,6 +168,7 @@ export default function HomePage() {
               <span className="lg-transmission-mark lg-transmission-mark--tr" aria-hidden="true" />
               <span className="lg-transmission-mark lg-transmission-mark--bl" aria-hidden="true" />
               <span className="lg-transmission-mark lg-transmission-mark--br" aria-hidden="true" />
+              <span className="lgx-sheen" aria-hidden="true" />
             </div>
             <figcaption>
               <p className="lg-kicker font-mono text-[9px] tracking-[0.3em] uppercase">[ Transmission ]</p>
@@ -206,6 +207,29 @@ export default function HomePage() {
             </p>
           </div>
         </section>
+
+        <nav className="lgx-descent" aria-label="Continue into the archive">
+          <Link href="/codex">
+            <span className="lgx-descent-num">II</span>
+            <span className="lgx-descent-name">The Codex</span>
+            <span className="lgx-descent-sub">156 pages · Vol. I</span>
+          </Link>
+          <Link href="/gallery">
+            <span className="lgx-descent-num">III</span>
+            <span className="lgx-descent-name">The Gallery</span>
+            <span className="lgx-descent-sub">Works in full</span>
+          </Link>
+          <Link href="/codex/archive">
+            <span className="lgx-descent-num">IV</span>
+            <span className="lgx-descent-name">Correspondence</span>
+            <span className="lgx-descent-sub">The archive</span>
+          </Link>
+          <Link href="/paths">
+            <span className="lgx-descent-num">V</span>
+            <span className="lgx-descent-name">Guided descent</span>
+            <span className="lgx-descent-sub">Follow a thread</span>
+          </Link>
+        </nav>
 
         {/* ── THE ENTRANCE — the work itself, before any explanation ── */}
         <section className="ut-entrance" aria-label="Works in this archive">
