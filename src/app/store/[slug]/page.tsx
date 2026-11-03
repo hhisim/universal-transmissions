@@ -59,7 +59,7 @@ export default function ProductDetailPage({ params }: Props) {
 
   return (
     <>
-<PageBackground variant="homepage" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<PageBackground variant="homepage" /> <main className="pt-14 sm:pt-20 lg:pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
         <div className="container-ut">
           {/* Breadcrumb */}
           <SectionReveal>
@@ -73,7 +73,7 @@ export default function ProductDetailPage({ params }: Props) {
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 xl:gap-16 items-start">
             {/* Image */}
             <SectionReveal direction="left" className="min-w-0">
-              <div className="relative aspect-square w-full glow-border-gold" style={{ borderColor: "rgba(212,168,71,0.2)" }}>
+              <div className="relative mx-auto aspect-square w-full max-w-[720px] xl:max-w-none glow-border-gold" style={{ borderColor: "rgba(212,168,71,0.2)" }}>
                 <Image src={product.images[0]} alt={product.title} fill unoptimized={true} className="object-cover" priority sizes="(max-width: 1280px) 100vw, 50vw" />
               </div>
             </SectionReveal>
