@@ -159,8 +159,9 @@ export default function HomePage() {
               <Image
                 src={featuredTransmission.images[0]}
                 alt={featuredTransmission.title}
-                width={0}
-                height={0}
+                width={1200}
+                height={1200}
+                priority
                 sizes="(max-width: 760px) 92vw, (max-width: 1100px) 46vw, 640px"
                 style={{ width: "100%", height: "auto" }}
               />
