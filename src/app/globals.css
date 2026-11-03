@@ -3873,8 +3873,10 @@ body::-webkit-scrollbar-thumb:hover {
   overflow: hidden;
   box-shadow:
     0 60px 130px -50px rgba(0, 0, 0, 0.95),
-    0 0 0 1px rgba(233, 208, 255, 0.14),
-    0 0 90px -22px rgba(214, 74, 168, 0.34);
+    0 0 0 1px rgba(233, 208, 255, 0.26),
+    inset 0 0 0 1px rgba(255, 241, 214, 0.18),
+    inset 0 -70px 100px -70px rgba(0, 0, 0, 0.55),
+    0 0 110px -18px rgba(214, 74, 168, 0.42);
   animation: lgx-settle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -3887,6 +3889,9 @@ body::-webkit-scrollbar-thumb:hover {
   display: block;
   width: 100%;
   height: auto;
+  /* The work must hold the eye. Its own luminance stays faithful; we only refuse to let the
+     ink field eat it, and give the plate a rim so it reads as mounted rather than sunk in. */
+  filter: saturate(1.12) contrast(1.07) brightness(1.14);
 }
 
 /* opalescent refraction — a spectral sheen raking across the plate */
@@ -3961,7 +3966,7 @@ body::-webkit-scrollbar-thumb:hover {
 .lgx-title {
   margin: 0 0 22px;
   font-family: var(--font-display, serif);
-  font-size: clamp(2.6rem, 5.4vw, 5.1rem);
+  font-size: clamp(2.4rem, 4.8vw, 4.3rem);
   line-height: 0.94;
   letter-spacing: 0.02em;
   color: #f4efff;
@@ -4031,7 +4036,7 @@ body::-webkit-scrollbar-thumb:hover {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 9px;
   letter-spacing: 0.3em;
-  color: rgba(212, 168, 71, 0.75);
+  color: rgba(226, 188, 96, 0.92);
 }
 .lgx-rail-name {
   font-family: var(--font-display, serif);
@@ -4044,7 +4049,7 @@ body::-webkit-scrollbar-thumb:hover {
   font-size: 9px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(233, 232, 255, 0.34);
+  color: rgba(233, 232, 255, 0.52);
 }
 
 @media (max-width: 1180px) {
