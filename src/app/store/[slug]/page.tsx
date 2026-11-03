@@ -72,14 +72,14 @@ export default function ProductDetailPage({ params }: Props) {
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 xl:gap-16 items-start">
             {/* Image */}
-            <SectionReveal direction="left" className="min-w-0">
+            <SectionReveal direction="none" className="min-w-0">
               <div className="relative mx-auto aspect-square w-full max-w-[720px] xl:max-w-none glow-border-gold" style={{ borderColor: "rgba(212,168,71,0.2)" }}>
                 <Image src={product.images[0]} alt={product.title} fill unoptimized={true} className="object-cover" priority sizes="(max-width: 1280px) 100vw, 50vw" />
               </div>
             </SectionReveal>
 
             {/* Info + Checkout */}
-            <SectionReveal direction="right" delay={0.15} className="min-w-0">
+            <SectionReveal direction="up" delay={0.15} className="min-w-0">
               <div className="min-w-0">
                 <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "var(--ut-gold)", opacity: 0.6 }}>
                   {product.category}
