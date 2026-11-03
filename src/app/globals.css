@@ -3821,3 +3821,106 @@ body::-webkit-scrollbar-thumb:hover {
   .lgx-sheen { animation: none !important; transform: none !important; }
   .lgx-sheen { opacity: 0.3; }
 }
+
+
+/* ══ THE ROOM AROUND THE WORK ═════════════════════════════════════════════════════════════
+   Depth is built from independent layers BEHIND the composition. Nothing here touches the
+   image element: no transform, filter, clip or animation is applied to the artwork itself,
+   so its intrinsic box and priority load are untouched. The geometry is derived from the
+   Vitruvian Spirit plate - concentric rings, the squared circle - not from generic HUD. */
+
+.ut-hero.lg-hero { isolation: isolate; }
+
+.lgx-deep {
+  position: absolute;
+  inset: -34% -14% -26%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 38% 46% at 78% 26%, rgba(126, 32, 132, 0.30), transparent 66%),
+    radial-gradient(ellipse 44% 40% at 96% 62%, rgba(18, 92, 104, 0.28), transparent 70%),
+    radial-gradient(ellipse 52% 58% at 12% 8%, rgba(48, 22, 112, 0.34), transparent 72%),
+    radial-gradient(ellipse 70% 60% at 50% 108%, rgba(8, 4, 18, 0.9), transparent 70%);
+  animation: lgx-deep-breathe 34s ease-in-out infinite alternate;
+}
+
+@keyframes lgx-deep-breathe {
+  from { opacity: 0.72; transform: scale(1.02) translate3d(-1%, 0, 0); }
+  to   { opacity: 1;    transform: scale(1.06) translate3d(1.5%, -1.5%, 0); }
+}
+
+/* the squared circle, drawn from the plate's own emblem */
+.lgx-arch {
+  position: absolute;
+  z-index: 0;
+  top: -26%;
+  right: -14%;
+  width: min(86vw, 1180px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      rgba(236, 214, 255, 0.065) 0 1px, transparent 1px 96px),
+    conic-gradient(from 0deg,
+      rgba(214, 74, 168, 0.06), transparent 18%, rgba(74, 214, 210, 0.05) 34%,
+      transparent 52%, rgba(214, 168, 71, 0.05) 68%, transparent 84%, rgba(214, 74, 168, 0.06));
+  mask-image: radial-gradient(circle at 50% 50%, #000 16%, rgba(0, 0, 0, 0.5) 42%, transparent 66%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 16%, rgba(0, 0, 0, 0.5) 42%, transparent 66%);
+  animation: lgx-arch-turn 240s linear infinite;
+}
+
+@keyframes lgx-arch-turn {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* the plate is lit from inside the room, not from the page */
+.lgx-light {
+  position: absolute;
+  z-index: 0;
+  right: 1%;
+  top: 3%;
+  width: min(52vw, 760px);
+  height: 74%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 52% 58% at 62% 44%, rgba(228, 92, 190, 0.22), transparent 68%),
+    radial-gradient(ellipse 44% 50% at 84% 70%, rgba(92, 226, 214, 0.16), transparent 70%);
+  filter: blur(46px);
+  opacity: 0.72;
+  animation: lgx-light-pulse 26s ease-in-out infinite alternate;
+}
+
+@keyframes lgx-light-pulse {
+  from { opacity: 0.55; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 0.85; transform: translate3d(-1.5%, 1%, 0) scale(1.03); }
+}
+
+/* foreground owns the glass: a spectral rim drawn as a pseudo-element, never a filter on the art */
+.ut-hero.lg-hero .lg-transmission,
+.ut-hero.lg-hero .ut-hero-copy { position: relative; z-index: 2; }
+
+.ut-hero.lg-hero .lg-transmission-frame::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1px rgba(236, 214, 255, 0.24),
+    0 0 68px -14px rgba(214, 74, 168, 0.5),
+    0 0 120px -30px rgba(74, 214, 210, 0.34);
+}
+
+@media (max-width: 960px) {
+  .lgx-arch { top: -14%; right: -34%; width: 150vw; opacity: 0.75; }
+  .lgx-light { width: 92vw; right: -6%; top: 12%; height: 56%; filter: blur(38px); }
+  .lgx-deep { inset: -20% -10% -14%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lgx-deep, .lgx-arch, .lgx-light { animation: none !important; }
+  .lgx-deep { opacity: 0.9; }
+  .lgx-light { opacity: 0.7; }
+}
