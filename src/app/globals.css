@@ -3934,3 +3934,22 @@ body::-webkit-scrollbar-thumb:hover {
   .lgx-deep { opacity: 0.9; }
   .lgx-light { opacity: 0.7; }
 }
+
+
+/* The rotating UT sigil is the house mark of this site — three chromatic layers, orbiting dots,
+   glyph rain and its own particle field. It was dropped from the homepage in October and the
+   component has been dead code since. Restored here as the entrance above the artwork. */
+.ut-logo-hero {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #060509;
+  border-bottom: 1px solid rgba(233, 208, 255, 0.06);
+}
+
+.ut-logo-hero-canvas { height: 86vh !important; }
+.ut-logo-hero-canvas > div { background: transparent !important; }
+
+@media (max-width: 760px) {
+  .ut-logo-hero-canvas { height: 64vh !important; }
+}

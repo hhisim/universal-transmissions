@@ -151,6 +151,11 @@ export default function HomePage() {
           </p>
         </div>
 
+        {/* ── THE EMBLEM — the rotating UT sigil, restored ─────────────────── */}
+        <section className="ut-logo-hero" aria-label="Universal Transmissions emblem">
+          <LogoHero className="ut-logo-hero-canvas" />
+        </section>
+
         {/* ── HERO — the threshold ─────────────────────── */}
         <section className="ut-hero lg-hero lgx-env">
           <span className="lg-spectral-edge" aria-hidden="true" />
