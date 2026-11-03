@@ -3752,3 +3752,49 @@ body::-webkit-scrollbar-thumb:hover {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* ── The entry carries the work as atmosphere ─────────────────────────────────────────────
+   Before this, the hero was type on black: the featured transmission sat in a void and the
+   first thing a visitor saw was a title card. The featured artwork now breathes behind the
+   composition as a soft, lit layer. It is decorative only - every word and the artwork itself
+   stay above it - and it uses the same asset the figure already loads, so it costs no new
+   request on a warm cache. */
+.ut-hero.lg-hero > .lg-atmosphere {
+  position: absolute;
+  inset: -10% -8% auto -8%;
+  height: 126%;
+  background-size: cover;
+  background-position: center 30%;
+  filter: blur(48px) saturate(1.4) brightness(0.72);
+  opacity: 0.4;
+  transform: scale(1.05);
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: radial-gradient(ellipse 78% 72% at 72% 44%, #000 0%, rgba(0, 0, 0, 0.5) 48%, transparent 80%);
+  mask-image: radial-gradient(ellipse 78% 72% at 72% 44%, #000 0%, rgba(0, 0, 0, 0.5) 48%, transparent 80%);
+}
+
+.ut-hero.lg-hero > .lg-transmission,
+.ut-hero.lg-hero > .ut-hero-copy {
+  position: relative;
+  z-index: 1;
+}
+
+/* The featured plate reads as a lit object rather than a flat rectangle. */
+.ut-hero.lg-hero .lg-transmission-frame {
+  box-shadow: 0 42px 96px -46px rgba(0, 0, 0, 0.92);
+}
+
+@media (max-width: 960px) {
+  .ut-hero.lg-hero > .lg-atmosphere {
+    inset: -6% -4% auto -4%;
+    height: 112%;
+    opacity: 0.3;
+    filter: blur(38px) saturate(1.25) brightness(0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ut-hero.lg-hero > .lg-atmosphere { transform: none; }
+}

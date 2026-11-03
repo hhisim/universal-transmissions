@@ -154,13 +154,19 @@ export default function HomePage() {
         {/* ── HERO — the threshold ─────────────────────── */}
         <section className="ut-hero lg-hero">
           <span className="lg-spectral-edge" aria-hidden="true" />
+          <div
+            className="lg-atmosphere"
+            aria-hidden="true"
+            style={{ backgroundImage: `url(${featuredTransmission.images[0]})` }}
+          />
           <figure className="lg-transmission">
             <div className="lg-transmission-frame">
               <Image
                 src={featuredTransmission.images[0]}
                 alt={featuredTransmission.title}
-                width={0}
-                height={0}
+                width={1200}
+                height={1200}
+                priority
                 sizes="(max-width: 760px) 92vw, (max-width: 1100px) 46vw, 640px"
                 style={{ width: "100%", height: "auto" }}
               />
