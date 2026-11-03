@@ -3762,37 +3762,9 @@ body::-webkit-scrollbar-thumb:hover {
 /* Depth is carried by lighting and layering, not by transforming the artwork's box:
    a scroll-driven 3D transform collapsed the plate's layout box to 2px, so it is gone.
    The plate stays exactly where the original composition put it. */
-.lgx-env { position: relative; }
-
-/* chromatic continuity: the plate's edge carries the same spectral split as the title,
-   kept to a 2px halo so it reads as one optical system rather than an RGB glitch. */
-.lgx-env .lg-transmission-frame {
-  filter:
-    drop-shadow(2px 0 0 rgba(214, 74, 168, 0.32))
-    drop-shadow(-2px 0 0 rgba(74, 214, 210, 0.26));
-}
-
-/* opalescent refraction, additive only — it may light the plate, never dim it */
-.lgx-sheen {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  opacity: 0.34;
-  background:
-    linear-gradient(116deg,
-      transparent 34%,
-      rgba(255, 222, 244, 0.20) 47%,
-      rgba(214, 255, 250, 0.16) 55%,
-      transparent 70%),
-    radial-gradient(ellipse 62% 44% at 26% 6%, rgba(255, 236, 186, 0.14), transparent 66%);
-  animation: lgx-rake 18s ease-in-out infinite;
-}
-
-@keyframes lgx-rake {
-  0%, 100% { opacity: 0.26; transform: translate3d(-2%, 0, 0); }
-  46%      { opacity: 0.44; transform: translate3d(2.4%, -1%, 0); }
-}
+/* The hero keeps its original markup and rendering. Enhancement lives beside it, never on the
+   inside of the plate's box: a filter on the frame destabilised its layout and the artwork
+   periodically collapsed to 2px. */
 
 /* the descent — speaks the original's mono/gold voice, not a second navigation system */
 .lgx-descent {

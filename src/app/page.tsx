@@ -168,7 +168,6 @@ export default function HomePage() {
               <span className="lg-transmission-mark lg-transmission-mark--tr" aria-hidden="true" />
               <span className="lg-transmission-mark lg-transmission-mark--bl" aria-hidden="true" />
               <span className="lg-transmission-mark lg-transmission-mark--br" aria-hidden="true" />
-              <span className="lgx-sheen" aria-hidden="true" />
             </div>
             <figcaption>
               <p className="lg-kicker font-mono text-[9px] tracking-[0.3em] uppercase">[ Transmission ]</p>
