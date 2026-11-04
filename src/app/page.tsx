@@ -179,6 +179,14 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── THE DESCENT — the emblem opens into the work ─────────────────── */}
+        <div className="lg-veil" aria-hidden="true">
+          <span className="lg-veil-thread" />
+          <span className="lg-veil-ring" />
+          <span className="lg-veil-ring lg-veil-ring--late" />
+          <span className="lg-veil-spark" />
+        </div>
+
         {/* ── HERO — the threshold ─────────────────────── */}
         <section className="ut-hero lg-hero lgx-env">
           <span className="lg-spectral-edge" aria-hidden="true" />

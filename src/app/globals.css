@@ -4040,3 +4040,95 @@ body::-webkit-scrollbar-thumb:hover {
   .lgx-deep, .lgx-arch, .lgx-light { animation: none !important; }
   .ut-logo-hero-canvas * { animation: none !important; }
 }
+
+
+/* ── THE DESCENT ──────────────────────────────────────────────────────────────────────────
+   The emblem does not end and the artwork does not begin: one passes into the other. The
+   veil carries the emblem's own ring geometry and colour downward, so the eye travels from
+   the rotating symbol into Vitruvian Spirit without a seam or a border. */
+
+.lg-veil {
+  position: relative;
+  height: 26vh;
+  min-height: 170px;
+  margin-top: -8vh;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 46% 58% at 50% 0%, rgba(147, 51, 234, 0.16), transparent 68%),
+    linear-gradient(180deg, rgba(6, 5, 9, 0.9), rgba(6, 5, 9, 0));
+}
+
+/* the thread: the emblem's rotation continued as a single vertical axis */
+.lg-veil-thread {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg,
+    rgba(217, 70, 239, 0.55), rgba(34, 211, 238, 0.34) 46%, rgba(212, 168, 71, 0.26) 78%, transparent);
+  opacity: 0.75;
+}
+
+/* rings leaving the emblem, expanding as they fall */
+.lg-veil-ring {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 34vmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(217, 70, 239, 0.22);
+  box-shadow: 0 0 40px -12px rgba(147, 51, 234, 0.5), inset 0 0 40px -18px rgba(34, 211, 238, 0.4);
+  animation: lg-veil-expand 16s ease-out infinite;
+}
+.lg-veil-ring--late { animation-delay: 8s; border-color: rgba(34, 211, 238, 0.18); }
+
+@keyframes lg-veil-expand {
+  0%   { transform: translate(-50%, -50%) scale(0.42); opacity: 0; }
+  22%  { opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(1.9); opacity: 0; }
+}
+
+.lg-veil-spark {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+  border-radius: 50%;
+  background: #f0d9ff;
+  box-shadow: 0 0 12px 3px rgba(217, 70, 239, 0.65);
+  animation: lg-veil-fall 9s linear infinite;
+}
+
+@keyframes lg-veil-fall {
+  0%   { transform: translateY(0); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translateY(180px); opacity: 0; }
+}
+
+/* the work inherits the emblem's light: no hard edge where the section starts */
+.ut-hero.lg-hero {
+  position: relative;
+  background: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(120, 40, 150, 0.16), transparent 66%);
+  padding-top: clamp(10px, 2vh, 34px);
+}
+
+/* the plate is the dominant object in this space */
+.ut-hero.lg-hero .lg-transmission-frame { max-width: 760px; margin: 0 auto; }
+
+@media (max-width: 760px) {
+  .lg-veil { height: 18vh; min-height: 120px; margin-top: -4vh; }
+  .lg-veil-ring { width: 52vmin; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-veil-ring, .lg-veil-spark { animation: none !important; }
+  .lg-veil-ring { opacity: 0.35; transform: translate(-50%, -50%) scale(1.1); }
+  .lg-veil-spark { opacity: 0; }
+}
