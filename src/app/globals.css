@@ -4394,3 +4394,34 @@ body::-webkit-scrollbar-thumb:hover {
   .lgv-path { animation: none !important; stroke-dasharray: none; opacity: 0.6; }
   .lgv-wave, .lg-art-resonance { animation: none !important; opacity: 0.4; }
 }
+
+
+.lg-art-lens {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  backdrop-filter: saturate(1.9) brightness(1.22) contrast(1.08) hue-rotate(-8deg);
+  -webkit-backdrop-filter: saturate(1.9) brightness(1.22) contrast(1.08) hue-rotate(-8deg);
+  mask-image: repeating-radial-gradient(circle at 50% 47%, #000 0 3px, transparent 3px 26px),
+    radial-gradient(circle at 50% 47%, #000 18%, rgba(0,0,0,0.55) 42%, transparent 66%);
+  -webkit-mask-image: repeating-radial-gradient(circle at 50% 47%, #000 0 3px, transparent 3px 26px),
+    radial-gradient(circle at 50% 47%, #000 18%, rgba(0,0,0,0.55) 42%, transparent 66%);
+  mask-composite: intersect; -webkit-mask-composite: source-in;
+  opacity: 0.5;
+  animation: lg-lens 7.4s cubic-bezier(0.45,0,0.55,1) infinite;
+}
+@keyframes lg-lens { 0%,100% { opacity: 0.24; } 46% { opacity: 0.72; } }
+
+.lg-transmission-frame::before {
+  content: ""; position: absolute; inset: -18%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 56% 50% at 50% 44%, rgba(217,70,239,0.30), transparent 68%),
+    radial-gradient(ellipse 46% 44% at 62% 66%, rgba(34,211,238,0.24), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 50% 52%, rgba(212,168,71,0.14), transparent 74%);
+  filter: blur(38px);
+  animation: lg-halo 8.6s ease-in-out infinite;
+}
+@keyframes lg-halo { 0%,100% { opacity: 0.55; } 50% { opacity: 0.95; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-art-lens { animation: none !important; opacity: 0.45; }
+  .lg-transmission-frame::before { animation: none !important; opacity: 0.7; }
+}
