@@ -4700,3 +4700,61 @@ html, body { overflow-x: clip; }
 @media (max-width: 767px) {
   .ut-logo-hero-canvas { padding: clamp(54px, 7vh, 74px) 0 clamp(46px, 6vh, 62px) !important; }
 }
+
+
+/* ── FINAL HERO STRUCTURE ────────────────────────────────────────────────────────────────
+   A square envelope in normal flow, sized to the mark's maximum painted extent. No negative
+   margins, no absolute positioning of the emblem, no transform doing layout's job. */
+.ut-hero.lg-hero {
+  display: block !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: clamp(76px, 9vh, 104px) 0 0 !important;
+  overflow: visible !important;
+}
+.ut-logo-hero { display: block !important; min-height: 0 !important; }
+
+.ut-logo-hero-canvas {
+  position: relative !important;
+  display: block !important;
+  width: min(84vmin, 560px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 auto clamp(18px, 2.4vh, 30px) !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+.ut-logo-hero-canvas > div,
+.ut-logo-hero-canvas > div > div {
+  position: static !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 auto !important;
+}
+.ut-logo-hero-canvas img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
+
+.ut-logo-hero-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+/* the passage begins immediately under the doors: 32–64px, and it owns real height */
+.lg-veil {
+  position: relative !important;
+  margin: 44px auto 0 !important;
+  height: clamp(200px, 26vh, 300px) !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { width: min(78vw, 320px) !important; margin-bottom: 16px !important; }
+  .lg-veil { margin-top: 34px !important; height: clamp(150px, 20vh, 220px) !important; }
+}
