@@ -4674,3 +4674,29 @@ html, body { overflow-x: clip; }
   .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { width: min(74vw, 300px) !important; max-width: min(74vw, 300px) !important; max-height: min(74vw, 300px) !important; }
   .ut-logo-hero-copy { margin-top: 1.5rem !important; }
 }
+
+
+/* The rotating square's bounding box grows by up to √2 at 45°, so a band padded for the
+   upright mark collides with the title at the diagonal. The padding below is the diagonal's
+   half-overhang, which keeps a real gap at every angle. */
+.ut-logo-hero-canvas {
+  padding: clamp(84px, 11vh, 126px) 0 clamp(72px, 9vh, 108px) !important;
+  min-height: 0 !important;
+}
+.ut-logo-hero-canvas > div,
+.ut-logo-hero-canvas > div > div {
+  width: min(50vw, 470px) !important;
+  max-width: min(50vw, 470px) !important;
+  max-height: min(50vw, 470px) !important;
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ut-logo-hero-canvas { padding: clamp(70px, 9vh, 96px) 0 clamp(60px, 8vh, 84px) !important; }
+  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div {
+    width: min(46vw, 380px) !important;
+    max-width: min(46vw, 380px) !important;
+    max-height: min(46vw, 380px) !important;
+  }
+}
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { padding: clamp(54px, 7vh, 74px) 0 clamp(46px, 6vh, 62px) !important; }
+}
