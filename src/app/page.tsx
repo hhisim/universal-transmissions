@@ -188,7 +188,7 @@ export default function HomePage() {
         </div>
 
         {/* ── HERO — the threshold ─────────────────────── */}
-        <section className="ut-hero lg-hero lgx-env">
+        <section id="vitruvian" className="ut-hero lg-hero lgx-env">
           <span className="lg-spectral-edge" aria-hidden="true" />
           <div className="lgx-room" aria-hidden="true">
             <div className="lgx-deep" />
