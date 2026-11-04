@@ -4535,3 +4535,20 @@ body::-webkit-scrollbar-thumb:hover {
   width: 48% !important;
   opacity: calc(0.08 + var(--ut-arrive, 0) * 0.62) !important;
 }
+
+
+/* ── TABLET: the emblem was crowding the title ────────────────────────────────────────────
+   Between 768 and 1279 the hero lost its vertical rhythm: the canvas kept too much height
+   while the copy sat directly beneath it. Each element gets its own band again. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ut-logo-hero-canvas { height: 24vh !important; min-height: 190px; max-height: 280px; }
+  .ut-logo-hero-copy { margin-top: 2.2rem; }
+  .ut-logo-hero { padding-top: 5.5rem; }
+  .lg-hero-title { font-size: clamp(2.1rem, 4.4vw, 3.4rem) !important; line-height: 1.05; }
+  .ut-logo-hero-copy .lg-action { margin-top: 0.6rem; }
+  .lg-veil { height: 34vh; min-height: 250px; margin-top: -30vh; }
+}
+@media (min-width: 768px) and (max-width: 900px) {
+  .ut-logo-hero-canvas { height: 21vh !important; min-height: 170px; }
+  .lg-hero-title { font-size: clamp(1.9rem, 5vw, 2.6rem) !important; }
+}
