@@ -199,9 +199,9 @@ export default function HomePage() {
                 <stop offset="100%" stopColor="#d4a847" stopOpacity="0.4" />
               </linearGradient>
             </defs>
-            <path className="lgv-path lgv-path--m" d="M500,6 C 610,86 606,196 500,300 C 452,344 470,392 500,416" stroke="url(#lgvM)" />
-            <path className="lgv-path lgv-path--c" d="M500,6 C 390,86 394,196 500,300 C 548,344 530,392 500,416" stroke="url(#lgvC)" />
-            <path className="lgv-path lgv-path--w" d="M500,6 C 500,120 500,210 500,300 C 500,344 500,392 500,416" stroke="url(#lgvW)" />
+            <path className="lgv-path lgv-path--m" d="M500,6 C 610,86 606,196 500,300 C 452,344 470,392 500,416" stroke="#ff2bd6" />
+            <path className="lgv-path lgv-path--c" d="M500,6 C 390,86 394,196 500,300 C 548,344 530,392 500,416" stroke="#22d3ee" />
+            <path className="lgv-path lgv-path--w" d="M500,6 C 500,120 500,210 500,300 C 500,344 500,392 500,416" stroke="#ffffff" />
             <ellipse className="lgv-wave lgv-wave--1" cx="500" cy="316" rx="120" ry="26" />
             <ellipse className="lgv-wave lgv-wave--2" cx="500" cy="316" rx="120" ry="26" />
             <ellipse className="lgv-wave lgv-wave--3" cx="500" cy="316" rx="120" ry="26" />

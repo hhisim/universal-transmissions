@@ -4307,3 +4307,15 @@ body::-webkit-scrollbar-thumb:hover {
   .lgv-wave { animation: none !important; opacity: 0.3; transform: scale(1.1); }
   .ut-hero.lg-hero .lg-transmission-frame::after { animation: none !important; opacity: 0.7; }
 }
+
+
+/* PHASE 1 PROBE — solid, unanimated strokes. Nothing here is final: this exists to prove the
+   geometry paints at all before any gradient or motion is reintroduced. */
+.lgv-path {
+  stroke-dasharray: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+  stroke-width: 7 !important;
+  filter: none !important;
+}
+.lgv-wave { animation: none !important; opacity: 0.5 !important; }
