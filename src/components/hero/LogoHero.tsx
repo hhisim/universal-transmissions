@@ -297,12 +297,12 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     window.addEventListener("click", onClick);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
 
-    // Auto-pulse removed — no longer using starburst
-    // if (isMobileRef.current) {
-    //   autoPulseTimerRef.current = setInterval(() => {
-    //     triggerStarburst();
-    //   }, 8000);
-    // }
+    // The pulse rings existed but nothing ever fired them. A slow automatic pulse gives the
+    // emblem its spectral energy without adding a new system: same rings, same palette.
+    autoPulseTimerRef.current = setInterval(() => {
+      pulseTimeRef.current = timeRef.current;
+      pulseRef.current = true;
+    }, 11000);
 
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
@@ -316,7 +316,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
   const distX = (mouse.x - 0.5) * 2;
   const distY = (mouse.y - 0.5) * 2;
   const dist = Math.sqrt(distX * distX + distY * distY);
-  const aberration = Math.min(2 + dist * 12, 20);
+  const aberration = Math.min(8 + dist * 16, 26);
   const rotDeg = rotation * (180 / Math.PI);
   const pulseScale = 60 + pulseAge * 300;
   const pulseOpacity = Math.max(0, 0.6 - pulseAge * 0.22);
@@ -411,7 +411,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             className="absolute inset-0 flex items-center justify-center"
             style={{
               transform: `translate(${-aberration * distX * 1.5}px, ${-aberration * distY * 0.5}px)`,
-              opacity: 0.45 + dist * 0.35,
+              opacity: 0.62 + dist * 0.28,
               mixBlendMode: "screen",
             }}
           >
@@ -429,7 +429,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             className="absolute inset-0 flex items-center justify-center"
             style={{
               transform: `translate(${aberration * distX * 1.5}px, ${aberration * distY * 0.5}px)`,
-              opacity: 0.45 + dist * 0.35,
+              opacity: 0.62 + dist * 0.28,
               mixBlendMode: "screen",
             }}
           >
@@ -442,7 +442,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
           </div>
 
           {/* WHITE centre */}
-          <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.92 }}>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.76 }}>
             <img src="/logo-white.svg" alt="" className="w-full h-full" />
           </div>
         </div>
@@ -467,7 +467,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         style={{
           zIndex: 7,
           backgroundImage:
-            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 3px)",
+            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.075) 2px, rgba(0,0,0,0.075) 3px)",
         }}
       />
 
