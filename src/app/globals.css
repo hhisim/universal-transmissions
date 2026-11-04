@@ -4325,3 +4325,72 @@ body::-webkit-scrollbar-thumb:hover {
    content keeps its own layer above the energy */
 .ut-logo-hero-copy { position: relative; z-index: 4; }
 .ut-logo-hero-canvas { position: relative; z-index: 2; }
+
+
+/* ── SPECTRAL FILAMENTS ───────────────────────────────────────────────────────────────────
+   Asymmetric traces with different weights and curvatures, so the descent reads as light
+   unwinding from the emblem's rotation rather than three drawn arcs. */
+
+.lgv-solid { opacity: 0.42; filter: blur(0.3px) drop-shadow(0 0 9px rgba(255, 43, 214, 0.45)); }
+.lgv-spectral { mix-blend-mode: screen; opacity: 0.92; }
+
+.lgv-path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 3.2;
+  stroke-dasharray: 90 420;
+  animation: lgv-travel 7.5s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+}
+.lgv-path--c { stroke-width: 2.8; animation-delay: -1.4s; }
+.lgv-path--f1 { stroke-width: 1.5; animation-delay: -3.1s; }
+.lgv-path--f2 { stroke-width: 1.4; animation-delay: -4.6s; }
+.lgv-path--w { stroke-width: 1.1; animation-delay: -2.2s; }
+
+@keyframes lgv-travel {
+  0%   { stroke-dashoffset: 510; opacity: 0; }
+  18%  { opacity: 0.95; }
+  62%  { opacity: 0.85; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+/* the single arrival ring is small and quiet: no large static loops */
+.lgv-wave { stroke: rgba(245, 208, 254, 0.75); stroke-width: 1.6; fill: none;
+  transform-box: fill-box; transform-origin: center; animation: lgv-arrive-ring 5.5s ease-out infinite; }
+@keyframes lgv-arrive-ring {
+  0%   { transform: scale(0.25); opacity: 0; }
+  30%  { opacity: 0.85; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ── THE ARTWORK RECEIVES IT ──────────────────────────────────────────────────────────────
+   A separate overlay aligned to the plate's own centre: concentric resonance on the circles
+   already inside the image. The artwork is never filtered, clipped or transformed. */
+.lg-art-resonance {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 62%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      rgba(245, 208, 254, 0.22) 0 1px, transparent 1px 34px),
+    radial-gradient(circle at 50% 50%, rgba(217, 70, 239, 0.18) 0%, transparent 58%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 74%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 74%);
+  animation: lg-art-reson 6.2s ease-in-out infinite;
+}
+
+@keyframes lg-art-reson {
+  0%, 100% { opacity: 0.34; transform: translate(-50%, -50%) scale(0.97) rotate(0deg); }
+  48%      { opacity: 0.72; transform: translate(-50%, -50%) scale(1.03) rotate(4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lgv-path { animation: none !important; stroke-dasharray: none; opacity: 0.6; }
+  .lgv-wave, .lg-art-resonance { animation: none !important; opacity: 0.4; }
+}
