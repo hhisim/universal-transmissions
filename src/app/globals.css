@@ -4118,7 +4118,7 @@ body::-webkit-scrollbar-thumb:hover {
 .ut-hero.lg-hero {
   position: relative;
   background: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(120, 40, 150, 0.16), transparent 66%);
-  padding-top: clamp(10px, 2vh, 34px);
+  padding-top: 0;
 }
 
 /* the plate is the dominant object in this space */
@@ -4158,7 +4158,7 @@ body::-webkit-scrollbar-thumb:hover {
    carrying its magenta/cyan/gold. Light is a cone from the emblem down onto the plate, and
    the plate sits inside concentric rings of the same rhythm, so the two spaces are one system. */
 
-.lg-veil { height: 32vh; min-height: 210px; }
+.lg-veil { height: 22vh; min-height: 150px; }
 
 .lg-veil-beam {
   position: absolute;
@@ -4173,16 +4173,17 @@ body::-webkit-scrollbar-thumb:hover {
     rgba(240, 214, 255, 0.22) 50%, rgba(34, 211, 238, 0.16) 52%,
     rgba(34, 211, 238, 0.00) 58%);
   clip-path: polygon(46% 0, 54% 0, 100% 100%, 0% 100%);
-  filter: blur(6px);
-  opacity: 0.85;
+  filter: blur(5px);
+  opacity: 1;
 }
 
 .lg-veil-ring {
   animation-duration: 12s;
   border-width: 1px;
-  border-color: rgba(217, 70, 239, 0.45);
+  border-color: rgba(217, 70, 239, 0.8);
+  box-shadow: 0 0 34px -6px rgba(217, 70, 239, 0.55), inset 0 0 30px -12px rgba(34, 211, 238, 0.5);
 }
-.lg-veil-ring--late { animation-delay: 6s; border-color: rgba(34, 211, 238, 0.4); }
+.lg-veil-ring--late { animation-delay: 6s; border-color: rgba(34, 211, 238, 0.72); }
 
 @keyframes lg-veil-expand {
   0%   { transform: translate(-50%, -50%) scale(0.26); opacity: 0; }
