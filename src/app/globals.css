@@ -3982,3 +3982,56 @@ body::-webkit-scrollbar-thumb:hover {
 /* with the copy moved into the emblem hero, the plate stands alone: centre it */
 .ut-hero.lg-hero { grid-template-columns: minmax(0, 1fr); }
 .ut-hero.lg-hero .lg-transmission { margin: 0 auto; }
+
+
+/* ── THE OPENING, SCALED AS ONE COMPOSITION ───────────────────────────────────────────────
+   The emblem is the first event and keeps its full graphic complexity. What changes across
+   breakpoints is only its share of the frame, so the title and the three doors always sit
+   inside the same opening rather than being pushed below it. */
+
+/* give the emblem optical depth rather than a flat white mass: the three chromatic layers
+   already exist in LogoHero - this only lets them separate at rest. */
+.ut-logo-hero-canvas img { filter: drop-shadow(0 0 46px rgba(190, 120, 255, 0.22)); }
+
+.lg-action {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.lg-action::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 320ms ease;
+  background: linear-gradient(115deg, rgba(214, 74, 168, 0.20), rgba(74, 214, 210, 0.16));
+}
+.lg-action:hover::after, .lg-action:focus-visible::after { opacity: 1; }
+
+@media (min-width: 1600px) {
+  .ut-logo-hero-canvas { height: 56vh !important; }
+  .ut-logo-hero-copy h1 { font-size: clamp(2.6rem, 3.4vw, 4.2rem) !important; }
+}
+
+@media (max-width: 1180px) {
+  .ut-logo-hero-canvas { height: 46vh !important; }
+}
+
+@media (max-width: 760px) {
+  .ut-logo-hero-canvas { height: 36vh !important; }
+  .ut-logo-hero-copy { gap: 16px; padding: 0 18px 34px; }
+  .ut-logo-hero-copy h1 { font-size: clamp(1.75rem, 8.2vw, 2.4rem) !important; }
+  .ut-logo-hero-tagline { font-size: 0.94rem; }
+  .ut-logo-hero-copy .ut-hero-actions { gap: 10px; width: 100%; }
+  .ut-logo-hero-copy .lg-action { flex: 1 1 100%; justify-content: center; }
+}
+
+@media (max-width: 400px) {
+  .ut-logo-hero-canvas { height: 32vh !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lgx-deep, .lgx-arch, .lgx-light { animation: none !important; }
+  .ut-logo-hero-canvas * { animation: none !important; }
+}
