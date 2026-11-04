@@ -4425,3 +4425,54 @@ body::-webkit-scrollbar-thumb:hover {
   .lg-art-lens { animation: none !important; opacity: 0.45; }
   .lg-transmission-frame::before { animation: none !important; opacity: 0.7; }
 }
+
+
+/* ── ONE TIMING SYSTEM ────────────────────────────────────────────────────────────────────
+   Nothing below animates on its own. --ut-phase is written by LogoHero's rAF loop from the
+   emblem's actual angle; --ut-pulse (three per revolution, matching the three lobes) drives
+   emission and travel; --ut-arrive is the same clock 38% later, so the artwork lights up
+   only after the energy has actually crossed the space. One event, not three animations. */
+
+.lgv-path {
+  animation: none !important;
+  stroke-dasharray: 150 360 !important;
+  stroke-dashoffset: calc((1 - var(--ut-pulse, 0)) * 510);
+  opacity: calc(0.18 + 0.82 * clamp(0, calc(var(--ut-pulse, 0) * 3), 1));
+}
+.lgv-solid {
+  opacity: calc(0.12 + 0.5 * clamp(0, calc(var(--ut-pulse, 0) * 2.4), 1));
+}
+.lgv-wave {
+  animation: none !important;
+  transform: scale(calc(0.35 + var(--ut-arrive, 0) * 1.3));
+  opacity: calc(0.65 * (1 - var(--ut-arrive, 0)));
+}
+.lg-art-lens {
+  animation: none !important;
+  opacity: calc(0.16 + 0.58 * clamp(0, calc(var(--ut-arrive, 0) * 2.6 - 0.35), 1));
+}
+.lg-art-resonance {
+  animation: none !important;
+  opacity: calc(0.3 + 0.45 * clamp(0, calc(var(--ut-arrive, 0) * 2.4 - 0.2), 1));
+  transform: translate(-50%, -50%) scale(calc(0.97 + var(--ut-arrive, 0) * 0.06));
+}
+.lg-transmission-frame::before {
+  animation: none !important;
+  opacity: calc(0.5 + 0.45 * clamp(0, calc(var(--ut-arrive, 0) * 2.2 - 0.1), 1));
+}
+
+/* composition: close the dead space and let the two spaces share one field */
+.ut-hero.lg-hero { padding-bottom: 0; }
+.lg-veil {
+  height: 44vh;
+  min-height: 330px;
+  margin-top: -40vh;
+  margin-bottom: -16vh;
+}
+.ut-hero.lg-hero .lg-transmission-frame { box-shadow: 0 0 0 1px rgba(236,214,255,0.16), 0 40px 120px -40px rgba(217,70,239,0.35); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lgv-path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; opacity: 0.5 !important; }
+  .lg-art-lens { opacity: 0.42 !important; }
+  .lg-art-resonance { opacity: 0.45 !important; }
+}

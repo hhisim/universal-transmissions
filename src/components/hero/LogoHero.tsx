@@ -110,6 +110,11 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       const g = glyphCanvas!;
       timeRef.current += 0.016;
       setRotation(timeRef.current * 0.26);
+      // ONE CLOCK: the transmission reads the emblem's own angular phase.
+      const phase = ((timeRef.current * 0.26) / (Math.PI * 2)) % 1;
+      document.documentElement.style.setProperty('--ut-phase', phase.toFixed(4));
+      document.documentElement.style.setProperty('--ut-pulse', ((phase * 3) % 1).toFixed(4));
+      document.documentElement.style.setProperty('--ut-arrive', (((phase * 3) - 0.38 + 3) % 1).toFixed(4));
 
       // Update pulse age
       if (pulseRef.current) {
