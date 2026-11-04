@@ -410,7 +410,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
-              transform: `translate(${-aberration * distX * 1.5}px, ${-aberration * distY * 0.5}px)`,
+              transform: `translate(${-aberration * 0.62 - aberration * distX * 1.5}px, ${-aberration * 0.3 - aberration * distY * 0.5}px)`,
               opacity: 0.82 + dist * 0.18,
               mixBlendMode: "screen",
             }}
@@ -428,7 +428,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
-              transform: `translate(${aberration * distX * 1.5}px, ${aberration * distY * 0.5}px)`,
+              transform: `translate(${aberration * 0.62 + aberration * distX * 1.5}px, ${aberration * 0.3 + aberration * distY * 0.5}px)`,
               opacity: 0.82 + dist * 0.18,
               mixBlendMode: "screen",
             }}
