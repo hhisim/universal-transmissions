@@ -4552,3 +4552,10 @@ body::-webkit-scrollbar-thumb:hover {
   .ut-logo-hero-canvas { height: 21vh !important; min-height: 170px; }
   .lg-hero-title { font-size: clamp(1.9rem, 5vw, 2.6rem) !important; }
 }
+
+
+/* the older depth layers overflowed their room by up to 273px at tablet widths, which put
+   the page into horizontal scroll at every size */
+.lgx-room { overflow: hidden !important; }
+.lgx-deep, .lgx-arch { max-width: 100%; }
+html, body { overflow-x: clip; }
