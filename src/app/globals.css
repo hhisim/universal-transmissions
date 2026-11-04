@@ -4794,3 +4794,36 @@ html, body { overflow-x: clip; }
 .lg-veil::before, .lg-veil::after { background: none !important; }
 .ut-hero.lg-hero { background-color: transparent !important; }
 #vitruvian { margin-top: -6px !important; }
+
+
+/* ── OPTICAL COMPOSITION, NOT A SAFE SQUARE ──────────────────────────────────────────────
+   The √2 growth measured earlier belongs to the element's SQUARE box - its corners never
+   paint, because the mark is a circle. Setting the mark to 70.71% therefore bought clearance
+   with emptiness. The painted extent is the circle: diameter = element width, plus 34px of
+   chromatic offset and a soft glow. The envelope is that, and nothing more. */
+.ut-logo-hero-canvas {
+  width: min(88vmin, 620px) !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 20px 0 16px !important;
+  margin: 0 auto 0 !important;
+}
+.ut-logo-hero-canvas > div,
+.ut-logo-hero-canvas > div > div {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 auto !important;
+}
+.ut-logo-hero-canvas img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
+
+/* the title is anchored directly beneath the mark: 26px of optical air, not a void */
+.ut-logo-hero-copy { margin-top: 26px !important; }
+
+.lg-veil { margin: 28px auto 0 !important; height: clamp(180px, 22vh, 250px) !important; }
+
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { width: min(88vw, 360px) !important; padding: 14px 0 12px !important; }
+  .ut-logo-hero-copy { margin-top: 22px !important; }
+  .lg-veil { margin-top: 24px !important; height: clamp(150px, 18vh, 210px) !important; }
+}
