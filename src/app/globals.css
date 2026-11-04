@@ -4607,3 +4607,12 @@ html, body { overflow-x: clip; }
   .ut-logo-hero-canvas { min-height: clamp(240px, 30vh, 340px) !important; padding: 34px 0 !important; }
   .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { max-width: min(60vw, 380px) !important; max-height: min(60vw, 380px) !important; }
 }
+
+
+/* 390px left only a 4px gap between the mark's painted edge and the title, which is not a
+   visible separation at any rotation angle */
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { min-height: 190px !important; padding: 30px 0 34px !important; }
+  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { max-width: min(72vw, 292px) !important; max-height: min(72vw, 292px) !important; }
+  .ut-logo-hero-copy { margin-top: 1.9rem !important; }
+}
