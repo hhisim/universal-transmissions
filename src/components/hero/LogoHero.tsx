@@ -109,7 +109,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       const c = canvas!;
       const g = glyphCanvas!;
       timeRef.current += 0.016;
-      setRotation(timeRef.current * 0.08);
+      setRotation(timeRef.current * 0.26);
 
       // Update pulse age
       if (pulseRef.current) {
@@ -316,7 +316,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
   const distX = (mouse.x - 0.5) * 2;
   const distY = (mouse.y - 0.5) * 2;
   const dist = Math.sqrt(distX * distX + distY * distY);
-  const aberration = Math.min(8 + dist * 16, 26);
+  const aberration = Math.min(14 + dist * 18, 34);
   const rotDeg = rotation * (180 / Math.PI);
   const pulseScale = 60 + pulseAge * 300;
   const pulseOpacity = Math.max(0, 0.6 - pulseAge * 0.22);
@@ -411,7 +411,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             className="absolute inset-0 flex items-center justify-center"
             style={{
               transform: `translate(${-aberration * distX * 1.5}px, ${-aberration * distY * 0.5}px)`,
-              opacity: 0.62 + dist * 0.28,
+              opacity: 0.82 + dist * 0.18,
               mixBlendMode: "screen",
             }}
           >
@@ -429,7 +429,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             className="absolute inset-0 flex items-center justify-center"
             style={{
               transform: `translate(${aberration * distX * 1.5}px, ${aberration * distY * 0.5}px)`,
-              opacity: 0.62 + dist * 0.28,
+              opacity: 0.82 + dist * 0.18,
               mixBlendMode: "screen",
             }}
           >
@@ -442,7 +442,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
           </div>
 
           {/* WHITE centre */}
-          <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.76 }}>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.62 }}>
             <img src="/logo-white.svg" alt="" className="w-full h-full" />
           </div>
         </div>

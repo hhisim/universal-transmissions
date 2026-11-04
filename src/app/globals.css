@@ -4151,3 +4151,71 @@ body::-webkit-scrollbar-thumb:hover {
 @media (prefers-reduced-motion: reduce) {
   .ut-logo-hero { background: radial-gradient(ellipse 62% 54% at 50% 38%, rgba(147, 51, 234, 0.13), transparent 70%), #060509; }
 }
+
+
+/* ── THE DESCENT, AS AN EVENT ─────────────────────────────────────────────────────────────
+   The emblem's three lobes become three rings that are born at its own scale and fall away,
+   carrying its magenta/cyan/gold. Light is a cone from the emblem down onto the plate, and
+   the plate sits inside concentric rings of the same rhythm, so the two spaces are one system. */
+
+.lg-veil { height: 32vh; min-height: 210px; }
+
+.lg-veil-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 46vmin;
+  height: 100%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: conic-gradient(from 180deg at 50% 0%,
+    rgba(217, 70, 239, 0.00) 42%, rgba(217, 70, 239, 0.16) 48%,
+    rgba(240, 214, 255, 0.22) 50%, rgba(34, 211, 238, 0.16) 52%,
+    rgba(34, 211, 238, 0.00) 58%);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0% 100%);
+  filter: blur(6px);
+  opacity: 0.85;
+}
+
+.lg-veil-ring {
+  animation-duration: 12s;
+  border-width: 1px;
+  border-color: rgba(217, 70, 239, 0.45);
+}
+.lg-veil-ring--late { animation-delay: 6s; border-color: rgba(34, 211, 238, 0.4); }
+
+@keyframes lg-veil-expand {
+  0%   { transform: translate(-50%, -50%) scale(0.26); opacity: 0; }
+  12%  { opacity: 1; }
+  70%  { opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(2.3); opacity: 0; }
+}
+
+/* the plate lives inside the emblem's own geometry */
+.ut-hero.lg-hero::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(86vmin, 820px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      rgba(236, 214, 255, 0.055) 0 1px, transparent 1px 72px),
+    conic-gradient(from 0deg,
+      rgba(217, 70, 239, 0.05), transparent 16%, rgba(34, 211, 238, 0.045) 33%,
+      transparent 50%, rgba(212, 168, 71, 0.045) 67%, transparent 84%, rgba(217, 70, 239, 0.05));
+  mask-image: radial-gradient(circle at 50% 50%, #000 26%, rgba(0,0,0,0.45) 52%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 26%, rgba(0,0,0,0.45) 52%, transparent 72%);
+  animation: lgx-arch-turn 300s linear infinite;
+}
+.ut-hero.lg-hero > * { position: relative; z-index: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ut-hero.lg-hero::before { animation: none !important; }
+  .lg-veil-ring { animation: none !important; opacity: 0.4; transform: translate(-50%, -50%) scale(1.2); }
+}

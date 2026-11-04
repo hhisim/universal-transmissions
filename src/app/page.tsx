@@ -184,6 +184,7 @@ export default function HomePage() {
           <span className="lg-veil-thread" />
           <span className="lg-veil-ring" />
           <span className="lg-veil-ring lg-veil-ring--late" />
+          <span className="lg-veil-beam" />
           <span className="lg-veil-spark" />
         </div>
 
