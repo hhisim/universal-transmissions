@@ -4309,13 +4309,11 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 
-/* PHASE 1 PROBE — solid, unanimated strokes. Nothing here is final: this exists to prove the
-   geometry paints at all before any gradient or motion is reintroduced. */
-.lgv-path {
-  stroke-dasharray: none !important;
-  animation: none !important;
-  opacity: 1 !important;
-  stroke-width: 7 !important;
-  filter: none !important;
-}
-.lgv-wave { animation: none !important; opacity: 0.5 !important; }
+/* PHASE 3 — the solid group underneath is the fallback: if a gradient fails to resolve,
+   these strokes still draw the path. The spectral group paints over them. */
+.lgv-solid { opacity: 0.55; filter: drop-shadow(0 0 12px rgba(255, 43, 214, 0.55)); }
+.lgv-spectral { mix-blend-mode: screen; }
+.lgv-path { stroke-width: 6; animation-duration: 6s; fill: none; stroke-linecap: round; }
+.lgv-path--c { stroke-width: 5; }
+.lgv-path--w { stroke-width: 3; }
+.lgv-wave { stroke-width: 2.6; }
