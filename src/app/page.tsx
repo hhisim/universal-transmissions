@@ -181,11 +181,31 @@ export default function HomePage() {
 
         {/* ── THE DESCENT — the emblem opens into the work ─────────────────── */}
         <div className="lg-veil" aria-hidden="true">
-          <span className="lg-veil-thread" />
-          <span className="lg-veil-ring" />
-          <span className="lg-veil-ring lg-veil-ring--late" />
-          <span className="lg-veil-beam" />
-          <span className="lg-veil-spark" />
+          <svg className="lg-veil-streams" viewBox="0 0 1000 420" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lgvM" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#d946ef" stopOpacity="0" />
+                <stop offset="35%" stopColor="#d946ef" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#f5d0fe" stopOpacity="0.35" />
+              </linearGradient>
+              <linearGradient id="lgvC" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0" />
+                <stop offset="40%" stopColor="#22d3ee" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#cffafe" stopOpacity="0.3" />
+              </linearGradient>
+              <linearGradient id="lgvW" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f3e8ff" stopOpacity="0" />
+                <stop offset="45%" stopColor="#f3e8ff" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="#d4a847" stopOpacity="0.4" />
+              </linearGradient>
+            </defs>
+            <path className="lgv-path lgv-path--m" d="M500,6 C 610,86 606,196 500,300 C 452,344 470,392 500,416" stroke="url(#lgvM)" />
+            <path className="lgv-path lgv-path--c" d="M500,6 C 390,86 394,196 500,300 C 548,344 530,392 500,416" stroke="url(#lgvC)" />
+            <path className="lgv-path lgv-path--w" d="M500,6 C 500,120 500,210 500,300 C 500,344 500,392 500,416" stroke="url(#lgvW)" />
+            <ellipse className="lgv-wave lgv-wave--1" cx="500" cy="316" rx="120" ry="26" />
+            <ellipse className="lgv-wave lgv-wave--2" cx="500" cy="316" rx="120" ry="26" />
+            <ellipse className="lgv-wave lgv-wave--3" cx="500" cy="316" rx="120" ry="26" />
+          </svg>
         </div>
 
         {/* ── HERO — the threshold ─────────────────────── */}

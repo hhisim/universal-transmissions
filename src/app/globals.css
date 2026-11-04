@@ -4220,3 +4220,88 @@ body::-webkit-scrollbar-thumb:hover {
   .ut-hero.lg-hero::before { animation: none !important; }
   .lg-veil-ring { animation: none !important; opacity: 0.4; transform: translate(-50%, -50%) scale(1.2); }
 }
+
+
+/* ── THE TRANSMISSION ─────────────────────────────────────────────────────────────────────
+   Three streams leave the emblem's own lobes, interweave into one axis, and arrive as waves
+   that resolve into the concentric geometry already inside the plate. The paths are drawn,
+   not decorative: each begins at the emblem's centre and is bent by its rotation. */
+
+.lg-veil {
+  height: 17vh;
+  min-height: 120px;
+  margin-top: -3vh;
+  background:
+    radial-gradient(ellipse 30% 44% at 50% 4%, rgba(217, 70, 239, 0.16), transparent 72%),
+    radial-gradient(ellipse 24% 30% at 50% 96%, rgba(34, 211, 238, 0.10), transparent 74%);
+}
+
+.lg-veil-streams {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lgv-path {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 26 300;
+  animation: lgv-flow 5.2s linear infinite;
+}
+.lgv-path--m { animation-delay: 0s; }
+.lgv-path--c { animation-delay: -1.7s; }
+.lgv-path--w { animation-delay: -3.4s; stroke-width: 1.6; }
+
+@keyframes lgv-flow {
+  from { stroke-dashoffset: 326; opacity: 0.25; }
+  25%  { opacity: 1; }
+  to   { stroke-dashoffset: 0; opacity: 0.35; }
+}
+
+.lgv-wave {
+  fill: none;
+  stroke: rgba(217, 70, 239, 0.55);
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lgv-wave 4.4s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+}
+.lgv-wave--2 { animation-delay: 1.45s; stroke: rgba(34, 211, 238, 0.5); }
+.lgv-wave--3 { animation-delay: 2.9s; stroke: rgba(243, 232, 255, 0.45); }
+
+@keyframes lgv-wave {
+  0%   { transform: scale(0.12, 0.3); opacity: 0; }
+  30%  { opacity: 0.9; }
+  100% { transform: scale(1.9, 1.7); opacity: 0; }
+}
+
+/* arrival: the plate's own architecture catches the light */
+.ut-hero.lg-hero .lg-transmission-frame::after {
+  box-shadow:
+    0 0 0 1px rgba(236, 214, 255, 0.3),
+    0 0 78px -10px rgba(217, 70, 239, 0.62),
+    0 0 130px -26px rgba(34, 211, 238, 0.45),
+    inset 0 0 60px -30px rgba(245, 208, 254, 0.5);
+  animation: lgv-arrive 5.2s ease-in-out infinite;
+}
+
+@keyframes lgv-arrive {
+  0%, 100% { opacity: 0.55; }
+  46%      { opacity: 1; }
+}
+
+@media (max-width: 760px) {
+  .lg-veil { height: 12vh; min-height: 92px; margin-top: -2vh; }
+  .lgv-path { stroke-width: 2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lgv-path { animation: none !important; stroke-dasharray: none; opacity: 0.55; }
+  .lgv-wave { animation: none !important; opacity: 0.3; transform: scale(1.1); }
+  .ut-hero.lg-hero .lg-transmission-frame::after { animation: none !important; opacity: 0.7; }
+}
