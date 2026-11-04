@@ -419,7 +419,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
               src="/logo-white.svg"
               alt=""
               className="w-full h-full"
-              style={{ filter: "url(#magentaTint)" }}
+              style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(96%) saturate(3200%) hue-rotate(288deg) brightness(1.05)" }}
               onLoad={() => setLoaded(true)}
             />
           </div>
@@ -437,7 +437,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
               src="/logo-white.svg"
               alt=""
               className="w-full h-full"
-              style={{ filter: "url(#cyanTint)" }}
+              style={{ filter: "brightness(0) saturate(100%) invert(72%) sepia(88%) saturate(2400%) hue-rotate(148deg) brightness(1.02)" }}
             />
           </div>
 
