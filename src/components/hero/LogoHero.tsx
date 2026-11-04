@@ -109,14 +109,28 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       const c = canvas!;
       const g = glyphCanvas!;
       timeRef.current += 0.016;
-      // ONE CLOCK: wall time, not accumulated frames, so the rotation and the transmission
-      // cannot drift or freeze when requestAnimationFrame is throttled.
+      // ONE CLOCK → FOUR ENVELOPES. ?phase=0.75 (preview only) pins the composition to an
+      // exact moment so a frame can be reproduced; without it the clock runs on wall time.
+      const qs = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('phase') : null;
+      const forced = qs !== null && qs !== '' && !Number.isNaN(Number(qs)) ? Number(qs) : null;
       const clock = performance.now() / 1000;
-      setRotation(clock * 0.26);
-      const phase = ((clock * 0.26) / (Math.PI * 2)) % 1;
-      document.documentElement.style.setProperty('--ut-phase', phase.toFixed(4));
-      document.documentElement.style.setProperty('--ut-pulse', ((phase * 3) % 1).toFixed(4));
-      document.documentElement.style.setProperty('--ut-arrive', (((phase * 3) - 0.38 + 3) % 1).toFixed(4));
+      const phase = forced !== null ? forced : ((clock * 0.26) / (Math.PI * 2)) % 1;
+      setRotation(phase * Math.PI * 2);
+
+      const ramp = (a: number, b: number) => Math.max(0, Math.min(1, (phase - a) / (b - a)));
+      const pulse = (a: number, b: number) => Math.sin(Math.PI * ramp(a, b));
+      const emit = pulse(0.0, 0.30);   // energy leaves the emblem
+      const flow = ramp(0.08, 0.72);   // travelling head along the filaments
+      const arrive = pulse(0.55, 0.92); // artwork illumination
+      const decay = ramp(0.84, 1.0);   // return to baseline
+
+      const root = document.documentElement.style;
+      root.setProperty('--ut-phase', phase.toFixed(4));
+      root.setProperty('--ut-emit', emit.toFixed(4));
+      root.setProperty('--ut-flow', flow.toFixed(4));
+      root.setProperty('--ut-arrive', arrive.toFixed(4));
+      root.setProperty('--ut-decay', decay.toFixed(4));
+      root.setProperty('--ut-pulse', emit.toFixed(4));
 
       // Update pulse age
       if (pulseRef.current) {

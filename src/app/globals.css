@@ -4476,3 +4476,34 @@ body::-webkit-scrollbar-thumb:hover {
   .lg-art-lens { opacity: 0.42 !important; }
   .lg-art-resonance { opacity: 0.45 !important; }
 }
+
+
+/* ── DETERMINISTIC STAGE SYSTEM ──────────────────────────────────────────────────────────
+   Every value below comes from --ut-emit / --ut-flow / --ut-arrive / --ut-decay, which are
+   computed in one place from one phase. A pulse travelling the path is a short dash with a
+   trailing shadow; the whole filament is never lit at once. */
+.lgv-path {
+  animation: none !important;
+  stroke-dasharray: 34 62 12 214 !important;
+  stroke-dashoffset: calc((1 - var(--ut-flow, 0)) * 322);
+  opacity: calc(0.05 + var(--ut-emit, 0) * 0.95);
+}
+.lgv-solid { animation: none !important; opacity: calc(0.04 + var(--ut-emit, 0) * 0.5); }
+.lgv-wave {
+  animation: none !important;
+  transform: scale(calc(0.3 + var(--ut-arrive, 0) * 1.25));
+  opacity: calc(var(--ut-arrive, 0) * 0.8);
+}
+.lg-art-lens { animation: none !important; opacity: calc(var(--ut-arrive, 0) * 0.66); }
+.lg-art-resonance {
+  animation: none !important;
+  opacity: calc(0.14 + var(--ut-arrive, 0) * 0.58);
+  transform: translate(-50%, -50%) scale(calc(0.98 + var(--ut-arrive, 0) * 0.05));
+}
+.lg-transmission-frame::before { animation: none !important; opacity: calc(0.45 + var(--ut-arrive, 0) * 0.5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lgv-path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; opacity: 0.42 !important; }
+  .lg-art-lens { opacity: calc(0.18 + var(--ut-arrive, 0) * 0.3) !important; }
+  .lg-art-resonance { opacity: calc(0.2 + var(--ut-arrive, 0) * 0.3) !important; }
+}
