@@ -4507,3 +4507,31 @@ body::-webkit-scrollbar-thumb:hover {
   .lg-art-lens { opacity: calc(0.18 + var(--ut-arrive, 0) * 0.3) !important; }
   .lg-art-resonance { opacity: calc(0.2 + var(--ut-arrive, 0) * 0.3) !important; }
 }
+
+
+/* ── ONE EVENT: head, tail, arrival ──────────────────────────────────────────────────────
+   The path itself is a dim structural trace; the light is a SHORT travelling head with a
+   trailing shadow behind it. At 25% the head is high in the passage, at 50% it is low -
+   different position, not different brightness. */
+.lgv-solid { opacity: 0.13 !important; }
+.lgv-path {
+  stroke-dasharray: 46 240 18 180 !important;
+  stroke-dashoffset: calc((1 - var(--ut-flow, 0)) * 484) !important;
+  opacity: calc(0.12 + var(--ut-travel, 0) * 0.88) !important;
+}
+.lgv-path--f1, .lgv-path--f2 { stroke-dasharray: 26 260 10 190 !important; }
+.lgv-path--w { stroke-dasharray: 22 300 8 170 !important; }
+
+/* arrival: the light lives in the artwork's inner circles, not across the whole plate */
+.lg-art-lens {
+  mask-image: repeating-radial-gradient(circle at 50% 46%, #000 0 3px, transparent 3px 22px),
+    radial-gradient(circle at 50% 46%, #000 10%, rgba(0,0,0,0.6) 30%, transparent 52%);
+  -webkit-mask-image: repeating-radial-gradient(circle at 50% 46%, #000 0 3px, transparent 3px 22px),
+    radial-gradient(circle at 50% 46%, #000 10%, rgba(0,0,0,0.6) 30%, transparent 52%);
+  mask-composite: intersect; -webkit-mask-composite: source-in;
+  opacity: calc(var(--ut-arrive, 0) * 0.72) !important;
+}
+.lg-art-resonance {
+  width: 48% !important;
+  opacity: calc(0.08 + var(--ut-arrive, 0) * 0.62) !important;
+}
