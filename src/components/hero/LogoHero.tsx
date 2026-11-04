@@ -109,9 +109,11 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       const c = canvas!;
       const g = glyphCanvas!;
       timeRef.current += 0.016;
-      setRotation(timeRef.current * 0.26);
-      // ONE CLOCK: the transmission reads the emblem's own angular phase.
-      const phase = ((timeRef.current * 0.26) / (Math.PI * 2)) % 1;
+      // ONE CLOCK: wall time, not accumulated frames, so the rotation and the transmission
+      // cannot drift or freeze when requestAnimationFrame is throttled.
+      const clock = performance.now() / 1000;
+      setRotation(clock * 0.26);
+      const phase = ((clock * 0.26) / (Math.PI * 2)) % 1;
       document.documentElement.style.setProperty('--ut-phase', phase.toFixed(4));
       document.documentElement.style.setProperty('--ut-pulse', ((phase * 3) % 1).toFixed(4));
       document.documentElement.style.setProperty('--ut-arrive', (((phase * 3) - 0.38 + 3) % 1).toFixed(4));
