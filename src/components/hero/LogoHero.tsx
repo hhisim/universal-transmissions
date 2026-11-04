@@ -123,6 +123,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       const flow = ramp(0.08, 0.72);   // travelling head along the filaments
       const arrive = pulse(0.55, 0.92); // artwork illumination
       const decay = ramp(0.84, 1.0);   // return to baseline
+      const travel = pulse(0.02, 0.88); // the path stays readable while a pulse crosses it
 
       const root = document.documentElement.style;
       root.setProperty('--ut-phase', phase.toFixed(4));
@@ -130,6 +131,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       root.setProperty('--ut-flow', flow.toFixed(4));
       root.setProperty('--ut-arrive', arrive.toFixed(4));
       root.setProperty('--ut-decay', decay.toFixed(4));
+      root.setProperty('--ut-travel', travel.toFixed(4));
       root.setProperty('--ut-pulse', emit.toFixed(4));
 
       // Update pulse age

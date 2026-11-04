@@ -4486,9 +4486,9 @@ body::-webkit-scrollbar-thumb:hover {
   animation: none !important;
   stroke-dasharray: 34 62 12 214 !important;
   stroke-dashoffset: calc((1 - var(--ut-flow, 0)) * 322);
-  opacity: calc(0.05 + var(--ut-emit, 0) * 0.95);
+  opacity: calc(0.05 + var(--ut-travel, 0) * 0.92);
 }
-.lgv-solid { animation: none !important; opacity: calc(0.04 + var(--ut-emit, 0) * 0.5); }
+.lgv-solid { animation: none !important; opacity: calc(0.04 + var(--ut-travel, 0) * 0.45); }
 .lgv-wave {
   animation: none !important;
   transform: scale(calc(0.3 + var(--ut-arrive, 0) * 1.25));
