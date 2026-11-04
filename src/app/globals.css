@@ -4015,7 +4015,12 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 1180px) {
-  .ut-logo-hero-canvas { height: 46vh !important; }
+  /* tablet: the emblem shrinks to a symbol, not a wall, so the title and the three doors
+     still meet the eye in the opening */
+  .ut-logo-hero { min-height: auto; }
+  .ut-logo-hero-canvas { height: 30vh !important; }
+  .ut-logo-hero-copy { gap: 14px; padding: 0 20px 40px; }
+  .ut-logo-hero-copy h1 { font-size: clamp(1.9rem, 5.2vw, 2.8rem) !important; }
 }
 
 @media (max-width: 760px) {
