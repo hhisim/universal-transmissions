@@ -4228,9 +4228,9 @@ body::-webkit-scrollbar-thumb:hover {
    not decorative: each begins at the emblem's centre and is bent by its rotation. */
 
 .lg-veil {
-  height: 17vh;
-  min-height: 120px;
-  margin-top: -3vh;
+  height: 26vh;
+  min-height: 180px;
+  margin-top: -2vh;
   background:
     radial-gradient(ellipse 30% 44% at 50% 4%, rgba(217, 70, 239, 0.16), transparent 72%),
     radial-gradient(ellipse 24% 30% at 50% 96%, rgba(34, 211, 238, 0.10), transparent 74%);
@@ -4246,26 +4246,28 @@ body::-webkit-scrollbar-thumb:hover {
 
 .lgv-path {
   fill: none;
-  stroke-width: 2.4;
+  stroke-width: 5;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 26 300;
+  stroke-dasharray: 120 320;
+  filter: drop-shadow(0 0 10px rgba(217, 70, 239, 0.85));
   animation: lgv-flow 5.2s linear infinite;
 }
 .lgv-path--m { animation-delay: 0s; }
-.lgv-path--c { animation-delay: -1.7s; }
-.lgv-path--w { animation-delay: -3.4s; stroke-width: 1.6; }
+.lgv-path--c { animation-delay: -1.7s; filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.8)); }
+.lgv-path--w { animation-delay: -3.4s; stroke-width: 3.2; filter: drop-shadow(0 0 8px rgba(243, 232, 255, 0.8)); }
 
 @keyframes lgv-flow {
-  from { stroke-dashoffset: 326; opacity: 0.25; }
-  25%  { opacity: 1; }
-  to   { stroke-dashoffset: 0; opacity: 0.35; }
+  from { stroke-dashoffset: 440; opacity: 0.15; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  to   { stroke-dashoffset: 0; opacity: 0.2; }
 }
 
 .lgv-wave {
   fill: none;
-  stroke: rgba(217, 70, 239, 0.55);
-  stroke-width: 1.6;
+  stroke: rgba(217, 70, 239, 0.9);
+  stroke-width: 3.4;
   vector-effect: non-scaling-stroke;
   transform-box: fill-box;
   transform-origin: center;
