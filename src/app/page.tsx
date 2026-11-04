@@ -167,12 +167,12 @@ export default function HomePage() {
                 ENTER THE GALLERY
                 <span aria-hidden="true">→</span>
               </Link>
-              <Link href="/codex" className="lg-action lg-action--gold">
-                DISCOVER THE CODEX
-                <span aria-hidden="true">→</span>
-              </Link>
               <Link href="/oracle" className="lg-action lg-action--cyan">
                 CONSULT THE ORACLE
+                <span aria-hidden="true">→</span>
+              </Link>
+              <Link href="/codex" className="lg-action lg-action--gold">
+                DISCOVER THE CODEX
                 <span aria-hidden="true">→</span>
               </Link>
             </div>

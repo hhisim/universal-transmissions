@@ -3948,7 +3948,9 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .ut-logo-hero-canvas { height: 52vh !important; }
-.ut-logo-hero-canvas > div { background: transparent !important; }
+/* the component ships its own #0a090e panel; the page is #060509, which reads as a
+   visible rectangle behind the emblem. The emblem sits on the page, not in a box. */
+.ut-logo-hero-canvas { background: transparent !important; }
 
 @media (max-width: 760px) {
   .ut-logo-hero-canvas { height: 38vh !important; }
