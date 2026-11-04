@@ -4616,3 +4616,61 @@ html, body { overflow-x: clip; }
   .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { max-width: min(72vw, 292px) !important; max-height: min(72vw, 292px) !important; }
   .ut-logo-hero-copy { margin-top: 1.9rem !important; }
 }
+
+
+/* ── ONE CENTRAL AXIS ─────────────────────────────────────────────────────────────────────
+   Every element of the opening belongs to the same vertical spine: the rotating mark, the
+   chromatic title, the gold tagline, the three doors. Any inherited grid or row layout that
+   pushed the mark to the left is overridden here, and the band is sized to the mark's real
+   rotating footprint rather than being shrunk to fit. */
+.ut-hero.lg-hero,
+.ut-logo-hero {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  text-align: center !important;
+  width: 100% !important;
+  grid-template-columns: none !important;
+  grid-template-areas: none !important;
+  gap: 0 !important;
+}
+
+.ut-logo-hero-canvas {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: clamp(300px, 46vh, 560px) !important;
+  padding: 48px 0 40px !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+}
+.ut-logo-hero-canvas > div,
+.ut-logo-hero-canvas > div > div {
+  margin: 0 auto !important;
+  width: min(58vw, 520px) !important;
+  max-width: min(58vw, 520px) !important;
+  max-height: min(58vw, 520px) !important;
+}
+
+.ut-logo-hero-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  margin: 1.8rem auto 0 !important;
+}
+.ut-logo-hero-copy .lg-action { margin-left: auto !important; margin-right: auto !important; }
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ut-logo-hero-canvas { min-height: clamp(280px, 40vh, 440px) !important; padding: 40px 0 34px !important; }
+  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { width: min(52vw, 420px) !important; max-width: min(52vw, 420px) !important; max-height: min(52vw, 420px) !important; }
+}
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { min-height: clamp(230px, 34vh, 330px) !important; padding: 34px 0 28px !important; }
+  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { width: min(74vw, 300px) !important; max-width: min(74vw, 300px) !important; max-height: min(74vw, 300px) !important; }
+  .ut-logo-hero-copy { margin-top: 1.5rem !important; }
+}
