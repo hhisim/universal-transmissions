@@ -4916,3 +4916,49 @@ html, body { overflow-x: clip; }
 
 @media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(264px, 68vw); } }
 @media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(430px, 60vw); } }
+
+
+/* ── COMPONENT-LEVEL LAYOUT, BY NAMED NODE ───────────────────────────────────────────────
+   Each node is styled once, by its own class. No positional selectors, so a rule for a
+   chromatic layer can never resize the rotor again. */
+.ut-logo-hero-canvas {
+  --mark: min(540px, 84vw);
+  position: relative !important;
+  width: 100% !important;
+  max-width: 1440px !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  padding: calc(var(--mark) * 0.21) 0 !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+}
+.lgx-align {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.lgx-rotor {
+  position: relative !important;
+  width: var(--mark) !important;
+  max-width: var(--mark) !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  transform-origin: 50% 50% !important;
+  margin: 0 auto !important;
+}
+.lgx-chroma {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.lgx-ring { max-width: var(--mark) !important; max-height: var(--mark) !important; }
+
+@media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(300px, 76vw); } }
+@media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(440px, 58vw); } }
+
+/* oversized decorative panels that were washing over the composition */
+.lgx-deep, .lgx-arch, .lgx-light { display: none !important; }
+.ut-hero.lg-hero::before { display: none !important; }

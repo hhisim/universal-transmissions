@@ -403,7 +403,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
       {/* ── Pulse ring (CSS fallback for the ring, canvas handles the rest) ── */}
       {showPulseRing && (
         <div
-          className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
+          className="lgx-ring absolute left-1/2 top-1/2 rounded-full pointer-events-none"
           style={{
             zIndex: 11,
             width: pulseScale,
@@ -417,11 +417,11 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
 
       {/* ── LOGO — 3-layer chromatic aberration stack ── */}
       <div
-        className="absolute flex items-center justify-center"
+        className="lgx-align absolute flex items-center justify-center"
         style={{ inset: 0, zIndex: 5 }}
       >
         <div
-          className="relative"
+          className="lgx-rotor relative"
           style={{
             width: "58%",
             maxWidth: 540,
@@ -465,7 +465,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
           </div>
 
           {/* WHITE centre */}
-          <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.62 }}>
+          <div className="lgx-chroma absolute inset-0 flex items-center justify-center" style={{ opacity: 0.62 }}>
             <img src="/logo-white.svg" alt="" className="w-full h-full" />
           </div>
         </div>
