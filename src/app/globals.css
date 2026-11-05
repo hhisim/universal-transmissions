@@ -4289,3 +4289,31 @@ body::-webkit-scrollbar-thumb:hover {
   .lg-art-lens { opacity: 0.4 !important; }
   .lg-art-resonance { opacity: 0.4 !important; }
 }
+
+
+/* ── THE COLLISION, EXPLAINED BY ONE RULE ────────────────────────────────────────────────
+   The rotor is absolutely positioned inside the band, so it contributes no height. The band
+   only had padding, so it stood 236px tall while the mark was 560px: the mark hung ~162px
+   below the band and into the title. The band is now given an explicit height equal to the
+   mark plus its diagonal padding, so the title is placed after the mark, not after padding. */
+.ut-logo-hero-canvas {
+  height: calc(var(--mark) * 1.42) !important;
+  min-height: calc(var(--mark) * 1.42) !important;
+  padding: 0 !important;
+}
+.ut-logo-hero-copy { margin-top: 30px !important; }
+
+/* no fixed or viewport-derived hero heights: the artwork follows the opening naturally */
+.ut-hero.lg-hero, .ut-logo-hero {
+  min-height: 0 !important;
+  height: auto !important;
+  padding-bottom: 0 !important;
+}
+.ut-logo-hero { padding-top: clamp(78px, 9vh, 104px) !important; }
+
+/* mobile: the band cannot exceed the viewport */
+@media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(272px, 70vw) !important; } }
+
+/* decorative SVG may extend past the viewport; the page must not scroll sideways because of it */
+html, body { overflow-x: clip !important; max-width: 100% !important; }
+.lg-veil, .lg-veil-streams { max-width: 100% !important; }
