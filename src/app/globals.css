@@ -4891,3 +4891,28 @@ html, body { overflow-x: clip; }
   .ut-logo-hero-canvas { padding: 52px 0 !important; }
   .ut-logo-hero-canvas > div > div { width: min(430px, 60vw) !important; max-width: min(430px, 60vw) !important; }
 }
+
+
+/* ── PADDING DERIVED FROM THE DIAGONAL ───────────────────────────────────────────────────
+   Measured: the mark is 540px at 0/90/180/270 and 764px at 45/135/225/315 - exactly √2.
+   The overhang is therefore 0.207 x mark on each side. The canvas pads by that figure, so
+   the diagonal lands inside it and the title keeps its clearance at every angle. */
+.ut-logo-hero-canvas {
+  --mark: min(540px, 84vw);
+  padding: calc(var(--mark) * 0.21) 0 !important;
+  width: 100% !important;
+  max-width: 1400px !important;
+  margin: 0 auto 0 !important;
+  aspect-ratio: auto !important;
+  height: auto !important;
+}
+.ut-logo-hero-canvas > div > div {
+  width: var(--mark) !important;
+  max-width: var(--mark) !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+}
+.ut-logo-hero-copy { margin-top: 26px !important; }
+
+@media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(264px, 68vw); } }
+@media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(430px, 60vw); } }
