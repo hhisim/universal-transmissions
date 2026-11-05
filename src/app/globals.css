@@ -4152,377 +4152,41 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 
-/* ── THE DESCENT, AS AN EVENT ─────────────────────────────────────────────────────────────
-   The emblem's three lobes become three rings that are born at its own scale and fall away,
-   carrying its magenta/cyan/gold. Light is a cone from the emblem down onto the plate, and
-   the plate sits inside concentric rings of the same rhythm, so the two spaces are one system. */
+/* ══ LIVING GRIMOIRE — ONE AUTHORITATIVE BLOCK ══════════════════════════════════════════
+   Every earlier per-session override for the hero was removed. Each node is styled once,
+   by its own class: the canvas band, the alignment container, the rotor, the chromatic
+   layers. Nothing targets a bare child selector, so a rule cannot land on the wrong node. */
 
-.lg-veil { height: 22vh; min-height: 150px; }
-
-.lg-veil-beam {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 46vmin;
-  height: 100%;
-  transform: translateX(-50%);
-  pointer-events: none;
-  background: conic-gradient(from 180deg at 50% 0%,
-    rgba(217, 70, 239, 0.00) 42%, rgba(217, 70, 239, 0.16) 48%,
-    rgba(240, 214, 255, 0.22) 50%, rgba(34, 211, 238, 0.16) 52%,
-    rgba(34, 211, 238, 0.00) 58%);
-  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0% 100%);
-  filter: blur(5px);
-  opacity: 1;
-}
-
-.lg-veil-ring {
-  animation-duration: 12s;
-  border-width: 1px;
-  border-color: rgba(217, 70, 239, 0.8);
-  box-shadow: 0 0 34px -6px rgba(217, 70, 239, 0.55), inset 0 0 30px -12px rgba(34, 211, 238, 0.5);
-}
-.lg-veil-ring--late { animation-delay: 6s; border-color: rgba(34, 211, 238, 0.72); }
-
-@keyframes lg-veil-expand {
-  0%   { transform: translate(-50%, -50%) scale(0.26); opacity: 0; }
-  12%  { opacity: 1; }
-  70%  { opacity: 0.5; }
-  100% { transform: translate(-50%, -50%) scale(2.3); opacity: 0; }
-}
-
-/* the plate lives inside the emblem's own geometry */
-.ut-hero.lg-hero::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  width: min(86vmin, 820px);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 0;
-  border-radius: 50%;
-  background:
-    repeating-radial-gradient(circle at 50% 50%,
-      rgba(236, 214, 255, 0.055) 0 1px, transparent 1px 72px),
-    conic-gradient(from 0deg,
-      rgba(217, 70, 239, 0.05), transparent 16%, rgba(34, 211, 238, 0.045) 33%,
-      transparent 50%, rgba(212, 168, 71, 0.045) 67%, transparent 84%, rgba(217, 70, 239, 0.05));
-  mask-image: radial-gradient(circle at 50% 50%, #000 26%, rgba(0,0,0,0.45) 52%, transparent 72%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 26%, rgba(0,0,0,0.45) 52%, transparent 72%);
-  animation: lgx-arch-turn 300s linear infinite;
-}
-.ut-hero.lg-hero > * { position: relative; z-index: 2; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ut-hero.lg-hero::before { animation: none !important; }
-  .lg-veil-ring { animation: none !important; opacity: 0.4; transform: translate(-50%, -50%) scale(1.2); }
-}
-
-
-/* ── THE TRANSMISSION ─────────────────────────────────────────────────────────────────────
-   Three streams leave the emblem's own lobes, interweave into one axis, and arrive as waves
-   that resolve into the concentric geometry already inside the plate. The paths are drawn,
-   not decorative: each begins at the emblem's centre and is bent by its rotation. */
-
+/* ── the pass between the doors and the artwork ── */
 .lg-veil {
-  height: 58vh;
-  min-height: 460px;
-  margin-top: -46vh;
-  margin-bottom: -14vh;
-  z-index: 1;
-  background:
-    radial-gradient(ellipse 30% 44% at 50% 4%, rgba(217, 70, 239, 0.16), transparent 72%),
-    radial-gradient(ellipse 24% 30% at 50% 96%, rgba(34, 211, 238, 0.10), transparent 74%);
+  position: relative !important;
+  margin: 34px auto 0 !important;
+  height: clamp(190px, 24vh, 280px) !important;
+  width: 100% !important;
+  background: transparent !important;
 }
-
-.lg-veil-streams {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.lgv-path {
-  fill: none;
-  stroke-width: 5;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 120 320;
-  filter: drop-shadow(0 0 10px rgba(217, 70, 239, 0.85));
-  animation: lgv-flow 5.2s linear infinite;
-}
-.lgv-path--m { animation-delay: 0s; }
-.lgv-path--c { animation-delay: -1.7s; filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.8)); }
-.lgv-path--w { animation-delay: -3.4s; stroke-width: 3.2; filter: drop-shadow(0 0 8px rgba(243, 232, 255, 0.8)); }
-
-@keyframes lgv-flow {
-  from { stroke-dashoffset: 440; opacity: 0.15; }
-  20%  { opacity: 1; }
-  80%  { opacity: 1; }
-  to   { stroke-dashoffset: 0; opacity: 0.2; }
-}
-
-.lgv-wave {
-  fill: none;
-  stroke: rgba(217, 70, 239, 0.9);
-  stroke-width: 3.4;
-  vector-effect: non-scaling-stroke;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: lgv-wave 4.4s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-}
-.lgv-wave--2 { animation-delay: 1.45s; stroke: rgba(34, 211, 238, 0.5); }
-.lgv-wave--3 { animation-delay: 2.9s; stroke: rgba(243, 232, 255, 0.45); }
-
-@keyframes lgv-wave {
-  0%   { transform: scale(0.12, 0.3); opacity: 0; }
-  30%  { opacity: 0.9; }
-  100% { transform: scale(1.9, 1.7); opacity: 0; }
-}
-
-/* arrival: the plate's own architecture catches the light */
-.ut-hero.lg-hero .lg-transmission-frame::after {
-  box-shadow:
-    0 0 0 1px rgba(236, 214, 255, 0.3),
-    0 0 78px -10px rgba(217, 70, 239, 0.62),
-    0 0 130px -26px rgba(34, 211, 238, 0.45),
-    inset 0 0 60px -30px rgba(245, 208, 254, 0.5);
-  animation: lgv-arrive 5.2s ease-in-out infinite;
-}
-
-@keyframes lgv-arrive {
-  0%, 100% { opacity: 0.55; }
-  46%      { opacity: 1; }
-}
-
-@media (max-width: 760px) {
-  .lg-veil { height: 12vh; min-height: 92px; margin-top: -2vh; }
-  .lgv-path { stroke-width: 2; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lgv-path { animation: none !important; stroke-dasharray: none; opacity: 0.55; }
-  .lgv-wave { animation: none !important; opacity: 0.3; transform: scale(1.1); }
-  .ut-hero.lg-hero .lg-transmission-frame::after { animation: none !important; opacity: 0.7; }
-}
-
-
-/* PHASE 3 — the solid group underneath is the fallback: if a gradient fails to resolve,
-   these strokes still draw the path. The spectral group paints over them. */
-.lgv-solid { opacity: 0.55; filter: drop-shadow(0 0 12px rgba(255, 43, 214, 0.55)); }
-.lgv-spectral { mix-blend-mode: screen; }
-.lgv-path { stroke-width: 6; animation-duration: 6s; fill: none; stroke-linecap: round; }
-.lgv-path--c { stroke-width: 5; }
-.lgv-path--w { stroke-width: 3; }
-.lgv-wave { stroke-width: 2.6; }
-
-
-/* the passage begins at the emblem, so the streams pass behind the title and the doors:
-   content keeps its own layer above the energy */
-.ut-logo-hero-copy { position: relative; z-index: 4; }
-.ut-logo-hero-canvas { position: relative; z-index: 2; }
-
-
-/* ── SPECTRAL FILAMENTS ───────────────────────────────────────────────────────────────────
-   Asymmetric traces with different weights and curvatures, so the descent reads as light
-   unwinding from the emblem's rotation rather than three drawn arcs. */
-
-.lgv-solid { opacity: 0.42; filter: blur(0.3px) drop-shadow(0 0 9px rgba(255, 43, 214, 0.45)); }
-.lgv-spectral { mix-blend-mode: screen; opacity: 0.92; }
-
-.lgv-path {
-  fill: none;
-  stroke-linecap: round;
-  stroke-width: 3.2;
-  stroke-dasharray: 90 420;
-  animation: lgv-travel 7.5s cubic-bezier(0.42, 0, 0.58, 1) infinite;
-}
-.lgv-path--c { stroke-width: 2.8; animation-delay: -1.4s; }
-.lgv-path--f1 { stroke-width: 1.5; animation-delay: -3.1s; }
-.lgv-path--f2 { stroke-width: 1.4; animation-delay: -4.6s; }
-.lgv-path--w { stroke-width: 1.1; animation-delay: -2.2s; }
-
-@keyframes lgv-travel {
-  0%   { stroke-dashoffset: 510; opacity: 0; }
-  18%  { opacity: 0.95; }
-  62%  { opacity: 0.85; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
-}
-
-/* the single arrival ring is small and quiet: no large static loops */
-.lgv-wave { stroke: rgba(245, 208, 254, 0.75); stroke-width: 1.6; fill: none;
-  transform-box: fill-box; transform-origin: center; animation: lgv-arrive-ring 5.5s ease-out infinite; }
-@keyframes lgv-arrive-ring {
-  0%   { transform: scale(0.25); opacity: 0; }
-  30%  { opacity: 0.85; }
-  100% { transform: scale(1.5); opacity: 0; }
-}
-
-/* ── THE ARTWORK RECEIVES IT ──────────────────────────────────────────────────────────────
-   A separate overlay aligned to the plate's own centre: concentric resonance on the circles
-   already inside the image. The artwork is never filtered, clipped or transformed. */
-.lg-art-resonance {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  width: 62%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  border-radius: 50%;
-  mix-blend-mode: screen;
-  opacity: 0.55;
-  background:
-    repeating-radial-gradient(circle at 50% 50%,
-      rgba(245, 208, 254, 0.22) 0 1px, transparent 1px 34px),
-    radial-gradient(circle at 50% 50%, rgba(217, 70, 239, 0.18) 0%, transparent 58%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 74%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 74%);
-  animation: lg-art-reson 6.2s ease-in-out infinite;
-}
-
-@keyframes lg-art-reson {
-  0%, 100% { opacity: 0.34; transform: translate(-50%, -50%) scale(0.97) rotate(0deg); }
-  48%      { opacity: 0.72; transform: translate(-50%, -50%) scale(1.03) rotate(4deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lgv-path { animation: none !important; stroke-dasharray: none; opacity: 0.6; }
-  .lgv-wave, .lg-art-resonance { animation: none !important; opacity: 0.4; }
-}
-
-
-.lg-art-lens {
-  position: absolute; inset: 0; pointer-events: none; z-index: 2;
-  backdrop-filter: saturate(1.9) brightness(1.22) contrast(1.08) hue-rotate(-8deg);
-  -webkit-backdrop-filter: saturate(1.9) brightness(1.22) contrast(1.08) hue-rotate(-8deg);
-  mask-image: repeating-radial-gradient(circle at 50% 47%, #000 0 3px, transparent 3px 26px),
-    radial-gradient(circle at 50% 47%, #000 18%, rgba(0,0,0,0.55) 42%, transparent 66%);
-  -webkit-mask-image: repeating-radial-gradient(circle at 50% 47%, #000 0 3px, transparent 3px 26px),
-    radial-gradient(circle at 50% 47%, #000 18%, rgba(0,0,0,0.55) 42%, transparent 66%);
-  mask-composite: intersect; -webkit-mask-composite: source-in;
-  opacity: 0.5;
-  animation: lg-lens 7.4s cubic-bezier(0.45,0,0.55,1) infinite;
-}
-@keyframes lg-lens { 0%,100% { opacity: 0.24; } 46% { opacity: 0.72; } }
-
-.lg-transmission-frame::before {
-  content: ""; position: absolute; inset: -18%; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(ellipse 56% 50% at 50% 44%, rgba(217,70,239,0.30), transparent 68%),
-    radial-gradient(ellipse 46% 44% at 62% 66%, rgba(34,211,238,0.24), transparent 70%),
-    radial-gradient(ellipse 70% 60% at 50% 52%, rgba(212,168,71,0.14), transparent 74%);
-  filter: blur(38px);
-  animation: lg-halo 8.6s ease-in-out infinite;
-}
-@keyframes lg-halo { 0%,100% { opacity: 0.55; } 50% { opacity: 0.95; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .lg-art-lens { animation: none !important; opacity: 0.45; }
-  .lg-transmission-frame::before { animation: none !important; opacity: 0.7; }
-}
-
-
-/* ── ONE TIMING SYSTEM ────────────────────────────────────────────────────────────────────
-   Nothing below animates on its own. --ut-phase is written by LogoHero's rAF loop from the
-   emblem's actual angle; --ut-pulse (three per revolution, matching the three lobes) drives
-   emission and travel; --ut-arrive is the same clock 38% later, so the artwork lights up
-   only after the energy has actually crossed the space. One event, not three animations. */
-
-.lgv-path {
-  animation: none !important;
-  stroke-dasharray: 150 360 !important;
-  stroke-dashoffset: calc((1 - var(--ut-pulse, 0)) * 510);
-  opacity: calc(0.18 + 0.82 * clamp(0, calc(var(--ut-pulse, 0) * 3), 1));
-}
-.lgv-solid {
-  opacity: calc(0.12 + 0.5 * clamp(0, calc(var(--ut-pulse, 0) * 2.4), 1));
-}
-.lgv-wave {
-  animation: none !important;
-  transform: scale(calc(0.35 + var(--ut-arrive, 0) * 1.3));
-  opacity: calc(0.65 * (1 - var(--ut-arrive, 0)));
-}
-.lg-art-lens {
-  animation: none !important;
-  opacity: calc(0.16 + 0.58 * clamp(0, calc(var(--ut-arrive, 0) * 2.6 - 0.35), 1));
-}
-.lg-art-resonance {
-  animation: none !important;
-  opacity: calc(0.3 + 0.45 * clamp(0, calc(var(--ut-arrive, 0) * 2.4 - 0.2), 1));
-  transform: translate(-50%, -50%) scale(calc(0.97 + var(--ut-arrive, 0) * 0.06));
-}
-.lg-transmission-frame::before {
-  animation: none !important;
-  opacity: calc(0.5 + 0.45 * clamp(0, calc(var(--ut-arrive, 0) * 2.2 - 0.1), 1));
-}
-
-/* composition: close the dead space and let the two spaces share one field */
-.ut-hero.lg-hero { padding-bottom: 0; }
-.lg-veil {
-  height: 44vh;
-  min-height: 330px;
-  margin-top: -40vh;
-  margin-bottom: -16vh;
-}
-.ut-hero.lg-hero .lg-transmission-frame { box-shadow: 0 0 0 1px rgba(236,214,255,0.16), 0 40px 120px -40px rgba(217,70,239,0.35); }
-
-@media (prefers-reduced-motion: reduce) {
-  .lgv-path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; opacity: 0.5 !important; }
-  .lg-art-lens { opacity: 0.42 !important; }
-  .lg-art-resonance { opacity: 0.45 !important; }
-}
-
-
-/* ── DETERMINISTIC STAGE SYSTEM ──────────────────────────────────────────────────────────
-   Every value below comes from --ut-emit / --ut-flow / --ut-arrive / --ut-decay, which are
-   computed in one place from one phase. A pulse travelling the path is a short dash with a
-   trailing shadow; the whole filament is never lit at once. */
-.lgv-path {
-  animation: none !important;
-  stroke-dasharray: 34 62 12 214 !important;
-  stroke-dashoffset: calc((1 - var(--ut-flow, 0)) * 322);
-  opacity: calc(0.05 + var(--ut-travel, 0) * 0.92);
-}
-.lgv-solid { animation: none !important; opacity: calc(0.04 + var(--ut-travel, 0) * 0.45); }
-.lgv-wave {
-  animation: none !important;
-  transform: scale(calc(0.3 + var(--ut-arrive, 0) * 1.25));
-  opacity: calc(var(--ut-arrive, 0) * 0.8);
-}
-.lg-art-lens { animation: none !important; opacity: calc(var(--ut-arrive, 0) * 0.66); }
-.lg-art-resonance {
-  animation: none !important;
-  opacity: calc(0.14 + var(--ut-arrive, 0) * 0.58);
-  transform: translate(-50%, -50%) scale(calc(0.98 + var(--ut-arrive, 0) * 0.05));
-}
-.lg-transmission-frame::before { animation: none !important; opacity: calc(0.45 + var(--ut-arrive, 0) * 0.5); }
-
-@media (prefers-reduced-motion: reduce) {
-  .lgv-path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; opacity: 0.42 !important; }
-  .lg-art-lens { opacity: calc(0.18 + var(--ut-arrive, 0) * 0.3) !important; }
-  .lg-art-resonance { opacity: calc(0.2 + var(--ut-arrive, 0) * 0.3) !important; }
-}
-
-
-/* ── ONE EVENT: head, tail, arrival ──────────────────────────────────────────────────────
-   The path itself is a dim structural trace; the light is a SHORT travelling head with a
-   trailing shadow behind it. At 25% the head is high in the passage, at 50% it is low -
-   different position, not different brightness. */
+.lg-veil-streams { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .lgv-solid { opacity: 0.13 !important; }
+.lgv-spectral { mix-blend-mode: screen; }
 .lgv-path {
+  fill: none; stroke-linecap: round;
   stroke-dasharray: 46 240 18 180 !important;
   stroke-dashoffset: calc((1 - var(--ut-flow, 0)) * 484) !important;
   opacity: calc(0.12 + var(--ut-travel, 0) * 0.88) !important;
 }
+.lgv-path--c { stroke-width: 2.8; }
 .lgv-path--f1, .lgv-path--f2 { stroke-dasharray: 26 260 10 190 !important; }
 .lgv-path--w { stroke-dasharray: 22 300 8 170 !important; }
+.lgv-wave { fill: none; stroke: rgba(245,208,254,0.75); stroke-width: 1.6;
+  transform-box: fill-box; transform-origin: center;
+  transform: scale(calc(0.3 + var(--ut-arrive, 0) * 1.25));
+  opacity: calc(var(--ut-arrive, 0) * 0.8); }
 
-/* arrival: the light lives in the artwork's inner circles, not across the whole plate */
+/* ── arrival inside the plate ── */
 .lg-art-lens {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  backdrop-filter: saturate(1.9) brightness(1.22) contrast(1.08) hue-rotate(-8deg);
+  -webkit-backdrop-filter: saturate(1.9) brightness(1.22) contrast(1.08) hue-rotate(-8deg);
   mask-image: repeating-radial-gradient(circle at 50% 46%, #000 0 3px, transparent 3px 22px),
     radial-gradient(circle at 50% 46%, #000 10%, rgba(0,0,0,0.6) 30%, transparent 52%);
   -webkit-mask-image: repeating-radial-gradient(circle at 50% 46%, #000 0 3px, transparent 3px 22px),
@@ -4531,342 +4195,47 @@ body::-webkit-scrollbar-thumb:hover {
   opacity: calc(var(--ut-arrive, 0) * 0.72) !important;
 }
 .lg-art-resonance {
-  width: 48% !important;
+  position: absolute; left: 50%; top: 46%; width: 48%; aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(calc(0.98 + var(--ut-arrive, 0) * 0.05));
+  pointer-events: none; border-radius: 50%; mix-blend-mode: screen;
+  background: repeating-radial-gradient(circle at 50% 50%, rgba(245,208,254,0.22) 0 1px, transparent 1px 34px),
+    radial-gradient(circle at 50% 50%, rgba(217,70,239,0.18) 0%, transparent 58%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 74%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 74%);
   opacity: calc(0.08 + var(--ut-arrive, 0) * 0.62) !important;
 }
-
-
-/* ── TABLET: the emblem was crowding the title ────────────────────────────────────────────
-   Between 768 and 1279 the hero lost its vertical rhythm: the canvas kept too much height
-   while the copy sat directly beneath it. Each element gets its own band again. */
-@media (min-width: 768px) and (max-width: 1279px) {
-  .ut-logo-hero-canvas { height: 24vh !important; min-height: 190px; max-height: 280px; }
-  .ut-logo-hero-copy { margin-top: 2.2rem; }
-  .ut-logo-hero { padding-top: 5.5rem; }
-  .lg-hero-title { font-size: clamp(2.1rem, 4.4vw, 3.4rem) !important; line-height: 1.05; }
-  .ut-logo-hero-copy .lg-action { margin-top: 0.6rem; }
-  .lg-veil { height: 34vh; min-height: 250px; margin-top: -30vh; }
-}
-@media (min-width: 768px) and (max-width: 900px) {
-  .ut-logo-hero-canvas { height: 21vh !important; min-height: 170px; }
-  .lg-hero-title { font-size: clamp(1.9rem, 5vw, 2.6rem) !important; }
+.lg-transmission-frame::before {
+  content: ""; position: absolute; inset: -14%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 56% 50% at 50% 44%, rgba(217,70,239,0.26), transparent 68%),
+    radial-gradient(ellipse 46% 44% at 62% 66%, rgba(34,211,238,0.20), transparent 70%);
+  filter: blur(34px);
+  opacity: calc(0.45 + var(--ut-arrive, 0) * 0.5) !important;
 }
 
-
-/* the older depth layers overflowed their room by up to 273px at tablet widths, which put
-   the page into horizontal scroll at every size */
-.lgx-room { overflow: hidden !important; }
-.lgx-deep, .lgx-arch { max-width: 100%; }
-html, body { overflow-x: clip; }
-
-
-/* ── THE EMBLEM BAND ──────────────────────────────────────────────────────────────────────
-   The painted mark is larger than its box: three chromatic layers and the orbit dots sit up
-   to 34px outside the sigil, and the glow extends further. The band therefore carries its own
-   padding, never clips, and is never smaller than the aberration it has to show. */
-.ut-logo-hero {
-  padding-top: clamp(76px, 9vh, 104px) !important;
-  overflow: visible !important;
-}
-.ut-logo-hero-canvas {
-  height: auto !important;
-  min-height: clamp(230px, 34vh, 430px) !important;
-  max-height: none !important;
-  padding: 40px 0 !important;
-  overflow: visible !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.ut-logo-hero-copy {
-  margin-top: clamp(1.6rem, 3vh, 2.6rem) !important;
-  position: relative;
-  z-index: 4;
-}
-
-/* the passage must not pull the title or the doors back into the emblem */
-.lg-veil {
-  margin-top: -6vh !important;
-  margin-bottom: -10vh !important;
-  height: 30vh !important;
-  min-height: 210px !important;
-}
-
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { min-height: 200px !important; padding: 28px 0 !important; }
-  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { max-width: min(80vw, 320px) !important; max-height: min(80vw, 320px) !important; }
-  .lg-veil { height: 22vh !important; min-height: 150px !important; margin-top: -4vh !important; }
-}
-@media (min-width: 768px) and (max-width: 1279px) {
-  .ut-logo-hero-canvas { min-height: clamp(240px, 30vh, 340px) !important; padding: 34px 0 !important; }
-  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { max-width: min(60vw, 380px) !important; max-height: min(60vw, 380px) !important; }
-}
-
-
-/* 390px left only a 4px gap between the mark's painted edge and the title, which is not a
-   visible separation at any rotation angle */
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { min-height: 190px !important; padding: 30px 0 34px !important; }
-  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { max-width: min(72vw, 292px) !important; max-height: min(72vw, 292px) !important; }
-  .ut-logo-hero-copy { margin-top: 1.9rem !important; }
-}
-
-
-/* ── ONE CENTRAL AXIS ─────────────────────────────────────────────────────────────────────
-   Every element of the opening belongs to the same vertical spine: the rotating mark, the
-   chromatic title, the gold tagline, the three doors. Any inherited grid or row layout that
-   pushed the mark to the left is overridden here, and the band is sized to the mark's real
-   rotating footprint rather than being shrunk to fit. */
-.ut-hero.lg-hero,
-.ut-logo-hero {
+/* ── HERO: one central axis, canvas band, rotor, chromatic layers ── */
+.ut-hero.lg-hero, .ut-logo-hero {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  text-align: center !important;
   width: 100% !important;
-  grid-template-columns: none !important;
-  grid-template-areas: none !important;
-  gap: 0 !important;
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  text-align: center !important;
+  overflow: visible !important;
 }
+.ut-logo-hero { padding-top: clamp(84px, 10vh, 116px) !important; }
 
 .ut-logo-hero-canvas {
+  --mark: min(560px, 78vw);
+  position: relative !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   width: 100% !important;
-  height: auto !important;
-  min-height: clamp(300px, 46vh, 560px) !important;
-  padding: 48px 0 40px !important;
-  margin: 0 auto !important;
-  overflow: visible !important;
-}
-
-.ut-logo-hero-copy {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-  width: 100% !important;
-  margin: 1.8rem auto 0 !important;
-}
-.ut-logo-hero-copy .lg-action { margin-left: auto !important; margin-right: auto !important; }
-
-@media (min-width: 768px) and (max-width: 1279px) {
-  .ut-logo-hero-canvas { min-height: clamp(280px, 40vh, 440px) !important; padding: 40px 0 34px !important; }
-  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { width: min(52vw, 420px) !important; max-width: min(52vw, 420px) !important; max-height: min(52vw, 420px) !important; }
-}
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { min-height: clamp(230px, 34vh, 330px) !important; padding: 34px 0 28px !important; }
-  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div { width: min(74vw, 300px) !important; max-width: min(74vw, 300px) !important; max-height: min(74vw, 300px) !important; }
-  .ut-logo-hero-copy { margin-top: 1.5rem !important; }
-}
-
-
-/* The rotating square's bounding box grows by up to √2 at 45°, so a band padded for the
-   upright mark collides with the title at the diagonal. The padding below is the diagonal's
-   half-overhang, which keeps a real gap at every angle. */
-.ut-logo-hero-canvas {
-  padding: clamp(84px, 11vh, 126px) 0 clamp(72px, 9vh, 108px) !important;
-  min-height: 0 !important;
-}
-@media (min-width: 768px) and (max-width: 1279px) {
-  .ut-logo-hero-canvas { padding: clamp(70px, 9vh, 96px) 0 clamp(60px, 8vh, 84px) !important; }
-  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div {
-    width: min(46vw, 380px) !important;
-    max-width: min(46vw, 380px) !important;
-    max-height: min(46vw, 380px) !important;
-  }
-}
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { padding: clamp(54px, 7vh, 74px) 0 clamp(46px, 6vh, 62px) !important; }
-}
-
-
-/* ── FINAL HERO STRUCTURE ────────────────────────────────────────────────────────────────
-   A square envelope in normal flow, sized to the mark's maximum painted extent. No negative
-   margins, no absolute positioning of the emblem, no transform doing layout's job. */
-.ut-hero.lg-hero {
-  display: block !important;
-  min-height: 0 !important;
-  height: auto !important;
-  padding: clamp(76px, 9vh, 104px) 0 0 !important;
-  overflow: visible !important;
-}
-.ut-logo-hero { display: block !important; min-height: 0 !important; }
-
-.ut-logo-hero-canvas {
-  position: relative !important;
-  display: block !important;
-  width: min(84vmin, 560px) !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  aspect-ratio: 1 / 1 !important;
-  margin: 0 auto clamp(18px, 2.4vh, 30px) !important;
-  padding: 0 !important;
-  overflow: visible !important;
-}
-.ut-logo-hero-canvas img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
-
-.ut-logo-hero-copy {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-  margin: 0 auto !important;
-  width: 100% !important;
-}
-
-/* the passage begins immediately under the doors: 32–64px, and it owns real height */
-.lg-veil {
-  position: relative !important;
-  margin: 44px auto 0 !important;
-  height: clamp(200px, 26vh, 300px) !important;
-  min-height: 0 !important;
-  width: 100% !important;
-}
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { width: min(78vw, 320px) !important; margin-bottom: 16px !important; }
-  .lg-veil { margin-top: 34px !important; height: clamp(150px, 20vh, 220px) !important; }
-}
-
-
-/* ── ROTATION-SAFE ENVELOPE, DERIVED NOT GUESSED ─────────────────────────────────────────
-   Measured across the cycle: the rotating element's box is 304px at 0°/90° and 430px at
-   45° — exactly √2. So the inner mark is set to 1/√2 (70.71%) of a square container, which
-   means the diagonal at every angle fits the container exactly. The container is enlarged so
-   the visible mark keeps its prominence. Glow and chromatic layers are inside that bound. */
-.ut-logo-hero-canvas {
-  width: min(104vmin, 660px) !important;
-  aspect-ratio: 1 / 1 !important;
-  padding: 0 !important;
-  margin: 0 auto clamp(20px, 2.6vh, 34px) !important;
-}
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { width: min(96vw, 380px) !important; margin-bottom: 18px !important; }
-  .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div {
-    width: 70.71% !important; height: 70.71% !important; max-width: 70.71% !important; max-height: 70.71% !important;
-  }
-}
-
-/* the passage shares the hero's field instead of reading as its own dark panel */
-.lg-veil {
-  background: transparent !important;
-  margin: 34px auto 0 !important;
-}
-.lg-veil::before, .lg-veil::after { background: none !important; }
-.ut-hero.lg-hero { background-color: transparent !important; }
-#vitruvian { margin-top: -6px !important; }
-
-
-/* ── OPTICAL COMPOSITION, NOT A SAFE SQUARE ──────────────────────────────────────────────
-   The √2 growth measured earlier belongs to the element's SQUARE box - its corners never
-   paint, because the mark is a circle. Setting the mark to 70.71% therefore bought clearance
-   with emptiness. The painted extent is the circle: diameter = element width, plus 34px of
-   chromatic offset and a soft glow. The envelope is that, and nothing more. */
-.ut-logo-hero-canvas {
-  width: min(88vmin, 620px) !important;
-  aspect-ratio: 1 / 1 !important;
-  padding: 20px 0 16px !important;
-  margin: 0 auto 0 !important;
-}
-.ut-logo-hero-canvas img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
-
-/* the title is anchored directly beneath the mark: 26px of optical air, not a void */
-.ut-logo-hero-copy { margin-top: 26px !important; }
-
-.lg-veil { margin: 28px auto 0 !important; height: clamp(180px, 22vh, 250px) !important; }
-
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { width: min(88vw, 360px) !important; padding: 14px 0 12px !important; }
-  .ut-logo-hero-copy { margin-top: 22px !important; }
-  .lg-veil { margin-top: 24px !important; height: clamp(150px, 18vh, 210px) !important; }
-}
-
-
-/* ── THE ROTATING SQUARE MUST KEEP ITS OWN SIZE ──────────────────────────────────────────
-   The displacement was self-inflicted: an earlier rule forced every nested div to 100%,
-   including LogoHero's rotating square. A container-width square rotating 45° has a diagonal
-   of √2 × 620 and swings down into the title. The rotating element keeps the component's own
-   proportion; the canvas is sized to contain the diagonal plus its chromatic offset. */
-.ut-logo-hero-canvas {
-  width: min(96vmin, 780px) !important;
-  aspect-ratio: auto !important;
-  height: auto !important;
-  padding: 44px 0 !important;
-  margin: 0 auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-.ut-logo-hero-canvas > div > div > div { width: 100% !important; height: 100% !important; }
-
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { width: min(96vw, 420px) !important; padding: 56px 0 !important; }
-  .ut-logo-hero-canvas > div > div { width: min(340px, 78vw) !important; max-width: min(340px, 78vw) !important; }
-}
-
-
-/* ── THE DISPLACEMENT MECHANISM, FOUND ───────────────────────────────────────────────────
-   Earlier rules forced EVERY nested div inside the canvas to 100% x 100%. That included the
-   rotating square, which the component sizes at 58% / max 540px. A full-container square
-   rotated 45deg has a diagonal of container x 1.414, so it swung far outside the canvas and
-   dropped into the title. The mark's own size is now left intact; the canvas is simply large
-   enough to contain its diagonal. */
-.ut-logo-hero-canvas {
-  width: min(96vmin, 780px) !important;
-  aspect-ratio: auto !important;
-  height: auto !important;
-  padding: 40px 0 !important;
-  margin: 0 auto 0 !important;
-}
-.ut-logo-hero-canvas > div > div {
-  width: min(540px, 84vw) !important;
-  max-width: min(540px, 84vw) !important;
-  height: auto !important;
-  max-height: none !important;
-  aspect-ratio: 1 / 1 !important;
-}
-.ut-logo-hero-copy { margin-top: 26px !important; }
-
-@media (max-width: 767px) {
-  .ut-logo-hero-canvas { padding: 62px 0 !important; }
-  .ut-logo-hero-canvas > div > div { width: min(264px, 68vw) !important; max-width: min(264px, 68vw) !important; }
-}
-@media (min-width: 768px) and (max-width: 1279px) {
-  .ut-logo-hero-canvas { padding: 52px 0 !important; }
-  .ut-logo-hero-canvas > div > div { width: min(430px, 60vw) !important; max-width: min(430px, 60vw) !important; }
-}
-
-
-/* ── PADDING DERIVED FROM THE DIAGONAL ───────────────────────────────────────────────────
-   Measured: the mark is 540px at 0/90/180/270 and 764px at 45/135/225/315 - exactly √2.
-   The overhang is therefore 0.207 x mark on each side. The canvas pads by that figure, so
-   the diagonal lands inside it and the title keeps its clearance at every angle. */
-.ut-logo-hero-canvas {
-  --mark: min(540px, 84vw);
-  padding: calc(var(--mark) * 0.21) 0 !important;
-  width: 100% !important;
-  max-width: 1400px !important;
-  margin: 0 auto 0 !important;
-  aspect-ratio: auto !important;
-  height: auto !important;
-}
-.ut-logo-hero-copy { margin-top: 26px !important; }
-
-@media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(264px, 68vw); } }
-@media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(430px, 60vw); } }
-
-
-/* ── COMPONENT-LEVEL LAYOUT, BY NAMED NODE ───────────────────────────────────────────────
-   Each node is styled once, by its own class. No positional selectors, so a rule for a
-   chromatic layer can never resize the rotor again. */
-.ut-logo-hero-canvas {
-  --mark: min(540px, 84vw);
-  position: relative !important;
-  width: 100% !important;
-  max-width: 1440px !important;
+  max-width: 100% !important;
   height: auto !important;
   aspect-ratio: auto !important;
   padding: calc(var(--mark) * 0.21) 0 !important;
@@ -4889,33 +4258,34 @@ html, body { overflow-x: clip; }
   transform-origin: 50% 50% !important;
   margin: 0 auto !important;
 }
-.lgx-chroma {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-}
+.lgx-chroma { width: 100% !important; height: 100% !important; }
 .lgx-ring { max-width: var(--mark) !important; max-height: var(--mark) !important; }
 
-@media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(300px, 76vw); } }
-@media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(440px, 58vw); } }
-
-/* oversized decorative panels that were washing over the composition */
-.lgx-deep, .lgx-arch, .lgx-light { display: none !important; }
-.ut-hero.lg-hero::before { display: none !important; }
-
-
-/* at 1024+ the hero was still being placed in a grid column, which pushed the rotor left of
-   the axis (measured 72/100/180px at 1024/1280/1440). One flex column, centred. */
-.ut-hero.lg-hero, .ut-logo-hero {
+.ut-logo-hero-copy {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  justify-content: flex-start !important;
-  width: 100% !important;
-  max-width: none !important;
-  grid-template-columns: none !important;
   text-align: center !important;
+  width: 100% !important;
+  margin: 26px auto 0 !important;
+  position: relative;
+  z-index: 4;
 }
-.ut-logo-hero-canvas { margin-left: auto !important; margin-right: auto !important; }
-.ut-logo-hero-copy { margin-left: auto !important; margin-right: auto !important; }
+.ut-logo-hero-copy .lg-action { margin-left: auto !important; margin-right: auto !important; }
+
+@media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(470px, 62vw); } }
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { --mark: min(300px, 76vw); }
+  .ut-logo-hero-copy { margin-top: 22px !important; }
+  .lg-veil { margin-top: 26px !important; height: clamp(150px, 19vh, 210px) !important; }
+}
+
+/* decorative panels that were washing over the page */
+.lgx-deep, .lgx-arch, .lgx-light { display: none !important; }
+.ut-hero.lg-hero::before { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lgv-path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; opacity: 0.45 !important; }
+  .lg-art-lens { opacity: 0.4 !important; }
+  .lg-art-resonance { opacity: 0.4 !important; }
+}
