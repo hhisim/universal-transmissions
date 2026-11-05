@@ -4139,7 +4139,6 @@ body::-webkit-scrollbar-thumb:hover {
 /* The component draws its own ambient panel INSIDE its box: a radial gradient that stops at
    the component's edge, which reads as a lit rectangle on an unlit page - the empty corner.
    The box is suppressed and the light is instead carried by the whole entrance. */
-.ut-logo-hero-canvas > div[style*="radial-gradient"] { display: none !important; }
 
 .ut-logo-hero {
   background:
@@ -4579,11 +4578,6 @@ html, body { overflow-x: clip; }
   align-items: center;
   justify-content: center;
 }
-.ut-logo-hero-canvas > div,
-.ut-logo-hero-canvas > div > div {
-  max-width: min(74vw, 440px) !important;
-  max-height: min(74vw, 440px) !important;
-}
 .ut-logo-hero-copy {
   margin-top: clamp(1.6rem, 3vh, 2.6rem) !important;
   position: relative;
@@ -4647,13 +4641,6 @@ html, body { overflow-x: clip; }
   margin: 0 auto !important;
   overflow: visible !important;
 }
-.ut-logo-hero-canvas > div,
-.ut-logo-hero-canvas > div > div {
-  margin: 0 auto !important;
-  width: min(58vw, 520px) !important;
-  max-width: min(58vw, 520px) !important;
-  max-height: min(58vw, 520px) !important;
-}
 
 .ut-logo-hero-copy {
   display: flex !important;
@@ -4682,12 +4669,6 @@ html, body { overflow-x: clip; }
 .ut-logo-hero-canvas {
   padding: clamp(84px, 11vh, 126px) 0 clamp(72px, 9vh, 108px) !important;
   min-height: 0 !important;
-}
-.ut-logo-hero-canvas > div,
-.ut-logo-hero-canvas > div > div {
-  width: min(50vw, 470px) !important;
-  max-width: min(50vw, 470px) !important;
-  max-height: min(50vw, 470px) !important;
 }
 @media (min-width: 768px) and (max-width: 1279px) {
   .ut-logo-hero-canvas { padding: clamp(70px, 9vh, 96px) 0 clamp(60px, 8vh, 84px) !important; }
@@ -4726,15 +4707,6 @@ html, body { overflow-x: clip; }
   padding: 0 !important;
   overflow: visible !important;
 }
-.ut-logo-hero-canvas > div,
-.ut-logo-hero-canvas > div > div {
-  position: static !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  margin: 0 auto !important;
-}
 .ut-logo-hero-canvas img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
 
 .ut-logo-hero-copy {
@@ -4771,14 +4743,6 @@ html, body { overflow-x: clip; }
   padding: 0 !important;
   margin: 0 auto clamp(20px, 2.6vh, 34px) !important;
 }
-.ut-logo-hero-canvas > div,
-.ut-logo-hero-canvas > div > div {
-  width: 70.71% !important;
-  height: 70.71% !important;
-  max-width: 70.71% !important;
-  max-height: 70.71% !important;
-  margin: 0 auto !important;
-}
 @media (max-width: 767px) {
   .ut-logo-hero-canvas { width: min(96vw, 380px) !important; margin-bottom: 18px !important; }
   .ut-logo-hero-canvas > div, .ut-logo-hero-canvas > div > div {
@@ -4806,14 +4770,6 @@ html, body { overflow-x: clip; }
   aspect-ratio: 1 / 1 !important;
   padding: 20px 0 16px !important;
   margin: 0 auto 0 !important;
-}
-.ut-logo-hero-canvas > div,
-.ut-logo-hero-canvas > div > div {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  margin: 0 auto !important;
 }
 .ut-logo-hero-canvas img { width: 100% !important; height: 100% !important; object-fit: contain !important; }
 
@@ -4844,14 +4800,6 @@ html, body { overflow-x: clip; }
   align-items: center !important;
   justify-content: center !important;
 }
-.ut-logo-hero-canvas > div > div {
-  width: min(540px, 86vw) !important;
-  max-width: min(540px, 86vw) !important;
-  height: auto !important;
-  max-height: none !important;
-  aspect-ratio: 1 / 1 !important;
-  transform-origin: 50% 50% !important;
-}
 .ut-logo-hero-canvas > div > div > div { width: 100% !important; height: 100% !important; }
 
 @media (max-width: 767px) {
@@ -4873,7 +4821,6 @@ html, body { overflow-x: clip; }
   padding: 40px 0 !important;
   margin: 0 auto 0 !important;
 }
-.ut-logo-hero-canvas > div { width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; }
 .ut-logo-hero-canvas > div > div {
   width: min(540px, 84vw) !important;
   max-width: min(540px, 84vw) !important;
@@ -4905,12 +4852,6 @@ html, body { overflow-x: clip; }
   margin: 0 auto 0 !important;
   aspect-ratio: auto !important;
   height: auto !important;
-}
-.ut-logo-hero-canvas > div > div {
-  width: var(--mark) !important;
-  max-width: var(--mark) !important;
-  height: auto !important;
-  aspect-ratio: 1 / 1 !important;
 }
 .ut-logo-hero-copy { margin-top: 26px !important; }
 
