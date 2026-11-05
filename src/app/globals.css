@@ -4827,3 +4827,67 @@ html, body { overflow-x: clip; }
   .ut-logo-hero-copy { margin-top: 22px !important; }
   .lg-veil { margin-top: 24px !important; height: clamp(150px, 18vh, 210px) !important; }
 }
+
+
+/* ── THE ROTATING SQUARE MUST KEEP ITS OWN SIZE ──────────────────────────────────────────
+   The displacement was self-inflicted: an earlier rule forced every nested div to 100%,
+   including LogoHero's rotating square. A container-width square rotating 45° has a diagonal
+   of √2 × 620 and swings down into the title. The rotating element keeps the component's own
+   proportion; the canvas is sized to contain the diagonal plus its chromatic offset. */
+.ut-logo-hero-canvas {
+  width: min(96vmin, 780px) !important;
+  aspect-ratio: auto !important;
+  height: auto !important;
+  padding: 44px 0 !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.ut-logo-hero-canvas > div > div {
+  width: min(540px, 86vw) !important;
+  max-width: min(540px, 86vw) !important;
+  height: auto !important;
+  max-height: none !important;
+  aspect-ratio: 1 / 1 !important;
+  transform-origin: 50% 50% !important;
+}
+.ut-logo-hero-canvas > div > div > div { width: 100% !important; height: 100% !important; }
+
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { width: min(96vw, 420px) !important; padding: 56px 0 !important; }
+  .ut-logo-hero-canvas > div > div { width: min(340px, 78vw) !important; max-width: min(340px, 78vw) !important; }
+}
+
+
+/* ── THE DISPLACEMENT MECHANISM, FOUND ───────────────────────────────────────────────────
+   Earlier rules forced EVERY nested div inside the canvas to 100% x 100%. That included the
+   rotating square, which the component sizes at 58% / max 540px. A full-container square
+   rotated 45deg has a diagonal of container x 1.414, so it swung far outside the canvas and
+   dropped into the title. The mark's own size is now left intact; the canvas is simply large
+   enough to contain its diagonal. */
+.ut-logo-hero-canvas {
+  width: min(96vmin, 780px) !important;
+  aspect-ratio: auto !important;
+  height: auto !important;
+  padding: 40px 0 !important;
+  margin: 0 auto 0 !important;
+}
+.ut-logo-hero-canvas > div { width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; }
+.ut-logo-hero-canvas > div > div {
+  width: min(540px, 84vw) !important;
+  max-width: min(540px, 84vw) !important;
+  height: auto !important;
+  max-height: none !important;
+  aspect-ratio: 1 / 1 !important;
+}
+.ut-logo-hero-copy { margin-top: 26px !important; }
+
+@media (max-width: 767px) {
+  .ut-logo-hero-canvas { padding: 62px 0 !important; }
+  .ut-logo-hero-canvas > div > div { width: min(264px, 68vw) !important; max-width: min(264px, 68vw) !important; }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ut-logo-hero-canvas { padding: 52px 0 !important; }
+  .ut-logo-hero-canvas > div > div { width: min(430px, 60vw) !important; max-width: min(430px, 60vw) !important; }
+}
