@@ -4962,3 +4962,19 @@ html, body { overflow-x: clip; }
 /* oversized decorative panels that were washing over the composition */
 .lgx-deep, .lgx-arch, .lgx-light { display: none !important; }
 .ut-hero.lg-hero::before { display: none !important; }
+
+
+/* at 1024+ the hero was still being placed in a grid column, which pushed the rotor left of
+   the axis (measured 72/100/180px at 1024/1280/1440). One flex column, centred. */
+.ut-hero.lg-hero, .ut-logo-hero {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  max-width: none !important;
+  grid-template-columns: none !important;
+  text-align: center !important;
+}
+.ut-logo-hero-canvas { margin-left: auto !important; margin-right: auto !important; }
+.ut-logo-hero-copy { margin-left: auto !important; margin-right: auto !important; }
