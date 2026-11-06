@@ -181,41 +181,41 @@ export default function HomePage() {
 
         {/* ── THE DESCENT — the emblem opens into the work ─────────────────── */}
         <div className="lg-veil" aria-hidden="true">
-          <svg className="lg-veil-streams" viewBox="0 0 1000 420" preserveAspectRatio="none">
+          <svg className="lg-veil-streams" viewBox="0 0 1000 1060" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="lgvM" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="420">
+              <linearGradient id="lgvM" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1060">
                 <stop offset="0%" stopColor="#f472b6" stopOpacity="0.15" />
                 <stop offset="30%" stopColor="#ff2bd6" stopOpacity="1" />
                 <stop offset="72%" stopColor="#f0abfc" stopOpacity="0.95" />
                 <stop offset="100%" stopColor="#fff0fb" stopOpacity="0.9" />
               </linearGradient>
-              <linearGradient id="lgvC" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="420">
+              <linearGradient id="lgvC" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1060">
                 <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.15" />
                 <stop offset="30%" stopColor="#22d3ee" stopOpacity="1" />
                 <stop offset="72%" stopColor="#a5f3fc" stopOpacity="0.95" />
                 <stop offset="100%" stopColor="#effeff" stopOpacity="0.9" />
               </linearGradient>
-              <linearGradient id="lgvW" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="420">
+              <linearGradient id="lgvW" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1060">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity="0.05" />
                 <stop offset="40%" stopColor="#f5f0ff" stopOpacity="0.85" />
                 <stop offset="100%" stopColor="#d4a847" stopOpacity="0.9" />
               </linearGradient>
             </defs>
             <g className="lgv-solid">
-              <path d="M352,6 C 286,96 244,178 336,248 C 412,306 470,352 500,418" stroke="#ff2bd6" strokeWidth="3.2" fill="none" strokeLinecap="round" />
-              <path d="M392,10 C 348,110 322,186 402,252 C 456,298 488,352 500,418" stroke="#f0abfc" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-              <path d="M512,2 C 528,104 468,178 508,252 C 532,300 518,356 500,418" stroke="#e9d5ff" strokeWidth="1.1" fill="none" strokeLinecap="round" />
-              <path d="M648,6 C 714,92 762,176 664,250 C 584,310 528,352 500,418" stroke="#22d3ee" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-              <path d="M604,10 C 652,104 686,184 600,252 C 542,300 512,354 500,418" stroke="#a5f3fc" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+              <path d="M352,6 C 236,216 426,358 358,590 C 326,704 474,882 500,1040" stroke="#ff2bd6" strokeWidth="2.8" fill="none" strokeLinecap="round" />
+              <path d="M392,10 C 320,198 458,366 392,574 C 368,708 486,878 500,1040" stroke="#f0abfc" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              <path d="M512,2 C 526,210 474,400 508,602 C 532,748 508,894 500,1040" stroke="#e9d5ff" strokeWidth="1" fill="none" strokeLinecap="round" />
+              <path d="M648,6 C 764,216 574,358 642,590 C 674,704 526,882 500,1040" stroke="#22d3ee" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+              <path d="M604,10 C 682,198 542,366 608,574 C 632,708 514,878 500,1040" stroke="#a5f3fc" strokeWidth="1.2" fill="none" strokeLinecap="round" />
             </g>
             <g className="lgv-spectral">
-              <path className="lgv-path lgv-path--m" d="M352,6 C 286,96 244,178 336,248 C 412,306 470,352 500,418" stroke="url(#lgvM)" />
-              <path className="lgv-path lgv-path--c" d="M648,6 C 714,92 762,176 664,250 C 584,310 528,352 500,418" stroke="url(#lgvC)" />
-              <path className="lgv-path lgv-path--f1" d="M392,10 C 348,110 322,186 402,252 C 456,298 488,352 500,418" stroke="url(#lgvM)" />
-              <path className="lgv-path lgv-path--f2" d="M604,10 C 652,104 686,184 600,252 C 542,300 512,354 500,418" stroke="url(#lgvC)" />
-              <path className="lgv-path lgv-path--w" d="M512,2 C 528,104 468,178 508,252 C 532,300 518,356 500,418" stroke="url(#lgvW)" />
+              <path pathLength="1000" className="lgv-path lgv-path--m" d="M352,6 C 236,216 426,358 358,590 C 326,704 474,882 500,1040" stroke="url(#lgvM)" />
+              <path pathLength="1000" className="lgv-path lgv-path--c" d="M648,6 C 764,216 574,358 642,590 C 674,704 526,882 500,1040" stroke="url(#lgvC)" />
+              <path pathLength="1000" className="lgv-path lgv-path--f1" d="M392,10 C 320,198 458,366 392,574 C 368,708 486,878 500,1040" stroke="url(#lgvM)" />
+              <path pathLength="1000" className="lgv-path lgv-path--f2" d="M604,10 C 682,198 542,366 608,574 C 632,708 514,878 500,1040" stroke="url(#lgvC)" />
+              <path pathLength="1000" className="lgv-path lgv-path--w" d="M512,2 C 526,210 474,400 508,602 C 532,748 508,894 500,1040" stroke="url(#lgvW)" />
             </g>
-            <ellipse className="lgv-wave lgv-wave--1" cx="500" cy="392" rx="72" ry="16" />
+            <ellipse className="lgv-wave lgv-wave--1" cx="500" cy="1020" rx="72" ry="16" />
           </svg>
         </div>
 

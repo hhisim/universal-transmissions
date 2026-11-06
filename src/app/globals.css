@@ -4160,8 +4160,8 @@ body::-webkit-scrollbar-thumb:hover {
 /* ── the pass between the doors and the artwork ── */
 .lg-veil {
   position: relative !important;
-  margin: 34px auto 0 !important;
-  height: clamp(190px, 24vh, 280px) !important;
+  margin: 28px auto 0 !important;
+  height: clamp(230px, 30vh, 300px) !important;
   width: 100% !important;
   background: transparent !important;
 }
@@ -4170,9 +4170,10 @@ body::-webkit-scrollbar-thumb:hover {
 .lgv-spectral { mix-blend-mode: screen; }
 .lgv-path {
   fill: none; stroke-linecap: round;
-  stroke-dasharray: 46 240 18 180 !important;
-  stroke-dashoffset: calc((1 - var(--ut-flow, 0)) * 484) !important;
+  stroke-dasharray: 110 890 !important;
+  stroke-dashoffset: calc((1 - var(--ut-flow, 0)) * 1000) !important;
   opacity: calc(0.12 + var(--ut-travel, 0) * 0.88) !important;
+  stroke-width: 4.2;
 }
 .lgv-path--c { stroke-width: 2.8; }
 .lgv-path--f1, .lgv-path--f2 { stroke-dasharray: 26 260 10 190 !important; }
@@ -4267,7 +4268,7 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center !important;
   text-align: center !important;
   width: 100% !important;
-  margin: 26px auto 0 !important;
+  margin: 0 auto !important;
   position: relative;
   z-index: 4;
 }
@@ -4276,8 +4277,8 @@ body::-webkit-scrollbar-thumb:hover {
 @media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(470px, 62vw); } }
 @media (max-width: 767px) {
   .ut-logo-hero-canvas { --mark: min(300px, 76vw); }
-  .ut-logo-hero-copy { margin-top: 22px !important; }
-  .lg-veil { margin-top: 26px !important; height: clamp(150px, 19vh, 210px) !important; }
+  .ut-logo-hero-copy { margin-top: 0 !important; }
+  .lg-veil { margin-top: 24px !important; height: clamp(210px, 27vh, 260px) !important; }
 }
 
 /* decorative panels that were washing over the page */
@@ -4287,6 +4288,7 @@ body::-webkit-scrollbar-thumb:hover {
 @media (prefers-reduced-motion: reduce) {
   .lgv-path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; opacity: 0.45 !important; }
   .lg-art-lens { opacity: 0.4 !important; }
+  .lgv-wave { opacity: 0 !important; }
   .lg-art-resonance { opacity: 0.4 !important; }
 }
 
