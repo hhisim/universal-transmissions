@@ -89,6 +89,8 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     let rafId: number;
     let W = canvas.width;
     let H = canvas.height;
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const root = document.documentElement.style;
 
     function resize() {
       if (!containerRef.current || !canvas || !glyphCanvas) return;
@@ -108,25 +110,33 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     function tick() {
       const c = canvas!;
       const g = glyphCanvas!;
+      // Keep the emblem, chromatic layers and complete composition, but do not spend work
+      // changing pixels for visitors who requested reduced motion.
+      if (motionQuery.matches) {
+        setRotation(0.35 * Math.PI * 2);
+        return;
+      }
       timeRef.current += 0.016;
       // ONE CLOCK → FOUR ENVELOPES. ?phase=0.75 (preview only) pins the composition to an
       // exact moment so a frame can be reproduced; without it the clock runs on wall time.
       const qs = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('phase') : null;
       const forced = qs !== null && qs !== '' && !Number.isNaN(Number(qs)) ? Number(qs) : null;
       const clock = performance.now() / 1000;
-      const phase = forced !== null ? forced : ((clock * 0.26) / (Math.PI * 2)) % 1;
-      setRotation(phase * Math.PI * 2);
+    const phase = forced !== null ? forced : ((clock * 0.26) / (Math.PI * 2)) % 1;
+      // Reduced motion is a stationary composition, not a slower animation. Pin the shared
+      // phase so the emblem, orbit, passage and pulse all retain the same complete image.
+      const visualPhase = motionQuery.matches ? 0.35 : phase;
+      setRotation(visualPhase * Math.PI * 2);
 
-      const ramp = (a: number, b: number) => Math.max(0, Math.min(1, (phase - a) / (b - a)));
+      const ramp = (a: number, b: number) => Math.max(0, Math.min(1, (visualPhase - a) / (b - a)));
       const pulse = (a: number, b: number) => Math.sin(Math.PI * ramp(a, b));
-      const emit = pulse(0.0, 0.30);   // energy leaves the emblem
-      const flow = ramp(0.08, 0.72);   // travelling head along the filaments
-      const arrive = pulse(0.55, 0.92); // artwork illumination
-      const decay = ramp(0.84, 1.0);   // return to baseline
-      const travel = pulse(0.02, 0.88); // the path stays readable while a pulse crosses it
+      const emit = motionQuery.matches ? 0 : pulse(0.0, 0.30);
+      const flow = motionQuery.matches ? 0 : ramp(0.08, 0.72);
+      const arrive = motionQuery.matches ? 0 : pulse(0.55, 0.92);
+      const decay = ramp(0.84, 1.0);
+      const travel = motionQuery.matches ? 0 : pulse(0.02, 0.88);
 
-      const root = document.documentElement.style;
-      root.setProperty('--ut-phase', phase.toFixed(4));
+      root.setProperty('--ut-phase', visualPhase.toFixed(4));
       root.setProperty('--ut-emit', emit.toFixed(4));
       root.setProperty('--ut-flow', flow.toFixed(4));
       root.setProperty('--ut-arrive', arrive.toFixed(4));
@@ -256,7 +266,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
 
     // ── Glyph rain render loop (separate, slower) ────────────────
     function tickGlyphs() {
-      if (!glyphCanvas) return;
+      if (!glyphCanvas || motionQuery.matches) return;
       const Wg = glyphCanvas.width;
       const Hg = glyphCanvas.height;
       gCtx.clearRect(0, 0, Wg, Hg);
@@ -323,8 +333,9 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     // The pulse rings existed but nothing ever fired them. A slow automatic pulse gives the
     // emblem its spectral energy without adding a new system: same rings, same palette.
     autoPulseTimerRef.current = setInterval(() => {
-      pulseTimeRef.current = timeRef.current;
-      pulseRef.current = true;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    pulseTimeRef.current = timeRef.current;
+    pulseRef.current = true;
     }, 11000);
 
     return () => {
@@ -480,7 +491,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         style={{
           zIndex: 6,
           background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.12), transparent)",
-          top: `${((timeRef.current * 35) % 100)}%`,
+          top: `${motionQuery.matches ? 50 : ((timeRef.current * 35) % 100)}%`,
         }}
       />
 
