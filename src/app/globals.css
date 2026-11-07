@@ -4193,7 +4193,7 @@ body::-webkit-scrollbar-thumb:hover {
   -webkit-mask-image: repeating-radial-gradient(circle at 50% 46%, #000 0 3px, transparent 3px 22px),
     radial-gradient(circle at 50% 46%, #000 10%, rgba(0,0,0,0.6) 30%, transparent 52%);
   mask-composite: intersect; -webkit-mask-composite: source-in;
-  opacity: calc(var(--ut-arrive, 0) * 0.55) !important;
+  opacity: calc(var(--ut-arrive, 0) * 0.32) !important;
 }
 .lg-art-resonance {
   position: absolute; left: 50%; top: 46%; width: 48%; aspect-ratio: 1;
@@ -4379,7 +4379,7 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
   position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important;
   object-fit: cover !important; pointer-events: none !important;
   mix-blend-mode: screen;
-  opacity: calc(var(--ut-arrive, 0) * 0.95);
+  opacity: calc(var(--ut-arrive, 0) * 0.62);
   z-index: 3;
   mask-image: radial-gradient(circle at 50% 46%, #000 5%, rgba(0,0,0,0.85) 24%, transparent 49%);
   -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 5%, rgba(0,0,0,0.85) 24%, transparent 49%);
@@ -4396,19 +4396,11 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
   border-radius: 50%; pointer-events: none; z-index: 4; mix-blend-mode: screen;
   background: repeating-radial-gradient(circle at 50% 50%,
       rgba(255,255,255,0.42) 0 1px, transparent 1px 11px);
-  opacity: calc(var(--ut-arrive, 0) * 0.30);
+  opacity: calc(var(--ut-arrive, 0) * 0.18);
   mask-image: radial-gradient(circle, transparent 16%, #000 38%, rgba(0,0,0,0.45) 58%, transparent 72%);
   -webkit-mask-image: radial-gradient(circle, transparent 16%, #000 38%, rgba(0,0,0,0.45) 58%, transparent 72%);
 }
-/* Travelling illumination: one thin band crossing the mandala as the arrival envelope peaks. */
-.lg-art-awaken::after {
-  content: ""; position: absolute; left: -12%; right: -12%; height: 9%;
-  top: calc(6% + (1 - var(--ut-arrive, 0)) * 66%);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55) 30%,
-    rgba(255,150,240,0.45) 50%, rgba(120,245,255,0.40) 70%, transparent);
-  filter: blur(7px); mix-blend-mode: screen;
-  opacity: calc(var(--ut-arrive, 0) * 0.75);
-}
+
 
 @media (prefers-reduced-motion: reduce) {
   .lgx-lobe i, .lg-art-shift, .lg-art-awaken { opacity: 0 !important; }
