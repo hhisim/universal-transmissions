@@ -64,6 +64,29 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
     return () => mq.removeEventListener?.("change", sync);
   }, []);
 
+  // The passage must begin at the emblem's painted edge, not at a fixed offset. The rotor is
+  // rotated, so its bounding box overhangs; the painted mark is a circle of the rotor's width.
+  // Publishing the measured distance lets the existing SVG start exactly where the light does.
+  useEffect(() => {
+    const publishRise = () => {
+      const rotor = containerRef.current?.querySelector(".lgx-rotor") as HTMLElement | null;
+      const veil = document.querySelector(".lg-veil") as HTMLElement | null;
+      if (!rotor || !veil) return;
+      const rr = rotor.getBoundingClientRect();
+      const vr = veil.getBoundingClientRect();
+      const circleBottom = rr.top + rr.height / 2 + rotor.offsetWidth / 2;
+      const rise = Math.max(0, Math.round(vr.top - circleBottom + 10));
+      document.documentElement.style.setProperty("--lgv-rise", `${rise}px`);
+    };
+    publishRise();
+    const id = window.setInterval(publishRise, 500);
+    window.addEventListener("resize", publishRise);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("resize", publishRise);
+    };
+  }, []);
+
   // Trigger starburst at canvas center — DISABLED: removed click trigger
   const triggerStarburst = useCallback(() => {
     // Starburst removed from click — homepage no longer triggers on interaction
@@ -489,6 +512,13 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
           <div className="lgx-chroma absolute inset-0 flex items-center justify-center" style={{ opacity: 0.62 }}>
             <img src="/logo-white.svg" alt="" className="w-full h-full" />
           </div>
+
+          {/* ── EMISSION POINTS — the three lobes themselves, rotating with the mark ── */}
+          <span className="lgx-lobes" aria-hidden="true">
+            <span className="lgx-lobe lgx-lobe--m"><i /></span>
+            <span className="lgx-lobe lgx-lobe--w" style={{ transform: "rotate(120deg)" }}><i /></span>
+            <span className="lgx-lobe lgx-lobe--c" style={{ transform: "rotate(240deg)" }}><i /></span>
+          </span>
         </div>
       </div>
 

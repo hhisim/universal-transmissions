@@ -4331,3 +4331,79 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
   overflow: visible !important;
 }
 @media (max-width: 767px) { .lg-veil-streams { height: calc(100% + 46px) !important; } }
+
+
+/* ── THE TRANSMISSION NOW BEGINS AT THE EMBLEM ───────────────────────────────────────────
+   The existing passage is measured up to the painted circle's lower edge (--lgv-rise is
+   published from the rotor's real geometry) and passes behind the copy, so the first thing
+   the eye sees is light leaving the lobes rather than a line starting under the buttons.
+   Nothing here moves layout: the band's box is unchanged, only its painted SVG is taller. */
+.lg-veil { overflow: visible !important; z-index: 3 !important; }
+.lg-veil-streams {
+  top: calc(-1 * var(--lgv-rise, 0px)) !important;
+  height: calc(100% + var(--lgv-rise, 0px) + 78px) !important;
+  bottom: auto !important;
+  overflow: visible !important;
+}
+
+/* Emission points: the mark's own three lobes, carrying the shared --ut-emit envelope. */
+.lgx-lobes { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
+.lgx-lobe { position: absolute; inset: 0; pointer-events: none; }
+.lgx-lobe i {
+  position: absolute; left: 50%; top: 8.5%; width: 12px; height: 12px; margin-left: -6px;
+  border-radius: 50%; display: block;
+  opacity: calc(var(--ut-emit, 0) * 0.95);
+  transform: scale(calc(0.5 + var(--ut-emit, 0) * 0.95));
+  transition: opacity 90ms linear;
+}
+.lgx-lobe i::after {
+  content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 42px;
+  margin-left: -1px; filter: blur(1.6px); opacity: 0.85;
+}
+.lgx-lobe--m i { background: radial-gradient(circle, #fff 0%, #ff2bd6 46%, transparent 72%);
+  box-shadow: 0 0 10px 2px rgba(255,43,214,0.85), 0 0 28px 9px rgba(255,43,214,0.30); }
+.lgx-lobe--m i::after { background: linear-gradient(to bottom, #ff2bd6, transparent); }
+.lgx-lobe--w i { background: radial-gradient(circle, #fff 0%, #f5f0ff 50%, transparent 74%);
+  box-shadow: 0 0 10px 2px rgba(245,240,255,0.85), 0 0 26px 8px rgba(212,168,71,0.28); }
+.lgx-lobe--w i::after { background: linear-gradient(to bottom, #f5f0ff, transparent); }
+.lgx-lobe--c i { background: radial-gradient(circle, #fff 0%, #22d3ee 46%, transparent 72%);
+  box-shadow: 0 0 10px 2px rgba(34,211,238,0.85), 0 0 28px 9px rgba(34,211,238,0.30); }
+.lgx-lobe--c i::after { background: linear-gradient(to bottom, #22d3ee, transparent); }
+
+/* ── THE ARTWORK'S OWN RESPONSE ──────────────────────────────────────────────────────────
+   Two copies of the same plate, displaced a few pixels and screened inside the mandala's
+   radius, produce real spectral separation on the geometry that is already there. The
+   awakening ring is a masked interference pattern expanding through the same circles. No
+   global brightness, no rectangle glow, no new imagery. */
+.lg-art-shift {
+  position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important;
+  object-fit: cover !important; pointer-events: none !important;
+  mix-blend-mode: screen;
+  opacity: calc(var(--ut-arrive, 0) * 0.34);
+  z-index: 3;
+  mask-image: radial-gradient(circle at 50% 46%, #000 5%, rgba(0,0,0,0.85) 24%, transparent 49%);
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 5%, rgba(0,0,0,0.85) 24%, transparent 49%);
+  will-change: transform, opacity;
+}
+.lg-art-shift--m { transform: translate3d(calc(var(--ut-arrive, 0) * -3.2px), calc(var(--ut-arrive, 0) * -0.8px), 0) scale(1.008);
+  filter: hue-rotate(302deg) saturate(1.75) contrast(1.06); }
+.lg-art-shift--c { transform: translate3d(calc(var(--ut-arrive, 0) * 3.2px), calc(var(--ut-arrive, 0) * 0.8px), 0) scale(1.008);
+  filter: hue-rotate(154deg) saturate(1.75) contrast(1.06); }
+
+.lg-art-awaken {
+  position: absolute; left: 50%; top: 46%; width: 58%; aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(calc(0.52 + var(--ut-arrive, 0) * 0.82));
+  border-radius: 50%; pointer-events: none; z-index: 4; mix-blend-mode: screen;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.55) 0 1px, transparent 1px 8px),
+    conic-gradient(from calc(var(--ut-arrive, 0) * 220deg), rgba(255,43,214,0) 0deg,
+      rgba(255,43,214,0.42) 92deg, rgba(34,211,238,0.42) 196deg, rgba(212,168,71,0.38) 268deg,
+      rgba(255,43,214,0) 360deg);
+  opacity: calc(var(--ut-arrive, 0) * 0.5);
+  mask-image: radial-gradient(circle, transparent 12%, #000 34%, rgba(0,0,0,0.55) 56%, transparent 74%);
+  -webkit-mask-image: radial-gradient(circle, transparent 12%, #000 34%, rgba(0,0,0,0.55) 56%, transparent 74%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lgx-lobe i, .lg-art-shift, .lg-art-awaken { opacity: 0 !important; }
+}

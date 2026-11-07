@@ -211,18 +211,18 @@ export default function HomePage() {
               </filter>
             </defs>
             <g className="lgv-solid">
-              <path d="M352,6 C 430,120 300,300 372,520 C 420,690 330,900 500,1058" stroke="#ff2bd6" strokeWidth="2.8" fill="none" strokeLinecap="round" />
-              <path d="M392,10 C 452,150 342,318 414,534 C 460,706 360,918 500,1058" stroke="#f0abfc" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-              <path d="M512,2 C 518,160 500,330 510,548 C 520,742 504,928 500,1058" stroke="#e9d5ff" strokeWidth="1" fill="none" strokeLinecap="round" />
-              <path d="M648,6 C 570,120 700,300 628,520 C 580,690 670,900 500,1058" stroke="#22d3ee" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-              <path d="M604,10 C 548,150 658,318 586,534 C 540,706 640,918 500,1058" stroke="#a5f3fc" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              <path d="M392,0 C 470,120 340,300 412,520 C 460,690 370,900 500,1058" stroke="#ff2bd6" strokeWidth="2.8" fill="none" strokeLinecap="round" />
+              <path d="M428,4 C 488,150 378,318 450,534 C 496,706 396,918 500,1058" stroke="#f0abfc" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              <path d="M500,0 C 506,160 488,330 498,548 C 508,742 492,928 500,1058" stroke="#e9d5ff" strokeWidth="1" fill="none" strokeLinecap="round" />
+              <path d="M608,0 C 530,120 660,300 588,520 C 540,690 630,900 500,1058" stroke="#22d3ee" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+              <path d="M572,4 C 512,150 622,318 550,534 C 504,706 604,918 500,1058" stroke="#a5f3fc" strokeWidth="1.2" fill="none" strokeLinecap="round" />
             </g>
             <g className="lgv-spectral">
-              <path pathLength="1000" className="lgv-path lgv-path--m" d="M352,6 C 430,120 300,300 372,520 C 420,690 330,900 500,1058" stroke="url(#lgvM)" />
-              <path pathLength="1000" className="lgv-path lgv-path--c" d="M648,6 C 570,120 700,300 628,520 C 580,690 670,900 500,1058" stroke="url(#lgvC)" />
-              <path pathLength="1000" className="lgv-path lgv-path--f1" d="M392,10 C 452,150 342,318 414,534 C 460,706 360,918 500,1058" stroke="url(#lgvM)" />
-              <path pathLength="1000" className="lgv-path lgv-path--f2" d="M604,10 C 548,150 658,318 586,534 C 540,706 640,918 500,1058" stroke="url(#lgvC)" />
-              <path pathLength="1000" className="lgv-path lgv-path--w" d="M512,2 C 518,160 500,330 510,548 C 520,742 504,928 500,1058" stroke="url(#lgvW)" />
+              <path pathLength="1000" className="lgv-path lgv-path--m" d="M392,0 C 470,120 340,300 412,520 C 460,690 370,900 500,1058" stroke="url(#lgvM)" />
+              <path pathLength="1000" className="lgv-path lgv-path--c" d="M608,0 C 530,120 660,300 588,520 C 540,690 630,900 500,1058" stroke="url(#lgvC)" />
+              <path pathLength="1000" className="lgv-path lgv-path--f1" d="M428,4 C 488,150 378,318 450,534 C 496,706 396,918 500,1058" stroke="url(#lgvM)" />
+              <path pathLength="1000" className="lgv-path lgv-path--f2" d="M572,4 C 512,150 622,318 550,534 C 504,706 604,918 500,1058" stroke="url(#lgvC)" />
+              <path pathLength="1000" className="lgv-path lgv-path--w" d="M500,0 C 506,160 488,330 498,548 C 508,742 492,928 500,1058" stroke="url(#lgvW)" />
             </g>
             <ellipse className="lgv-wave lgv-wave--1" cx="500" cy="1020" rx="72" ry="16" />
           </svg>
@@ -251,6 +251,23 @@ export default function HomePage() {
               <span className="lg-transmission-mark lg-transmission-mark--tr" aria-hidden="true" />
               <span className="lg-transmission-mark lg-transmission-mark--bl" aria-hidden="true" />
               <span className="lg-transmission-mark lg-transmission-mark--br" aria-hidden="true" />
+              <Image
+                src={featuredTransmission.images[0]}
+                alt=""
+                aria-hidden
+                fill
+                sizes="(max-width: 760px) 96vw, (max-width: 1100px) 92vw, 800px"
+                className="lg-art-shift lg-art-shift--m"
+              />
+              <Image
+                src={featuredTransmission.images[0]}
+                alt=""
+                aria-hidden
+                fill
+                sizes="(max-width: 760px) 96vw, (max-width: 1100px) 92vw, 800px"
+                className="lg-art-shift lg-art-shift--c"
+              />
+              <span className="lg-art-awaken" aria-hidden="true" />
               <span className="lg-art-resonance" aria-hidden="true" />
               <span className="lg-art-lens" aria-hidden="true" />
             </div>
