@@ -242,9 +242,9 @@ export default function HomePage() {
                 src={featuredTransmission.images[0]}
                 alt={featuredTransmission.title}
                 width={1200}
-                height={1200}
+                height={776}
                 priority
-                sizes="(max-width: 760px) 92vw, (max-width: 1100px) 46vw, 640px"
+                sizes="(max-width: 760px) 96vw, (max-width: 1100px) 92vw, 800px"
                 style={{ width: "100%", height: "auto" }}
               />
               <span className="lg-transmission-mark lg-transmission-mark--tl" aria-hidden="true" />
