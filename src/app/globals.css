@@ -4378,17 +4378,17 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
 .lg-art-shift {
   position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important;
   object-fit: cover !important; pointer-events: none !important;
-  mix-blend-mode: difference;
-  opacity: calc(var(--ut-arrive, 0) * 0.62);
+  mix-blend-mode: screen;
+  opacity: calc(var(--ut-arrive, 0) * 0.95);
   z-index: 3;
   mask-image: radial-gradient(circle at 50% 46%, #000 5%, rgba(0,0,0,0.85) 24%, transparent 49%);
   -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 5%, rgba(0,0,0,0.85) 24%, transparent 49%);
   will-change: transform, opacity;
 }
 .lg-art-shift--m { transform: translate3d(calc(var(--ut-arrive, 0) * -2.8px), calc(var(--ut-arrive, 0) * -0.7px), 0) scale(1.004);
-  filter: hue-rotate(302deg) saturate(2.1) contrast(1.12); }
+  filter: hue-rotate(302deg) saturate(2.6) contrast(3.2) brightness(0.32); }
 .lg-art-shift--c { transform: translate3d(calc(var(--ut-arrive, 0) * 2.8px), calc(var(--ut-arrive, 0) * 0.7px), 0) scale(1.004);
-  filter: hue-rotate(154deg) saturate(2.1) contrast(1.12); }
+  filter: hue-rotate(154deg) saturate(2.6) contrast(3.2) brightness(0.32); }
 
 .lg-art-awaken {
   position: absolute; left: 50%; top: 46%; width: 58%; aspect-ratio: 1;
