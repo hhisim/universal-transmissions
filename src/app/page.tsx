@@ -200,6 +200,15 @@ export default function HomePage() {
                 <stop offset="40%" stopColor="#f5f0ff" stopOpacity="0.85" />
                 <stop offset="100%" stopColor="#d4a847" stopOpacity="0.9" />
               </linearGradient>
+              <filter id="lgvGlow" x="-40%" y="-40%" width="180%" height="180%" colorInterpolationFilters="sRGB">
+                <feGaussianBlur stdDeviation="2.4" result="core" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="halo" />
+                <feMerge>
+                  <feMergeNode in="halo" />
+                  <feMergeNode in="core" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
             <g className="lgv-solid">
               <path d="M352,6 C 430,120 300,300 372,520 C 420,690 330,900 500,1058" stroke="#ff2bd6" strokeWidth="2.8" fill="none" strokeLinecap="round" />
