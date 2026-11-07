@@ -4161,7 +4161,7 @@ body::-webkit-scrollbar-thumb:hover {
 .lg-veil {
   position: relative !important;
   margin: 24px auto 0 !important;
-  height: clamp(230px, 30vh, 300px) !important;
+  height: clamp(196px, 24vh, 248px) !important;
   width: 100% !important;
   background: transparent !important;
 }
@@ -4278,7 +4278,7 @@ body::-webkit-scrollbar-thumb:hover {
 @media (max-width: 767px) {
   .ut-logo-hero-canvas { --mark: min(300px, 76vw); }
   .ut-logo-hero-copy { margin-top: 30px !important; }
-  .lg-veil { margin-top: 24px !important; height: clamp(210px, 27vh, 260px) !important; }
+  .lg-veil { margin-top: 20px !important; height: clamp(180px, 22vh, 226px) !important; }
 }
 
 /* decorative panels that were washing over the page */
