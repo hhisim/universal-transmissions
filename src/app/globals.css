@@ -4319,3 +4319,15 @@ body::-webkit-scrollbar-thumb:hover {
 /* decorative SVG may extend past the viewport; the page must not scroll sideways because of it */
 html, body { overflow-x: clip !important; max-width: 100% !important; }
 .lg-veil, .lg-veil-streams { max-width: 100% !important; }
+
+
+/* The passage stops 20 units short of the veil floor, which reads as a visible gap above the
+   plate. The same SVG is extended over the plate's top edge so the filaments terminate inside
+   the artwork instead of hovering above it. No layout box moves. */
+.lg-veil { z-index: 3 !important; }
+.lg-veil-streams {
+  height: calc(100% + 78px) !important;
+  bottom: auto !important;
+  overflow: visible !important;
+}
+@media (max-width: 767px) { .lg-veil-streams { height: calc(100% + 46px) !important; } }

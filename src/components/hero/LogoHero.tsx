@@ -53,6 +53,16 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
   const glyphDropsRef = useRef<GlyphDrop[]>([]);
   const isMobileRef = useRef(false);
   const autoPulseTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  // One source of truth for the reduced-motion preference, shared by the JSX and the loop.
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
 
   // Trigger starburst at canvas center — DISABLED: removed click trigger
   const triggerStarburst = useCallback(() => {
@@ -491,7 +501,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
         style={{
           zIndex: 6,
           background: "linear-gradient(90deg, transparent, rgba(217,70,239,0.12), transparent)",
-          top: `${motionQuery.matches ? 50 : ((timeRef.current * 35) % 100)}%`,
+          top: `${reducedMotion ? 50 : ((timeRef.current * 35) % 100)}%`,
         }}
       />
 
