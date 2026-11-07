@@ -169,6 +169,7 @@ const utSupabaseAdmin = new Proxy({} as SupabaseClient, {
   },
 });
 import Stripe from "stripe";
+import { cancelPendingOrderForExpiredSession, isAbandonedCheckout } from "@/lib/order-expiry";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -514,6 +515,38 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { received: true, error: "unverifiable_paid_total", session: session.id },
           { status: 422 }
+        );
+      }
+      break;
+    }
+
+    /* An abandoned checkout. Checkout created a `pending` row so a paid webhook could always find
+       one; when Stripe expires the session, nothing else closes that row. The transition is
+       pending → cancelled only: paid, fulfilled and already-cancelled rows are never touched, and
+       the update is filtered on `status = pending` so a replay is a no-op. No amount, email,
+       payment intent or shipping field is written, and nothing is fulfilled or notified. */
+    case "checkout.session.expired": {
+      const expiredSession = event.data.object as Stripe.Checkout.Session;
+      if (!isAbandonedCheckout(expiredSession as never)) {
+        console.log(
+          `checkout.session.expired ${expiredSession.id}: not an abandoned one-off checkout ` +
+            `(mode=${String(expiredSession.mode)}, status=${String(expiredSession.status)}, ` +
+            `payment_status=${String(expiredSession.payment_status)}) — no order change`
+        );
+        break;
+      }
+      try {
+        const result = await cancelPendingOrderForExpiredSession(utSupabaseAdmin, expiredSession.id);
+        console.log(
+          `checkout.session.expired ${expiredSession.id}: cancelled ${result.cancelled} pending order row(s)` +
+            (result.ids.length ? ` [${result.ids.join(", ")}]` : " (already cancelled or absent)")
+        );
+      } catch (err) {
+        /* Non-2xx so Stripe retries; the operation is idempotent, so a retry cannot over-cancel. */
+        console.error("Failed to cancel the pending order for an expired session:", err);
+        return NextResponse.json(
+          { received: true, error: "order_cancel_failed", session: expiredSession.id },
+          { status: 500 }
         );
       }
       break;
