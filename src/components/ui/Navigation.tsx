@@ -224,17 +224,6 @@ export default function Navigation() {
       }}
     >
       <span aria-hidden="true" className="skip-to-content-target" />
-      <style>{`
-        header .nav-link:focus-visible,
-        header .nav-constellation:focus-visible,
-        header button:focus-visible,
-        header ul[role="menu"] a:focus-visible,
-        header [role="menuitem"]:focus-visible {
-          outline: 2px solid #22d3ee;
-          outline-offset: 3px;
-          border-radius: 2px;
-        }
-      `}</style>
       <nav className="container-ut flex items-center justify-between h-16" aria-label="Primary">
         <Link href="/" className="flex flex-col items-start">
           <span className="font-display text-sm tracking-widest" style={{ color: "var(--ut-magenta)" }}>
@@ -367,12 +356,6 @@ export default function Navigation() {
                 style={{ filter: "drop-shadow(0 0 6px rgba(0,229,255,0.6)) drop-shadow(0 0 12px rgba(212,168,71,0.4))" }}
                 className="transition-all duration-300 group-hover:opacity-100 opacity-70"
               >
-                <style>{`
-                  @keyframes logoSpin {
-                    0%   { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                  }
-                `}</style>
                 <g style={{ animation: "logoSpin 20s linear infinite", transformOrigin: "50px 50px" }}>
                   <circle cx="50" cy="28" r="22" stroke="#00e5ff" strokeWidth="1.5" fill="none" opacity="0.9" />
                   <circle cx="50" cy="28" r="22" stroke="#d4a847" strokeWidth="1.5" fill="none" opacity="0.6" transform="rotate(60 50 50)" />

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ReliquaryChamber from "@/components/gallery/reliquary/ReliquaryChamber";
+import ReliquaryScene from "@/components/gallery/reliquary/ReliquaryScene";
 import { artworks } from "@/data/artworks";
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default function ReliquaryPage() {
   return (
     <main>
-      <ReliquaryChamber />
+      <ReliquaryScene />
       <noscript>
         <div style={{ padding: "96px 24px", color: "#eef0ff" }}>
           <h1 style={{ fontFamily: "Cinzel Decorative, serif", letterSpacing: ".3em" }}>

@@ -4405,3 +4405,21 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
 @media (prefers-reduced-motion: reduce) {
   .lgx-lobe i, .lg-art-shift, .lg-art-awaken { opacity: 0 !important; }
 }
+
+
+/* Moved out of the inline <style> blocks in Navigation.tsx: React cannot
+   hydrate raw text inside <style>, which was raising four site-wide
+   hydration errors (#425/#418/#423). */
+header .nav-link:focus-visible,
+header .nav-constellation:focus-visible,
+header button:focus-visible,
+header ul[role="menu"] a:focus-visible,
+header [role="menuitem"]:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+@keyframes logoSpin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
