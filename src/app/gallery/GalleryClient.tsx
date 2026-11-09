@@ -44,6 +44,7 @@ import DriveGrid from "@/components/gallery/DriveGrid";
 import WorkPlate from "@/components/gallery/WorkPlate";
 import WorkViewer from "@/components/gallery/WorkViewer";
 import GlyphField from "@/components/gallery/GlyphField";
+import ZalgoText from "@/components/ui/ZalgoText";
 import {
   COLLECTION_SIZE,
   SORTS,
@@ -284,7 +285,9 @@ export default function GalleryClient() {
             [ {COLLECTION_SIZE} works · {gallerySeries().filter((x) => x.id !== "other").length} series ]
           </p>
           <p className="ut-entrance-kicker">The Living Grimoire</p>
-          <h1 className="ut-entrance-title">Gallery</h1>
+          <h1 className="ut-entrance-title font-display glow-cyan">
+            <ZalgoText text="Gallery" intensity="moderate" />
+          </h1>
           <p className="ut-collection-lede">
             The complete visual lexicon. Each piece is a transmission — a message encoded in
             geometry, light, and sacred form. Wander the whole collection, or go straight to a work.

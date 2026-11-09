@@ -47,7 +47,7 @@
   width: 120%;
   height: 106%;
   color: #cfc7e4;
-  opacity: 0.5;
+  opacity: 0.38;
   z-index: 0;
   pointer-events: none;
   animation: ut-glyph-breathe 26s ease-in-out infinite;
@@ -72,12 +72,20 @@
 .ut-collection-m12 .ut-entrance-title {
   margin: 0;
   font-family: var(--font-heading, inherit);
-  font-size: clamp(3.4rem, 9vw, 7rem);
-  line-height: 0.92;
+  font-size: clamp(3.2rem, 8.4vw, 6.6rem);
+  /* the house treatment throws marks above and below the line: give them room rather than crop them */
+  line-height: 1.06;
+  padding: 0.12em 0.06em 0.06em;
+  overflow: visible;
   letter-spacing: -0.02em;
   color: #f6f3ff;
   text-wrap: balance;
   text-shadow: 0 0 60px color-mix(in oklab, var(--ambient-glow, #cb4db5) 40%, transparent);
+}
+
+.ut-collection-m12 .ut-entrance-title .zalgo-animate,
+.ut-collection-m12 .ut-entrance-title > span {
+  display: inline-block;
 }
 
 .ut-collection-m12 .ut-collection-head {
