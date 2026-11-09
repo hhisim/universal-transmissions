@@ -175,17 +175,18 @@ export default function PathEmblem({ slug }: { slug: PathEmblemSlug }) {
           left: 10,
           right: 10,
           bottom: 8,
-          fontSize: 8,
-          letterSpacing: "0.24em",
+          fontSize: 9,
+          letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: `color-mix(in oklab, ${mark.accent} 78%, white)`,
-          opacity: 0.72,
-          lineHeight: 1.5,
+          color: `color-mix(in oklab, ${mark.accent} 40%, white)`,
+          opacity: 0.95,
+          lineHeight: 1.55,
+          textShadow: "0 1px 6px rgba(0,0,0,0.95)",
         }}
       >
         {mark.label}
         <br />
-        <span style={{ opacity: 0.6 }}>{mark.work}</span>
+        <span style={{ opacity: 0.78 }}>{mark.work}</span>
       </figcaption>
     </figure>
   );
