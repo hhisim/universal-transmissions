@@ -12,6 +12,7 @@ import {
   stopNeighbours,
   stopOracleHref,
 } from "@/lib/guided-paths";
+import PathRail from "@/components/visuals/PathRail";
 
 export const revalidate = 300;
 
@@ -33,6 +34,12 @@ export function generateMetadata({ params }: Props): Metadata {
     description: path.summary,
   };
 }
+
+const PATH_ACCENT: Record<string, string> = {
+  "sound-into-form": "#00e5ff",
+  "language-into-glyph": "#a855f7",
+  "symbol-into-correspondence": "#d4a847",
+};
 
 export default function GuidedPathPage({ params, searchParams }: Props) {
   const path = findGuidedPath(params.slug);
@@ -124,6 +131,13 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
               />
             </div>
           </div>
+          <PathRail
+            total={total}
+            current={number}
+            accent={PATH_ACCENT[path.slug] ?? "#00e5ff"}
+            hrefFor={stopHref}
+            labels={path.stops.map((s) => ("title" in s ? String((s as { title?: string }).title ?? "") : ""))}
+          />
           {unresolved.length > 0 && (
             <p className="font-body text-[12px] mt-3" style={{ color: "var(--ut-magenta)" }}>
               Stop{unresolved.length > 1 ? "s" : ""} {unresolved.join(", ")} of this path could
