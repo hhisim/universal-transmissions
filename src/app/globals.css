@@ -3955,12 +3955,28 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .ut-logo-hero-canvas { height: 58vh !important; }
+/* The sigil's artboard is square, so a fixed-height, centre-aligned canvas letters the mark
+   into the middle of a tall box and the page reads as empty drift again (measured 106 px of
+   dead space under the navbar). Size the mark by height, align it to the top of the canvas and
+   let the canvas take its own height from the mark. */
+.ut-logo-hero-canvas {
+  height: auto !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+.ut-logo-hero-canvas img {
+  height: 54vh !important;
+  width: auto !important;
+  max-width: 92vw !important;
+}
 /* the component ships its own #0a090e panel; the page is #060509, which reads as a
    visible rectangle behind the emblem. The emblem sits on the page, not in a box. */
 .ut-logo-hero-canvas { background: transparent !important; }
 
 @media (max-width: 760px) {
   .ut-logo-hero-canvas { height: 44vh !important; }
+  .ut-logo-hero-canvas img { height: 40vh !important; }
 }
 
 
