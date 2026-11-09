@@ -9,6 +9,7 @@ import ResearchOraclePortal from "@/components/research/ResearchOraclePortal";
 import { CYMATICS_CONNECTIONS } from "@/lib/research-connections";
 import { resolveResearchTopic, researchTopicId } from "@/lib/research-topics";
 import RoomField from "@/components/visuals/RoomField";
+import DetailStrip from "@/components/visuals/DetailStrip";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/cymatics" },
@@ -132,6 +133,7 @@ export default function ResearchCymaticsPage({
         <section className="py-20">
           <div className="container-ut">
             <div className="max-w-3xl mx-auto">
+            <DetailStrip files={["/artworks/hyperdimensional-harmonics/details/hh1.jpg", "/artworks/hyperdimensional-harmonics/details/hh2.jpg", "/artworks/hyperdimensional-harmonics/details/hh3.jpg"]} work="Hyperdimensional Harmonics" accent="var(--ut-cyan)" />
               <SectionReveal>
                 <div className="ut-card p-10 md:p-14">
                   <h2

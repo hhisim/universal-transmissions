@@ -7,6 +7,7 @@ import ResearchDescents from "@/components/research/ResearchDescents";
 import ResearchConnections from "@/components/research/ResearchConnections";
 import { SYMBOLISM_CONNECTIONS, SYMBOLISM_GAPS } from "@/lib/research-connections";
 import RoomField from "@/components/visuals/RoomField";
+import DetailStrip from "@/components/visuals/DetailStrip";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/symbolism" },
@@ -138,6 +139,7 @@ export default function ResearchSymbolismPage({
         <section className="py-20">
           <div className="container-ut">
             <div className="max-w-3xl mx-auto">
+            <DetailStrip files={["/artworks/tetragrammaton/details/Universal-Tranmissions-I---Tetragrammaton-01.jpg", "/artworks/tetragrammaton/details/Universal-Tranmissions-I---Tetragrammaton-02.jpg", "/artworks/tetragrammaton/details/Universal-Tranmissions-I---Tetragrammaton-03.jpg"]} work="Tetragrammaton" accent="var(--ut-purple)" />
               <SectionReveal>
                 <div className="ut-card p-10 md:p-14">
                   <h2

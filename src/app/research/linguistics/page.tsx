@@ -7,6 +7,7 @@ import ResearchDescents from "@/components/research/ResearchDescents";
 import ResearchConnections from "@/components/research/ResearchConnections";
 import { LINGUISTICS_CONNECTIONS, LINGUISTICS_GAPS } from "@/lib/research-connections";
 import RoomField from "@/components/visuals/RoomField";
+import DetailStrip from "@/components/visuals/DetailStrip";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/linguistics" },
@@ -131,6 +132,7 @@ export default function ResearchLinguisticsPage({
         <section className="py-20">
           <div className="container-ut">
             <div className="max-w-3xl mx-auto">
+            <DetailStrip files={["/artworks/linguistic-mystic/details/lm1.jpg", "/artworks/linguistic-mystic/details/lm2.jpg", "/artworks/linguistic-mystic/details/lm3.jpg"]} work="Linguistic Mystic" accent="var(--ut-magenta)" />
               <SectionReveal>
                 <div className="ut-card p-10 md:p-14">
                   <h2

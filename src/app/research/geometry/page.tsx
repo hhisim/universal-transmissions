@@ -9,6 +9,7 @@ import ResearchConnections from "@/components/research/ResearchConnections";
 import { GEOMETRY_CONNECTIONS, GEOMETRY_GAPS } from "@/lib/research-connections";
 import { resolveResearchTopic, researchTopicId } from "@/lib/research-topics";
 import RoomField from "@/components/visuals/RoomField";
+import DetailStrip from "@/components/visuals/DetailStrip";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/geometry" },
@@ -194,6 +195,7 @@ export default function ResearchGeometryPage({
         <section className="py-20">
           <div className="container-ut">
             <div className="max-w-3xl mx-auto">
+            <DetailStrip files={["/artworks/vitruvian-spirit/details/vs10.jpg", "/artworks/vitruvian-spirit/details/vs11.jpg", "/artworks/vitruvian-spirit/details/vs12.jpg"]} work="Vitruvian Spirit" accent="var(--ut-gold)" />
               <SectionReveal>
                 <div className="ut-card p-10 md:p-14">
                   <h2
