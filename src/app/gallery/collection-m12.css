@@ -60,6 +60,17 @@
 
 .ut-collection-m12 .ut-entrance-inner { position: relative; z-index: 1; }
 
+/* the house framed count strip, which only existed under .ut-gallery */
+.ut-collection-m12 .ut-entrance-inner > .ut-collection-count {
+  background: rgba(10, 9, 14, 0.86);
+  border: 1px solid rgba(237, 233, 246, 0.06);
+  padding: 0.55rem 0.8rem;
+  display: inline-block;
+  letter-spacing: 0.3em;
+  font-size: 10px;
+  color: var(--ut-cyan);
+}
+
 .ut-collection-m12 .ut-entrance-kicker {
   margin: clamp(16px, 2.4vh, 26px) 0 0.55rem;
   font-family: var(--font-mono, monospace);
@@ -72,7 +83,7 @@
 .ut-collection-m12 .ut-entrance-title {
   margin: 0;
   font-family: var(--font-heading, inherit);
-  font-size: clamp(3.2rem, 8.4vw, 6.6rem);
+  font-size: clamp(3.6rem, 10vw, 8.2rem);
   /* the house treatment throws marks above and below the line: give them room rather than crop them */
   line-height: 1.06;
   padding: 0.12em 0.06em 0.06em;
@@ -80,6 +91,10 @@
   letter-spacing: -0.02em;
   color: #f6f3ff;
   text-wrap: balance;
+  text-shadow:
+    0 0 10px rgba(34, 211, 238, 0.5),
+    0 0 34px rgba(34, 211, 238, 0.34),
+    0 0 82px rgba(34, 211, 238, 0.16);
 }
 
 .ut-collection-m12 .ut-entrance-title .zalgo-animate,
