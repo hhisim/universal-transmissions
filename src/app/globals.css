@@ -4009,21 +4009,6 @@ body::-webkit-scrollbar-thumb:hover {
 /* give the emblem optical depth rather than a flat white mass: the three chromatic layers
    already exist in LogoHero - this only lets them separate at rest. */
 .ut-logo-hero-canvas img { filter: drop-shadow(0 0 46px rgba(190, 120, 255, 0.22)); }
-/* The sigil's artboard is square, so the rotor (fixed at 58% WIDTH, centred in a 58vh canvas)
-   letterboxes the mark into the middle of a tall box and the page reads as empty drift again -
-   measured 106 px of dead space under the navbar. Size the rotor by HEIGHT and align the stack
-   to the top of the canvas: the mark then opens directly under the bar. */
-.lgx-align { align-items: flex-start !important; }
-.lgx-rotor {
-  width: auto !important;
-  height: 48vh !important;
-  max-width: 92vw !important;
-}
-.ut-logo-hero-canvas img { height: 100% !important; width: 100% !important; }
-@media (max-width: 760px) {
-  .lgx-rotor { height: 42vh !important; }
-}
-
 
 .lg-action {
   position: relative;
@@ -4263,7 +4248,7 @@ body::-webkit-scrollbar-thumb:hover {
 .ut-logo-hero { padding-top: clamp(0px, 1.2vh, 12px) !important; }
 
 .ut-logo-hero-canvas {
-  --mark: min(560px, 78vw);
+  --mark: min(470px, 72vw);
   position: relative !important;
   display: flex !important;
   align-items: center !important;
@@ -4281,7 +4266,9 @@ body::-webkit-scrollbar-thumb:hover {
   position: absolute !important;
   inset: 0 !important;
   display: flex !important;
-  align-items: center !important;
+  /* was centre: the square sigil artboard letterboxed inside a tall stage, which is the
+     remaining dead space above the mark. The mark opens from the top of the stage. */
+  align-items: flex-start !important;
   justify-content: center !important;
 }
 .lgx-rotor {
