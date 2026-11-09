@@ -21,6 +21,7 @@ type Props = {
   artwork: Artwork;
   href: string;
   index: number;
+  accent?: string;
   returned?: boolean;
   onOpen: (el?: HTMLElement | null) => void;
   onNavigate?: () => void;
@@ -30,6 +31,7 @@ export default function WorkPlate({
   artwork,
   href,
   index,
+  accent,
   returned,
   onOpen,
   onNavigate,
@@ -44,7 +46,7 @@ export default function WorkPlate({
       className="ut-plate"
       data-work={artwork.slug}
       data-returned={returned ? "true" : undefined}
-      style={{ ["--i" as string]: String(index % 9) }}
+      style={{ ["--i" as string]: String(index % 9), ["--plate-glow" as string]: accent ?? "#cb4db5" }}
       onClick={(event) => {
         // let the browser do its own thing for modified clicks
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;

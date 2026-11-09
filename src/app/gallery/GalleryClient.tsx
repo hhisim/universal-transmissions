@@ -43,7 +43,7 @@ import TransmissionStream from "@/components/gallery/TransmissionStream";
 import DriveGrid from "@/components/gallery/DriveGrid";
 import WorkPlate from "@/components/gallery/WorkPlate";
 import WorkViewer from "@/components/gallery/WorkViewer";
-import CollectionHead from "@/components/gallery/CollectionHead";
+import GlyphField from "@/components/gallery/GlyphField";
 import {
   COLLECTION_SIZE,
   SORTS,
@@ -61,6 +61,7 @@ import {
   type Orientation,
 } from "@/lib/gallery-collection";
 import { artworks } from "@/data/artworks";
+import { spectrumFor } from "@/data/artwork-spectrum";
 import { ARTWORK_IMAGE_META } from "@/data/artwork-image-meta";
 
 /** Positions are kept per collection, so one visit cannot answer for another. */
@@ -213,6 +214,47 @@ export default function GalleryClient() {
     return () => window.clearTimeout(settle);
   }, [returnedTo, signature, shown.length]);
 
+  /* ── ambient response ──────────────────────────────────────────────────────
+     The field behind the passage is keyed to the work the visitor is actually looking at: the
+     plate nearest the eye-line publishes its measured colour, and the page answers. No fixed
+     house accent, no random animation — the collection lights itself. */
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>(".ut-collection-m12");
+    const plates = Array.from(document.querySelectorAll<HTMLElement>(".ut-plate"));
+    if (!root || plates.length === 0) return;
+
+    let frame = 0;
+    const pick = () => {
+      frame = 0;
+      const eye = window.innerHeight * 0.45;
+      let glow = "";
+      let bestDistance = Infinity;
+      for (const plate of plates) {
+        const box = plate.getBoundingClientRect();
+        if (box.bottom < 0 || box.top > window.innerHeight) continue;
+        const distance = Math.abs(box.top + box.height / 2 - eye);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          glow = getComputedStyle(plate).getPropertyValue("--plate-glow").trim();
+        }
+      }
+      if (glow && root.style.getPropertyValue("--ambient-glow").trim() !== glow) {
+        root.style.setProperty("--ambient-glow", glow);
+      }
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(pick);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    pick();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [shown]);
+
   const clearAll = () => {
     setSeries("all");
     setQ("");
@@ -226,8 +268,28 @@ export default function GalleryClient() {
 
   return (
     <div className="ut-collection-m12">
-      <section className="ut-entrance" data-gallery-entrance="true">
-        <CollectionHead />
+      <section
+        className="ut-entrance"
+        data-gallery-entrance="true"
+        style={
+          featured[0]
+            ? ({ ["--ambient-glow" as string]: spectrumFor(featured[0].slug).glow,
+                 ["--ambient-accent" as string]: spectrumFor(featured[0].slug).accent } as React.CSSProperties)
+            : undefined
+        }
+      >
+        <GlyphField />
+        <div className="ut-entrance-inner">
+          <p className="ut-collection-count">
+            [ {COLLECTION_SIZE} works · {gallerySeries().filter((x) => x.id !== "other").length} series ]
+          </p>
+          <p className="ut-entrance-kicker">The Living Grimoire</p>
+          <h1 className="ut-entrance-title">Gallery</h1>
+          <p className="ut-collection-lede">
+            The complete visual lexicon. Each piece is a transmission — a message encoded in
+            geometry, light, and sacred form. Wander the whole collection, or go straight to a work.
+          </p>
+        </div>
         {featured[0] && (
           <Link
             href={cardHref(featured[0].slug)}
@@ -490,6 +552,7 @@ export default function GalleryClient() {
                   href={cardHref(a.slug)}
                   index={i}
                   returned={returnedTo === a.slug}
+                  accent={spectrumFor(a.slug).glow}
                   onNavigate={() => rememberPlace(a.slug)}
                   onOpen={(el) => {
                     openerRef.current = el ?? null;

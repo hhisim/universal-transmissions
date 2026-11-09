@@ -1,17 +1,15 @@
 "use client";
 
 /**
- * WorkViewer — Gallery M1.2.
+ * WorkViewer — Gallery M1.2, refined.
  *
- * The selection state of the collection. It is deliberately not a 3D room: the
- * work is the only lit thing on the screen, at the largest size the viewport
- * allows, with its own words beside it. Escape closes, arrows step, and the
- * address still points at the work's real page so the visitor can leave the
- * viewer for the full record.
+ * The selection state of the collection. The work is already the richest object on screen, so
+ * the viewer gives it the whole field, answers it in its own measured colour, and puts the record
+ * beside it in reading order — where you are in the collection, what the work is called, when and
+ * how it was made, what it is about, and only then the way to the full page.
  *
- * Focus is sent to the close control on open and returned to the plate that
- * opened it on close, so keyboard users are never dropped at the top of the
- * document.
+ * Each control names the work it goes to, so stepping is a choice rather than a guess. Escape
+ * closes, arrows step, and the caller returns focus to the plate that opened it.
  */
 
 import { useCallback, useEffect, useRef } from "react";
@@ -19,6 +17,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Artwork } from "@/data/artworks";
 import { ARTWORK_IMAGE_META } from "@/data/artwork-image-meta";
+import { spectrumFor } from "@/data/artwork-spectrum";
 
 type Props = {
   works: Artwork[];
@@ -31,12 +30,14 @@ type Props = {
 export default function WorkViewer({ works, index, hrefFor, onClose, onStep }: Props) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const work = works[index];
+  const previousWork = index > 0 ? works[index - 1] : null;
+  const nextWork = index < works.length - 1 ? works[index + 1] : null;
 
   const step = useCallback(
     (delta: number) => {
-      const next = index + delta;
-      if (next < 0 || next >= works.length) return;
-      onStep(next);
+      const target = index + delta;
+      if (target < 0 || target >= works.length) return;
+      onStep(target);
     },
     [index, works.length, onStep]
   );
@@ -60,11 +61,11 @@ export default function WorkViewer({ works, index, hrefFor, onClose, onStep }: P
     };
     document.addEventListener("keydown", onKey);
 
-    const previous = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
+      document.body.style.overflow = previousOverflow;
     };
   }, [onClose, step]);
 
@@ -73,6 +74,7 @@ export default function WorkViewer({ works, index, hrefFor, onClose, onStep }: P
   const meta = ARTWORK_IMAGE_META[work.slug];
   const width = meta?.width ?? 1200;
   const height = meta?.height ?? 900;
+  const spectrum = spectrumFor(work.slug);
 
   return (
     <div
@@ -82,37 +84,41 @@ export default function WorkViewer({ works, index, hrefFor, onClose, onStep }: P
       aria-labelledby="ut-viewer-title"
       data-gallery-viewer="true"
       data-viewer-slug={work.slug}
+      style={{ ["--work-glow" as string]: spectrum.glow, ["--work-accent" as string]: spectrum.accent }}
     >
       <div className="ut-viewer-stage">
-        <Image
-          key={work.slug}
-          src={work.images[0]}
-          alt={work.title}
-          width={width}
-          height={height}
-          sizes="(max-width: 1100px) 92vw, 70vw"
-          priority
-        />
+        <span className="ut-viewer-field" aria-hidden="true" />
+
+        <figure className="ut-viewer-plate" key={work.slug}>
+          <Image
+            src={work.images[0]}
+            alt={work.title}
+            width={width}
+            height={height}
+            sizes="(max-width: 1100px) 92vw, 68vw"
+            priority
+          />
+        </figure>
 
         <button
           type="button"
           className="ut-viewer-nav"
           data-dir="prev"
           onClick={() => step(-1)}
-          disabled={index === 0}
-          aria-label="Previous work"
+          disabled={!previousWork}
+          aria-label={previousWork ? `Previous work: ${previousWork.title}` : "No previous work"}
         >
-          ←
+          <span aria-hidden="true">←</span>
         </button>
         <button
           type="button"
           className="ut-viewer-nav"
           data-dir="next"
           onClick={() => step(1)}
-          disabled={index === works.length - 1}
-          aria-label="Next work"
+          disabled={!nextWork}
+          aria-label={nextWork ? `Next work: ${nextWork.title}` : "No next work"}
         >
-          →
+          <span aria-hidden="true">→</span>
         </button>
       </div>
 
@@ -124,49 +130,49 @@ export default function WorkViewer({ works, index, hrefFor, onClose, onStep }: P
         aria-label="Close preview"
         data-viewer-close="true"
       >
-        Close ✕
+        Close <span aria-hidden="true">✕</span>
       </button>
 
       <aside className="ut-viewer-aside">
-        <p className="ut-viewer-kicker">
-          {String(index + 1).padStart(2, "0")} / {String(works.length).padStart(2, "0")}
-        </p>
+        <div className="ut-viewer-position">
+          <span className="ut-viewer-count">
+            <b>{String(index + 1).padStart(2, "0")}</b>
+            <span aria-hidden="true"> / </span>
+            {String(works.length).padStart(2, "0")}
+          </span>
+          <span className="ut-viewer-progress" aria-hidden="true">
+            <span style={{ transform: `scaleX(${(index + 1) / works.length})` }} />
+          </span>
+        </div>
+
         <h2 className="ut-viewer-title" id="ut-viewer-title">
           {work.title}
         </h2>
-        <p className="ut-viewer-desc">{work.description}</p>
 
-        <dl className="ut-viewer-facts">
-          <div>
-            <dt>Year</dt>
-            <dd>{work.year}</dd>
-          </div>
-          <div>
-            <dt>Medium</dt>
-            <dd>{work.medium}</dd>
-          </div>
-          <div>
-            <dt>Print</dt>
-            <dd>{work.prints === false ? "Not available" : "Available"}</dd>
-          </div>
-        </dl>
+        <p className="ut-viewer-meta">
+          <span>{work.year}</span>
+          <span aria-hidden="true">·</span>
+          <span>{work.medium}</span>
+        </p>
+
+        <p className="ut-viewer-desc">{work.description}</p>
 
         <div className="ut-viewer-actions">
           <Link className="ut-viewer-open" href={hrefFor(work.slug)} data-viewer-open={work.slug}>
-            Open full work →
+            Open full work <span aria-hidden="true">→</span>
           </Link>
-          <button type="button" className="ut-viewer-step" onClick={() => step(-1)} disabled={index === 0}>
-            ← Prev
-          </button>
-          <button
-            type="button"
-            className="ut-viewer-step"
-            onClick={() => step(1)}
-            disabled={index === works.length - 1}
-          >
-            Next →
-          </button>
         </div>
+
+        <nav className="ut-viewer-steps" aria-label="Browse the collection">
+          <button type="button" className="ut-viewer-step" onClick={() => step(-1)} disabled={!previousWork}>
+            <span className="ut-viewer-step-dir" aria-hidden="true">←</span>
+            <span className="ut-viewer-step-label">{previousWork ? previousWork.title : "Start of collection"}</span>
+          </button>
+          <button type="button" className="ut-viewer-step" onClick={() => step(1)} disabled={!nextWork}>
+            <span className="ut-viewer-step-label">{nextWork ? nextWork.title : "End of collection"}</span>
+            <span className="ut-viewer-step-dir" aria-hidden="true">→</span>
+          </button>
+        </nav>
       </aside>
     </div>
   );
