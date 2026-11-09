@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import GalleryClient from "./GalleryClient";
 import StaticCollection from "@/components/gallery/StaticCollection";
 import PageBackground from "@/components/scenes/PageBackground";
+import "./collection-m12.css";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {

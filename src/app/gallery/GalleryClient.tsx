@@ -41,9 +41,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import UTTVPlayer from "@/components/gallery/UTTVPlayer";
 import TransmissionStream from "@/components/gallery/TransmissionStream";
 import DriveGrid from "@/components/gallery/DriveGrid";
-import WorkCard from "@/components/gallery/WorkCard";
+import WorkPlate from "@/components/gallery/WorkPlate";
+import WorkViewer from "@/components/gallery/WorkViewer";
 import CollectionHead from "@/components/gallery/CollectionHead";
-import { connectionsForArtwork } from "@/lib/artwork-connections";
 import {
   COLLECTION_SIZE,
   SORTS,
@@ -90,6 +90,16 @@ export default function GalleryClient() {
   const [sort, setSort] = useState<GallerySort>(initial.sort);
   const [orientation, setOrientation] = useState<Orientation | "all">(initial.orientation);
   const [panel, setPanel] = useState<Panel>("works");
+  /* The selection state of the collection: the index of the work open in the viewer, or null.
+     It is deliberately view state rather than a route — the plates themselves are still links. */
+  const [viewer, setViewer] = useState<number | null>(null);
+  /* The element that opened the viewer. Closing puts the keyboard back where it was. */
+  const openerRef = useRef<HTMLElement | null>(null);
+  const closeViewer = useCallback(() => {
+    setViewer(null);
+    const opener = openerRef.current;
+    if (opener) requestAnimationFrame(() => opener.focus({ preventScroll: true }));
+  }, []);
   /* Only a work the registry publishes may become a return marker — a malformed or unknown
      value in the address leaves the collection fully usable instead of pointing at nothing. */
   const [returnedTo, setReturnedTo] = useState<string | null>(() => validWorkSlug(initial.work));
@@ -213,9 +223,50 @@ export default function GalleryClient() {
   const cardHref = (slug: string) =>
     `/gallery/${slug}${browseQuery({ series, q, sort, orientation })}`;
 
+
   return (
-    <>
-      <CollectionHead />
+    <div className="ut-collection-m12">
+      <section className="ut-entrance" data-gallery-entrance="true">
+        <CollectionHead />
+        {featured[0] && (
+          <Link
+            href={cardHref(featured[0].slug)}
+            className="ut-entrance-hero"
+            data-entrance-hero={featured[0].slug}
+            onClick={(event) => {
+              if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+              event.preventDefault();
+              rememberPlace(featured[0].slug);
+              const at = shown.findIndex((w) => w.slug === featured[0].slug);
+              openerRef.current = event.currentTarget as HTMLElement;
+              setViewer(at >= 0 ? at : null);
+            }}
+          >
+            <Image
+              src={featured[0].images[0]}
+              alt={featured[0].title}
+              width={ARTWORK_IMAGE_META[featured[0].slug]?.width ?? 1200}
+              height={ARTWORK_IMAGE_META[featured[0].slug]?.height ?? 900}
+              sizes="(max-width: 820px) 86vw, 520px"
+              priority
+            />
+            <span className="ut-entrance-caption">
+              <b>{featured[0].title}</b>
+              <span>{featured[0].year}</span>
+            </span>
+          </Link>
+        )}
+        <button
+          type="button"
+          className="ut-entrance-enter"
+          data-gallery-enter="true"
+          onClick={() => {
+            document.querySelector(".ut-collection-controls")?.scrollIntoView({ block: "start" });
+          }}
+        >
+          Enter the collection ↓
+        </button>
+      </section>
 
       {/* ── THE OPENING IS ARTWORK ─────────────────────────────────────────
           The works the archive marks as its own starting points, directly under the title so the
@@ -431,21 +482,34 @@ export default function GalleryClient() {
               </button>
             </p>
           ) : (
-            <div className="ut-collection" data-gallery-grid="true">
-              {shown.map((a) => (
-                <WorkCard
+            <div className="ut-atlas" data-gallery-grid="true">
+              {shown.map((a, i) => (
+                <WorkPlate
                   key={a.id}
                   artwork={a}
                   href={cardHref(a.slug)}
+                  index={i}
                   returned={returnedTo === a.slug}
-                  records={connectionsForArtwork(a.slug).length}
                   onNavigate={() => rememberPlace(a.slug)}
+                  onOpen={(el) => {
+                    openerRef.current = el ?? null;
+                    setViewer(i);
+                  }}
                 />
               ))}
             </div>
           )}
         </>
       )}
-    </>
+      {viewer !== null && shown[viewer] && (
+        <WorkViewer
+          works={shown}
+          index={viewer}
+          hrefFor={cardHref}
+          onClose={closeViewer}
+          onStep={setViewer}
+        />
+      )}
+    </div>
   );
 }
