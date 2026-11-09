@@ -73,35 +73,39 @@ export default function UniversalResonatorPage({
           </SectionReveal>
 
           <SectionReveal delay={0.1}>
-            <h1
-              className="font-display text-4xl md:text-6xl mb-5"
-              style={{ color: "var(--ut-white)" }}
-            >
-              The Universal Resonator
-            </h1>
-            <p
-              className="font-display text-lg md:text-xl mb-6"
-              style={{ color: "var(--ut-cyan)", opacity: 0.85, letterSpacing: "0.01em" }}
-            >
-              A 3D cymatics engine — vibration becoming geometry.
-            </p>
-            <div className="max-w-sm md:max-w-md mb-6 opacity-90">
-              <CymaticOrder />
+            {/* Text and figure sit side by side so the instrument's control is not pushed off the
+                first screen by a stacked diagram. Above md they share the row; below md they stack
+                in reading order. */}
+            <div className="grid gap-6 md:gap-10 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.85fr)] md:items-center mb-8">
+              <div>
+                <h1
+                  className="font-display text-4xl md:text-6xl mb-5"
+                  style={{ color: "var(--ut-white)" }}
+                >
+                  The Universal Resonator
+                </h1>
+                <p
+                  className="font-display text-lg md:text-xl mb-5"
+                  style={{ color: "var(--ut-cyan)", opacity: 0.85, letterSpacing: "0.01em" }}
+                >
+                  A 3D cymatics engine — vibration becoming geometry.
+                </p>
+                <p
+                  className="font-body text-base md:text-lg leading-relaxed max-w-2xl"
+                  style={{ color: "var(--ut-white-dim)", opacity: 0.8 }}
+                >
+                  This room is not an essay about resonance; it is the instrument. A driven plate is
+                  set in three dimensions, and the medium on it — sand, fluid, light — is given one
+                  task: to stop moving where the standing wave cancels and to gather where it does
+                  not. What you see gather is sound made visible as form. Choose the mode, the
+                  frequency and the medium, and watch a frequency resolve into a geometric figure.
+                  Nothing below runs until you start it.
+                </p>
+              </div>
+              <div className="opacity-90 max-w-sm md:max-w-none mx-auto md:mx-0 w-full">
+                <CymaticOrder />
+              </div>
             </div>
-          </SectionReveal>
-
-          <SectionReveal delay={0.15}>
-            <p
-              className="font-body text-base md:text-lg leading-relaxed max-w-3xl mb-8"
-              style={{ color: "var(--ut-white-dim)", opacity: 0.8 }}
-            >
-              This room is not an essay about resonance; it is the instrument. A driven plate is
-              set in three dimensions, and the medium on it — sand, fluid, light — is given one
-              task: to stop moving where the standing wave cancels and to gather where it does
-              not. What you see gather is sound made visible as form. Choose the mode, the
-              frequency and the medium, and watch a frequency resolve into a geometric figure.
-              Nothing below runs until you start it.
-            </p>
           </SectionReveal>
 
           <SectionReveal delay={0.2}>
