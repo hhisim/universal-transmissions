@@ -8,6 +8,7 @@ import ResearchDescents from "@/components/research/ResearchDescents";
 import ResearchConnections from "@/components/research/ResearchConnections";
 import { GEOMETRY_CONNECTIONS, GEOMETRY_GAPS } from "@/lib/research-connections";
 import { resolveResearchTopic, researchTopicId } from "@/lib/research-topics";
+import RoomField from "@/components/visuals/RoomField";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/geometry" },
@@ -113,6 +114,7 @@ export default function ResearchGeometryPage({
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
+          <RoomField variant="geometry" accent="var(--ut-gold)" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{

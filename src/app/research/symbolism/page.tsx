@@ -6,6 +6,7 @@ import ResearchPathways from "@/components/research/ResearchPathways";
 import ResearchDescents from "@/components/research/ResearchDescents";
 import ResearchConnections from "@/components/research/ResearchConnections";
 import { SYMBOLISM_CONNECTIONS, SYMBOLISM_GAPS } from "@/lib/research-connections";
+import RoomField from "@/components/visuals/RoomField";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/symbolism" },
@@ -58,6 +59,7 @@ export default function ResearchSymbolismPage({
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
+          <RoomField variant="symbolism" accent="var(--ut-purple)" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{

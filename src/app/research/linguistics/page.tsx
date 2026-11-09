@@ -6,6 +6,7 @@ import ResearchPathways from "@/components/research/ResearchPathways";
 import ResearchDescents from "@/components/research/ResearchDescents";
 import ResearchConnections from "@/components/research/ResearchConnections";
 import { LINGUISTICS_CONNECTIONS, LINGUISTICS_GAPS } from "@/lib/research-connections";
+import RoomField from "@/components/visuals/RoomField";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/linguistics" },
@@ -50,6 +51,7 @@ export default function ResearchLinguisticsPage({
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
+          <RoomField variant="linguistics" accent="var(--ut-magenta)" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{

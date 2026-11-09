@@ -8,6 +8,7 @@ import CymaticsConnections from "@/components/research/CymaticsConnections";
 import ResearchOraclePortal from "@/components/research/ResearchOraclePortal";
 import { CYMATICS_CONNECTIONS } from "@/lib/research-connections";
 import { resolveResearchTopic, researchTopicId } from "@/lib/research-topics";
+import RoomField from "@/components/visuals/RoomField";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/research/cymatics" },
@@ -46,6 +47,7 @@ export default function ResearchCymaticsPage({
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">
+          <RoomField variant="cymatics" accent="var(--ut-cyan)" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
