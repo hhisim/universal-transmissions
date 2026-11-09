@@ -26,7 +26,7 @@ export default function DetailStrip({
     <figure
       aria-label={`${work} — detail crops`}
       style={{
-        margin: "0 0 2.5rem",
+        margin: "0 0 2rem",
         padding: "0.9rem 0 0",
         borderTop: `1px solid color-mix(in oklab, ${accent} 26%, transparent)`,
       }}
@@ -77,23 +77,23 @@ export default function DetailStrip({
                 }}
               />
             </div>
-            <figcaption
-              className="font-mono"
-              style={{
-                marginTop: 6,
-                fontSize: 8,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: `color-mix(in oklab, ${accent} 55%, rgba(255,255,255,0.6))`,
-                opacity: 0.75,
-                lineHeight: 1.5,
-              }}
-            >
-              {work} · detail {String(i + 1).padStart(2, "0")}
-            </figcaption>
           </div>
         ))}
       </div>
+      <figcaption
+        className="font-mono"
+        style={{
+          marginTop: 10,
+          fontSize: 9,
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+          color: `color-mix(in oklab, ${accent} 45%, rgba(255,255,255,0.72))`,
+          opacity: 0.9,
+          textAlign: "right",
+        }}
+      >
+        {work} · details 01–0{Math.min(3, files.length)}
+      </figcaption>
     </figure>
   );
 }
