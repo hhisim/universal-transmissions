@@ -523,7 +523,7 @@
 .ut-viewer-nav:hover { color: #fff; background: rgba(6, 4, 12, 0.85); }
 .ut-viewer-nav[data-dir="prev"] { left: clamp(8px, 1.4vw, 20px); }
 .ut-viewer-nav[data-dir="next"] { right: clamp(8px, 1.4vw, 20px); }
-.ut-viewer-nav:disabled { opacity: 0.25; cursor: default; }
+.ut-viewer-nav:disabled { opacity: 0.12; border-color: transparent; cursor: default; }
 
 @keyframes ut-viewer-in {
   from { opacity: 0; }
@@ -542,10 +542,10 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(58% 62% at 46% 46%, color-mix(in oklab, var(--work-glow, #cb4db5) 30%, transparent), transparent 72%),
-    radial-gradient(40% 40% at 30% 70%, color-mix(in oklab, var(--work-accent, #7a6f8f) 18%, transparent), transparent 76%);
-  filter: blur(26px);
-  opacity: 0.9;
+    radial-gradient(62% 66% at 44% 46%, color-mix(in oklab, var(--work-glow, #cb4db5) 46%, transparent), transparent 74%),
+    radial-gradient(44% 44% at 28% 72%, color-mix(in oklab, var(--work-accent, #7a6f8f) 30%, transparent), transparent 78%);
+  filter: blur(20px);
+  opacity: 1;
   transition: background 700ms ease;
   z-index: 0;
 }
@@ -637,14 +637,14 @@
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(237, 233, 246, 0.56);
+  color: rgba(237, 233, 246, 0.70);
 }
 
 .ut-viewer-desc {
   margin: 0.35rem 0 0;
   font-size: 0.97rem;
   line-height: 1.78;
-  color: rgba(237, 233, 246, 0.82);
+  color: rgba(237, 233, 246, 0.90);
   max-height: 34vh;
   overflow-y: auto;
   padding-right: 0.4rem;
@@ -673,10 +673,11 @@
   font-size: 0.92rem;
   letter-spacing: 0.005em;
   text-transform: none;
-  color: rgba(237, 233, 246, 0.78);
+  color: rgba(237, 233, 246, 0.88);
 }
 
 .ut-viewer-step:last-child { justify-content: flex-end; text-align: right; }
+.ut-viewer-step:disabled { color: rgba(237, 233, 246, 0.34); }
 .ut-viewer-step:hover:not(:disabled) { color: #fff; border-bottom-color: color-mix(in oklab, var(--work-glow, #cb4db5) 60%, transparent); }
 .ut-viewer-step-dir { color: var(--work-glow, #cb4db5); font-size: 13px; }
 .ut-viewer-step-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
