@@ -47,7 +47,7 @@
   width: 120%;
   height: 106%;
   color: #cfc7e4;
-  opacity: 0.38;
+  opacity: 0.26;
   z-index: 0;
   pointer-events: none;
   animation: ut-glyph-breathe 26s ease-in-out infinite;
@@ -80,7 +80,6 @@
   letter-spacing: -0.02em;
   color: #f6f3ff;
   text-wrap: balance;
-  text-shadow: 0 0 60px color-mix(in oklab, var(--ambient-glow, #cb4db5) 40%, transparent);
 }
 
 .ut-collection-m12 .ut-entrance-title .zalgo-animate,

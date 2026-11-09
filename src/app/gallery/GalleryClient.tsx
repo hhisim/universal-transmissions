@@ -284,7 +284,6 @@ export default function GalleryClient() {
           <p className="ut-collection-count">
             [ {COLLECTION_SIZE} works · {gallerySeries().filter((x) => x.id !== "other").length} series ]
           </p>
-          <p className="ut-entrance-kicker">The Living Grimoire</p>
           <h1 className="ut-entrance-title font-display glow-cyan">
             <ZalgoText text="Gallery" intensity="moderate" />
           </h1>
