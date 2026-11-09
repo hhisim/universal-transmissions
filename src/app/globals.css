@@ -4243,6 +4243,8 @@ body::-webkit-scrollbar-thumb:hover {
   overflow: visible !important;
 }
 /* was clamp(84px, 10vh, 116px): the emblem floated a hand-width below the navbar */
+/* The hero's top padding was declared four separate times in this file (84-116px, 78-104px,
+   and twice at 0-12px). The last declaration is the only owner; the duplicates are gone. */
 .ut-logo-hero { padding-top: clamp(0px, 1.2vh, 12px) !important; }
 
 .ut-logo-hero-canvas {
@@ -4328,7 +4330,7 @@ body::-webkit-scrollbar-thumb:hover {
   height: auto !important;
   padding-bottom: 0 !important;
 }
-.ut-logo-hero { padding-top: clamp(78px, 9vh, 104px) !important; }
+.ut-logo-hero { padding-top: clamp(0px, 1.2vh, 12px) !important; }
 
 /* mobile: the band cannot exceed the viewport */
 @media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(272px, 70vw) !important; } }

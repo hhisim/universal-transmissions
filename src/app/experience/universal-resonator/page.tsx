@@ -85,7 +85,7 @@ export default function UniversalResonatorPage({
             >
               A 3D cymatics engine — vibration becoming geometry.
             </p>
-            <div className="max-w-xl mb-8 opacity-90">
+            <div className="max-w-sm md:max-w-md mb-6 opacity-90">
               <CymaticOrder />
             </div>
           </SectionReveal>
