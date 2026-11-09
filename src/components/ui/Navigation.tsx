@@ -225,12 +225,24 @@ export default function Navigation() {
     >
       <span aria-hidden="true" className="skip-to-content-target" />
       <nav className="container-ut flex items-center justify-between h-16" aria-label="Primary">
-        <Link href="/" className="flex flex-col items-start">
-          <span className="font-display text-sm tracking-widest" style={{ color: "var(--ut-magenta)" }}>
-            UT
-          </span>
-          <span className="font-heading text-[9px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-white-dim)" }}>
-            Universal Transmissions
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Universal Transmissions — home">
+          {/* the approved UT sigil, the same mark that turns on the homepage */}
+          <img
+            src="/logo-sigil-hero.svg"
+            alt=""
+            aria-hidden="true"
+            width={34}
+            height={34}
+            style={{
+              width: 34,
+              height: 34,
+              filter: "drop-shadow(0 0 6px rgba(0,229,255,0.45)) drop-shadow(0 0 14px rgba(217,70,239,0.25))",
+            }}
+          />
+          <span className="flex flex-col items-start">
+            <span className="font-heading text-[9px] tracking-[0.3em] uppercase" style={{ color: "var(--ut-white-dim)" }}>
+              Universal Transmissions
+            </span>
           </span>
         </Link>
 

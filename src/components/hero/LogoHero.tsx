@@ -483,7 +483,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             }}
           >
             <img
-              src="/logo-ut-hero.svg"
+              src="/logo-sigil-hero.svg"
               alt=""
               className="w-full h-full"
               style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(96%) saturate(3200%) hue-rotate(288deg) brightness(1.05)" }}
@@ -501,7 +501,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             }}
           >
             <img
-              src="/logo-ut-hero.svg"
+              src="/logo-sigil-hero.svg"
               alt=""
               className="w-full h-full"
               style={{ filter: "brightness(0) saturate(100%) invert(72%) sepia(88%) saturate(2400%) hue-rotate(148deg) brightness(1.02)" }}
@@ -510,7 +510,7 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
 
           {/* WHITE centre */}
           <div className="lgx-chroma absolute inset-0 flex items-center justify-center" style={{ opacity: 0.95 }}>
-            <img src="/logo-ut-hero.svg" alt="Universal Transmissions" className="w-full h-full" />
+            <img src="/logo-sigil-hero.svg" alt="Universal Transmissions" className="w-full h-full" />
           </div>
 
           {/* ── EMISSION POINTS — the three lobes themselves, rotating with the mark ── */}
