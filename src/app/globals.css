@@ -4405,3 +4405,27 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
 @media (prefers-reduced-motion: reduce) {
   .lgx-lobe i, .lg-art-shift, .lg-art-awaken { opacity: 0 !important; }
 }
+
+/* ============================================================================
+   Navigation — styles that used to be rendered inline.
+   ----------------------------------------------------------------------------
+   These two blocks sat inside <style> tags in Navigation.tsx. The server emits
+   such a tag in place, while React hoists it on the client, so the two trees
+   disagreed at that node on every page: React 418/423/425, site-wide, including
+   production. As a stylesheet there is no node to disagree about.
+   ========================================================================== */
+
+header .nav-link:focus-visible,
+header .nav-constellation:focus-visible,
+header button:focus-visible,
+header ul[role="menu"] a:focus-visible,
+header [role="menuitem"]:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@keyframes logoSpin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
