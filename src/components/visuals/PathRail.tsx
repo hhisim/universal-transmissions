@@ -58,14 +58,14 @@ export default function PathRail({
                   height: here ? 26 : 18,
                   flex: "0 0 auto",
                   borderRadius: "50%",
-                  border: `1px solid ${here ? accent : done ? `color-mix(in oklab, ${accent} 55%, transparent)` : "rgba(255,255,255,0.16)"}`,
+                  border: `1px solid ${here ? accent : done ? `color-mix(in oklab, ${accent} 55%, transparent)` : "rgba(255,255,255,0.32)"}`,
                   background: here ? `color-mix(in oklab, ${accent} 22%, #05050a)` : done ? `color-mix(in oklab, ${accent} 10%, #05050a)` : "#05050a",
                   boxShadow: here ? `0 0 0 4px color-mix(in oklab, ${accent} 12%, transparent), 0 0 18px color-mix(in oklab, ${accent} 40%, transparent)` : "none",
                   textDecoration: "none",
                   fontFamily: "var(--font-mono, monospace)",
                   fontSize: here ? 10 : 8,
                   letterSpacing: "0.04em",
-                  color: here ? `color-mix(in oklab, ${accent} 40%, white)` : done ? `color-mix(in oklab, ${accent} 60%, rgba(255,255,255,0.55))` : "rgba(255,255,255,0.4)",
+                  color: here ? `color-mix(in oklab, ${accent} 40%, white)` : done ? `color-mix(in oklab, ${accent} 60%, rgba(255,255,255,0.78))` : "rgba(255,255,255,0.68)",
                   transition: "border-color 240ms ease, box-shadow 240ms ease",
                 }}
               >
@@ -80,7 +80,7 @@ export default function PathRail({
                     minWidth: 18,
                     background: n < current
                       ? `linear-gradient(90deg, color-mix(in oklab, ${accent} 55%, transparent), color-mix(in oklab, ${accent} 25%, transparent))`
-                      : "linear-gradient(90deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06))",
+                      : "linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.12))",
                   }}
                 />
               )}
