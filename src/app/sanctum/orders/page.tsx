@@ -8,8 +8,6 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { supabase } from "@/lib/supabase-client";
 import { Package, Truck, CheckCircle, Clock, XCircle, Eye } from "lucide-react";
-import PageBackground from "@/components/scenes/PageBackground";
-
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "Pending", color: "var(--ut-white-faint)", icon: Clock },
   paid: { label: "Paid — Processing", color: "var(--ut-gold)", icon: CheckCircle },
@@ -72,7 +70,7 @@ export default function OrdersPage() {
 
   return (
     <>
-<PageBackground variant="sanctum" />      <main className="pt-24 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20 min-h-screen" style={{ background: "transparent" }}>
         <div className="container-ut max-w-4xl mx-auto">
           {/* Header */}
           <SectionReveal>

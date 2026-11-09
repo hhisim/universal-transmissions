@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import PageBackground from "@/components/scenes/PageBackground";
 import CodexIIGalleryClient from "./CodexIIGalleryClient";
 import { getSessionMember } from "@/lib/member-session";
 
@@ -18,13 +17,12 @@ export default async function CodexIIGalleryPage() {
 
   return (
     <>
-      <PageBackground variant="cymatics" />
 {isPaid ? (
         <CodexIIGalleryClient />
       ) : (
         <main
           className="pt-24 min-h-screen flex items-center justify-center"
-          style={{ background: "var(--ut-black)" }}
+          style={{ background: "transparent" }}
         >
           <div className="text-center max-w-lg px-4">
             <div

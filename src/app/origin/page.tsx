@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import SectionReveal from "@/components/ui/SectionReveal";
-import PageBackground from "@/components/scenes/PageBackground";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
@@ -17,8 +16,7 @@ export const metadata: Metadata = {
 export default function OriginPage() {
   return (
     <>
-      <PageBackground variant="about" />
-<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "transparent" }}>
 
         {/* ── HEADER ─────────────────────────────────── */}
         <section className="py-20" style={{ borderBottom: "1px solid rgba(0,229,255,0.06)" }}>

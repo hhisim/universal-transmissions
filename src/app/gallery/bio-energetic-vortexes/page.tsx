@@ -4,7 +4,6 @@ import Image from "next/image";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { artworks } from "@/data/artworks";
-import PageBackground from "@/components/scenes/PageBackground";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
@@ -21,7 +20,7 @@ const bioEnergeticArtworks = artworks.filter((a) =>
 export default function BioEnergeticVortexesPage() {
   return (
     <>
-<PageBackground variant="gallery" /> <main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "transparent" }}>
         <div className="container-ut">
           {/* Header */}
           <SectionReveal>

@@ -21,8 +21,6 @@ import {
   providerName,
 } from "@/data/destinations";
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
-import PageBackground from "@/components/scenes/PageBackground";
-
 interface Props {
   params: { slug: string };
 }
@@ -141,7 +139,7 @@ export default function ProductDetailPage({ params }: Props) {
 
   return (
     <>
-<PageBackground variant="sanctum" /> <main className="ut-foreground ut-shop pt-24 pb-20">
+<main className="ut-foreground ut-shop pt-24 pb-20">
         <div className="container-ut">
           {/* Success Banner */}
           {showSuccess && (

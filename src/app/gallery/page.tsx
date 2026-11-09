@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import GalleryClient from "./GalleryClient";
 import StaticCollection from "@/components/gallery/StaticCollection";
-import PageBackground from "@/components/scenes/PageBackground";
 import "./collection-m12.css";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
@@ -20,7 +19,6 @@ export default function GalleryPage() {
           section then covered both with an opaque sheet; the second canvas was work nobody
           could see. The sheet is now translucent, so the field reads faintly behind the works
           while every card and control keeps its own opaque surface. */}
-      <PageBackground variant="gallery" />
       <main className="pt-24 pb-20 ut-foreground ut-gallery" style={{ background: "rgba(4,3,9,0.74)" }}>
         <div className="container-ut">
           {/* The browse state lives in the URL, which is read on the client, so this section

@@ -1,10 +1,8 @@
 import Link from "next/link";
-import PageBackground from "@/components/scenes/PageBackground";
-
 export default function SuccessPage() {
   return (
     <>
-<PageBackground variant="sanctum" /> <main className="pt-32 pb-20 px-6 text-center min-h-screen" style={{ background: "var(--ut-black)" }}>
+<main className="pt-32 pb-20 px-6 text-center min-h-screen" style={{ background: "transparent" }}>
         <div className="max-w-lg mx-auto">
           <div className="text-6xl mb-6">✦</div>
           <h1 className="font-display text-3xl tracking-[0.15em] mb-6" style={{ color: "var(--ut-white)" }}>

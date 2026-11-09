@@ -372,7 +372,7 @@ export default function MemberPage() {
   if (loading) {
     return (
       <>
-<main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
           <div className="text-center">
             <div className="font-mono text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: "var(--ut-gold)" }}>
               Authenticating...

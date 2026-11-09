@@ -5,7 +5,6 @@ import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import HomeVideo from "@/components/ui/HomeVideo";
 import GlitchTagline from "@/components/ui/GlitchTagline";
-import PageBackground from "@/components/scenes/PageBackground";
 import { artworks } from "@/data/artworks";
 import { getProduct } from "@/data/products";
 import { GUIDED_PATHS } from "@/lib/guided-paths";
@@ -143,8 +142,7 @@ export default function HomePage() {
   return (
     <>
       {/* The field is atmosphere, not content: it steps back so text and controls read. */}
-      <PageBackground variant="homepage" opacity={0.5} />
-      <main style={{ background: "var(--ut-black)" }}>
+      <main style={{ background: "transparent" }}>
         <div style={{ paddingTop: 2, paddingBottom: 2, textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "var(--ut-black)", backdropFilter: "blur(10px)" }}>
           <p style={{ margin: 0, fontFamily: "JetBrains Mono, monospace", fontSize: 10, letterSpacing: "0.28em", textTransform: "uppercase", color: "#f5e9ff", opacity: 0.82, animation: "utPortalRespectShift 8s linear infinite" }}>
             Signal mode — the portal, tuned for the phone in your hand. Fast. Readable. Still strange. The Codex, the Gallery and the records are a touch away.

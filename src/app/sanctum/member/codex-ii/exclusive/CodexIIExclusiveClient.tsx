@@ -153,7 +153,7 @@ export default function CodexIIExclusiveClient() {
         .glyph-pulse { animation: glyphFloat 3s ease-in-out infinite; }
       `}</style>
 
-      <main className="pt-24 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-24 pb-20 min-h-screen" style={{ background: "transparent" }}>
 
         {/* ── HEADER ─────────────────────────────────── */}
         <section className="py-20 relative" style={{ borderBottom: "1px solid rgba(217,70,239,0.06)", overflow: "hidden" }}>

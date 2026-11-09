@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ResonatorLoader from "./ResonatorLoader";
+import CymaticOrder from "@/components/experience/CymaticOrder";
 import DescentReturn from "@/components/research/DescentReturn";
 import { allRegisteredConnections, resolveResearchTopic } from "@/lib/research-topics";
 import { BASIS_STYLE } from "@/components/research/basis-style";
@@ -67,7 +68,7 @@ export default function UniversalResonatorPage({
               className="font-mono text-[9px] tracking-[0.5em] uppercase mb-4"
               style={{ color: "var(--ut-cyan)", opacity: 0.5 }}
             >
-              [ Research — Cymatics · Instrument ]
+              [ Research — Cymatics · 3D Cymatics Engine ]
             </p>
           </SectionReveal>
 
@@ -78,6 +79,15 @@ export default function UniversalResonatorPage({
             >
               The Universal Resonator
             </h1>
+            <p
+              className="font-display text-lg md:text-xl mb-6"
+              style={{ color: "var(--ut-cyan)", opacity: 0.85, letterSpacing: "0.01em" }}
+            >
+              A 3D cymatics engine — vibration becoming geometry.
+            </p>
+            <div className="max-w-xl mb-8 opacity-90">
+              <CymaticOrder />
+            </div>
           </SectionReveal>
 
           <SectionReveal delay={0.15}>
@@ -85,11 +95,12 @@ export default function UniversalResonatorPage({
               className="font-body text-base md:text-lg leading-relaxed max-w-3xl mb-8"
               style={{ color: "var(--ut-white-dim)", opacity: 0.8 }}
             >
-              The instrument of this room. Everywhere else in Cymatics the archive writes
-              about a driven plate and what forms on it; here you drive one yourself —
-              choose the mode, the frequency and the medium, and watch the nodal structure
-              gather the sand. Keep reading first if you prefer: nothing below runs until
-              you start it.
+              This room is not an essay about resonance; it is the instrument. A driven plate is
+              set in three dimensions, and the medium on it — sand, fluid, light — is given one
+              task: to stop moving where the standing wave cancels and to gather where it does
+              not. What you see gather is sound made visible as form. Choose the mode, the
+              frequency and the medium, and watch a frequency resolve into a geometric figure.
+              Nothing below runs until you start it.
             </p>
           </SectionReveal>
 

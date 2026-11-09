@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
-import PageBackground from "@/components/scenes/PageBackground";
 import Link from "next/link";
 import ResearchPathways from "@/components/research/ResearchPathways";
 import ResearchNexus from "@/components/research/ResearchNexus";
@@ -123,9 +122,7 @@ export default function ResearchPage() {
 
   return (
     <>
-      <PageBackground variant="research" />
-      <PageBackground variant="homepage" opacity={0.4} />
-<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "transparent" }}>
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-24 md:py-32 relative overflow-hidden">

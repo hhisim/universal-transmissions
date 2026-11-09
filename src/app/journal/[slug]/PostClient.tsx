@@ -14,9 +14,6 @@ import { extractFirstImage } from "@/data/blog-posts";
 import { safeJournalReturn } from "@/lib/journal-browse";
 import { tallCoverSize } from "@/lib/image-orientation";
 import { artworkRecordsForJournal } from "@/lib/journal-artworks";
-import PageBackground from "@/components/scenes/PageBackground";
-
-
 type VaultInvite = {
   eyebrow: string;
   body: string;
@@ -294,7 +291,6 @@ export default function PostClient({ slug, tallCover = false }: { slug: string; 
 
   return (
     <>
-<PageBackground variant="journal" />
       <main className="ut-foreground ut-journal">
         {/* ── Hero ── */}
         {tallCover && heroImage ? (

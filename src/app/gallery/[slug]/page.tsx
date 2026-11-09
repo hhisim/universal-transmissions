@@ -9,7 +9,6 @@ import ProgressiveDetailExplorer from "@/components/gallery/ProgressiveDetailExp
 import GalleryItemActions from "@/components/gallery/GalleryItemActions";
 import ReturnToBrowse from "@/components/gallery/ReturnToBrowse";
 import DescentReturn from "@/components/research/DescentReturn";
-import PageBackground from "@/components/scenes/PageBackground";
 import TranscriptionVideo from "@/components/ui/TranscriptionVideo";
 import { ARTWORK_CONNECTION_GAPS, connectionsForArtwork } from "@/lib/artwork-connections";
 import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_URL, seoDescription, seoTitle } from "@/lib/seo";
@@ -81,7 +80,6 @@ export default function ArtworkDetailPage({ params, searchParams }: Props) {
 
   return (
     <>
-<PageBackground variant="gallery" />
       <main className="pt-24 pb-20 ut-foreground ut-gallery">
 
         {/* ── BREADCRUMB ───────────────────────────────── */}

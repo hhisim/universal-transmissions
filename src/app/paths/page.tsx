@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { GUIDED_PATHS, resolvePath } from "@/lib/guided-paths";
@@ -29,8 +28,6 @@ export default function PathsPage() {
 
   return (
     <>
-      <PageBackground variant="research" />
-      <PageBackground variant="homepage" opacity={0.4} />
       <main className="ut-foreground ut-paths pt-24 pb-20">
         <section className="py-20 md:py-28 relative overflow-hidden">
           <div

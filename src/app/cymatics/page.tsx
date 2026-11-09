@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
-import PageBackground from "@/components/scenes/PageBackground";
 export const revalidate = 300; // ISR: rebuilt via CDN cache every 5 min
 
 export const metadata: Metadata = {
@@ -65,8 +64,7 @@ const cymaticImages = [
 export default function CymaticsPage() {
   return (
     <>
-      <PageBackground variant="cymatics" />
-<main className="pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-24 pb-20" style={{ background: "transparent" }}>
 
         {/* ── HEADER ─────────────────────────────────── */}
         <section className="py-20" style={{ borderBottom: "1px solid rgba(0,229,255,0.06)" }}>

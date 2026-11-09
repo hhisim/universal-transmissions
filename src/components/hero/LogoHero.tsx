@@ -478,12 +478,12 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             className="absolute inset-0 flex items-center justify-center"
             style={{
               transform: `translate(${-aberration * 0.62 - aberration * distX * 1.5}px, ${-aberration * 0.3 - aberration * distY * 0.5}px)`,
-              opacity: 0.82 + dist * 0.18,
+              opacity: 0.42 + dist * 0.12,
               mixBlendMode: "screen",
             }}
           >
             <img
-              src="/logo-white.svg"
+              src="/logo-ut-hero.svg"
               alt=""
               className="w-full h-full"
               style={{ filter: "brightness(0) saturate(100%) invert(26%) sepia(96%) saturate(3200%) hue-rotate(288deg) brightness(1.05)" }}
@@ -496,12 +496,12 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
             className="absolute inset-0 flex items-center justify-center"
             style={{
               transform: `translate(${aberration * 0.62 + aberration * distX * 1.5}px, ${aberration * 0.3 + aberration * distY * 0.5}px)`,
-              opacity: 0.82 + dist * 0.18,
+              opacity: 0.42 + dist * 0.12,
               mixBlendMode: "screen",
             }}
           >
             <img
-              src="/logo-white.svg"
+              src="/logo-ut-hero.svg"
               alt=""
               className="w-full h-full"
               style={{ filter: "brightness(0) saturate(100%) invert(72%) sepia(88%) saturate(2400%) hue-rotate(148deg) brightness(1.02)" }}
@@ -509,8 +509,8 @@ export function LogoHero({ className = "" }: LogoHeroProps) {
           </div>
 
           {/* WHITE centre */}
-          <div className="lgx-chroma absolute inset-0 flex items-center justify-center" style={{ opacity: 0.62 }}>
-            <img src="/logo-white.svg" alt="" className="w-full h-full" />
+          <div className="lgx-chroma absolute inset-0 flex items-center justify-center" style={{ opacity: 0.95 }}>
+            <img src="/logo-ut-hero.svg" alt="Universal Transmissions" className="w-full h-full" />
           </div>
 
           {/* ── EMISSION POINTS — the three lobes themselves, rotating with the mark ── */}

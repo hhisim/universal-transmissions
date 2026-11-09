@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { BASIS_STYLE } from "@/components/research/basis-style";
@@ -61,8 +60,6 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <PageBackground variant="research" />
-      <PageBackground variant="homepage" opacity={0.4} />
       <main className="ut-foreground ut-paths pt-24 pb-20">
         {/* ── HEADER: which path, which stop, how far along ─────────────── */}
         <section className="container-ut pt-10 pb-6">

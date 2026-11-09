@@ -185,7 +185,6 @@ function NewsletterPageContent() {
 export default function NewsletterPage() {
   return (
     <>
-      <PageBackground variant="homepage" />
 <Suspense fallback={
         <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
           <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.3)' }}>

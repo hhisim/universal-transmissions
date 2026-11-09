@@ -7,8 +7,6 @@ import { notFound } from "next/navigation";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { getProduct } from "@/data/products";
-import PageBackground from "@/components/scenes/PageBackground";
-
 interface Props {
   params: { slug: string };
 }
@@ -59,7 +57,7 @@ export default function ProductDetailPage({ params }: Props) {
 
   return (
     <>
-<PageBackground variant="homepage" /> <main className="pt-14 sm:pt-20 lg:pt-24 pb-20" style={{ background: "var(--ut-black)" }}>
+<main className="pt-14 sm:pt-20 lg:pt-24 pb-20" style={{ background: "transparent" }}>
         <div className="container-ut">
           {/* Breadcrumb */}
           <SectionReveal>

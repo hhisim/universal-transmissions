@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import HomeVideo from "@/components/ui/HomeVideo";
-import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import RotatingMerkaba from "@/components/three/RotatingMerkaba";
@@ -165,9 +164,7 @@ export default function CodexPage() {
           .ut-video-still,.ut-video-gate:hover .ut-video-still{transition:none;transform:none}
         }
       `}</style>
-<PageBackground variant="codex" />
-      <PageBackground variant="homepage" opacity={0.4} />
-<main style={{ background: "var(--ut-black)" }}>
+<main style={{ background: "transparent" }}>
 
         {/* ── CODEX HERO ─────────────────────────────────────── */}
         <section className="codex-hero lg-codex relative min-h-[85vh] overflow-hidden">

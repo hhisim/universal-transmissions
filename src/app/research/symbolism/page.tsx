@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
-import PageBackground from "@/components/scenes/PageBackground";
 import PinterestGrid from "@/components/ui/PinterestGrid";
 import ResearchPathways from "@/components/research/ResearchPathways";
 import ResearchDescents from "@/components/research/ResearchDescents";
@@ -55,7 +54,7 @@ export default function ResearchSymbolismPage({
 }) {
   return (
     <>
-<PageBackground variant="symbolism" /> <main className="pt-24 pb-20 ut-foreground">
+<main className="pt-24 pb-20 ut-foreground">
 
         {/* ── HERO ─────────────────────────────────── */}
         <section className="py-20 relative overflow-hidden">

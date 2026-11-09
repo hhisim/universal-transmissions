@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
-import PageBackground from "@/components/ui/PageBackground";
+import PageBackground from "@/components/scenes/PageBackground";
 import Navigation from "@/components/ui/Navigation";
 import Footer from "@/components/ui/Footer";
 import AuthSessionGate from "@/components/auth/AuthSessionGate";
@@ -114,7 +114,10 @@ window.__utGetSession = function() {
 ` }} />
       </head>
       <body className="antialiased">
-        <PageBackground />
+        {/* One atmosphere for the whole world. Pages no longer mount their own: 26 of them did,
+            each with a different variant and opacity, which is why the site read as separate
+            experiments rather than one field. */}
+        <PageBackground variant="homepage" opacity={0.62} />
         <Analytics />
         <InteractionTracker />
         <AuthSessionGate />

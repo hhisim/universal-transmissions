@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import PageBackground from "@/components/scenes/PageBackground";
 import CodexIIClient from "./CodexIIClient";
 import { getSessionMember } from "@/lib/member-session";
 
@@ -18,11 +17,10 @@ export default async function CodexIIPage() {
 
   return (
     <>
-      <PageBackground variant="cymatics" />
 {isPaid ? (
         <CodexIIClient />
       ) : (
-        <main className="pt-24 min-h-screen flex items-center justify-center" style={{ background: "var(--ut-black)" }}>
+        <main className="pt-24 min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
           <div className="text-center max-w-lg px-4">
             <div className="w-16 h-16 border mx-auto mb-6 flex items-center justify-center" style={{ borderColor: "rgba(217,70,239,0.3)" }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ut-magenta)" strokeWidth="1.5">

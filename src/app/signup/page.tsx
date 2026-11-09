@@ -218,7 +218,6 @@ function SignupPageContent() {
 export default function SignupPage() {
   return (
     <>
-      <PageBackground variant="homepage" />
       <Suspense fallback={
         <>
 <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>

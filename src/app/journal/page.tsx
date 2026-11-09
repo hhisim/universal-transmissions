@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import PageBackground from "@/components/scenes/PageBackground";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { blogPosts } from "@/data/blog-posts";
@@ -50,7 +49,6 @@ export default function JournalPage({ searchParams }: Props) {
 
   return (
     <>
-      <PageBackground variant="journal" />
       <main className="pt-24 pb-20 ut-foreground ut-journal">
         <div className="container-ut">
           <SectionReveal>

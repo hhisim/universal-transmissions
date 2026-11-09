@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
-import PageBackground from "@/components/scenes/PageBackground";
-
 /**
  * Where PayPal returns the buyer after they approve.
  *
@@ -80,8 +78,7 @@ export default function PayPalReturnPage() {
 
   return (
     <>
-      <PageBackground variant="sanctum" />
-      <main className="pt-32 pb-24 min-h-[70vh]" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-32 pb-24 min-h-[70vh]" style={{ background: "transparent" }}>
         <div className="container-ut max-w-2xl">
           <SectionReveal>
             <div className="text-center">

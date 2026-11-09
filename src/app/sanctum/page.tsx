@@ -3,12 +3,9 @@ import Image from "next/image";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { products } from "@/data/products";
-import PageBackground from "@/components/scenes/PageBackground";
-
 export default function SanctumPage() {
   return (
     <>
-      <PageBackground variant="homepage" opacity={0.4} />
 <main className="ut-foreground ut-shop pt-24 pb-20">
         <div className="container-ut">
           {/* Header */}

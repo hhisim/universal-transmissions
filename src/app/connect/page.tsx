@@ -3,8 +3,6 @@
 import { useState } from "react";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
-import PageBackground from "@/components/scenes/PageBackground";
-
 export default function ConnectPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
@@ -37,7 +35,6 @@ export default function ConnectPage() {
   return (
     <>
       {/* Full-page animation — fixed behind everything */}
-      <PageBackground variant="connect" opacity={0.65} />
 <main
         className="min-h-screen flex flex-col items-center justify-center px-4 py-24 relative"
         style={{ background: "transparent", zIndex: 1 }}

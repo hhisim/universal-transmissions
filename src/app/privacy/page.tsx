@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import SectionReveal from "@/components/ui/SectionReveal";
-import PageBackground from "@/components/scenes/PageBackground";
-
 export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
   title: "Privacy Policy — Universal Transmissions",
@@ -12,7 +10,6 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <>
-      <PageBackground variant="homepage" />
 <main
         className="min-h-screen pt-32 pb-20 px-4"
         style={{ background: "var(--ut-black)", zIndex: 1 }}

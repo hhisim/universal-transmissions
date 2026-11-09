@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import PageBackground from "@/components/scenes/PageBackground";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { allRegisteredConnections } from "@/lib/research-topics";
 
@@ -121,7 +120,6 @@ export default function ExperienceIndexPage() {
 
   return (
     <>
-      <PageBackground variant="homepage" opacity={0.42} />
       <main className="ut-foreground ut-experience" style={{ background: "transparent" }}>
         <section className="pt-24 pb-10">
           <div className="container-ut">

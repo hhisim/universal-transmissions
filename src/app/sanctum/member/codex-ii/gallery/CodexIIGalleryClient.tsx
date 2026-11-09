@@ -322,7 +322,7 @@ export default function CodexIIGalleryClient() {
         }
       `}</style>
 
-      <main className="pt-24 pb-20 min-h-screen" style={{ background: "var(--ut-black)" }}>
+      <main className="pt-24 pb-20 min-h-screen" style={{ background: "transparent" }}>
 
         {/* ── BACKGROUND GLYPH GRID ─────────────────── */}
         <div
