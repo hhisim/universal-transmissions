@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SectionReveal from "@/components/ui/SectionReveal";
+import SubjectField, { type SubjectVariant } from "@/components/visuals/SubjectField";
 import ZalgoText from "@/components/ui/ZalgoText";
 import Link from "next/link";
 import ResearchPathways from "@/components/research/ResearchPathways";
@@ -201,9 +202,32 @@ export default function ResearchPage() {
                     style={
                       {
                         "--topic-accent": topic.accent,
+                        position: "relative",
+                        overflow: "hidden",
                       } as React.CSSProperties
                     }
                   >
+                    {/* the room's own subject, drawn behind the copy */}
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        right: "-6%",
+                        top: "-8%",
+                        width: "62%",
+                        aspectRatio: "1",
+                        pointerEvents: "none",
+                        mixBlendMode: "screen",
+                        transform: "rotate(-8deg)",
+                      }}
+                    >
+                      <SubjectField
+                        variant={(topic.href.split("/").pop() ?? "cymatics") as SubjectVariant}
+                        accent={topic.accent}
+                        opacity={0.55}
+                      />
+                    </span>
+
                     {/* Icon */}
                     <div
                       className="mb-6 transition-transform duration-500 group-hover:scale-110"

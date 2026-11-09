@@ -3,6 +3,7 @@ import Link from "next/link";
 import SectionReveal from "@/components/ui/SectionReveal";
 import ZalgoText from "@/components/ui/ZalgoText";
 import { GUIDED_PATHS, resolvePath } from "@/lib/guided-paths";
+import PathEmblem, { type PathEmblemSlug } from "@/components/visuals/PathEmblem";
 
 export const revalidate = 300;
 
@@ -84,6 +85,11 @@ export default function PathsPage() {
             {paths.map(({ path, stops, unresolved }) => (
               <SectionReveal key={path.slug}>
                 <article className="p-6 md:p-8" data-guided-path={path.slug}>
+                  {/* the mark and the work give each path a face, and take the dead black out of
+                      the card: the routes read as three different explorations before a word is read */}
+                  <div className="grid gap-6 md:grid-cols-[minmax(0,200px)_minmax(0,1fr)] md:gap-8 md:items-start">
+                    <PathEmblem slug={path.slug as PathEmblemSlug} />
+                    <div>
                   <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 mb-4">
                     <h2
                       className="font-display text-2xl md:text-3xl tracking-[0.04em]"
@@ -157,6 +163,8 @@ export default function PathsPage() {
                   >
                     Begin this path →
                   </Link>
+                    </div>
+                  </div>
                 </article>
               </SectionReveal>
             ))}
