@@ -120,7 +120,7 @@
   position: relative;
   z-index: 1;
   margin: clamp(26px, 5vh, 54px) auto 0;
-  width: min(660px, 58vw);
+  width: min(600px, 52vw);
   display: block;
   text-decoration: none;
   color: inherit;
@@ -182,7 +182,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  margin-top: clamp(18px, 3vh, 30px);
+  margin-top: clamp(16px, 2.6vh, 26px);
   padding: 0.72rem 1.15rem;
   font-family: var(--font-mono, monospace);
   font-size: 10px;

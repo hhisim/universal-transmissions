@@ -70,3 +70,4 @@ Thumbs.db
 /public/build
 /public/dist
 *.min.js
+.env*

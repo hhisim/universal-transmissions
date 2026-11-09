@@ -289,6 +289,16 @@ export default function GalleryClient() {
             The complete visual lexicon. Each piece is a transmission — a message encoded in
             geometry, light, and sacred form. Wander the whole collection, or go straight to a work.
           </p>
+          <button
+            type="button"
+            className="ut-entrance-enter"
+            data-gallery-enter="true"
+            onClick={() => {
+              document.querySelector(".ut-collection-controls")?.scrollIntoView({ block: "start" });
+            }}
+          >
+            Enter the collection ↓
+          </button>
         </div>
         {featured[0] && (
           <Link
@@ -318,16 +328,6 @@ export default function GalleryClient() {
             </span>
           </Link>
         )}
-        <button
-          type="button"
-          className="ut-entrance-enter"
-          data-gallery-enter="true"
-          onClick={() => {
-            document.querySelector(".ut-collection-controls")?.scrollIntoView({ block: "start" });
-          }}
-        >
-          Enter the collection ↓
-        </button>
       </section>
 
       {/* ── THE OPENING IS ARTWORK ─────────────────────────────────────────
