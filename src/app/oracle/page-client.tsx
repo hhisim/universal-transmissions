@@ -653,7 +653,8 @@ function EvidencePanel({ evidence }: { evidence: OracleEvidence }) {
           </div>
         ))}
       </dl>
-      <footer className="oracle-evidence-foot">
+      <footer className="oracle-evidence-foot">
+
         <code className="oracle-evidence-id">{evidence.entityId}</code>
         {evidence.action ? (
           <span className="oracle-evidence-actions">
@@ -1747,7 +1748,7 @@ export default function OraclePage() {
                     changes only — never the full answer on every token. */}
                 <div role="status" aria-live="polite" aria-atomic="true"
                   className="mt-2 text-center font-mono text-[9px] tracking-[0.16em] uppercase"
-                  style={{ color: statusKey === "error" ? "#f59e0b" : "var(--ut-white-faint, rgba(237,233,246,0.4))" }}>
+                  style={{ color: statusKey === "error" ? "#f59e0b" : "var(--ut-white-faint, rgba(237,233,246,0.62))" }}>
                   {statusKey === "waiting" ? "THE ORACLE IS SPEAKING…" : statusKey === "error" ? "TRANSMISSION INTERRUPTED" : ""}
                 </div>
               </div>

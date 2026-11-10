@@ -21,6 +21,12 @@ export const metadata: Metadata = {
  * record the room no longer publishes. A stop that fails to resolve is counted and
  * stated rather than quietly dropped.
  */
+const PATH_ACCENT: Record<string, string> = {
+  "sound-into-form": "#22d3ee",
+  "language-into-glyph": "#a855f7",
+  "symbol-into-correspondence": "#d4a847",
+};
+
 export default function PathsPage() {
   const paths = GUIDED_PATHS.map((p) => {
     const { stops, unresolved } = resolvePath(p);
@@ -84,7 +90,11 @@ export default function PathsPage() {
           <div className="grid gap-8 lg:gap-10">
             {paths.map(({ path, stops, unresolved }) => (
               <SectionReveal key={path.slug}>
-                <article className="p-6 md:p-8" data-guided-path={path.slug}>
+                <article
+                  className="ut-plate p-6 md:p-8"
+                  data-guided-path={path.slug}
+                  style={{ "--topic-accent": PATH_ACCENT[path.slug] ?? "#22d3ee" } as React.CSSProperties}
+                >
                   {/* the mark and the work give each path a face, and take the dead black out of
                       the card: the routes read as three different explorations before a word is read */}
                   <div className="grid gap-6 md:grid-cols-[minmax(0,200px)_minmax(0,1fr)] md:gap-8 md:items-start">

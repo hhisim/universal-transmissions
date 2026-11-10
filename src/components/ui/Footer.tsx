@@ -47,7 +47,15 @@ export default function Footer() {
   }
 
   return (
-    <footer className="border-t" style={{ borderColor: "rgba(217, 70, 239, 0.06)", background: "var(--ut-black)" }}>
+    <footer
+      className="border-t"
+      style={{
+        borderColor: "rgba(217, 70, 239, 0.06)",
+        // was an opaque var(--ut-black) panel: the field stopped dead at the footer and every page
+        // ended on a visible band. The footer now carries a gradient out of the field instead.
+        background: "linear-gradient(180deg, rgba(10,9,14,0.35) 0%, rgba(5,5,7,0) 100%)",
+      }}
+    >
       <div className="container-ut py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-6">
           {/* Brand */}

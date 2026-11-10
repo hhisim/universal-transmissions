@@ -444,6 +444,39 @@ body::-webkit-scrollbar-thumb:hover {
   box-shadow: 0 0 30px rgba(217, 70, 239, 0.05);
 }
 
+/* Plate — the alternative to the rectangular card.
+   Research rooms and Paths entries are not boxes on a page: they are surfaces that belong to the
+   field behind them, so they carry no border box, no opaque panel and no radius. A single lit top
+   edge, a corner tick and a gradient that fades into the background do the work a card used to do.
+   --topic-accent is set per room/path; the plate inherits the subject's colour. */
+.ut-plate {
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 88% -10%, color-mix(in oklab, var(--topic-accent, #22d3ee) 12%, transparent), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), rgba(255, 255, 255, 0) 58%);
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid color-mix(in oklab, var(--topic-accent, #22d3ee) 30%, transparent);
+  transition: transform 0.4s ease, border-top-color 0.4s ease, background 0.4s ease;
+}
+.ut-plate::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  border-right: 1px solid color-mix(in oklab, var(--topic-accent, #22d3ee) 34%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--topic-accent, #22d3ee) 34%, transparent);
+  opacity: 0.7;
+  transition: opacity 0.4s ease;
+}
+.ut-plate:hover {
+  transform: translateY(-2px);
+  border-top-color: color-mix(in oklab, var(--topic-accent, #22d3ee) 62%, transparent);
+}
+.ut-plate:hover::after { opacity: 1; }
+
 .ut-card-gold {
   background: var(--ut-surface);
   border: 1px solid rgba(212, 168, 71, 0.15);
@@ -791,10 +824,12 @@ body::-webkit-scrollbar-thumb:hover {
 
 .nav-link {
   font-family: "Cinzel", serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
+  /* was 0.75rem at --ut-white-dim (#a8a0ba): the bar's own labels were the least legible text on
+     the page. Raised a step, and the tracking relaxed so the serif does not thin out. */
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ut-white-dim);
+  color: #c9c2da;
   transition: color 0.3s ease;
   position: relative;
 }
@@ -804,11 +839,11 @@ body::-webkit-scrollbar-thumb:hover {
 
 .nav-constellation {
   font-family: "Cinzel", serif;
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
+  font-size: 0.7rem;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--ut-white-dim);
-  opacity: 0.6;
+  opacity: 0.72;
   transition: opacity 0.3s ease;
   display: flex;
   align-items: center;
@@ -3836,7 +3871,6 @@ body::-webkit-scrollbar-thumb:hover {
    so its intrinsic box and priority load are untouched. The geometry is derived from the
    Vitruvian Spirit plate - concentric rings, the squared circle - not from generic HUD. */
 
-.ut-hero.lg-hero { isolation: isolate; }
 
 /* The room is clipped to the hero's own box: the atmospheric layers bleed beyond it by design,
    and that bleed must never become horizontal scroll on the page. */
@@ -3946,18 +3980,9 @@ body::-webkit-scrollbar-thumb:hover {
 /* The rotating UT sigil is the house mark of this site — three chromatic layers, orbiting dots,
    glyph rain and its own particle field. It was dropped from the homepage in October and the
    component has been dead code since. Restored here as the entrance above the artwork. */
-.ut-logo-hero {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  background: transparent;
-  border-bottom: 1px solid rgba(233, 208, 255, 0.06);
-}
 
-.ut-logo-hero-canvas { height: 58vh !important; }
 /* the component ships its own #0a090e panel; the page is #060509, which reads as a
    visible rectangle behind the emblem. The emblem sits on the page, not in a box. */
-.ut-logo-hero-canvas { background: transparent !important; }
 
 @media (max-width: 760px) {
   .ut-logo-hero-canvas { height: 44vh !important; }
@@ -3968,24 +3993,11 @@ body::-webkit-scrollbar-thumb:hover {
    doors sit beneath it, exactly as the original entrance did. */
 /* The emblem opens the page: it sits high under the navbar instead of floating in the middle of
    a full viewport, which read as empty drift above the mark. */
-.ut-logo-hero {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100svh - 4rem);
-  justify-content: flex-start;
-  padding-top: clamp(0px, 0.6vh, 10px);
+.ut-logo-hero-copy h1 {
+  font-size: clamp(1.9rem, 4.2vw, 3.4rem) !important;
+  max-width: 18ch;
+  line-height: 1.02;
 }
-.ut-logo-hero-copy h1 { font-size: clamp(1.9rem, 4.2vw, 3.4rem) !important; }
-.ut-logo-hero-copy {
-  position: relative;
-  z-index: 20;
-  display: grid;
-  justify-items: center;
-  gap: 20px;
-  padding: 0 24px 44px;
-  text-align: center;
-}
-.ut-logo-hero-copy h1 { max-width: 18ch; line-height: 1.02; }
 .ut-logo-hero-tagline {
   font-family: var(--font-display, serif);
   font-style: italic;
@@ -3997,7 +4009,6 @@ body::-webkit-scrollbar-thumb:hover {
 .lg-action--cyan { border-color: rgba(34, 211, 238, 0.4); color: rgba(191, 245, 255, 0.95); }
 
 /* with the copy moved into the emblem hero, the plate stands alone: centre it */
-.ut-hero.lg-hero { grid-template-columns: minmax(0, 1fr); }
 .ut-hero.lg-hero .lg-transmission { margin: 0 auto; }
 
 
@@ -4064,17 +4075,6 @@ body::-webkit-scrollbar-thumb:hover {
    veil carries the emblem's own ring geometry and colour downward, so the eye travels from
    the rotating symbol into Vitruvian Spirit without a seam or a border. */
 
-.lg-veil {
-  position: relative;
-  height: 26vh;
-  min-height: 170px;
-  margin-top: -8vh;
-  overflow: hidden;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 46% 58% at 50% 0%, rgba(147, 51, 234, 0.16), transparent 68%),
-    linear-gradient(180deg, rgba(6, 5, 9, 0.9), rgba(6, 5, 9, 0));
-}
 
 /* the thread: the emblem's rotation continued as a single vertical axis */
 .lg-veil-thread {
@@ -4131,6 +4131,8 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* the work inherits the emblem's light: no hard edge where the section starts */
 .ut-hero.lg-hero {
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1fr);
   position: relative;
   background: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(120, 40, 150, 0.16), transparent 66%);
   padding-top: 0;
@@ -4155,12 +4157,6 @@ body::-webkit-scrollbar-thumb:hover {
    the component's edge, which reads as a lit rectangle on an unlit page - the empty corner.
    The box is suppressed and the light is instead carried by the whole entrance. */
 
-.ut-logo-hero {
-  background:
-    radial-gradient(ellipse 62% 54% at 50% 38%, rgba(147, 51, 234, 0.13), transparent 70%),
-    radial-gradient(ellipse 40% 34% at 50% 30%, rgba(34, 211, 238, 0.07), transparent 72%),
-    transparent;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .ut-logo-hero { background: radial-gradient(ellipse 62% 54% at 50% 38%, rgba(147, 51, 234, 0.13), transparent 70%); }
@@ -4173,14 +4169,6 @@ body::-webkit-scrollbar-thumb:hover {
    layers. Nothing targets a bare child selector, so a rule cannot land on the wrong node. */
 
 /* ── the pass between the doors and the artwork ── */
-.lg-veil {
-  position: relative !important;
-  margin: 24px auto 0 !important;
-  height: clamp(196px, 24vh, 248px) !important;
-  width: 100% !important;
-  background: transparent !important;
-}
-.lg-veil-streams { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .lgv-solid { opacity: 0.13 !important; }
 .lgv-spectral { mix-blend-mode: screen; filter: url(#lgvGlow); }
 .lgv-path {
@@ -4230,38 +4218,10 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* ── HERO: one central axis, canvas band, rotor, chromatic layers ── */
-.ut-hero.lg-hero, .ut-logo-hero {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  text-align: center !important;
-  overflow: visible !important;
-}
 /* was clamp(84px, 10vh, 116px): the emblem floated a hand-width below the navbar */
 /* The hero's top padding was declared four separate times in this file (84-116px, 78-104px,
    and twice at 0-12px). The last declaration is the only owner; the duplicates are gone. */
-.ut-logo-hero { padding-top: clamp(0px, 1.2vh, 12px) !important; }
 
-.ut-logo-hero-canvas {
-  --mark: min(470px, 72vw);
-  position: relative !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  height: auto !important;
-  aspect-ratio: auto !important;
-  /* was 21% of the mark top and bottom: a hand-and-a-half of nothing above the emblem */
-  padding: clamp(6px, 1.2vh, 16px) 0 !important;
-  margin: 0 auto !important;
-  overflow: visible !important;
-}
 .lgx-align {
   position: absolute !important;
   inset: 0 !important;
@@ -4283,16 +4243,6 @@ body::-webkit-scrollbar-thumb:hover {
 .lgx-chroma { width: 100% !important; height: 100% !important; }
 .lgx-ring { max-width: var(--mark) !important; max-height: var(--mark) !important; }
 
-.ut-logo-hero-copy {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-  width: 100% !important;
-  margin: 0 auto !important;
-  position: relative;
-  z-index: 4;
-}
 .ut-logo-hero-copy .lg-action { margin-left: auto !important; margin-right: auto !important; }
 
 @media (min-width: 768px) and (max-width: 1279px) { .ut-logo-hero-canvas { --mark: min(470px, 62vw); } }
@@ -4321,18 +4271,68 @@ body::-webkit-scrollbar-thumb:hover {
    mark plus its diagonal padding, so the title is placed after the mark, not after padding. */
 .ut-logo-hero-canvas {
   height: calc(var(--mark) * 1.42) !important;
-  min-height: calc(var(--mark) * 1.42) !important;
+  background: transparent !important;
+  --mark: min(470px, 72vw);
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  aspect-ratio: auto !important;
+  padding: clamp(6px, 1.2vh, 16px) 0 !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+  /* was 1.42: the stage reserved a third more height than the mark, so the sigil sat in the
+     middle of empty space under the announcement bar */
+  min-height: calc(var(--mark) * 1.06) !important;
   padding: 0 !important;
 }
-.ut-logo-hero-copy { margin-top: 30px !important; }
+.ut-logo-hero-copy {
+  position: relative;
+  z-index: 4;
+  display: flex !important;
+  justify-items: center;
+  gap: 20px;
+  padding: 0 24px 44px;
+  text-align: center !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  margin-top: 30px !important;
+}
 
 /* no fixed or viewport-derived hero heights: the artwork follows the opening naturally */
 .ut-hero.lg-hero, .ut-logo-hero {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  text-align: center !important;
+  overflow: visible !important;
   min-height: 0 !important;
   height: auto !important;
   padding-bottom: 0 !important;
 }
-.ut-logo-hero { padding-top: clamp(0px, 1.2vh, 12px) !important; }
+.ut-logo-hero {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse 62% 54% at 50% 38%, rgba(147, 51, 234, 0.13), transparent 70%),
+    radial-gradient(ellipse 40% 34% at 50% 30%, rgba(34, 211, 238, 0.07), transparent 72%),
+    transparent;
+  border-bottom: 1px solid rgba(233, 208, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - 4rem);
+  justify-content: flex-start;
+  padding-top: clamp(0px, 1.2vh, 12px) !important;
+}
 
 /* mobile: the band cannot exceed the viewport */
 @media (max-width: 767px) { .ut-logo-hero-canvas { --mark: min(272px, 70vw) !important; } }
@@ -4345,12 +4345,6 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
 /* The passage stops 20 units short of the veil floor, which reads as a visible gap above the
    plate. The same SVG is extended over the plate's top edge so the filaments terminate inside
    the artwork instead of hovering above it. No layout box moves. */
-.lg-veil { z-index: 3 !important; }
-.lg-veil-streams {
-  height: calc(100% + 78px) !important;
-  bottom: auto !important;
-  overflow: visible !important;
-}
 @media (max-width: 767px) { .lg-veil-streams { height: calc(100% + 46px) !important; } }
 
 
@@ -4359,12 +4353,26 @@ html, body { overflow-x: clip !important; max-width: 100% !important; }
    published from the rotor's real geometry) and passes behind the copy, so the first thing
    the eye sees is light leaving the lobes rather than a line starting under the buttons.
    Nothing here moves layout: the band's box is unchanged, only its painted SVG is taller. */
-.lg-veil { overflow: visible !important; z-index: 3 !important; }
-.lg-veil-streams {
-  top: calc(-1 * var(--lgv-rise, 0px)) !important;
-  height: calc(100% + var(--lgv-rise, 0px) + 78px) !important;
-  bottom: auto !important;
+.lg-veil {
+  position: relative !important;
+  height: clamp(196px, 24vh, 248px) !important;
+  min-height: 170px;
+  margin-top: -8vh;
   overflow: visible !important;
+  pointer-events: none;
+  background: transparent !important;
+  margin: 24px auto 0 !important;
+  width: 100% !important;
+  z-index: 3 !important;
+}
+.lg-veil-streams {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: calc(100% + var(--lgv-rise, 0px) + 78px) !important;
+  overflow: visible !important;
+  bottom: auto !important;
+  top: calc(-1 * var(--lgv-rise, 0px)) !important;
 }
 
 /* Emission points: the mark's own three lobes, carrying the shared --ut-emit envelope. */

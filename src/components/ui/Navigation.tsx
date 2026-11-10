@@ -130,7 +130,7 @@ function MobileNavGroup({
               >
                 {child.label}
                 {child.note ? (
-                  <span className="block text-[10px] mt-0.5" style={{ color: "rgba(237,233,246,0.3)" }}>
+                  <span className="block text-[10px] mt-0.5" style={{ color: "rgba(237,233,246,0.58)" }}>
                     {child.note}
                   </span>
                 ) : null}
@@ -218,7 +218,7 @@ export default function Navigation() {
     <header
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: "rgba(10, 9, 14, 0.85)",
+        background: "linear-gradient(180deg, rgba(7,7,11,0.9) 0%, rgba(7,7,11,0.72) 100%)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid rgba(217, 70, 239, 0.06)",
       }}
@@ -331,7 +331,7 @@ export default function Navigation() {
                               {child.label}
                             </span>
                             {child.note ? (
-                              <span className="pl-5 text-[10px] leading-snug" style={{ color: "rgba(237,233,246,0.32)" }}>
+                              <span className="pl-5 text-[10px] leading-snug" style={{ color: "rgba(237,233,246,0.58)" }}>
                                 {child.note}
                               </span>
                             ) : null}

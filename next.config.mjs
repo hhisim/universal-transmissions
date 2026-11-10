@@ -1,9 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // TEMPORARY (local verification only, reverted before review): the VPS has no swap and the
-  // typecheck worker pushes the build over the OOM killer. `tsc --noEmit` is run separately.
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
   async redirects() {
     return [
       { source: "/journal/yugen", destination: "/gallery", permanent: false },

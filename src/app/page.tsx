@@ -953,7 +953,7 @@ export default function HomePage() {
         .ut-hero-secondary a { color: rgba(237,233,246,0.62); text-decoration: none;
           border-bottom: 1px solid rgba(34,211,238,0.3); padding-bottom: 2px; }
         .ut-hero-secondary a:hover, .ut-hero-secondary a:focus-visible { color: #22d3ee; }
-        .ut-hero-secondary span { color: rgba(237,233,246,0.3); }
+        .ut-hero-secondary span { color: rgba(237,233,246,0.58); }
         .ut-hero-note {
           margin: 0;
           max-width: 620px;

@@ -175,12 +175,58 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
                 )}
               </div>
 
-              <h2
-                className="font-display text-2xl md:text-3xl tracking-[0.03em] mb-4"
-                style={{ color: "var(--ut-white)" }}
-              >
-                {stop.title}
-              </h2>
+              {/* the active step announces itself: a numeral at the scale of the title, the step
+                  name, and the room the record is drawn from - so current step, source and
+                  movement are three different weights rather than one paragraph of prose */}
+              <div className="flex items-start gap-4 md:gap-5 mb-5">
+                <span
+                  aria-hidden="true"
+                  className="font-display leading-none"
+                  style={{
+                    fontSize: "clamp(2.2rem, 4vw, 3.1rem)",
+                    color: "transparent",
+                    WebkitTextStroke: `1px color-mix(in oklab, ${PATH_ACCENT[path.slug] ?? "#22d3ee"} 62%, transparent)`,
+                    opacity: 0.9,
+                  }}
+                >
+                  {String(stop.number).padStart(2, "0")}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2
+                    className="font-display text-2xl md:text-3xl tracking-[0.03em] mb-2"
+                    style={{ color: "var(--ut-white)" }}
+                  >
+                    {stop.title}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span
+                      className="font-mono text-[9px] tracking-[0.26em] uppercase"
+                      style={{ color: "rgba(237,233,246,0.58)" }}
+                    >
+                      Source room
+                    </span>
+                    <Link
+                      href={`/research/${stop.topic}`}
+                      className="font-mono text-[9px] tracking-[0.22em] uppercase hover:opacity-80"
+                      style={{
+                        color: PATH_ACCENT[path.slug] ?? "#22d3ee",
+                        borderBottom: `1px solid color-mix(in oklab, ${PATH_ACCENT[path.slug] ?? "#22d3ee"} 45%, transparent)`,
+                        paddingBottom: 1,
+                      }}
+                    >
+                      {String(stop.topic).replace(/-/g, " ")}
+                    </Link>
+                    <span aria-hidden="true" style={{ color: "rgba(255,255,255,0.22)" }}>·</span>
+                    <Link
+                      href={stop.href}
+                      className="font-mono text-[9px] tracking-[0.22em] uppercase hover:opacity-80"
+                      style={{ color: "rgba(237,233,246,0.72)" }}
+                    >
+                      Open record →
+                    </Link>
+                  </div>
+                </div>
+              </div>
 
               {/* what the visitor is encountering, in this path's terms */}
               <p className="font-body text-sm md:text-base leading-relaxed mb-5" style={{ color: "var(--ut-white)" }}>

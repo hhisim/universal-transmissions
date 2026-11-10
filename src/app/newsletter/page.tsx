@@ -161,7 +161,7 @@ function NewsletterPageContent() {
                 ].map(item => (
                   <div key={item.label} className="p-4 text-center" style={{ border: '1px solid rgba(217,70,239,0.08)', borderRadius: '8px' }}>
                     <p className="font-mono text-xs mb-1" style={{ color: 'var(--ut-gold)' }}>{item.label}</p>
-                    <p className="font-body text-xs" style={{ color: 'rgba(237,233,246,0.4)' }}>{item.desc}</p>
+                    <p className="font-body text-xs" style={{ color: 'rgba(237,233,246,0.62)' }}>{item.desc}</p>
                   </div>
                 ))}
               </div>
@@ -187,7 +187,7 @@ export default function NewsletterPage() {
     <>
 <Suspense fallback={
         <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
-          <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.3)' }}>
+          <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.58)' }}>
             Loading...
           </div>
         </main>

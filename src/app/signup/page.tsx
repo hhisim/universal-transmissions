@@ -43,7 +43,7 @@ function PasswordInput({ placeholder, value, onChange }: { placeholder: string; 
       <button
         type="button"
         onClick={() => setVisible(v => !v)}
-        style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(237,233,246,0.3)' }}
+        style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(237,233,246,0.58)' }}
         aria-label={visible ? 'Hide password' : 'Show password'}
       >
         <EyeIcon open={visible} />
@@ -190,7 +190,7 @@ function SignupPageContent() {
               </form>
 
               <div className="mt-6 pt-6 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <p className="font-body text-sm" style={{ color: 'rgba(237,233,246,0.4)' }}>
+                <p className="font-body text-sm" style={{ color: 'rgba(237,233,246,0.62)' }}>
                   Already have an account?{' '}
                   <Link href="/login" className="underline underline-offset-2" style={{ color: 'rgba(217,70,239,0.7)' }}>
                     Sign in
@@ -221,7 +221,7 @@ export default function SignupPage() {
       <Suspense fallback={
         <>
 <main className="pt-24 pb-20 min-h-screen flex items-center justify-center" style={{ background: 'var(--ut-black, #0a090e)' }}>
-            <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.3)' }}>Loading...</div>
+            <div className="text-center font-mono text-xs tracking-widest uppercase" style={{ color: 'rgba(237,233,246,0.58)' }}>Loading...</div>
           </main>
 </>
       }>

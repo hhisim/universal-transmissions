@@ -198,7 +198,7 @@ export default function ResearchPage() {
                 <SectionReveal key={topic.href} delay={i * 0.08}>
                   <Link
                     href={topic.href}
-                    className="group block ut-card p-10 h-full transition-all duration-500"
+                    className="group block ut-plate p-10 h-full transition-all duration-500"
                     style={
                       {
                         "--topic-accent": topic.accent,

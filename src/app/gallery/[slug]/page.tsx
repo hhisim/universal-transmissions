@@ -332,7 +332,7 @@ export default function ArtworkDetailPage({ params, searchParams }: Props) {
                     {connections.length} related {connections.length === 1 ? "record" : "records"}
                   </span>
                 </div>
-                <p className="font-body text-sm mb-6" style={{ color: "rgba(237,233,246,0.4)" }}>
+                <p className="font-body text-sm mb-6" style={{ color: "rgba(237,233,246,0.62)" }}>
                   Records elsewhere in the archive that belong to this work. Each states why it
                   belongs and on what basis, so the work&apos;s recorded description stays
                   separate from an interpretation placed on it.
@@ -404,7 +404,7 @@ export default function ArtworkDetailPage({ params, searchParams }: Props) {
               <div className="font-mono text-[9px] tracking-[0.15em] uppercase mb-3" style={{ color: "rgba(212,168,71,0.4)" }}>
                 EXPLORE THIS TRANSMISSION
               </div>
-              <p className="font-body text-sm mb-3" style={{ color: "rgba(237,233,246,0.4)" }}>
+              <p className="font-body text-sm mb-3" style={{ color: "rgba(237,233,246,0.62)" }}>
                 Ask the Codex Oracle about the symbolism, geometry, and hidden correspondences within this piece.
               </p>
               <a

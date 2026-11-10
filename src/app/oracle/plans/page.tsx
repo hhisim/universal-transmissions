@@ -259,7 +259,7 @@ export default function OraclePlansPage() {
                       padding: '4px 14px', border: '1px solid rgba(255,255,255,0.1)',
                       borderTop: 'none', background: 'rgba(10,9,14,0.9)',
                       fontFamily: 'Cinzel, serif', fontSize: 8, letterSpacing: '0.2em',
-                      color: 'rgba(237,233,246,0.4)', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                      color: 'rgba(237,233,246,0.62)', textTransform: 'uppercase', whiteSpace: 'nowrap',
                     }}>
                       Current Plan
                     </div>
@@ -281,7 +281,7 @@ export default function OraclePlansPage() {
                       <span style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 32, color: '#ede9f6' }}>{t.price}</span>
                       {t.priceSub && <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: 'rgba(237,233,246,0.35)' }}>{t.priceSub}</span>}
                     </div>
-                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(237,233,246,0.4)', lineHeight: 1.5 }}>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(237,233,246,0.62)', lineHeight: 1.5 }}>
                       {t.description}
                     </p>
                   </div>
@@ -406,7 +406,7 @@ export default function OraclePlansPage() {
             ].map(item => (
               <div key={item.q} style={{ marginBottom: 24, padding: '16px 20px', border: '1px solid rgba(255,255,255,0.04)', background: 'rgba(17,15,26,0.3)' }}>
                 <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.1em', color: '#d946ef', marginBottom: 8 }}>{item.q}</div>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(237,233,246,0.4)', lineHeight: 1.6 }}>{item.a}</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(237,233,246,0.62)', lineHeight: 1.6 }}>{item.a}</div>
               </div>
             ))}
           </div>
@@ -417,7 +417,7 @@ export default function OraclePlansPage() {
           <div style={{ marginTop: 80, textAlign: 'center', padding: '40px 24px', border: '1px solid rgba(147,51,234,0.12)', background: 'rgba(147,51,234,0.02)' }}>
             <div style={{ fontFamily: 'Cinzel, serif', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(147,51,234,0.5)', marginBottom: 12 }}>Beyond the Codex</div>
             <h3 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 20, letterSpacing: '0.08em', color: '#ede9f6', marginBottom: 12 }}>Vault of Arcana</h3>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(237,233,246,0.4)', maxWidth: 420, margin: '0 auto 24px', lineHeight: 1.7 }}>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(237,233,246,0.62)', maxWidth: 420, margin: '0 auto 24px', lineHeight: 1.7 }}>
               Six living traditions — Tao, Tarot, Tantra, Entheogens, Dreamwalker, and the Codex. One membership, unlimited exploration.
             </p>
             <a href="https://www.vaultofarcana.com/pricing" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '12px 28px', border: '1px solid rgba(147,51,234,0.3)', color: '#9333ea', fontFamily: 'Cinzel, serif', fontSize: 9, letterSpacing: '0.25em', textTransform: 'uppercase', textDecoration: 'none' }}>
