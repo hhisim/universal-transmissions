@@ -110,9 +110,6 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
               <span className="font-mono text-[9px] tracking-[0.3em] uppercase">
                 Stop {number} of {total}
               </span>
-              <span className="font-mono text-[9px] tracking-[0.3em] uppercase" style={{ opacity: 0.6 }}>
-                {path.title}
-              </span>
             </div>
             {/* Static width. No animated fill, so reduced motion needs no exception. */}
             <div
@@ -264,6 +261,10 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
                 <div
                   data-curated-reading
                   className="mb-6 p-4"
+                  style={{
+                    borderLeft: `1px solid color-mix(in oklab, ${PATH_ACCENT[path.slug] ?? "#22d3ee"} 45%, transparent)`,
+                    background: `linear-gradient(90deg, color-mix(in oklab, ${PATH_ACCENT[path.slug] ?? "#22d3ee"} 7%, transparent), transparent 70%)`,
+                  }}
                 >
                   <p
                     className="font-mono text-[9px] tracking-[0.25em] uppercase mb-2"
@@ -274,6 +275,20 @@ export default function GuidedPathPage({ params, searchParams }: Props) {
                   <p className="font-body text-[13px] leading-relaxed" style={{ color: "var(--ut-white-dim)" }}>
                     {stop.transition}
                   </p>
+                  {next && (
+                    <Link
+                      href={stopHref(next.number)}
+                      className="inline-flex items-center gap-2 mt-3 font-mono text-[10px] tracking-[0.2em] uppercase hover:opacity-80"
+                      style={{
+                        color: PATH_ACCENT[path.slug] ?? "#22d3ee",
+                        borderBottom: `1px solid color-mix(in oklab, ${PATH_ACCENT[path.slug] ?? "#22d3ee"} 45%, transparent)`,
+                        paddingBottom: 2,
+                      }}
+                    >
+                      Continue to stop {next.number} — {next.title}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  )}
                 </div>
               )}
 

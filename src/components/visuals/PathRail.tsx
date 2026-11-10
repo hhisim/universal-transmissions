@@ -59,13 +59,15 @@ export default function PathRail({
                   flex: "0 0 auto",
                   borderRadius: "50%",
                   border: `1px solid ${here ? accent : done ? `color-mix(in oklab, ${accent} 55%, transparent)` : "rgba(255,255,255,0.32)"}`,
-                  background: here ? `color-mix(in oklab, ${accent} 22%, #05050a)` : done ? `color-mix(in oklab, ${accent} 10%, #05050a)` : "#05050a",
+                  background: here ? accent : done ? `color-mix(in oklab, ${accent} 10%, #05050a)` : "#05050a",
                   boxShadow: here ? `0 0 0 4px color-mix(in oklab, ${accent} 12%, transparent), 0 0 18px color-mix(in oklab, ${accent} 40%, transparent)` : "none",
                   textDecoration: "none",
                   fontFamily: "var(--font-mono, monospace)",
                   fontSize: here ? 10 : 8,
                   letterSpacing: "0.04em",
-                  color: here ? `color-mix(in oklab, ${accent} 40%, white)` : done ? `color-mix(in oklab, ${accent} 60%, rgba(255,255,255,0.78))` : "rgba(255,255,255,0.68)",
+                  /* the current node is a solid filled disc with dark numerals: position is legible without
+                    relying on hue alone, which the glow-only treatment did */
+                  color: here ? "#05050a" : done ? `color-mix(in oklab, ${accent} 60%, rgba(255,255,255,0.78))` : "rgba(255,255,255,0.68)",
                   transition: "border-color 240ms ease, box-shadow 240ms ease",
                 }}
               >
