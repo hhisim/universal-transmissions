@@ -8,11 +8,21 @@ import {
 } from "@/data/shipping";
 import { allowedDeliveryFor, unsupportedDestinationMessage } from "@/data/destinations";
 import { supabaseAdmin } from "@/lib/supabase";
+import { readCheckoutSwitch, checkoutDisabledResponse } from "@/lib/checkout-switch";
 
 const DIGITAL_PRODUCTS = ["codex-digital", "chakra-4k", "chakra-8k"];
 
 export async function POST(req: NextRequest) {
   try {
+    /* FIRST, before the product is even looked up: is the shop open?
+       An incident responder flips this from the database, not from a deployment, and the refusal
+       must be predictable whether or not the request was otherwise valid. */
+    const shop = await readCheckoutSwitch();
+    if (!shop.enabled) {
+      console.warn(`Checkout refused: switch is closed (${shop.reason ?? "no reason recorded"})`);
+      return NextResponse.json(checkoutDisabledResponse(shop), { status: 503 });
+    }
+
     const { productId, country } = await req.json();
     const product = products.find((p) => p.id === productId);
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -109,6 +119,20 @@ export async function POST(req: NextRequest) {
     if (!res.ok || session.error) {
       console.error("Stripe error:", session.error || res.status);
       return NextResponse.json({ error: "Checkout failed", detail: session.error?.message }, { status: 502 });
+    }
+
+    /* Task C — a TEST-MODE session must never leave a production order row.
+       The November 3 defect was exactly this: a deployment configured with test credentials wrote a
+       `paid` order into the live table, where it is indistinguishable from revenue. The check is on
+       the provider's own answer (`livemode`), not on which key we believe we are holding. */
+    if (process.env.VERCEL_ENV === "production" && session.livemode !== true) {
+      console.error(
+        `Refusing a TEST-MODE checkout session in production: ${session.id} (livemode=${String(session.livemode)}) — no order row written`
+      );
+      return NextResponse.json(
+        { error: "Checkout is temporarily unavailable.", code: "CHECKOUT_MODE_MISMATCH" },
+        { status: 503 }
+      );
     }
 
     // Save order to Supabase

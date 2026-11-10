@@ -200,8 +200,100 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  /* Task C — a TEST-MODE event must not write production orders or membership.
+     The November 3 order was created by a test-mode session on a deployment that had test keys;
+     this guard is the second half of that fix (the first is in the checkout route) and it checks
+     Stripe's own `livemode` flag rather than our belief about which key the build holds. */
+  if (process.env.VERCEL_ENV === "production" && event.livemode !== true) {
+    console.warn(
+      `Ignoring TEST-MODE event ${event.id} (${event.type}) in production — no order or membership write`
+    );
+    return NextResponse.json({ received: true, ignored: "test_mode_event" });
+  }
+
   switch (event.type) {
-    // ── One-time product payments (existing) ──────────────────────────────
+    /* Task A — AN EXPIRED SESSION MUST NOT LEAVE A PENDING ORDER LOOKING LIKE A SALE IN FLIGHT.
+       Stripe emits this when the buyer abandons the page and the session times out. The row the
+       checkout route inserted stays `pending` forever otherwise, and a pending row is
+       indistinguishable from "payment may still arrive".
+
+       Two rules make this safe:
+         1. The PAYLOAD is not trusted about the session's state. The session is re-read from Stripe
+            and the row is only closed when Stripe itself says `expired`. A forged or replayed event
+            cannot close a live session.
+         2. Only a `pending` row is ever touched. A paid or fulfilled order is never cancelled by an
+            expiry, whatever the payload claims — an expiry arriving after a bank-debit settlement is
+            not a refund.
+       Replay is harmless: after the first delivery the row is `expired`, so the conditional update
+       matches nothing and the handler still answers 200. */
+    case "checkout.session.expired": {
+      const expiredEvent = event.data.object as Stripe.Checkout.Session;
+      let confirmed: Stripe.Checkout.Session | null = null;
+      try {
+        confirmed = await getStripe().checkout.sessions.retrieve(expiredEvent.id);
+      } catch (err) {
+        // Cannot verify -> do not reconcile. 503 keeps the delivery retryable rather than guessing.
+        console.error(`Could not verify expired session ${expiredEvent.id}:`, err);
+        return NextResponse.json(
+          { received: true, error: "expiry_unverified", session: expiredEvent.id },
+          { status: 503 }
+        );
+      }
+
+      if (confirmed?.status !== "expired") {
+        console.log(
+          `Ignoring expiry claim for ${expiredEvent.id}: Stripe reports status=${String(confirmed?.status)}`
+        );
+        break;
+      }
+
+      const { data: priorRows, error: priorError } = await utSupabaseAdmin
+        .from("ut_orders")
+        .select("status")
+        .eq("stripe_session_id", expiredEvent.id)
+        .limit(1);
+
+      if (priorError) {
+        console.error("Could not read the order before closing an expired session:", priorError);
+        return NextResponse.json(
+          { received: true, error: "order_read_failed", session: expiredEvent.id },
+          { status: 503 }
+        );
+      }
+
+      const prior = (priorRows?.[0]?.status as string | undefined) ?? null;
+      if (prior === null) {
+        console.log(`Expired session ${expiredEvent.id} has no order row — nothing to close.`);
+        break;
+      }
+      if (prior.toLowerCase() !== "pending") {
+        console.log(
+          `Expired session ${expiredEvent.id} left its order as "${prior}" — paid and fulfilled orders are never cancelled by an expiry.`
+        );
+        break;
+      }
+
+      const { data: closed, error: closeError } = await utSupabaseAdmin
+        .from("ut_orders")
+        .update({ status: "expired", updated_at: new Date().toISOString() })
+        .eq("stripe_session_id", expiredEvent.id)
+        .eq("status", "pending")
+        .select("id");
+
+      if (closeError) {
+        console.error("Failed to close an expired order:", closeError);
+        return NextResponse.json(
+          { received: true, error: "order_close_failed", session: expiredEvent.id },
+          { status: 503 }
+        );
+      }
+
+      console.log(
+        `Expired session ${expiredEvent.id}: ${closed?.length ?? 0} pending order row(s) marked expired.`
+      );
+      break;
+    }
+
     /* Async methods (SEPA, bank debits) settle AFTER the session completes: `completed` arrives
        with payment_status "unpaid", then `async_payment_succeeded` arrives when the money lands.
        Both are the same write; the settled-payment guard below decides which one may record a sale. */
