@@ -1305,6 +1305,16 @@ body::-webkit-scrollbar-thumb:hover {
 @supports not (background: color-mix(in srgb, red 50%, transparent)) {
   .lg-reading { background: #110f1a; }
 }
+/* Research rooms: the opening reading panel sits directly over the room's own artwork field.
+   At 95% opacity it stamped a black rectangle across the work and the page read as two surfaces.
+   In the room opening only, the panel thins to 58% and picks up a blur, so the field shows through
+   while the type keeps a clean plate to sit on. Everywhere else the panel keeps its full weight. */
+.ut-room-open .lg-reading {
+  background: color-mix(in srgb, var(--lg-reading) 58%, transparent);
+  -webkit-backdrop-filter: blur(8px) saturate(1.08);
+  backdrop-filter: blur(8px) saturate(1.08);
+  border-color: color-mix(in srgb, var(--lg-reading-edge) 55%, transparent);
+}
 .lg-reading::after {
   content: "";
   position: absolute;

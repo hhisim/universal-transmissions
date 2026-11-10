@@ -114,7 +114,7 @@ export default function ResearchGeometryPage({
 <main className="pt-24 pb-20 ut-foreground">
 
         {/* ── HERO ─────────────────────────────────── */}
-        <section className="py-20 relative overflow-hidden">
+        <section className="py-20 relative overflow-hidden ut-room-open">
           <RoomField variant="geometry" accent="var(--ut-gold)" />
           <div
             className="absolute inset-0 pointer-events-none"
