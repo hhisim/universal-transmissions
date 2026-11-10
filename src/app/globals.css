@@ -4288,7 +4288,7 @@ body::-webkit-scrollbar-thumb:hover {
   min-height: calc(var(--mark) * 1.06) !important;
   /* the mark is top-aligned, so stage height no longer sets the gap: this is the safe margin
      that keeps the sigil off the announcement bar without reopening the dead space */
-  padding: clamp(20px, 3vh, 36px) 0 0 !important;
+  padding: clamp(28px, 4vh, 44px) 0 0 !important;
 }
 .ut-logo-hero-copy {
   position: relative;
