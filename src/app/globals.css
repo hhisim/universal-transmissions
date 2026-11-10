@@ -4460,3 +4460,64 @@ header [role="menuitem"]:focus-visible {
   0%   { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Codex opening plates — moved out of an inline <style> inside the page component.
+   A <style> element rendered on the server and re-rendered on the client is a text node the two
+   trees disagree about, which is what React reports as error #425 on /codex. */
+
+        /* THE OPENING COMPOSITION.
+           The plates are the manuscript, and they stay prominent — but they are held to a band on
+           the right, and the copy sits on its own reading panel in front of them. Measured before
+           this: the centre plate covered the paragraph by 333x95px on desktop and 202x189px on a
+           390px screen, so the text was being read through the artwork. */
+        .codex-hero{position:relative}
+        /* Narrower than the band begins, so no plate is behind a word at any width. */
+        .codex-hero-copy{position:relative;z-index:2;max-width:min(42rem,46vw)}
+        .codex-hero-copy::before{content:"";position:absolute;z-index:-1;
+          inset:-2.5rem -5rem -2.5rem -100vw;
+          background:linear-gradient(90deg,
+            rgba(4,3,9,0.97) 0%, rgba(4,3,9,0.95) 42%, rgba(4,3,9,0.72) 68%, rgba(4,3,9,0) 100%)}
+        /* A grid, not a row of fixed widths: the tracks size the plates, so they cannot overflow
+           the band into the copy however wide the viewport is. Each plate keeps the ratio of the
+           file it came from. */
+        .codex-hero-plates{position:relative;pointer-events:none;
+          display:grid;grid-template-columns:0.92fr 1.12fr 1fr;gap:14px;align-items:center;
+          padding-right:3vw}
+        .codex-hero-plate{position:relative;display:block;width:100%;height:auto;overflow:hidden;
+          border:1px solid rgba(212,168,71,0.18);box-shadow:0 24px 60px rgba(0,0,0,0.55)}
+        .codex-hero-plate-0{aspect-ratio:4 / 3;opacity:0.55;transform:translateY(5%) rotate(-2.2deg)}
+        .codex-hero-plate-1{aspect-ratio:900 / 830;opacity:0.8}
+        .codex-hero-plate-2{aspect-ratio:1 / 1;opacity:0.45;transform:translateY(-6%) rotate(2.4deg)}
+        /* Narrow: no image sits behind the words at all. The manuscript plate becomes a band ABOVE
+           the copy, in flow, so the text and the buttons have the page to themselves. */
+        /* Narrow: one column, and the book still leads - it sits above the words rather than
+           behind them. */
+        @media (max-width: 900px){
+          .codex-hero{grid-template-columns:minmax(0,1fr);gap:1.5rem;min-height:auto;padding-top:76px}
+          .codex-hero-plates{order:-1;width:100%;height:32vh;padding:0;
+            grid-template-columns:minmax(0,1fr);justify-items:center}
+          .codex-hero-plate-0,.codex-hero-plate-2{display:none !important}
+          .codex-hero-plate-1{width:min(78vw,340px)}
+          .codex-hero-copy{max-width:none}
+          .codex-hero-copy::before{display:none}
+          .codex-hero-pad{padding-top:1.25rem;padding-bottom:3rem}
+        }
+        .ut-video-gate{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;
+          justify-content:center;cursor:pointer;border:0;padding:0;background:#05040c;overflow:hidden}
+        .ut-video-still{object-fit:cover;transition:transform .6s ease, filter .4s ease;
+          filter:saturate(0.85) brightness(0.72)}
+        .ut-video-gate:hover .ut-video-still{transform:scale(1.04);filter:saturate(1) brightness(0.9)}
+        .ut-video-scrim{position:absolute;inset:0;
+          background:linear-gradient(180deg, rgba(5,4,12,0.35) 0%, rgba(5,4,12,0.15) 45%, rgba(5,4,12,0.75) 100%)}
+        .ut-video-gate-inner{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;
+          color:var(--ut-white);font-family:var(--font-mono,monospace)}
+        .ut-video-gate:focus-visible{outline:2px solid #22d3ee;outline-offset:-3px}
+        .ut-video-gate-mark{display:flex;align-items:center;justify-content:center;width:54px;height:54px;
+          border:1px solid rgba(212,168,71,0.7);border-radius:999px;font-size:16px;color:var(--ut-gold);
+          padding-left:3px;background:rgba(5,4,12,0.55);backdrop-filter:blur(2px)}
+        .ut-video-gate-label{font-size:11px;letter-spacing:0.24em;text-transform:uppercase;
+          text-shadow:0 1px 6px rgba(0,0,0,0.8)}
+        @media (prefers-reduced-motion: reduce){
+          .ut-video-still,.ut-video-gate:hover .ut-video-still{transition:none;transform:none}
+        }
+      

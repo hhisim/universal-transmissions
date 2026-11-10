@@ -184,6 +184,8 @@ export default function Navigation() {
 
   const navRef = useRef<HTMLUListElement>(null);
   const memberRef = useRef<HTMLLIElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
 
   // Close any open dropdown on outside click or Escape.
   useEffect(() => {
@@ -204,6 +206,53 @@ export default function Navigation() {
       document.removeEventListener("keydown", handleKey);
     };
   }, []);
+
+  // The mobile menu is a modal surface: it takes focus on open, keeps Tab inside itself, closes on
+  // Escape, returns focus to the toggle it came from, and holds the page still behind it. Without
+  // this the menu opened with focus left on the page body, Tab walked into the page underneath, and
+  // Escape did nothing at all.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const panel = mobilePanelRef.current;
+    // the scroll container is <html> on this build - hiding overflow on <body> alone left the page
+    // scrolling behind the open menu
+    const html = document.documentElement;
+    const previousBody = document.body.style.overflow;
+    const previousHtml = html.style.overflow;
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    const enter = window.setTimeout(() => {
+      panel?.querySelector<HTMLElement>("a[href], button:not([disabled])")?.focus();
+    }, 80);
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setMobileOpen(false);
+        mobileToggleRef.current?.focus();
+        return;
+      }
+      if (e.key !== "Tab" || !panel) return;
+      const items = Array.from(
+        panel.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")
+      ).filter((el) => el.offsetParent !== null);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(enter);
+      document.removeEventListener("keydown", onKey);
+      html.style.overflow = previousHtml;
+      document.body.style.overflow = previousBody;
+    };
+  }, [mobileOpen]);
 
   // Close the mobile menu and every dropdown on route change.
   useEffect(() => {
@@ -502,9 +551,11 @@ export default function Navigation() {
         <button
           className="xl:hidden grid place-items-center"
           style={{ minWidth: 44, minHeight: 44 }}
+          ref={mobileToggleRef}
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
+          aria-controls="mobile-menu"
         >
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -514,11 +565,16 @@ export default function Navigation() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
+            id="mobile-menu"
+            ref={mobilePanelRef}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="xl:hidden overflow-hidden"
-            style={{ background: "rgba(10, 9, 14, 0.95)", borderBottom: "1px solid rgba(217, 70, 239, 0.06)" }}
+            style={{
+              background: "linear-gradient(180deg, rgba(7,7,11,0.97) 0%, rgba(7,7,11,0.9) 100%)",
+              borderBottom: "1px solid rgba(217, 70, 239, 0.06)",
+            }}
           >
             <ul className="flex flex-col p-6 gap-1">
               {NAV_ITEMS.map((item) =>
